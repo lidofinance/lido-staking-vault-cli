@@ -33,9 +33,9 @@
     "viem": "^2.21.37"
   },
   "devDependencies": {
-    "@qiwi/multi-semantic-release": "^7.1.2",
     "@swc/core": "^1.7.42",
     "@types/node": "^22.8.5",
+    "semantic-release": "^24.2.0",
     "ts-node": "^10.9.2",
     "tsc-alias": "^1.8.10",
     "tsconfig-paths": "^4.2.0",
@@ -50,13 +50,6 @@
         "prerelease": "alpha"
       }
     ]
-  },
-  "multi-release": {
-    "sequentialInit": true,
-    "deps": {
-      "bump": "override",
-      "release": "patch"
-    }
   },
   "packageManager": "yarn@1.22.21+sha1.1959a18351b811cdeedbd484a8f86c3cc3bbaf72"
 }
