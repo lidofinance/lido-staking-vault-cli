@@ -1,5 +1,5 @@
 {
-  "name": "@lidofinance/liquid-staking-vault-cli",
+  "name": "@lidofinance/lsv-cli",
   "main": "dist/index.js",
   "files": [
     "dist"
