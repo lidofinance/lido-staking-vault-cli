@@ -95,6 +95,7 @@ vaultHub
         [vault, capShares, minReserveRatioBP, treasuryFeeBP],
         {
           account: getAccount(chainId),
+          chain: chainId,
         }
       );
 
@@ -117,6 +118,7 @@ vaultHub
     // Execute the mintStethBackedByVault transaction with receiver and amount
     const tx = await contract.write.mintStethBackedByVault([receiver, amount], {
       account: getAccount(chainId),
+      chain: chainId,
     });
 
     // Log the transaction details to the console
@@ -133,6 +135,7 @@ vaultHub
 
     const tx = await contract.write.burnStethBackedByVault([amount], {
       account: getAccount(chainId),
+      chain: chainId,
     });
 
     console.log("Transaction:", tx);
@@ -148,6 +151,7 @@ vaultHub
 
     const tx = await contract.write.forceRebalance([vault], {
       account: getAccount(chainId),
+      chain: chainId,
     });
 
     console.log("Transaction:", tx);
@@ -164,6 +168,7 @@ vaultHub
 
     const tx = await contract.write.rebalance({
       account: getAccount(chainId),
+      chain: chainId,
     });
 
     console.log("Transaction:", tx);
