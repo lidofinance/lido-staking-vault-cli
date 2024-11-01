@@ -3,8 +3,7 @@ import { VaultHubAbi } from "abi/VaultHub";
 import { getDeployedAddress, envs } from "@configs";
 
 export const getVaultHubContract = (chainId?: Chain) => {
-  const currentChainId = chainId ?? process.env.CHAIN_ID;
-  const rpcUrl = envs?.[`RPC_URL_${chainId || currentChainId}`];
+  const rpcUrl = envs?.[`RPC_URL_${chainId || process.env.CHAIN_ID}`];
 
   const vaultHubContract = getContract({
     address: getDeployedAddress("accounting"),
