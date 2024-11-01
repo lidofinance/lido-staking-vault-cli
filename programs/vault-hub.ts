@@ -27,7 +27,7 @@ vaultHub
   .command("v-count")
   .description("get vaults count")
   .option("-c, --chainId <chainId>", "chainId")
-  .action(async (chainId) => {
+  .action(async ({ chainId }) => {
     const contract = getVaultHubContract(chainId);
 
     const vaultsCount = await contract.read.vaultsCount();
