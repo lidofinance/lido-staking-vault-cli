@@ -1,11 +1,12 @@
 {
   "name": "@lidofinance/lsv-cli",
+  "version": "0.0.0",
   "main": "dist/index.js",
   "files": [
     "dist"
   ],
   "bin": {
-    "lsv-cli": "./dist/index.js"
+    "lsv-cli": "dist/index.js"
   },
   "scripts": {
     "start": "ts-node ./index.ts",
