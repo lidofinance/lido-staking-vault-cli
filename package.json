@@ -20,7 +20,7 @@
     "directory": "packages/sdk"
   },
   "bugs": {
-    "url": "https://github.com/lidofinance/liquid-staking-vault-cli//issues"
+    "url": "https://github.com/lidofinance/liquid-staking-vault-cli/issues"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
