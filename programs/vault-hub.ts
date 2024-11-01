@@ -8,7 +8,7 @@ const vaultHub = program.command("vh").description("vault hub contract");
 vaultHub
   .command("constants")
   .description("get vault hub constants")
-  .option("--chainId", "chainId")
+  .option("-c, --chainId <chainId>", "chainId")
   .action(async ({ chainId }) => {
     const contract = getVaultHubContract(chainId);
 
@@ -26,7 +26,7 @@ vaultHub
 vaultHub
   .command("v-count")
   .description("get vaults count")
-  .argument("<chainId>", "chainId")
+  .option("-c, --chainId <chainId>", "chainId")
   .action(async (chainId) => {
     const contract = getVaultHubContract(chainId);
 
@@ -38,9 +38,9 @@ vaultHub
 vaultHub
   .command("v")
   .description("get vault")
-  .argument("<chainId>", "chainId")
+  .option("-c, --chainId <chainId>", "chainId")
   .argument("<index>", "index")
-  .action(async (chainId, index) => {
+  .action(async (index, { chainId }) => {
     const contract = getVaultHubContract(chainId);
 
     const vault = await contract.read.vault(index);
@@ -55,9 +55,9 @@ vaultHub
 vaultHub
   .command("rr-index")
   .description("get reserve ratio by index")
-  .argument("<chainId>", "chainId")
+  .option("-c, --chainId <chainId>", "chainId")
   .argument("<index>", "index")
-  .action(async (chainId, index) => {
+  .action(async (index, { chainId }) => {
     const contract = getVaultHubContract(chainId);
 
     const vault = await contract.read.vault(index);
@@ -69,9 +69,9 @@ vaultHub
 vaultHub
   .command("rr-vault")
   .description("get reserve ratio by vault")
-  .argument("<chainId>", "chainId")
+  .option("-c, --chainId <chainId>", "chainId")
   .argument("<vault>", "vault")
-  .action(async (chainId, vault) => {
+  .action(async (vault, { chainId }) => {
     const contract = getVaultHubContract(chainId);
 
     const reserveRatio = await contract.read.reserveRatio([vault]);
@@ -82,13 +82,13 @@ vaultHub
 vaultHub
   .command("v-connect")
   .description("connect vault")
-  .argument("<chainId>", "chainId")
+  .option("-c, --chainId <chainId>", "chainId")
   .argument("<vault>", "vault")
   .argument("<capShares>", "cap shares")
   .argument("<minReserveRatioBP>", "min reserve ratio bp")
   .argument("<treasuryFeeBP>", "treasury fee bp")
   .action(
-    async (chainId, vault, capShares, minReserveRatioBP, treasuryFeeBP) => {
+    async (vault, capShares, minReserveRatioBP, treasuryFeeBP, { chainId }) => {
       const contract = getVaultHubContract(chainId);
 
       const tx = await contract.write.connectVault(
@@ -108,10 +108,10 @@ vaultHub
   .description(
     "mint StETH tokens backed by vault external balance to the receiver address"
   ) // Description of the command
-  .argument("<chainId>", "chainId") // Argument: chain ID
+  .option("-c, --chainId <chainId>", "chainId") // Argument: chain ID
   .argument("<receiver>", "receiver") // Argument: receiver address
   .argument("<amount>", "amount") // Argument: amount to mint
-  .action(async (chainId, receiver: Address, amount) => {
+  .action(async (receiver: Address, amount, { chainId }) => {
     // Get the VaultHub contract instance for the specified chain ID
     const contract = getVaultHubContract(chainId);
 
@@ -128,9 +128,9 @@ vaultHub
 vaultHub
   .command("v-burn-steth")
   .description("burn steth from the balance of the vault contract")
-  .argument("<chainId>", "chainId")
+  .option("-c, --chainId <chainId>", "chainId")
   .argument("<amount>", "amount")
-  .action(async (chainId, amount) => {
+  .action(async (amount, { chainId }) => {
     const contract = getVaultHubContract(chainId);
 
     const tx = await contract.write.burnStethBackedByVault([amount], {
@@ -144,9 +144,9 @@ vaultHub
 vaultHub
   .command("v-force-balance")
   .description("force rebalance of the vault")
-  .argument("<chainId>", "chainId")
+  .option("-c, --chainId <chainId>", "chainId")
   .argument("<vault>", "vault")
-  .action(async (chainId, vault) => {
+  .action(async (vault, { chainId }) => {
     const contract = getVaultHubContract(chainId);
 
     const tx = await contract.write.forceRebalance([vault], {
@@ -162,8 +162,8 @@ vaultHub
   .description(
     "rebalances the vault, by writing off the amount equal to passed ether from the vault's minted stETH counter"
   )
-  .argument("<chainId>", "chainId")
-  .action(async (chainId) => {
+  .option("-c, --chainId <chainId>", "chainId")
+  .action(async ({ chainId }) => {
     const contract = getVaultHubContract(chainId);
 
     const tx = await contract.write.rebalance({
