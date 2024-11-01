@@ -1,0 +1,30 @@
+name: Check all
+on:
+  pull_request:
+jobs:
+  check-all:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "yarn"
+
+      - name: Install dependencies
+        run: yarn --immutable
+
+      - name: Check Lint
+        run: yarn lint
+
+      - name: Build
+        run: yarn build
+      - name: Check types
+        run: yarn types
+
+      - name: Tests
+        run: yarn test

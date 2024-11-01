@@ -1,0 +1,17 @@
+# env
+.env
+.env.local
+.env.production
+.env.development
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+.yalc
+yalc.lock
+tsconfig.tsbuildinfo
+
+# production
+/build
+/dist

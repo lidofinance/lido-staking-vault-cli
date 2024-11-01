@@ -1,0 +1,39 @@
+{
+  "compilerOptions": {
+    "lib": ["DOM", "ES2022"],
+    "target": "ES2021",
+    "moduleResolution": "node",
+    "useDefineForClassFields": true, // Not enabled by default in `strict` mode unless we bump `target` to ES2022.
+    "noFallthroughCasesInSwitch": true, // Not enabled by default in `strict` mode.
+    "noImplicitReturns": true, // Not enabled by default in `strict` mode.
+    "useUnknownInCatchVariables": true, // Not enabled by default in `strict` mode.
+    "noImplicitOverride": true, // Not enabled by default in `strict` mode.
+    "noUnusedLocals": true, // Not enabled by default in `strict` mode.
+    "noUnusedParameters": true, // Not enabled by default in `strict` mode.
+    "noUncheckedIndexedAccess": true, // Not enabled by default in `strict` mode.
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "strict": true,
+    "strictNullChecks": true,
+    // Skip type checking for node modules
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@command": ["command"],
+      "@configs": ["configs"],
+      "@contracts": ["contracts"],
+      "@scripts": ["scripts"],
+      "@utils": ["utils"],
+      "@abi": ["abi"],
+      "@providers": ["providers"]
+    },
+    "outDir": "dist",
+    "sourceMap": true,
+    "rootDir": ".",
+    "module": "CommonJS"
+  },
+  "ts-node": {
+    "swc": true,
+    "require": ["tsconfig-paths/register"]
+  }
+}
