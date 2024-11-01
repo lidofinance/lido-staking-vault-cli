@@ -29,13 +29,13 @@
   },
   "dependencies": {
     "commander": "^12.1.0",
+    "dotenv": "^16.4.5",
     "viem": "^2.21.37"
   },
   "devDependencies": {
     "@qiwi/multi-semantic-release": "^7.1.2",
     "@swc/core": "^1.7.42",
     "@types/node": "^22.8.5",
-    "dotenv": "^16.4.5",
     "ts-node": "^10.9.2",
     "tsc-alias": "^1.8.10",
     "tsconfig-paths": "^4.2.0",
