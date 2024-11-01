@@ -16,7 +16,7 @@
   "homepage": "https://github.com/lidofinance/liquid-staking-vault-cli/",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/lidofinance/liquid-staking-vault-cli/.git",
+    "url": "git+https://github.com/lidofinance/liquid-staking-vault-cli.git",
     "directory": "packages/sdk"
   },
   "bugs": {
