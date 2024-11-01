@@ -17,7 +17,7 @@ export const importConfigFile = (path?: string) => {
 };
 
 export const getContracts = () => {
-  const deployedFile = envs?.DEPLOYED;
+  const deployedFile = envs?.DEPLOYED || process.env.DEPLOYED;
 
   if (!deployedFile) {
     throw new Error("Deployed contracts file is not set, check .env file");
