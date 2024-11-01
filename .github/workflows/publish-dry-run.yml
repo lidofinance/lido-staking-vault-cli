@@ -4,7 +4,7 @@ on:
   workflow_call:
     secrets:
       NPM_TOKEN:
-        description: 'NPM token'
+        description: "NPM token"
         required: true
 
 jobs:
@@ -22,13 +22,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'yarn'
+          cache: "yarn"
 
       - name: Install dependencies
         run: yarn --immutable
 
       - name: Build
-        run: yarn build:packages
+        run: yarn build
 
       - name: Dry run Publish
         run: |
