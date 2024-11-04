@@ -7,6 +7,11 @@ on:
         description: "NPM token"
         required: true
 
+permissions:
+  contents: write # to be able to publish a GitHub release
+  issues: write # to be able to comment on released issues
+  id-token: write # to enable use of OIDC for npm provenance
+
 jobs:
   publish-dry-run:
     runs-on: ubuntu-latest
@@ -32,8 +37,8 @@ jobs:
 
       - name: Dry run Publish
         run: |
-          yarn semantic-release --dry-run --silent > /tmp/multi-semantic-release-output
-          grep -E '#|###|\*' /tmp/multi-semantic-release-output > dry_run_output.txt || [ $? -eq 1 ]
+          yarn semantic-release --dry-run --silent > /tmp/semantic-release-output
+          grep -E '#|###|\*' /tmp/semantic-release-output > dry_run_output.txt || [ $? -eq 1 ]
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
