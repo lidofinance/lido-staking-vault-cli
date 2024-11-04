@@ -1,5 +1,26 @@
 export const VaultHubAbi = [
   {
+    inputs: [],
+    name: "AccessControlBadConfirmation",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
+      {
+        internalType: "bytes32",
+        name: "neededRole",
+        type: "bytes32",
+      },
+    ],
+    name: "AccessControlUnauthorizedAccount",
+    type: "error",
+  },
+  {
     inputs: [
       {
         internalType: "address",
@@ -7,13 +28,13 @@ export const VaultHubAbi = [
         type: "address",
       },
       {
-        internalType: "int256",
-        name: "reserveRatio",
-        type: "int256",
+        internalType: "uint256",
+        name: "mintedShares",
+        type: "uint256",
       },
       {
         internalType: "uint256",
-        name: "minReserveRatio",
+        name: "rebalancingThresholdInShares",
         type: "uint256",
       },
     ],
@@ -86,17 +107,17 @@ export const VaultHubAbi = [
         type: "address",
       },
       {
-        internalType: "int256",
-        name: "reserveRatio",
-        type: "int256",
-      },
-      {
         internalType: "uint256",
-        name: "minReserveRatio",
+        name: "valuation",
         type: "uint256",
       },
     ],
-    name: "MinReserveRatioReached",
+    name: "InsufficientValuationToMint",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "InvalidInitialization",
     type: "error",
   },
   {
@@ -177,6 +198,11 @@ export const VaultHubAbi = [
       },
     ],
     name: "NotEnoughShares",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "NotInitializing",
     type: "error",
   },
   {
@@ -263,15 +289,15 @@ export const VaultHubAbi = [
     anonymous: false,
     inputs: [
       {
-        indexed: true,
+        indexed: false,
         internalType: "address",
-        name: "vault",
+        name: "sender",
         type: "address",
       },
       {
         indexed: false,
         internalType: "uint256",
-        name: "amountOfTokens",
+        name: "tokens",
         type: "uint256",
       },
     ],
@@ -282,15 +308,28 @@ export const VaultHubAbi = [
     anonymous: false,
     inputs: [
       {
-        indexed: true,
+        indexed: false,
+        internalType: "uint64",
+        name: "version",
+        type: "uint64",
+      },
+    ],
+    name: "Initialized",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
         internalType: "address",
-        name: "vault",
+        name: "sender",
         type: "address",
       },
       {
         indexed: false,
         internalType: "uint256",
-        name: "amountOfTokens",
+        name: "tokens",
         type: "uint256",
       },
     ],
@@ -376,7 +415,7 @@ export const VaultHubAbi = [
     anonymous: false,
     inputs: [
       {
-        indexed: true,
+        indexed: false,
         internalType: "address",
         name: "vault",
         type: "address",
@@ -390,7 +429,7 @@ export const VaultHubAbi = [
       {
         indexed: false,
         internalType: "uint256",
-        name: "minReserveRatioBP",
+        name: "minReserveRatio",
         type: "uint256",
       },
       {
@@ -407,7 +446,7 @@ export const VaultHubAbi = [
     anonymous: false,
     inputs: [
       {
-        indexed: true,
+        indexed: false,
         internalType: "address",
         name: "vault",
         type: "address",
@@ -420,22 +459,16 @@ export const VaultHubAbi = [
     anonymous: false,
     inputs: [
       {
-        indexed: true,
+        indexed: false,
         internalType: "address",
-        name: "vault",
+        name: "sender",
         type: "address",
       },
       {
         indexed: false,
         internalType: "uint256",
-        name: "tokensBurnt",
+        name: "sharesBurned",
         type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "int256",
-        name: "newReserveRatio",
-        type: "int256",
       },
     ],
     name: "VaultRebalanced",
@@ -449,19 +482,6 @@ export const VaultHubAbi = [
         internalType: "bytes32",
         name: "",
         type: "bytes32",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "STETH",
-    outputs: [
-      {
-        internalType: "contract StETH",
-        name: "",
-        type: "address",
       },
     ],
     stateMutability: "view",
@@ -484,7 +504,7 @@ export const VaultHubAbi = [
     inputs: [
       {
         internalType: "uint256",
-        name: "_amountOfTokens",
+        name: "_tokens",
         type: "uint256",
       },
     ],
@@ -496,18 +516,23 @@ export const VaultHubAbi = [
   {
     inputs: [
       {
-        internalType: "contract ILockable",
+        internalType: "contract IHubVault",
         name: "_vault",
         type: "address",
       },
       {
         internalType: "uint256",
-        name: "_capShares",
+        name: "_shareLimit",
         type: "uint256",
       },
       {
         internalType: "uint256",
-        name: "_minReserveRatioBP",
+        name: "_reserveRatio",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "_reserveRatioThreshold",
         type: "uint256",
       },
       {
@@ -531,7 +556,7 @@ export const VaultHubAbi = [
   {
     inputs: [
       {
-        internalType: "contract ILockable",
+        internalType: "contract IHubVault",
         name: "_vault",
         type: "address",
       },
@@ -649,12 +674,12 @@ export const VaultHubAbi = [
     inputs: [
       {
         internalType: "address",
-        name: "_receiver",
+        name: "_recipient",
         type: "address",
       },
       {
         internalType: "uint256",
-        name: "_amountOfTokens",
+        name: "_tokens",
         type: "uint256",
       },
     ],
@@ -662,7 +687,7 @@ export const VaultHubAbi = [
     outputs: [
       {
         internalType: "uint256",
-        name: "totalEtherToLock",
+        name: "totalEtherLocked",
         type: "uint256",
       },
     ],
@@ -685,32 +710,13 @@ export const VaultHubAbi = [
       },
       {
         internalType: "address",
-        name: "account",
+        name: "callerConfirmation",
         type: "address",
       },
     ],
     name: "renounceRole",
     outputs: [],
     stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "contract ILockable",
-        name: "_vault",
-        type: "address",
-      },
-    ],
-    name: "reserveRatio",
-    outputs: [
-      {
-        internalType: "int256",
-        name: "",
-        type: "int256",
-      },
-    ],
-    stateMutability: "view",
     type: "function",
   },
   {
@@ -729,6 +735,19 @@ export const VaultHubAbi = [
     name: "revokeRole",
     outputs: [],
     stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "stETH",
+    outputs: [
+      {
+        internalType: "contract StETH",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -774,7 +793,7 @@ export const VaultHubAbi = [
     name: "vault",
     outputs: [
       {
-        internalType: "contract ILockable",
+        internalType: "contract IHubVault",
         name: "",
         type: "address",
       },
@@ -795,23 +814,28 @@ export const VaultHubAbi = [
       {
         components: [
           {
-            internalType: "contract ILockable",
+            internalType: "contract IHubVault",
             name: "vault",
             type: "address",
           },
           {
             internalType: "uint96",
-            name: "capShares",
+            name: "shareLimit",
             type: "uint96",
           },
           {
             internalType: "uint96",
-            name: "mintedShares",
+            name: "sharesMinted",
             type: "uint96",
           },
           {
             internalType: "uint16",
-            name: "minReserveRatioBP",
+            name: "reserveRatio",
+            type: "uint16",
+          },
+          {
+            internalType: "uint16",
+            name: "reserveRatioThreshold",
             type: "uint16",
           },
           {
@@ -831,7 +855,7 @@ export const VaultHubAbi = [
   {
     inputs: [
       {
-        internalType: "contract ILockable",
+        internalType: "address",
         name: "_vault",
         type: "address",
       },
@@ -841,23 +865,28 @@ export const VaultHubAbi = [
       {
         components: [
           {
-            internalType: "contract ILockable",
+            internalType: "contract IHubVault",
             name: "vault",
             type: "address",
           },
           {
             internalType: "uint96",
-            name: "capShares",
+            name: "shareLimit",
             type: "uint96",
           },
           {
             internalType: "uint96",
-            name: "mintedShares",
+            name: "sharesMinted",
             type: "uint96",
           },
           {
             internalType: "uint16",
-            name: "minReserveRatioBP",
+            name: "reserveRatio",
+            type: "uint16",
+          },
+          {
+            internalType: "uint16",
+            name: "reserveRatioThreshold",
             type: "uint16",
           },
           {
