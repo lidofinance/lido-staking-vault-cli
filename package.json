@@ -33,6 +33,7 @@
     "viem": "^2.21.37"
   },
   "devDependencies": {
+    "@semantic-release/changelog": "^6.0.3",
     "@swc/core": "^1.7.42",
     "@types/node": "^22.8.5",
     "semantic-release": "^24.2.0",
@@ -49,6 +50,18 @@
         "channel": "alpha",
         "prerelease": "alpha"
       }
+    ],
+    "plugins": [
+      "@semantic-release/commit-analyzer",
+      "@semantic-release/release-notes-generator",
+      "@semantic-release/changelog",
+      "@semantic-release/npm",
+      [
+        "@semantic-release/github",
+        {
+          "assets": ["dist/**"]
+        }
+      ]
     ]
   },
   "packageManager": "yarn@1.22.21+sha1.1959a18351b811cdeedbd484a8f86c3cc3bbaf72"
