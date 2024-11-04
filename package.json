@@ -33,7 +33,6 @@
     "viem": "^2.21.37"
   },
   "devDependencies": {
-    "@semantic-release/changelog": "^6.0.3",
     "@swc/core": "^1.7.42",
     "@types/node": "^22.8.5",
     "semantic-release": "^24.2.0",
