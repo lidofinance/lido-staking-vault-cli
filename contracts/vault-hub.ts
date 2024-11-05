@@ -1,5 +1,5 @@
 import { getContract, createPublicClient, http, Chain } from "viem";
-import { VaultHubAbi } from "abi/VaultHub";
+import { VaultHubAbi } from "abi";
 import { getDeployedAddress, envs } from "@configs";
 
 export const getVaultHubContract = (chainId?: Chain) => {
