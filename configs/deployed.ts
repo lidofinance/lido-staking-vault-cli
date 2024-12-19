@@ -1,16 +1,15 @@
 import { lstatSync } from "fs";
+import { zeroAddress, Address } from "viem";
 import { resolve } from "path";
 import { envs } from "./envs";
 import { getValueByPath } from "@utils";
-import { zeroAddress, Address } from "viem";
 
 export const importConfigFile = (path?: string) => {
   const fullPath = resolve("configs", path ?? "");
-  const json: Record<string, Record<string, Address>> = {};
+  let json: Record<string, Record<string, Address>> = {};
 
   if (lstatSync(fullPath).isFile()) {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    Object.assign(json, require(fullPath));
+    json = structuredClone(require(fullPath));
   }
 
   return json;

@@ -2,7 +2,7 @@ import * as dotenv from "dotenv";
 
 const { parsed } = dotenv.config();
 
-export const envs = parsed;
+export const envs = structuredClone(parsed);
 if (envs) {
   envs.DEPLOYED = envs?.DEPLOYED || (process.env.DEPLOYED as string);
   envs.RPC_URL_1 = envs?.RPC_URL_1 || (process.env.RPC_URL_1 as string);

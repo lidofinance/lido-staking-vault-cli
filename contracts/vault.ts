@@ -5,7 +5,7 @@ import { envs } from "@configs";
 export const getStakingVaultContract = (address: Address, chainId?: Chain) => {
   const rpcUrl = envs?.[`RPC_URL_${chainId || process.env.CHAIN_ID}`];
 
-  const vaultHubContract = getContract({
+  return getContract({
     address,
     abi: StakingVaultAbi,
     client: createPublicClient({
@@ -13,6 +13,4 @@ export const getStakingVaultContract = (address: Address, chainId?: Chain) => {
       transport: http(rpcUrl),
     }),
   });
-
-  return vaultHubContract;
 };

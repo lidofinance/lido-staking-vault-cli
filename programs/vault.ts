@@ -1,11 +1,27 @@
 import { program } from "@command";
 import { getStakingVaultContract } from "@contracts";
 import { getAccount } from "@providers";
-import { parseEther } from "viem";
+import {Address, parseEther} from "viem";
 
 const vault = program.command("v").description("vault contract");
 
 // Views
+// info - get vault base info
+// l-report - get latest vault report
+// valuation - get vault valuation
+// is-healthy - get vault isHealthy
+// unlocked - get vault unlocked
+// wc - get vault withdrawal credentials
+// fund - fund vault
+// withdraw - withdraw from vault
+// rebalance - rebalance vault // ??
+// no-deposit-beacon -deposit to beacon chain
+// no-val-exit - request to exit validator
+
+// ? - quick creation any number of Vaults
+// delta - inOutDelta
+// ? - connect Vaults to VaultHub through protocol voting
+// ? - change user permissions / roles by quorum of a pair of addresses
 
 vault
   .command("info")
@@ -97,7 +113,6 @@ vault
   });
 
 // Functions
-
 vault
   .command("fund")
   .description("fund vault")
@@ -152,7 +167,6 @@ vault
   });
 
 // NOs
-
 vault
   .command("no-deposit-beacon")
   .description("deposit to beacon chain")
@@ -190,4 +204,17 @@ vault
     });
 
     console.table({ Transaction: tx });
+  });
+
+vault
+  .command("delta")
+  .description("the net difference between deposits and withdrawals")
+  .argument("<vault>", "vault address")
+  .option("-c, --chainId <chainId>", "chainId")
+  .action(async (vault: Address, { chainId }) => {
+    const contract = getStakingVaultContract(vault, chainId);
+
+    const inOutDelta = await contract.read.inOutDelta();
+
+    console.table({ 'In Out Delta': inOutDelta });
   });
