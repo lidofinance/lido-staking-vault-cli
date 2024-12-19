@@ -1,12 +1,17 @@
 import { lstatSync } from "fs";
-import { zeroAddress, Address } from "viem";
+import {zeroAddress, Address, Chain} from "viem";
 import { resolve } from "path";
 import { envs } from "./envs";
-import { getValueByPath } from "@utils";
+import {getValueByPath, resolvePath, validateConfig} from "@utils";
+import { JSONConfig } from "@types";
 
-export const importConfigFile = (path?: string) => {
-  const fullPath = resolve("configs", path ?? "");
-  let json: Record<string, Record<string, Address>> = {};
+export const importDeployFile = () => {
+  const fullPath = resolve("configs", envs?.DEPLOYED ?? "");
+  if (!fullPath) {
+    throw new Error("Deployed contracts file is not set, check .env file");
+  }
+
+  let json: Record<string, number | string | Chain | any> = {};
 
   if (lstatSync(fullPath).isFile()) {
     json = structuredClone(require(fullPath));
@@ -15,17 +20,74 @@ export const importConfigFile = (path?: string) => {
   return json;
 };
 
-export const getContracts = () => {
-  const deployedFile = envs?.DEPLOYED;
+export const importConfigFile = () => {
+  const path = envs?.CONFIG ?? '';
+  const fullPath = resolvePath(path, __dirname);
 
-  if (!deployedFile) {
-    throw new Error("Deployed contracts file is not set, check .env file");
+  let json = {} as JSONConfig;
+
+  if (lstatSync(fullPath).isFile()) {
+    json = structuredClone(require(fullPath));
   }
 
-  const mainDeployedJSON = importConfigFile(envs?.DEPLOYED);
-  const extraDeployedJSON = importConfigFile(`extra-${envs?.DEPLOYED}`);
+  return json;
+};
 
-  return { ...mainDeployedJSON, ...extraDeployedJSON };
+export const getConfig = (() => {
+  const configJSON = importConfigFile();
+  const errors = validateConfig(configJSON as unknown as JSONConfig);
+  const errorKeys = Object.keys(errors);
+  if (errorKeys.length > 0) {
+    errorKeys.forEach((key) => console.error(`${errors[key as keyof JSONConfig]}`));
+    return () => null;
+  }
+
+  return () => configJSON;
+})();
+
+export const getDeployed = (() => {
+  const deployedJSON = importDeployFile();
+
+  return () => deployedJSON;
+})();
+
+export const getChainId = (() => {
+  let chainId: Chain;
+  const config = getConfig();
+  const deployed = getDeployed();
+
+  if (config) {
+    chainId = config.chainId as Chain;
+  } else if (deployed.chainId) {
+    chainId = deployed.chainId as Chain;
+  } else {
+    chainId = Number(process.env.CHAIN_ID) as unknown as Chain;
+  }
+
+  return () => chainId;
+})();
+
+export const getRpcUrl = (() => {
+  let rpcUrl: string;
+  const config = getConfig();
+
+  if (config) {
+    rpcUrl = config.rpcLink as string;
+  }
+
+  return () => rpcUrl;
+})();
+
+export const getContracts = () => {
+  const config = getConfig();
+  const deployedJSON = getDeployed();
+
+  if (config) {
+    const { lidoLocator, accounting } = config;
+    return { ...deployedJSON, lidoLocator, accounting }
+  }
+
+  return { ...deployedJSON };
 };
 
 export const getContractDeploy = (path: string) => {
@@ -46,8 +108,8 @@ export const getDeployedAddress = (...contractKeys: string[]) => {
     throw new Error(`Contracts by ${contractKeys} not found`);
   }
 
-  if ("proxyAddress" in contract) {
-    return contract.proxyAddress as Address;
+  if ("proxy" in contract && typeof contract.proxy === 'object' && "address" in contract.proxy!) {
+    return contract.proxy.address as Address;
   }
 
   if ("address" in contract) {
@@ -69,22 +131,22 @@ export const getAddressMap = () => {
   const contracts = getContracts();
 
   return Object.entries(contracts).reduce((acc, [key, value]) => {
-    const name = value.contract || key;
-    const proxyAddress =
-      value.proxyAddress || (value.implementation && value.address);
-    const implementation = value.implementation;
-    const isNotProxy = !implementation && !proxyAddress;
+    const name = value?.contract || key;
+    const proxy =
+      value?.proxy || (value?.implementation && value?.address);
+    const implementation = value?.implementation.address;
+    const isNotProxy = !implementation && !proxy;
 
-    if (proxyAddress) {
-      acc[proxyAddress.toLowerCase()] = `Proxy (${name})`;
+    if (proxy) {
+      acc[proxy.toLowerCase()] = `Proxy (${name})`;
     }
 
     if (implementation) {
       acc[implementation.toLowerCase()] = `Implementation (${name})`;
     }
 
-    if (isNotProxy && value.address) {
-      acc[value.address.toLowerCase()] = name;
+    if (isNotProxy && value?.address) {
+      acc[value?.address.toLowerCase()] = name;
     }
 
     return acc;

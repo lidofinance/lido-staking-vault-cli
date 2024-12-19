@@ -5,6 +5,7 @@ import { JSONConfig } from "@types";
 export const validateConfig = (config: JSONConfig) => {
   const errors = {} as Record<keyof JSONConfig, string>;
 
+  console.log('validateConfig::config', config)
   if (!isValidUrl(config.rpcLink)) {
     errors.rpcLink = 'Invalid rpcLink: must be a valid URL.';
   }
@@ -17,8 +18,8 @@ export const validateConfig = (config: JSONConfig) => {
     errors.chainId = 'Invalid chainId: must be a string representing a number.';
   }
 
-  if (typeof config.rootLocatorAddress !== 'string' || !isAddress(config.rootLocatorAddress)) {
-    errors.rootLocatorAddress = 'Invalid rootLocatorAddress: must be a valid Ethereum address.';
+  if (typeof config.lidoLocator !== 'string' || !isAddress(config.lidoLocator)) {
+    errors.lidoLocator = 'Invalid lidoLocator: must be a valid Ethereum address.';
   }
 
   if (typeof config.accounting !== 'string' || !isAddress(config.accounting)) {

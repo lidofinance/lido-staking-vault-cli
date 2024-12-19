@@ -1,7 +1,9 @@
+import { Chain } from "viem";
+
 export interface JSONConfig {
   rpcLink: string | undefined;
   privateKey: string | undefined;
-  chainId: number | undefined;
-  rootLocatorAddress: string | undefined;
+  chainId: Chain | undefined;
+  lidoLocator: string | undefined;
   accounting: string | undefined;
 }

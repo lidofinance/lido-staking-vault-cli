@@ -1,12 +1,13 @@
 import { Address, Chain, createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { envs } from "@configs";
+import {envs, getConfig, getChainId, getRpcUrl} from "@configs";
 
 export const getWalletClient = (chainId?: Chain) => {
-  const rpcUrl = envs?.[`RPC_URL_${chainId || process.env.CHAIN_ID}`];
+  const chain = getChainId() ?? chainId;
+  const rpcUrl = getRpcUrl() ?? envs?.[`RPC_URL_${chain}`];
 
   const client = createWalletClient({
-    chain: chainId,
+    chain,
     transport: http(rpcUrl),
   });
 
@@ -14,15 +15,15 @@ export const getWalletClient = (chainId?: Chain) => {
 };
 
 export const getAccount = (chainId?: Chain) => {
-  const privateKey = envs?.[`PRIVATE_KEY_${chainId || process.env.CHAIN_ID}`];
+  const config = getConfig();
+  const chain = chainId ?? getChainId();
+  const privateKey = config?.privateKey ?? envs?.[`PRIVATE_KEY_${chain}`];
 
   if (!privateKey) {
-    throw new Error(`PRIVATE_KEY_${chainId} is not set`);
+    throw new Error(`Private key for ${chain} chain is not set`);
   }
 
-  const account = privateKeyToAccount(privateKey as Address);
-
-  return account;
+  return privateKeyToAccount(privateKey as Address);
 };
 
 export const getWalletWithAccount = (chainId?: Chain) => {
