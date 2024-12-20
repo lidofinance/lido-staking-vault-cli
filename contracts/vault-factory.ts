@@ -1,16 +1,17 @@
 import { getContract, createPublicClient, http, Chain } from "viem";
 import { VaultFactoryAbi } from "abi";
-import { getDeployedAddress, envs } from "@configs";
+import { getDeployedAddress, envs, getRpcUrl } from "@configs";
 
-export const getVaultFactoryContract = (chainId?: Chain) => {
-  const rpcUrl = envs?.[`RPC_URL_${chainId || process.env.CHAIN_ID}`];
+export const getVaultFactoryContract = (chain: Chain) => {
+  const rpcUrls = getRpcUrl() ?? envs?.[`RPC_URL_${chain}`];
+  const url = rpcUrls.split(',')[0];
 
   return getContract({
     address: getDeployedAddress("stakingVaultFactory"),
     abi: VaultFactoryAbi,
     client: createPublicClient({
-      chain: chainId,
-      transport: http(rpcUrl),
+      chain: chain,
+      transport: http(url),
     }),
   });
 };

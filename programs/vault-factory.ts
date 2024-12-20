@@ -21,10 +21,12 @@ vaultFactory
       operatorFee: string,
       { chainId, manager, operator }: ChainOption & { manager: Address, operator: Address }
     ) => {
-      const contract = getVaultFactoryContract(chainId);
+      const chain = chainId ?? getChainId()
+      const contract = getVaultFactoryContract(chain);
       const managementFee = BigInt(ownerFee);
       const performanceFee = BigInt(operatorFee);
-      const chain = chainId ?? getChainId()
+
+      console.log('vaultFactory::chain', chain)
 
       const tx = await contract.write.createVault(
         [
@@ -39,7 +41,7 @@ vaultFactory
         ],
         {
           account: getAccount(chain),
-          chain,
+          chain: chain,
         }
       );
 

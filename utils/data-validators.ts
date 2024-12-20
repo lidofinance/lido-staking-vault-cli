@@ -5,7 +5,6 @@ import { JSONConfig } from "@types";
 export const validateConfig = (config: JSONConfig) => {
   const errors = {} as Record<keyof JSONConfig, string>;
 
-  console.log('validateConfig::config', config)
   if (!isValidUrl(config.rpcLink)) {
     errors.rpcLink = 'Invalid rpcLink: must be a valid URL.';
   }

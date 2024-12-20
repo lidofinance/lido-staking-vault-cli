@@ -4,11 +4,12 @@ import {envs, getConfig, getChainId, getRpcUrl} from "@configs";
 
 export const getWalletClient = (chainId?: Chain) => {
   const chain = getChainId() ?? chainId;
-  const rpcUrl = getRpcUrl() ?? envs?.[`RPC_URL_${chain}`];
+  const rpcUrls = getRpcUrl() ?? envs?.[`RPC_URL_${chain}`];
+  const url = rpcUrls.split(',')[0];
 
   const client = createWalletClient({
     chain,
-    transport: http(rpcUrl),
+    transport: http(url),
   });
 
   return client;
