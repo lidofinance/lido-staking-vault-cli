@@ -2,10 +2,9 @@
 .env
 .env.local
 .env.production
-.env
 
 # test
-deployed.json
+/deployed.json
 
 # dependencies
 /node_modules
