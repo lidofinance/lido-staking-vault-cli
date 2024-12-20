@@ -1,7 +1,0 @@
-{
-  "rpcLink": "https://1rpc.io/holesky",
-  "privateKey": "0x93655e955c3639126b6d41355457f347488c298746e1ea823fed31df897af38d",
-  "chainId": 17000,
-  "lidoLocator": "0xBEC5b7D2eD56AA3040f9a80877cCF655c95F8D65",
-  "accounting": "0xa9843a9214595f97fBF3434FC0Ea408bC598f232"
-}
