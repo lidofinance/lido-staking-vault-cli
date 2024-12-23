@@ -1,9 +1,10 @@
 import { lstatSync } from "fs";
-import {zeroAddress, Address, Chain} from "viem";
 import { resolve } from "path";
-import { envs } from "./envs";
-import {getValueByPath, resolvePath, validateConfig} from "@utils";
+import { zeroAddress, Address, Chain } from "viem";
+import { getValueByPath, resolvePath, validateConfig } from "@utils";
 import { JSONConfig } from "@types";
+import { envs } from "./envs";
+import { SUPPORTED_CHAINS_LIST } from "./constants";
 
 export const importDeployFile = () => {
   const fullPath = resolve("configs", envs?.DEPLOYED ?? "");
@@ -52,20 +53,25 @@ export const getDeployed = (() => {
 })();
 
 export const getChainId = (() => {
-  let chainId: Chain;
+  let chainId: number;
   const config = getConfig();
   const deployed = getDeployed();
 
   if (config) {
-    chainId = config.chainId as Chain;
+    chainId = config.chainId as number;
   } else if (deployed.chainId) {
-    chainId = deployed.chainId as Chain;
+    chainId = deployed.chainId;
   } else {
-    chainId = Number(process.env.CHAIN_ID) as unknown as Chain;
+    chainId = Number(process.env.CHAIN_ID);
   }
 
   return () => chainId;
 })();
+
+export const getChain = (chainId?: number) => {
+  const id = chainId ?? getChainId();
+  return SUPPORTED_CHAINS_LIST.find(chain => chain.id === id);
+};
 
 export const getRpcUrl = (() => {
   let rpcUrl: string;

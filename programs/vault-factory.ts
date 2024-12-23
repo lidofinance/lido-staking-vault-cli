@@ -3,7 +3,7 @@ import { getVaultFactoryContract } from "@contracts";
 import { program } from "@command";
 import { getAccount } from "@providers";
 import { ChainOption } from "@types";
-import {getChainId, getDeployedAddress} from "@configs";
+import {getChain, getChainId, getDeployedAddress} from "@configs";
 
 const vaultFactory = program.command("vf").description("vault factory contract");
 
@@ -21,12 +21,12 @@ vaultFactory
       operatorFee: string,
       { chainId, manager, operator }: ChainOption & { manager: Address, operator: Address }
     ) => {
-      const chain = chainId ?? getChainId()
-      const contract = getVaultFactoryContract(chain);
+      const id = chainId ?? getChainId()
+      const contract = getVaultFactoryContract(id);
       const managementFee = BigInt(ownerFee);
       const performanceFee = BigInt(operatorFee);
 
-      console.log('vaultFactory::chain', chain)
+      console.log('vaultFactory::chain', id)
 
       const tx = await contract.write.createVault(
         [
@@ -40,8 +40,8 @@ vaultFactory
           getDeployedAddress('app:aragon-agent'),
         ],
         {
-          account: getAccount(chain),
-          chain: chain,
+          account: getAccount(id),
+          chain: getChain(id),
         }
       );
 

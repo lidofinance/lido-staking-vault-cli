@@ -1,3 +1,1 @@
-import { Chain } from "viem";
-
-export type ChainOption = { chainId: Chain };
+export type ChainOption = { chainId: number };

@@ -3,6 +3,7 @@ import { program } from "@command";
 import { getVaultHubContract } from "@contracts";
 import { getAccount } from "@providers";
 import { ChainOption } from "@types";
+import {getChain} from "@configs";
 
 const vaultHub = program.command("vh").description("vault hub contract");
 
@@ -113,7 +114,7 @@ vaultHub
         [vault, shareLimit, reserveRatio, reserveRatioThreshold, treasuryFeeBP],
         {
           account: getAccount(chainId),
-          chain: chainId,
+          chain: getChain(chainId),
         }
       );
 
@@ -131,7 +132,7 @@ vaultHub
 
     const tx = await contract.write.forceRebalance([vault], {
       account: getAccount(chainId),
-      chain: chainId,
+      chain: getChain(chainId),
     });
 
     console.table({
