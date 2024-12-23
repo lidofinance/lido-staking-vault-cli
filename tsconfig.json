@@ -26,6 +26,7 @@
       "@utils": ["utils"],
       "@abi": ["abi"],
       "@providers": ["providers"],
+      "@features": ["features"],
       "@types": ["types"]
     },
     "outDir": "dist",

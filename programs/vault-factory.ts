@@ -1,9 +1,7 @@
-import { Address } from "viem";
-import { getVaultFactoryContract } from "@contracts";
+import { Address, isAddress, isAddressEqual } from "viem";
 import { program } from "@command";
-import { getAccount } from "@providers";
 import { ChainOption } from "@types";
-import {getChain, getChainId, getDeployedAddress} from "@configs";
+import { createVault } from "@features";
 
 const vaultFactory = program.command("vf").description("vault factory contract");
 
@@ -13,38 +11,53 @@ vaultFactory
   .option("-c, --chainId <chainId>", "chainId")
   .option("-m, --manager <manager>", "manager address")
   .option("-o, --operator <operator>", "operator address")
+  .option("-q, --quantity <quantity>", "quantity of vaults to create, default 1, max 10")
   .argument("<ownerFee>", "Vault owner fee, for e.g. 100 == 1%")
   .argument("<operatorFee>", "Node operator fee, for e.g. 100 == 1%")
   .action(
     async (
       ownerFee: string,
       operatorFee: string,
-      { chainId, manager, operator }: ChainOption & { manager: Address, operator: Address }
+      { chainId, manager, operator, quantity = '1' }: ChainOption & { manager: Address, operator: Address, quantity: string }
     ) => {
-      const id = chainId ?? getChainId()
-      const contract = getVaultFactoryContract(id);
       const managementFee = BigInt(ownerFee);
       const performanceFee = BigInt(operatorFee);
+      const qnt = parseInt(quantity);
 
-      console.log('vaultFactory::chain', id)
+      if (!isAddress(manager)) {
+        program.error("manager address is not valid", { exitCode: 1 });
+      }
 
-      const tx = await contract.write.createVault(
-        [
-          '0x',
-          {
-            managementFee,
-            performanceFee,
-            manager,
-            operator,
-          },
-          getDeployedAddress('app:aragon-agent'),
-        ],
-        {
-          account: getAccount(id),
-          chain: getChain(id),
-        }
-      );
+      if (!isAddress(operator)) {
+        program.error("operator address is not valid", { exitCode: 1 });
+      }
 
-      console.table({ 'Vault': tx });
+      if (isAddressEqual(manager, operator)) {
+        program.error("manager address can't be equal operator address", { exitCode: 1 });
+      }
+
+      if (isNaN(qnt)) {
+        program.error("quantity must be a number", { exitCode: 1 });
+      }
+
+      if (qnt > 10) {
+        program.error("quantity can't be greater than 10", { exitCode: 1 });
+      }
+
+      const payload = {
+        quantity: qnt,
+        chainId,
+        manager,
+        operator,
+        managementFee,
+        performanceFee,
+      }
+
+      const transactions = []
+      for await (const tx of createVault(payload)) {
+        transactions.push(tx);
+      }
+
+      console.table(transactions);
     }
   );

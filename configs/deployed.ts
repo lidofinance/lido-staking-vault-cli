@@ -68,9 +68,10 @@ export const getChainId = (() => {
   return () => chainId;
 })();
 
-export const getChain = (chainId?: number) => {
+export const getChain = (chainId?: number): Chain => {
   const id = chainId ?? getChainId();
-  return SUPPORTED_CHAINS_LIST.find(chain => chain.id === id);
+  const chain = SUPPORTED_CHAINS_LIST.find(chain => chain.id === id);
+  return chain ?? SUPPORTED_CHAINS_LIST[0] as Chain;
 };
 
 export const getRpcUrl = (() => {
