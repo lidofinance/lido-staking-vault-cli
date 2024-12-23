@@ -40,10 +40,6 @@ vaultFactory
         program.error("quantity must be a number", { exitCode: 1 });
       }
 
-      if (qnt > 10) {
-        program.error("quantity can't be greater than 10", { exitCode: 1 });
-      }
-
       const payload = {
         quantity: qnt,
         chainId,
