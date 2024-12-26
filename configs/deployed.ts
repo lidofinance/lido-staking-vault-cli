@@ -21,9 +21,9 @@ export const importDeployFile = () => {
   return json;
 };
 
-export const importConfigFile = () => {
-  const path = envs?.CONFIG ?? '';
-  const fullPath = resolvePath(path, __dirname);
+export const importConfigFile = (pathToConfig?: string) => {
+  const path = pathToConfig ?? envs?.CONFIG as string;
+  const fullPath = resolvePath(path);
 
   let json = {} as JSONConfig;
 
@@ -36,6 +36,7 @@ export const importConfigFile = () => {
 
 export const getConfig = (() => {
   const configJSON = importConfigFile();
+
   const errors = validateConfig(configJSON as unknown as JSONConfig);
   const errorKeys = Object.keys(errors);
   if (errorKeys.length > 0) {
