@@ -1,16 +1,14 @@
-import { getContract, createPublicClient, http, Chain, Address } from "viem";
+import { getContract, createPublicClient, http, Address } from "viem";
 import { StakingVaultAbi } from "abi";
-import { envs } from "@configs";
+import { getChain, getRpcUrl } from "@configs";
 
-export const getStakingVaultContract = (address: Address, chainId?: Chain) => {
-  const rpcUrl = envs?.[`RPC_URL_${chainId || process.env.CHAIN_ID}`];
-
+export const getStakingVaultContract = (address: Address) => {
   return getContract({
     address,
     abi: StakingVaultAbi,
     client: createPublicClient({
-      chain: chainId,
-      transport: http(rpcUrl),
+      chain: getChain(),
+      transport: http(getRpcUrl()),
     }),
   });
 };

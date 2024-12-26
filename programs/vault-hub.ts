@@ -2,8 +2,7 @@ import { Address } from "viem";
 import { program } from "@command";
 import { getVaultHubContract } from "@contracts";
 import { getAccount } from "@providers";
-import { ChainOption } from "@types";
-import {getChain} from "@configs";
+import { getChain } from "@configs";
 
 const vaultHub = program.command("vh").description("vault hub contract");
 
@@ -21,21 +20,19 @@ const vaultHub = program.command("vh").description("vault hub contract");
 vaultHub
   .command("constants")
   .description("get vault hub constants")
-  .option("-c, --chainId <chainId>", "chainId")
-  .action(async ({ chainId }: ChainOption) => {
-    const contract = getVaultHubContract(chainId);
+  .action(async () => {
+    const contract = getVaultHubContract();
 
     const VAULT_MASTER_ROLE = await contract.read.VAULT_MASTER_ROLE();
     const DEFAULT_ADMIN_ROLE = await contract.read.DEFAULT_ADMIN_ROLE();
-    const STETH = await contract.read.stETH();
-    const TREASURY = await contract.read.treasury();
+    // TODO: get stETH
+    // const STETH = await contract.read.stETH();
     const address = contract.address;
 
     console.table({
       VAULT_MASTER_ROLE,
       DEFAULT_ADMIN_ROLE,
-      STETH,
-      TREASURY,
+      // STETH,
       VaultHub: address,
     });
   });
@@ -43,10 +40,8 @@ vaultHub
 vaultHub
   .command("v-count")
   .description("get vaults count")
-  .option("-c, --chainId <chainId>", "chainId")
-  .action(async ({ chainId }: ChainOption) => {
-    const contract = getVaultHubContract(chainId);
-
+  .action(async () => {
+    const contract = getVaultHubContract();
     const vaultsCount = await contract.read.vaultsCount();
 
     console.table({
@@ -57,13 +52,11 @@ vaultHub
 vaultHub
   .command("vi")
   .description("get vault and vault socket by index")
-  .option("-c, --chainId <chainId>", "chainId")
   .argument("<index>", "index")
-  .action(async (index: readonly [bigint], { chainId }: ChainOption) => {
-    const contract = getVaultHubContract(chainId);
-
-    const vault = await contract.read.vault(index);
-    const vaultSocket = await contract.read.vaultSocket(index);
+  .action(async (index: bigint) => {
+    const contract = getVaultHubContract();
+    const vault = await contract.read.vault([index]);
+    const vaultSocket = await contract.read.vaultSocket([index]);
 
     console.table({
       Vault: vault,
@@ -74,12 +67,10 @@ vaultHub
 vaultHub
   .command("va")
   .description("get vault socket by address")
-  .option("-c, --chainId <chainId>", "chainId")
   .argument("<address>", "address")
-  .action(async (address: readonly [Address], { chainId }: ChainOption) => {
-    const contract = getVaultHubContract(chainId);
-
-    const vaultSocket = await contract.read.vaultSocket(address);
+  .action(async (address: Address) => {
+    const contract = getVaultHubContract();
+    const vaultSocket = await contract.read.vaultSocket([address]);
 
     console.table({ "Vault Socket": vaultSocket });
   });
@@ -87,8 +78,7 @@ vaultHub
 vaultHub
   .command("v-connect")
   .description("connects a vault to the hub")
-  .option("-c, --chainId <chainId>", "chainId")
-  .argument("<vault>", "vault address")
+  .argument("<address>", "vault address")
   .argument(
     "<shareLimit>",
     "maximum number of stETH shares that can be minted by the vault"
@@ -101,20 +91,18 @@ vaultHub
   .argument("<treasuryFeeBP>", "treasury fee in basis points")
   .action(
     async (
-      vault: Address,
+      address: Address,
       shareLimit: bigint,
       reserveRatio: bigint,
       reserveRatioThreshold: bigint,
       treasuryFeeBP: bigint,
-      { chainId }: ChainOption
     ) => {
-      const contract = getVaultHubContract(chainId);
-
+      const contract = getVaultHubContract();
       const tx = await contract.write.connectVault(
-        [vault, shareLimit, reserveRatio, reserveRatioThreshold, treasuryFeeBP],
+        [address, shareLimit, reserveRatio, reserveRatioThreshold, treasuryFeeBP],
         {
-          account: getAccount(chainId),
-          chain: getChain(chainId),
+          account: getAccount(),
+          chain: getChain(),
         }
       );
 
@@ -125,14 +113,12 @@ vaultHub
 vaultHub
   .command("v-force-rebalance")
   .description("force rebalance of the vault to have sufficient reserve ratio")
-  .option("-c, --chainId <chainId>", "chainId")
-  .argument("<vault>", "vault address")
-  .action(async (vault: Address, { chainId }: ChainOption) => {
-    const contract = getVaultHubContract(chainId);
-
-    const tx = await contract.write.forceRebalance([vault], {
-      account: getAccount(chainId),
-      chain: getChain(chainId),
+  .argument("<address>", "vault address")
+  .action(async (address: Address) => {
+    const contract = getVaultHubContract();
+    const tx = await contract.write.forceRebalance([address], {
+      account: getAccount(),
+      chain: getChain(),
     });
 
     console.table({
@@ -144,11 +130,9 @@ vaultHub
 vaultHub
   .command("v-role-admin")
   .description("returns the admin role that controls `role`")
-  .option("-c, --chainId <chainId>", "chainId")
   .argument("<role>", "role")
-  .action(async (role: readonly [Address], { chainId }: ChainOption) => {
-    const contract = getVaultHubContract(chainId);
-
+  .action(async (role: readonly [Address]) => {
+    const contract = getVaultHubContract();
     const roleAdmin = await contract.read.getRoleAdmin(role);
 
     console.table({
@@ -159,17 +143,11 @@ vaultHub
 vaultHub
   .command("v-role-member")
   .description("returns one of the accounts that have `role`")
-  .option("-c, --chainId <chainId>", "chainId")
   .argument("<role>", "role")
   .argument("<index>", "index")
-  .action(async (
-    role: readonly [Address, bigint],
-    index,
-    { chainId }: ChainOption
-  ) => {
-    const contract = getVaultHubContract(chainId);
-
-    const roleMember = await contract.read.getRoleMember(role, index);
+  .action(async (role: Address, index: bigint) => {
+    const contract = getVaultHubContract();
+    const roleMember = await contract.read.getRoleMember([role, index]);
 
     console.table({
       "Role member": roleMember,
@@ -179,12 +157,10 @@ vaultHub
 vaultHub
   .command("v-role-member-count")
   .description("returns the number of accounts that have `role`")
-  .option("-c, --chainId <chainId>", "chainId")
   .argument("<role>", "role")
   .argument("<index>", "index")
-  .action(async (role: readonly [Address], index, { chainId }: ChainOption) => {
-    const contract = getVaultHubContract(chainId);
-
+  .action(async (role: readonly [Address], index) => {
+    const contract = getVaultHubContract();
     const roleMemberCount = await contract.read.getRoleMemberCount(role, index);
 
     console.table({
@@ -195,13 +171,11 @@ vaultHub
 vaultHub
   .command("v-role-has")
   .description("returns `true` if `account` has been granted `role`")
-  .option("-c, --chainId <chainId>", "chainId")
   .argument("<role>", "role")
   .argument("<account>", "account")
-  .action(async (role: readonly [Address, Address], account, { chainId }: ChainOption) => {
-    const contract = getVaultHubContract(chainId);
-
-    const roleHas = await contract.read.hasRole(role, account);
+  .action(async (role: Address, account: Address) => {
+    const contract = getVaultHubContract();
+    const roleHas = await contract.read.hasRole([role, account]);
 
     console.table({
       "Role has": roleHas,

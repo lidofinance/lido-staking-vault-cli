@@ -68,21 +68,24 @@ export const getChainId = (() => {
   return () => chainId;
 })();
 
-export const getChain = (chainId?: number): Chain => {
-  const id = chainId ?? getChainId();
+export const getChain = (): Chain => {
+  const id = getChainId();
   const chain = SUPPORTED_CHAINS_LIST.find(chain => chain.id === id);
   return chain ?? SUPPORTED_CHAINS_LIST[0] as Chain;
 };
 
 export const getRpcUrl = (() => {
-  let rpcUrl: string;
+  let rpcUrls: string;
+  const id = getChainId();
   const config = getConfig();
 
   if (config) {
-    rpcUrl = config.rpcLink as string;
+    rpcUrls = config.rpcLink as string;
+  } else {
+    rpcUrls = envs?.[`RPC_URL_${id}`] as string;
   }
 
-  return () => rpcUrl;
+  return () => rpcUrls.split(',')[0] as string;
 })();
 
 export const getContracts = () => {

@@ -1,10 +1,20 @@
-export type ChainOption = { chainId: number };
+import { Address } from "viem";
 
 export interface VaultPayload {
-  chainId: number;
-  manager: string;
-  operator: string;
-  quantity: number;
-  managementFee: bigint;
-  performanceFee: bigint;
+  curator: Address;
+  staker: Address;
+  tokenMaster: Address;
+  operator: Address;
+  claimOperatorDueRole: Address;
+  curatorFee: bigint;
+  operatorFee: bigint;
+}
+
+export interface CreateVaultPayload {
+  curator: Address;
+  operator: Address;
+  staker: Address;
+  tokenMaster: Address;
+  claimOperatorDue: Address;
+  quantity: string;
 }

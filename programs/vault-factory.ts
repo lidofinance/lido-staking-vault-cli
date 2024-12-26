@@ -1,56 +1,90 @@
-import { Address, isAddress, isAddressEqual } from "viem";
+import { isAddress, isAddressEqual } from "viem";
 import { program } from "@command";
-import { ChainOption } from "@types";
 import { createVault } from "@features";
+import { CreateVaultPayload } from "@types";
 
 const vaultFactory = program.command("vf").description("vault factory contract");
 
 vaultFactory
   .command("create-vault")
-  .description("create vault contract and assign manager and operator")
-  .option("-c, --chainId <chainId>", "chainId")
-  .option("-m, --manager <manager>", "manager address")
+  .description("create vault contract")
+  .option("-c, --curator <curator>", "curator address")
   .option("-o, --operator <operator>", "operator address")
-  .option("-q, --quantity <quantity>", "quantity of vaults to create, default 1, max 10")
-  .argument("<ownerFee>", "Vault owner fee, for e.g. 100 == 1%")
-  .argument("<operatorFee>", "Node operator fee, for e.g. 100 == 1%")
+  .option("-s, --staker <staker>", "staker address")
+  .option("-t, --token-master <tokenMaster>", "token master address")
+  .option("-d, --claim-operator-due <claimOperatorDue>", "operator due address")
+  .option("-q, --quantity <quantity>", "quantity of vaults to create, default 1")
+  .argument("<managerFee>", "Vault curator fee, for e.g. 100 == 1%")
+  .argument("<performanceFee>", "Node operator fee, for e.g. 100 == 1%")
   .action(
     async (
-      ownerFee: string,
-      operatorFee: string,
-      { chainId, manager, operator, quantity = '1' }: ChainOption & { manager: Address, operator: Address, quantity: string }
+      managerFee: string,
+      performanceFee: string,
+      options: CreateVaultPayload
     ) => {
-      const managementFee = BigInt(ownerFee);
-      const performanceFee = BigInt(operatorFee);
+      const { curator, operator, staker, tokenMaster, claimOperatorDue, quantity = '1' } = options;
+      let curatorFee = parseInt(managerFee);
+      let operatorFee = parseInt(performanceFee);
       const qnt = parseInt(quantity);
 
-      if (!isAddress(manager)) {
-        program.error("manager address is not valid", { exitCode: 1 });
+      if (isNaN(curatorFee) || curatorFee < 0) {
+        program.error("curator fee must be a positive number", { exitCode: 1 });
+      }
+
+      if (isNaN(operatorFee) || operatorFee < 0) {
+        program.error("operator fee must be a positive number", { exitCode: 1 });
+      }
+
+      if (!isAddress(curator)) {
+        program.error("curator address is not valid", { exitCode: 1 });
       }
 
       if (!isAddress(operator)) {
         program.error("operator address is not valid", { exitCode: 1 });
       }
 
-      if (isAddressEqual(manager, operator)) {
-        program.error("manager address can't be equal operator address", { exitCode: 1 });
+      if (!isAddress(staker)) {
+        program.error("staker address is not valid", { exitCode: 1 });
+      }
+
+      if (!isAddress(tokenMaster)) {
+        program.error("token master address is not valid", { exitCode: 1 });
+      }
+
+      if (!isAddress(claimOperatorDue)) {
+        program.error("operator due address is not valid", { exitCode: 1 });
+      }
+
+      if (isAddressEqual(curator, operator)) {
+        program.error("curator address can't be equal operator address", { exitCode: 1 });
+      }
+
+      if (isAddressEqual(tokenMaster, operator)) {
+        program.error("token master address can't be equal operator address", { exitCode: 1 });
+      }
+
+      if (isAddressEqual(staker, operator)) {
+        program.error("staker address can't be equal operator address", { exitCode: 1 });
       }
 
       if (isNaN(qnt)) {
         program.error("quantity must be a number", { exitCode: 1 });
       }
 
+      const list = Array.from(Array(qnt));
       const payload = {
-        quantity: qnt,
-        chainId,
-        manager,
+        curator,
+        staker,
+        tokenMaster,
         operator,
-        managementFee,
-        performanceFee,
+        claimOperatorDueRole: claimOperatorDue,
+        curatorFee: BigInt(curatorFee),
+        operatorFee: BigInt(operatorFee),
       }
 
       const transactions = []
-      for await (const tx of createVault(payload)) {
+      for (const _ of list) {
+        const tx = await createVault(payload);
         transactions.push(tx);
       }
 

@@ -1,36 +1,26 @@
-import {getChain, getChainId, getDeployedAddress} from "@configs";
+import { waitForTransactionReceipt } from "viem/actions";
+import { getChain } from "@configs";
 import { getAccount } from "@providers";
 import { VaultPayload } from "@types";
 import { getVaultFactoryContract } from "@contracts";
 
-export async function* createVault({
-  chainId,
-  manager,
-  operator,
-  quantity,
-  managementFee,
-  performanceFee,
-}: VaultPayload) {
-  const id = chainId ?? getChainId()
-  const contract = getVaultFactoryContract(id);
-  const chain = getChain(id);
+export const createVault = async (payload: VaultPayload) => {
+  const { contract, client } = getVaultFactoryContract();
 
-  for (let _ of Array.from(Array(quantity))) {
-    yield await contract.write.createVault(
-      [
-        '0x',
-        {
-          managementFee,
-          performanceFee,
-          manager,
-          operator,
-        },
-        getDeployedAddress('app:aragon-agent'),
-      ],
-      {
-        account: getAccount(chain.id),
-        chain,
-      }
-    );
-  }
+  const tx = await contract.write.createVault(
+    [
+      { ...payload },
+      '0x'
+    ],
+    {
+      account: getAccount(),
+      chain: getChain(),
+    }
+  );
+
+  const receipt = await waitForTransactionReceipt(client, { hash: tx });
+
+  console.log('createVault::receipt', receipt);
+
+  return tx;
 }

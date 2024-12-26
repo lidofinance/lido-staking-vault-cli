@@ -1,13 +1,13 @@
 import { getContract, createPublicClient, http } from "viem";
-import { VaultHubAbi } from "abi";
+import { DashboardAbi } from "abi";
 import { getDeployedAddress, getChain, getRpcUrl } from "@configs";
 
-export const getVaultHubContract = () => {
+export const getDashboardContract = () => {
   const rpcUrl = getRpcUrl();
 
   return getContract({
     address: getDeployedAddress("accounting"),
-    abi: VaultHubAbi,
+    abi: DashboardAbi,
     client: createPublicClient({
       chain: getChain(),
       transport: http(rpcUrl),

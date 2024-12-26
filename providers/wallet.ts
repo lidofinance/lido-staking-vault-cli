@@ -2,22 +2,16 @@ import { Address, createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { envs, getConfig, getChainId, getRpcUrl, getChain } from "@configs";
 
-export const getWalletClient = (chainId?: number) => {
-  const id = getChainId() ?? chainId;
-  const rpcUrls = getRpcUrl() ?? envs?.[`RPC_URL_${id}`];
-  const url = rpcUrls.split(',')[0];
-
-  const client = createWalletClient({
-    chain: getChain(id),
-    transport: http(url),
+export const getWalletClient = () => {
+  return createWalletClient({
+    chain: getChain(),
+    transport: http(getRpcUrl()),
   });
-
-  return client;
 };
 
-export const getAccount = (chainId?: number) => {
+export const getAccount = () => {
   const config = getConfig();
-  const id = chainId ?? getChainId();
+  const id = getChainId();
   const privateKey = config?.privateKey ?? envs?.[`PRIVATE_KEY_${id}`];
 
   if (!privateKey) {
@@ -27,15 +21,12 @@ export const getAccount = (chainId?: number) => {
   return privateKeyToAccount(privateKey as Address);
 };
 
-export const getWalletWithAccount = (chainId?: number) => {
-  const rpcUrl = envs?.[`RPC_URL_${chainId || process.env.CHAIN_ID}`];
-  const id = chainId ?? getChainId();
-
-  const account = getAccount(id);
+export const getWalletWithAccount = () => {
+  const account = getAccount();
   const client = createWalletClient({
     account,
-    chain: getChain(id),
-    transport: http(rpcUrl),
+    chain: getChain(),
+    transport: http(getRpcUrl()),
   });
 
   return { client, account };
