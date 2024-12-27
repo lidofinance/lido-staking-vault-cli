@@ -1,11 +1,14 @@
 import { waitForTransactionReceipt } from "viem/actions";
+import { parseEventLogs } from "viem";
 import { getChain } from "@configs";
 import { getAccount } from "@providers";
 import { VaultPayload } from "@types";
 import { getVaultFactoryContract } from "@contracts";
+import { VaultFactoryAbi } from "abi";
 
 export const createVault = async (payload: VaultPayload) => {
   const { contract, client } = getVaultFactoryContract();
+  const chain = getChain();
 
   const tx = await contract.write.createVault(
     [
@@ -14,13 +17,22 @@ export const createVault = async (payload: VaultPayload) => {
     ],
     {
       account: getAccount(),
-      chain: getChain(),
+      chain,
     }
   );
 
   const receipt = await waitForTransactionReceipt(client, { hash: tx });
+  const events = parseEventLogs({
+    abi: VaultFactoryAbi,
+    logs: receipt.logs,
+  });
 
-  console.log('createVault::receipt', receipt);
+  const vaultEvent = events.find(event => event.eventName === 'VaultCreated');
+  const address = vaultEvent?.args.vault;
 
-  return tx;
+  return {
+    address,
+    tx,
+    blockNumber: receipt.blockNumber,
+  };
 }

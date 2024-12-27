@@ -109,6 +109,7 @@ export const getDeployedAddress = (...contractKeys: string[]) => {
   const contracts = contractKeys.map((contractKey) =>
     getContractDeploy(contractKey)
   );
+
   const contract = contracts.find((contract) => contract);
 
   if (typeof contract === "string") {
