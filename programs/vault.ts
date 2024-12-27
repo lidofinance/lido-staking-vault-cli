@@ -1,5 +1,5 @@
 import { program } from "@command";
-import { getStakingVaultContract } from "@contracts";
+import {getStakingVaultContract, getStethContract} from "@contracts";
 import { getAccount } from "@providers";
 import { Address, parseEther } from "viem";
 import { getChain } from "@configs";
@@ -18,21 +18,21 @@ const vault = program.command("v").description("vault contract");
 // no-deposit-beacon -deposit to beacon chain
 // no-val-exit - request to exit validator
 
-// ? - quick creation any number of Vaults
 // delta - inOutDelta
 // ? - connect Vaults to VaultHub through protocol voting
 // ? - change user permissions / roles by quorum of a pair of addresses
 
+// Works
 vault
   .command("info")
   .description("get vault base info")
   .argument("<address>", "vault address")
   .action(async (address: Address) => {
     const contract = getStakingVaultContract(address);
+    const stEthContract = getStethContract();
 
     const vaultHubAddress = await contract.read.vaultHub();
-    // TODO: get stETH address
-    // const stethAddress = await contract.read.stETH();
+    const stethAddress = stEthContract.address;
     const wc = await contract.read.withdrawalCredentials();
     const latestReport = await contract.read.latestReport();
     const inOutDelta = await contract.read.inOutDelta();
@@ -41,61 +41,62 @@ vault
       vault: address,
       vaultHub: vaultHubAddress,
       "Withdrawal Credentials": wc,
-      // steth: stethAddress,
+      steth: stethAddress,
       latestReport,
       inOutDelta,
     });
   });
 
+// Works
 vault
   .command("l-report")
   .description("get latest vault report")
   .argument("<address>", "vault address")
   .action(async (address: Address) => {
     const contract = getStakingVaultContract(address);
-
     const report = await contract.read.latestReport();
 
     console.table({ "latest report": report });
   });
 
+// Works
 vault
   .command("valuation")
   .description("get vault valuation")
   .argument("<address>", "vault address")
   .action(async (address: Address) => {
     const contract = getStakingVaultContract(address);
-
     const valuation = await contract.read.valuation();
 
     console.table({ valuation });
   });
 
+// Works
 vault
   .command("unlocked")
   .description("get vault unlocked")
   .argument("<address>", "vault address")
   .action(async (address: Address) => {
     const contract = getStakingVaultContract(address);
-
     const unlocked = await contract.read.unlocked();
 
     console.table({ unlocked });
   });
 
+// Works
 vault
-  .command("wc")
+  .command("withdrawal-c")
   .description("get vault withdrawal credentials")
   .argument("<address>", "vault address")
   .action(async (address: Address) => {
     const contract = getStakingVaultContract(address);
-
     const wc = await contract.read.withdrawalCredentials();
 
     console.table({ wc });
   });
 
 // Functions
+// TODO: investigate why only owner can fund vault
 vault
   .command("fund")
   .description("fund vault")
@@ -113,6 +114,7 @@ vault
     console.table({ Transaction: tx });
   });
 
+// TODO: investigate why only owner can fund vault
 vault
   .command("withdraw")
   .description("withdraw from vault")
@@ -130,12 +132,13 @@ vault
     console.table({ Transaction: tx });
   });
 
+// TODO: fund balance and retest
 vault
   .command("rebalance")
   .description("rebalance vault")
-  .argument("<amount>", "amount to rebalance")
   .argument("<address>", "vault address")
-  .action(async (amount: Address, address: Address) => {
+  .argument("<amount>", "amount to rebalance")
+  .action(async (address: Address, amount: Address) => {
     const contract = getStakingVaultContract(address);
 
     const tx = await contract.write.rebalance([parseEther(amount)], {
@@ -147,6 +150,7 @@ vault
   });
 
 // NOs
+// TODO: get more details
 vault
   .command("no-deposit-beacon")
   .description("deposit to beacon chain")
@@ -169,6 +173,7 @@ vault
     console.table({ Transaction: tx });
   });
 
+// TODO: get more details
 vault
   .command("no-val-exit")
   .description("request to exit validator")
@@ -185,6 +190,7 @@ vault
     console.table({ Transaction: tx });
   });
 
+// Works
 vault
   .command("delta")
   .description("the net difference between deposits and withdrawals")

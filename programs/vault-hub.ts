@@ -1,6 +1,6 @@
 import { Address } from "viem";
 import { program } from "@command";
-import { getVaultHubContract } from "@contracts";
+import { getVaultHubContract, getStethContract } from "@contracts";
 import { getAccount } from "@providers";
 import { getChain } from "@configs";
 
@@ -17,29 +17,31 @@ const vaultHub = program.command("vh").description("vault hub contract");
 // v-role-member-count - returns the number of accounts that have `role`
 // v-role-has - returns `true` if `account` has been granted `role`
 
+// Works fine
 vaultHub
   .command("constants")
   .description("get vault hub constants")
   .action(async () => {
     const contract = getVaultHubContract();
+    const stEthContract = getStethContract();
 
     const VAULT_MASTER_ROLE = await contract.read.VAULT_MASTER_ROLE();
     const DEFAULT_ADMIN_ROLE = await contract.read.DEFAULT_ADMIN_ROLE();
-    // TODO: get stETH
-    // const STETH = await contract.read.stETH();
+    const STETH = stEthContract.address;
     const address = contract.address;
 
     console.table({
       VAULT_MASTER_ROLE,
       DEFAULT_ADMIN_ROLE,
-      // STETH,
+      STETH,
       VaultHub: address,
     });
   });
 
+// Works fine
 vaultHub
   .command("v-count")
-  .description("get vaults count")
+  .description("get connected vaults number")
   .action(async () => {
     const contract = getVaultHubContract();
     const vaultsCount = await contract.read.vaultsCount();
@@ -49,14 +51,17 @@ vaultHub
     });
   });
 
+// TODO: investigate how to pass right index
+// index === 0 PositionOutOfBoundsError: Position `223` is out of bounds (`0 < position < 192`)
 vaultHub
   .command("vi")
   .description("get vault and vault socket by index")
   .argument("<index>", "index")
-  .action(async (index: bigint) => {
+  .action(async (index: string) => {
+    const biIndex = BigInt(index);
     const contract = getVaultHubContract();
-    const vault = await contract.read.vault([index]);
-    const vaultSocket = await contract.read.vaultSocket([index]);
+    const vault = await contract.read.vault([biIndex]);
+    const vaultSocket = await contract.read.vaultSocket([biIndex]);
 
     console.table({
       Vault: vault,
@@ -64,6 +69,7 @@ vaultHub
     });
   });
 
+// TODO: check when vault will be connected
 vaultHub
   .command("va")
   .description("get vault socket by address")
@@ -75,9 +81,10 @@ vaultHub
     console.table({ "Vault Socket": vaultSocket });
   });
 
+// TODO: need access to account with access to accounting
 vaultHub
   .command("v-connect")
-  .description("connects a vault to the hub")
+  .description("connects a vault to the hub (vault master role needed)")
   .argument("<address>", "vault address")
   .argument(
     "<shareLimit>",
@@ -110,6 +117,7 @@ vaultHub
     }
   );
 
+// TODO: test on connected vault
 vaultHub
   .command("v-force-rebalance")
   .description("force rebalance of the vault to have sufficient reserve ratio")
@@ -127,19 +135,21 @@ vaultHub
   });
 
 // Roles
+// Works
 vaultHub
   .command("v-role-admin")
   .description("returns the admin role that controls `role`")
   .argument("<role>", "role")
-  .action(async (role: readonly [Address]) => {
+  .action(async (role: Address) => {
     const contract = getVaultHubContract();
-    const roleAdmin = await contract.read.getRoleAdmin(role);
+    const roleAdmin = await contract.read.getRoleAdmin([role]);
 
     console.table({
       "Role admin": roleAdmin,
     });
   });
 
+// Works
 vaultHub
   .command("v-role-member")
   .description("returns one of the accounts that have `role`")
@@ -154,20 +164,21 @@ vaultHub
     });
   });
 
+// Works
 vaultHub
   .command("v-role-member-count")
   .description("returns the number of accounts that have `role`")
   .argument("<role>", "role")
-  .argument("<index>", "index")
-  .action(async (role: readonly [Address], index) => {
+  .action(async (role: Address) => {
     const contract = getVaultHubContract();
-    const roleMemberCount = await contract.read.getRoleMemberCount(role, index);
+    const roleMemberCount = await contract.read.getRoleMemberCount([role]);
 
     console.table({
       "Role member count": roleMemberCount,
     });
   });
 
+// Works
 vaultHub
   .command("v-role-has")
   .description("returns `true` if `account` has been granted `role`")
