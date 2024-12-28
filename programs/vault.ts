@@ -11,15 +11,17 @@ const vault = program.command("v").description("vault contract");
 // l-report - get latest vault report
 // valuation - get vault valuation
 // unlocked - get vault unlocked
-// wc - get vault withdrawal credentials
+// locked - get vault locked
+// is-balanced - vault isBalanced
+// operator - address of the node operator
+// withdrawal-c - get vault withdrawal credentials
 // fund - fund vault
 // withdraw - withdraw from vault
 // rebalance - rebalance vault // ??
 // no-deposit-beacon -deposit to beacon chain
 // no-val-exit - request to exit validator
-
 // delta - inOutDelta
-// ? - connect Vaults to VaultHub through protocol voting
+
 // ? - change user permissions / roles by quorum of a pair of addresses
 
 // Works
@@ -61,6 +63,30 @@ vault
 
 // Works
 vault
+  .command("is-balanced")
+  .description("returns whether `StakingVault` is balanced, i.e. its valuation is greater than the locked amount")
+  .argument("<address>", "vault address")
+  .action(async (address: Address) => {
+    const contract = getStakingVaultContract(address);
+    const isBalanced = await contract.read.isBalanced();
+
+    console.table({ "Is balanced": isBalanced });
+  });
+
+// Works
+vault
+  .command("operator")
+  .description("returns the address of the node operator")
+  .argument("<address>", "vault address")
+  .action(async (address: Address) => {
+    const contract = getStakingVaultContract(address);
+    const operator = await contract.read.operator();
+
+    console.table({ "Operator address": operator });
+  });
+
+// Works
+vault
   .command("valuation")
   .description("get vault valuation")
   .argument("<address>", "vault address")
@@ -81,6 +107,18 @@ vault
     const unlocked = await contract.read.unlocked();
 
     console.table({ unlocked });
+  });
+
+// Works
+vault
+  .command("locked")
+  .description("get vault locked")
+  .argument("<address>", "vault address")
+  .action(async (address: Address) => {
+    const contract = getStakingVaultContract(address);
+    const locked = await contract.read.locked();
+
+    console.table({ locked });
   });
 
 // Works

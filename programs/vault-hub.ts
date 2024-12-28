@@ -17,6 +17,8 @@ const vaultHub = program.command("vh").description("vault hub contract");
 // v-role-member-count - returns the number of accounts that have `role`
 // v-role-has - returns `true` if `account` has been granted `role`
 
+// ? - connect Vaults to VaultHub through protocol voting
+
 // Works fine
 vaultHub
   .command("constants")
