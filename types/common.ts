@@ -18,3 +18,11 @@ export interface CreateVaultPayload {
   claimOperatorDue: Address;
   quantity: string;
 }
+
+export interface Permit {
+  value: bigint;
+  deadline: bigint;
+  v: number;
+  r: Address;
+  s: Address;
+}

@@ -1,12 +1,12 @@
-import { getContract, createPublicClient, http } from "viem";
+import { getContract, createPublicClient, http, Address } from "viem";
 import { DashboardAbi } from "abi";
-import { getDeployedAddress, getChain, getRpcUrl } from "@configs";
+import { getChain, getRpcUrl } from "@configs";
 
-export const getDashboardContract = () => {
+export const getDashboardContract = (address: Address) => {
   const rpcUrl = getRpcUrl();
 
   return getContract({
-    address: getDeployedAddress("accounting"),
+    address: address,
     abi: DashboardAbi,
     client: createPublicClient({
       chain: getChain(),
