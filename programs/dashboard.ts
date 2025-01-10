@@ -1,9 +1,9 @@
 import { program } from "@command";
 import { getDashboardContract } from "@contracts";
 import { Address } from "viem";
-import {getAccount} from "@providers";
-import {getChain} from "@configs";
-import {Permit} from "@types";
+import { getAccount } from "@providers";
+import { getChain } from "@configs";
+import { Permit } from "@types";
 
 const dashboard = program.command("d").description("dashboard contract");
 
@@ -36,7 +36,10 @@ dashboard
   .argument("<vault>", "vault address")
   .action(async (address: Address, vault: Address) => {
     const contract = getDashboardContract(address);
-    const tx = await contract.write.initialize(vault);
+    const tx = await contract.write.initialize([vault], {
+      chain: getChain(),
+      account: getAccount(),
+    });
 
     console.table({ Transaction: tx });
   });
@@ -218,10 +221,10 @@ dashboard
   .command("fund-weth")
   .description("funds the staking vault with wrapped ether")
   .argument("<address>", "dashboard address")
-  .argument("<weth>", "amount of weth to be funded")
-  .action(async (address: Address, weth: string) => {
+  .argument("<wethAmount>", "amount of weth to be funded")
+  .action(async (address: Address, wethAmount: string) => {
     const contract = getDashboardContract(address);
-    const tx = await contract.write.withdraw([BigInt(weth)], {
+    const tx = await contract.write.fundByWeth([BigInt(wethAmount)], {
       account: getAccount(),
       chain: getChain(),
     });
