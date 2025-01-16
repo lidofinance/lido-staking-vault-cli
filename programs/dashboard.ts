@@ -175,20 +175,6 @@ dashboard
 
 dashboard
   .command("disconnect")
-  .description("disconnects the staking vault from the vault hub.")
-  .argument("<address>", "dashboard address")
-  .action(async (address: Address) => {
-    const contract = getDashboardContract(address);
-    const tx = await contract.write.voluntaryDisconnect({
-      account: getAccount(),
-      chain: getChain(),
-    });
-
-    console.table({ Transaction: tx });
-  });
-
-dashboard
-  .command("disconnect")
   .description("disconnects the staking vault from the vault hub")
   .argument("<address>", "dashboard address")
   .action(async (address: Address) => {
