@@ -14,11 +14,11 @@ dashboard
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
 
-    const steth = contract.read.STETH;
-    const wsteth = contract.read.WSTETH;
-    const weth = contract.read.WETH;
-    const isInit = contract.read.isInitialized;
-    const vault = contract.read.stakingVault;
+    const steth = await contract.read.STETH();
+    const wsteth = await contract.read.WSTETH();
+    const weth = await contract.read.WETH();
+    const isInit = await contract.read.isInitialized();
+    const vault = await contract.read.stakingVault();
 
     console.table({
       steth,

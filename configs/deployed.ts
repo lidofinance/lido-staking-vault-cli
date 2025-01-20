@@ -5,6 +5,7 @@ import { getValueByPath, resolvePath, validateConfig } from "@utils";
 import { JSONConfig } from "@types";
 import { envs } from "./envs";
 import { SUPPORTED_CHAINS_LIST } from "./constants";
+import * as process from "node:process";
 
 export const importDeployFile = () => {
   const fullPath = resolve("configs", envs?.DEPLOYED ?? "");
@@ -41,7 +42,7 @@ export const getConfig = (() => {
   const errorKeys = Object.keys(errors);
   if (errorKeys.length > 0) {
     errorKeys.forEach((key) => console.error(`${errors[key as keyof JSONConfig]}`));
-    return () => null;
+    process.exit(1);
   }
 
   return () => configJSON;

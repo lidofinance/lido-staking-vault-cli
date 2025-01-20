@@ -14,14 +14,14 @@ delegation
   .action(async (address: Address) => {
     const contract = getDelegationContract(address);
 
-    const curator = contract.read.CURATOR_ROLE;
-    const curatorFee = contract.read.curatorFee;
-    const curatorReport = contract.read.curatorDueClaimedReport;
-    const staker = contract.read.STAKER_ROLE;
-    const tokenMaster = contract.read.TOKEN_MASTER_ROLE;
-    const operator = contract.read.OPERATOR_ROLE;
-    const operatorFee = contract.read.operatorFee;
-    const voteLifetime = contract.read.voteLifetime;
+    const curator = await contract.read.CURATOR_ROLE();
+    const curatorFee = await contract.read.curatorFee();
+    const curatorReport = await contract.read.curatorDueClaimedReport();
+    const staker = await contract.read.STAKER_ROLE();
+    const tokenMaster = await contract.read.TOKEN_MASTER_ROLE();
+    const operator = await contract.read.OPERATOR_ROLE();
+    const operatorFee = await contract.read.operatorFee();
+    const voteLifetime = await contract.read.voteLifetime();
 
     console.table({
       curator,
@@ -39,26 +39,13 @@ delegation
   .command("voting-info")
   .description("get committee votes")
   .argument("<address>", "delegation contract address")
+  .argument("<callId>", "delegation contract address")
   .action(async (address: Address) => {
     const contract = getDelegationContract(address);
     const votings = contract.read.votings;
+    // TODO: get votings
 
     console.table(votings);
-  });
-
-delegation
-  .command("init")
-  .description("initializes a contract")
-  .argument("<address>", "delegation contract address")
-  .argument("<vault>", "vault contract address")
-  .action(async (address: Address, vault: Address) => {
-    const contract = getDelegationContract(address);
-    const tx = await contract.write.initialize([vault], {
-      account: getAccount(),
-      chain: getChain(),
-    });
-
-    console.table({ Transaction: tx });
   });
 
 delegation
@@ -100,9 +87,13 @@ delegation
   .argument("<address>", "delegation contract address")
   .action(async (address: Address) => {
     const contract = getDelegationContract(address);
-    const committee = await contract.read.votingCommittee();
+    const committeeList = await contract.read.votingCommittee();
+    const committee = {
+      CURATOR_ROLE: committeeList[0],
+      OPERATOR_ROLE: committeeList[1],
+    };
 
-    console.table({ Committee: committee });
+    console.table({ committee });
   });
 
 delegation
@@ -201,7 +192,7 @@ delegation
   .argument("<address>", "delegation contract address")
   .argument("<newVoteLifetime>", "new vote lifetime in seconds")
   .action(async (address: Address, newVoteLifetime: string) => {
-    const contract = getDelegationContract(address);
+    const contract = getDelegationContract(address)
     const tx = await contract.write.setVoteLifetime(
       [BigInt(newVoteLifetime)],
       {

@@ -1,6 +1,6 @@
 import { Address } from "viem";
 import { program } from "@command";
-import { getVaultHubContract, getStethContract } from "@contracts";
+import { getVaultHubContract } from "@contracts";
 import { getAccount } from "@providers";
 import { getChain } from "@configs";
 
@@ -24,18 +24,21 @@ vaultHub
   .command("constants")
   .description("get vault hub constants")
   .action(async () => {
-    const contract = getVaultHubContract();
-    const stEthContract = getStethContract();
+    const contract = await getVaultHubContract();
 
-    const VAULT_MASTER_ROLE = await contract.read.VAULT_MASTER_ROLE();
+    // TODO: get info why I can't call these fn's
+    // const VAULT_MASTER_ROLE = await contract.read.VAULT_MASTER_ROLE();
+    // const VAULT_REGISTRY_ROLE = await contract.read.VAULT_REGISTRY_ROLE();
+    // const STETH = await contract.read.STETH();
+
     const DEFAULT_ADMIN_ROLE = await contract.read.DEFAULT_ADMIN_ROLE();
-    const STETH = stEthContract.address;
     const address = contract.address;
 
     console.table({
-      VAULT_MASTER_ROLE,
+      // VAULT_MASTER_ROLE,
       DEFAULT_ADMIN_ROLE,
-      STETH,
+      // VAULT_REGISTRY_ROLE,
+      // STETH,
       VaultHub: address,
     });
   });
@@ -45,7 +48,7 @@ vaultHub
   .command("v-count")
   .description("get connected vaults number")
   .action(async () => {
-    const contract = getVaultHubContract();
+    const contract = await getVaultHubContract();
     const vaultsCount = await contract.read.vaultsCount();
 
     console.table({
@@ -61,7 +64,7 @@ vaultHub
   .argument("<index>", "index")
   .action(async (index: string) => {
     const biIndex = BigInt(index);
-    const contract = getVaultHubContract();
+    const contract = await getVaultHubContract();
     const vault = await contract.read.vault([biIndex]);
     const vaultSocket = await contract.read.vaultSocket([biIndex]);
 
@@ -77,7 +80,7 @@ vaultHub
   .description("get vault socket by address")
   .argument("<address>", "address")
   .action(async (address: Address) => {
-    const contract = getVaultHubContract();
+    const contract = await getVaultHubContract();
     const vaultSocket = await contract.read.vaultSocket([address]);
 
     console.table({ "Vault Socket": vaultSocket });
@@ -106,7 +109,7 @@ vaultHub
       reserveRatioThreshold: bigint,
       treasuryFeeBP: bigint,
     ) => {
-      const contract = getVaultHubContract();
+      const contract = await getVaultHubContract();
       const tx = await contract.write.connectVault(
         [address, shareLimit, reserveRatio, reserveRatioThreshold, treasuryFeeBP],
         {
@@ -125,7 +128,7 @@ vaultHub
   .description("force rebalance of the vault to have sufficient reserve ratio")
   .argument("<address>", "vault address")
   .action(async (address: Address) => {
-    const contract = getVaultHubContract();
+    const contract = await getVaultHubContract();
     const tx = await contract.write.forceRebalance([address], {
       account: getAccount(),
       chain: getChain(),
@@ -143,7 +146,7 @@ vaultHub
   .description("returns the admin role that controls `role`")
   .argument("<role>", "role")
   .action(async (role: Address) => {
-    const contract = getVaultHubContract();
+    const contract = await getVaultHubContract();
     const roleAdmin = await contract.read.getRoleAdmin([role]);
 
     console.table({
@@ -158,7 +161,7 @@ vaultHub
   .argument("<role>", "role")
   .argument("<index>", "index")
   .action(async (role: Address, index: bigint) => {
-    const contract = getVaultHubContract();
+    const contract = await getVaultHubContract();
     const roleMember = await contract.read.getRoleMember([role, index]);
 
     console.table({
@@ -172,7 +175,7 @@ vaultHub
   .description("returns the number of accounts that have `role`")
   .argument("<role>", "role")
   .action(async (role: Address) => {
-    const contract = getVaultHubContract();
+    const contract = await getVaultHubContract();
     const roleMemberCount = await contract.read.getRoleMemberCount([role]);
 
     console.table({
@@ -187,7 +190,7 @@ vaultHub
   .argument("<role>", "role")
   .argument("<account>", "account")
   .action(async (role: Address, account: Address) => {
-    const contract = getVaultHubContract();
+    const contract = await getVaultHubContract();
     const roleHas = await contract.read.hasRole([role, account]);
 
     console.table({

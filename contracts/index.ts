@@ -4,3 +4,4 @@ export * from "./vault";
 export * from "./dashboard";
 export * from "./delegation";
 export * from "./steth";
+export * from "./locator";

@@ -1,12 +1,15 @@
 import { getContract, createPublicClient, http } from "viem";
 import { VaultHubAbi } from "abi";
-import { getDeployedAddress, getChain, getRpcUrl } from "@configs";
+import { getChain, getRpcUrl } from "@configs";
+import {getLocatorContract} from "./locator";
 
-export const getVaultHubContract = () => {
+export const getVaultHubContract = async () => {
   const rpcUrl = getRpcUrl();
+  const locator = getLocatorContract();
+  const address = await locator.read.accountingOracle();
 
   return getContract({
-    address: getDeployedAddress("accounting"),
+    address,
     abi: VaultHubAbi,
     client: createPublicClient({
       chain: getChain(),

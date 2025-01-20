@@ -28,10 +28,12 @@ export const createVault = async (payload: VaultPayload) => {
   });
 
   const vaultEvent = events.find(event => event.eventName === 'VaultCreated');
-  const address = vaultEvent?.args.vault;
+  const vault = vaultEvent?.args.vault;
+  const delegation = vaultEvent?.args.owner;
 
   return {
-    address,
+    vault,
+    delegation,
     tx,
     blockNumber: receipt.blockNumber,
   };
