@@ -53,7 +53,7 @@ export const DelegationAbi = [
   },
   {
     "inputs": [],
-    "name": "CuratorDueUnclaimed",
+    "name": "CuratorFeeUnclaimed",
     "type": "error"
   },
   {
@@ -74,7 +74,7 @@ export const DelegationAbi = [
   },
   {
     "inputs": [],
-    "name": "NoDueToClaim",
+    "name": "NodeOperatorFeeUnclaimed",
     "type": "error"
   },
   {
@@ -85,11 +85,6 @@ export const DelegationAbi = [
   {
     "inputs": [],
     "name": "NotACommitteeMember",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "OperatorDueUnclaimed",
     "type": "error"
   },
   {
@@ -120,17 +115,17 @@ export const DelegationAbi = [
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "oldCuratorFee",
+        "name": "oldCuratorFeeBP",
         "type": "uint256"
       },
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "newCuratorFee",
+        "name": "newCuratorFeeBP",
         "type": "uint256"
       }
     ],
-    "name": "CuratorFeeSet",
+    "name": "CuratorFeeBPSet",
     "type": "event"
   },
   {
@@ -151,17 +146,17 @@ export const DelegationAbi = [
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "oldOperatorFee",
+        "name": "oldNodeOperatorFeeBP",
         "type": "uint256"
       },
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "newOperatorFee",
+        "name": "newNodeOperatorFeeBP",
         "type": "uint256"
       }
     ],
-    "name": "OperatorFeeSet",
+    "name": "NodeOperatorFeeBPSet",
     "type": "event"
   },
   {
@@ -297,19 +292,6 @@ export const DelegationAbi = [
   },
   {
     "inputs": [],
-    "name": "CLAIM_OPERATOR_DUE_ROLE",
-    "outputs": [
-      {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
     "name": "CURATOR_ROLE",
     "outputs": [
       {
@@ -336,7 +318,7 @@ export const DelegationAbi = [
   },
   {
     "inputs": [],
-    "name": "OPERATOR_ROLE",
+    "name": "FUND_WITHDRAW_ROLE",
     "outputs": [
       {
         "internalType": "bytes32",
@@ -349,7 +331,33 @@ export const DelegationAbi = [
   },
   {
     "inputs": [],
-    "name": "STAKER_ROLE",
+    "name": "MINT_BURN_ROLE",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "NODE_OPERATOR_FEE_CLAIMER_ROLE",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "NODE_OPERATOR_MANAGER_ROLE",
     "outputs": [
       {
         "internalType": "bytes32",
@@ -368,19 +376,6 @@ export const DelegationAbi = [
         "internalType": "contract ILido",
         "name": "",
         "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "TOKEN_MASTER_ROLE",
-    "outputs": [
-      {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
       }
     ],
     "stateMutability": "view",
@@ -536,7 +531,7 @@ export const DelegationAbi = [
         "type": "address"
       }
     ],
-    "name": "claimCuratorDue",
+    "name": "claimCuratorFee",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -549,14 +544,14 @@ export const DelegationAbi = [
         "type": "address"
       }
     ],
-    "name": "claimOperatorDue",
+    "name": "claimNodeOperatorFee",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
     "inputs": [],
-    "name": "curatorDue",
+    "name": "curatorFeeBP",
     "outputs": [
       {
         "internalType": "uint256",
@@ -569,7 +564,7 @@ export const DelegationAbi = [
   },
   {
     "inputs": [],
-    "name": "curatorDueClaimedReport",
+    "name": "curatorFeeClaimedReport",
     "outputs": [
       {
         "internalType": "uint128",
@@ -587,7 +582,7 @@ export const DelegationAbi = [
   },
   {
     "inputs": [],
-    "name": "curatorFee",
+    "name": "curatorUnclaimedFee",
     "outputs": [
       {
         "internalType": "uint256",
@@ -700,6 +695,25 @@ export const DelegationAbi = [
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "role",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getRoleMembers",
+    "outputs": [
+      {
+        "internalType": "address[]",
+        "name": "",
+        "type": "address[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "getWithdrawableEther",
     "outputs": [
@@ -755,13 +769,7 @@ export const DelegationAbi = [
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_stakingVault",
-        "type": "address"
-      }
-    ],
+    "inputs": [],
     "name": "initialize",
     "outputs": [],
     "stateMutability": "nonpayable",
@@ -769,7 +777,7 @@ export const DelegationAbi = [
   },
   {
     "inputs": [],
-    "name": "isInitialized",
+    "name": "initialized",
     "outputs": [
       {
         "internalType": "bool",
@@ -818,7 +826,7 @@ export const DelegationAbi = [
   },
   {
     "inputs": [],
-    "name": "operatorDue",
+    "name": "nodeOperatorFeeBP",
     "outputs": [
       {
         "internalType": "uint256",
@@ -831,7 +839,7 @@ export const DelegationAbi = [
   },
   {
     "inputs": [],
-    "name": "operatorDueClaimedReport",
+    "name": "nodeOperatorFeeClaimedReport",
     "outputs": [
       {
         "internalType": "uint128",
@@ -849,7 +857,7 @@ export const DelegationAbi = [
   },
   {
     "inputs": [],
-    "name": "operatorFee",
+    "name": "nodeOperatorUnclaimedFee",
     "outputs": [
       {
         "internalType": "uint256",
@@ -858,6 +866,13 @@ export const DelegationAbi = [
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "pauseBeaconChainDeposits",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -918,6 +933,13 @@ export const DelegationAbi = [
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "resumeBeaconChainDeposits",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "bytes32",
@@ -939,11 +961,11 @@ export const DelegationAbi = [
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "_newCuratorFee",
+        "name": "_newCuratorFeeBP",
         "type": "uint256"
       }
     ],
-    "name": "setCuratorFee",
+    "name": "setCuratorFeeBP",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -952,11 +974,11 @@ export const DelegationAbi = [
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "_newOperatorFee",
+        "name": "_newNodeOperatorFeeBP",
         "type": "uint256"
       }
     ],
-    "name": "setOperatorFee",
+    "name": "setNodeOperatorFeeBP",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

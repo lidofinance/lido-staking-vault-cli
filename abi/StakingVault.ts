@@ -17,7 +17,17 @@ export const StakingVaultAbi = [
   },
   {
     "inputs": [],
-    "name": "DepositContractZeroAddress",
+    "name": "BeaconChainDepositsArePaused",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "BeaconChainDepositsPauseExpected",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "BeaconChainDepositsResumeExpected",
     "type": "error"
   },
   {
@@ -45,38 +55,6 @@ export const StakingVaultAbi = [
   {
     "inputs": [],
     "name": "InvalidInitialization",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "actual",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "expected",
-        "type": "uint256"
-      }
-    ],
-    "name": "InvalidPublicKeysBatchLength",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "actual",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "expected",
-        "type": "uint256"
-      }
-    ],
-    "name": "InvalidSignaturesBatchLength",
     "type": "error"
   },
   {
@@ -209,6 +187,18 @@ export const StakingVaultAbi = [
   },
   {
     "anonymous": false,
+    "inputs": [],
+    "name": "BeaconChainDepositsPaused",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [],
+    "name": "BeaconChainDepositsResumed",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
     "inputs": [
       {
         "indexed": true,
@@ -225,7 +215,7 @@ export const StakingVaultAbi = [
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "amount",
+        "name": "totalAmount",
         "type": "uint256"
       }
     ],
@@ -380,10 +370,57 @@ export const StakingVaultAbi = [
   },
   {
     "inputs": [],
-    "name": "DEPOSIT_CONTRACT",
+    "name": "beaconChainDepositsPaused",
     "outputs": [
       {
-        "internalType": "contract IDepositContract",
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "_pubkey",
+        "type": "bytes"
+      },
+      {
+        "internalType": "bytes",
+        "name": "_withdrawalCredentials",
+        "type": "bytes"
+      },
+      {
+        "internalType": "bytes",
+        "name": "_signature",
+        "type": "bytes"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "computeDepositDataRoot",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "depositContract",
+    "outputs": [
+      {
+        "internalType": "address",
         "name": "",
         "type": "address"
       }
@@ -394,19 +431,31 @@ export const StakingVaultAbi = [
   {
     "inputs": [
       {
-        "internalType": "uint256",
-        "name": "_numberOfDeposits",
-        "type": "uint256"
-      },
-      {
-        "internalType": "bytes",
-        "name": "_pubkeys",
-        "type": "bytes"
-      },
-      {
-        "internalType": "bytes",
-        "name": "_signatures",
-        "type": "bytes"
+        "components": [
+          {
+            "internalType": "bytes",
+            "name": "pubkey",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes",
+            "name": "signature",
+            "type": "bytes"
+          },
+          {
+            "internalType": "uint256",
+            "name": "amount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "depositDataRoot",
+            "type": "bytes32"
+          }
+        ],
+        "internalType": "struct IStakingVault.Deposit[]",
+        "name": "_deposits",
+        "type": "tuple[]"
       }
     ],
     "name": "depositToBeaconChain",
@@ -419,19 +468,6 @@ export const StakingVaultAbi = [
     "name": "fund",
     "outputs": [],
     "stateMutability": "payable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getBeacon",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -469,7 +505,7 @@ export const StakingVaultAbi = [
       },
       {
         "internalType": "address",
-        "name": "_operator",
+        "name": "_nodeOperator",
         "type": "address"
       },
       {
@@ -549,7 +585,7 @@ export const StakingVaultAbi = [
   },
   {
     "inputs": [],
-    "name": "operator",
+    "name": "nodeOperator",
     "outputs": [
       {
         "internalType": "address",
@@ -571,6 +607,13 @@ export const StakingVaultAbi = [
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "pauseBeaconChainDeposits",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -625,6 +668,13 @@ export const StakingVaultAbi = [
       }
     ],
     "name": "requestValidatorExit",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "resumeBeaconChainDeposits",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

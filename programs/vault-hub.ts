@@ -6,19 +6,6 @@ import { getChain } from "@configs";
 
 const vaultHub = program.command("vh").description("vault hub contract");
 
-// constants - get vault hub constants
-// v-count - get vaults count
-// vi - get vault and vault socket by index
-// va - get vault socket by address
-// v-connect - connects a vault to the hub
-// v-force-rebalance - force rebalance of the vault to have sufficient reserve ratio
-// v-role-admin - returns the admin role that controls `role`
-// v-role-member - returns one of the accounts that have `role`
-// v-role-member-count - returns the number of accounts that have `role`
-// v-role-has - returns `true` if `account` has been granted `role`
-
-// ? - connect Vaults to VaultHub through protocol voting
-
 // Works fine
 vaultHub
   .command("constants")
@@ -26,21 +13,48 @@ vaultHub
   .action(async () => {
     const contract = await getVaultHubContract();
 
-    // TODO: get info why I can't call these fn's
-    // const VAULT_MASTER_ROLE = await contract.read.VAULT_MASTER_ROLE();
-    // const VAULT_REGISTRY_ROLE = await contract.read.VAULT_REGISTRY_ROLE();
-    // const STETH = await contract.read.STETH();
+    try {
+      const VAULT_MASTER_ROLE = await contract.read.VAULT_MASTER_ROLE();
+      const VAULT_REGISTRY_ROLE = await contract.read.VAULT_REGISTRY_ROLE();
+      const STETH = await contract.read.STETH();
+      const DEFAULT_ADMIN_ROLE = await contract.read.DEFAULT_ADMIN_ROLE();
+      const CONTRACT_ADDRESS = contract.address;
 
-    const DEFAULT_ADMIN_ROLE = await contract.read.DEFAULT_ADMIN_ROLE();
-    const address = contract.address;
+      const payload = {
+        VAULT_MASTER_ROLE,
+        DEFAULT_ADMIN_ROLE,
+        VAULT_REGISTRY_ROLE,
+        STETH,
+        CONTRACT_ADDRESS,
+      }
 
-    console.table({
-      // VAULT_MASTER_ROLE,
-      DEFAULT_ADMIN_ROLE,
-      // VAULT_REGISTRY_ROLE,
-      // STETH,
-      VaultHub: address,
-    });
+      console.table(Object.entries(payload));
+    } catch (err) {
+      if (err instanceof Error) {
+        console.log('Error when getting info:\n', err.message);
+      }
+    }
+  });
+
+vaultHub
+  .command("add-codehash")
+  .description("get vault hub constants")
+  .argument("<codehash>", "get vault hub constants")
+  .action(async (codehash: Address) => {
+    const contract = await getVaultHubContract();
+
+    try {
+      const tx = contract.write.addVaultProxyCodehash([codehash], {
+        account: getAccount(),
+        chain: getChain(),
+      })
+
+      console.table({ Transaction: tx });
+    } catch (err) {
+      if (err instanceof Error) {
+        console.log('Error while adding codehash:\n', err.message);
+      }
+    }
   });
 
 // Works fine
@@ -49,15 +63,20 @@ vaultHub
   .description("get connected vaults number")
   .action(async () => {
     const contract = await getVaultHubContract();
-    const vaultsCount = await contract.read.vaultsCount();
 
-    console.table({
-      "Vaults count": Number(vaultsCount),
-    });
+    try {
+      const vaultsCount = await contract.read.vaultsCount();
+
+      console.table({
+        "Vaults count": Number(vaultsCount),
+      });
+    } catch (err) {
+      if (err instanceof Error) {
+        console.log('Error when getting vaults count:\n', err.message);
+      }
+    }
   });
 
-// TODO: investigate how to pass right index
-// index === 0 PositionOutOfBoundsError: Position `223` is out of bounds (`0 < position < 192`)
 vaultHub
   .command("vi")
   .description("get vault and vault socket by index")
@@ -65,13 +84,20 @@ vaultHub
   .action(async (index: string) => {
     const biIndex = BigInt(index);
     const contract = await getVaultHubContract();
-    const vault = await contract.read.vault([biIndex]);
-    const vaultSocket = await contract.read.vaultSocket([biIndex]);
 
-    console.table({
-      Vault: vault,
-      "Vault Socket": vaultSocket,
-    });
+    try {
+      const vault = await contract.read.vault([biIndex]);
+      const vaultSocket = await contract.read.vaultSocket([biIndex]);
+
+      console.table({
+        Vault: vault,
+        "Vault Socket": vaultSocket,
+      });
+    } catch (err) {
+      if (err instanceof Error) {
+        console.log('Error when getting vault:\n', err.message);
+      }
+    }
   });
 
 // TODO: check when vault will be connected
@@ -81,12 +107,18 @@ vaultHub
   .argument("<address>", "address")
   .action(async (address: Address) => {
     const contract = await getVaultHubContract();
-    const vaultSocket = await contract.read.vaultSocket([address]);
+    try {
+      const vaultSocket = await contract.read.vaultSocket([address]);
 
-    console.table({ "Vault Socket": vaultSocket });
+      console.table({ "Vault Socket": vaultSocket });
+    } catch (err) {
+      if (err instanceof Error) {
+        console.log('Error when getting vault:\n', err.message);
+      }
+    }
   });
 
-// TODO: need access to account with access to accounting
+// TODO: replace by voting
 vaultHub
   .command("v-connect")
   .description("connects a vault to the hub (vault master role needed)")
@@ -109,9 +141,99 @@ vaultHub
       reserveRatioThreshold: bigint,
       treasuryFeeBP: bigint,
     ) => {
+      try {
+        const contract = await getVaultHubContract();
+        const account = getAccount();
+
+        const tx = await contract.write.connectVault(
+          [address, shareLimit, reserveRatio, reserveRatioThreshold, treasuryFeeBP],
+          {
+            account,
+            chain: getChain(),
+          }
+        );
+
+        console.table({ Transaction: tx });
+      } catch (err) {
+        if (err instanceof Error) {
+          program.error(err.message);
+        }
+      }
+    }
+  );
+
+vaultHub
+  .command("v-update-share-limit")
+  .description("updates share limit for the vault")
+  .argument("<address>", "vault address")
+  .argument("<shareLimit>", "vault address")
+  .action(async (address: Address, shareLimit: string) => {
+    try {
       const contract = await getVaultHubContract();
-      const tx = await contract.write.connectVault(
-        [address, shareLimit, reserveRatio, reserveRatioThreshold, treasuryFeeBP],
+      const tx = await contract.write.updateShareLimit([address, BigInt(shareLimit)], {
+        account: getAccount(),
+        chain: getChain(),
+      });
+
+      console.table({ Transaction: tx });
+    } catch (err) {
+      if (err instanceof Error) {
+        program.error(err.message);
+      }
+    }
+  });
+
+vaultHub
+  .command("v-disconnect")
+  .description("force disconnects a vault from the hub")
+  .argument("<address>", "vault address")
+  .action(async (address: Address) => {
+    try {
+      const contract = await getVaultHubContract();
+      const tx = await contract.write.disconnect([address], {
+        account: getAccount(),
+        chain: getChain(),
+      });
+
+      console.table({ Transaction: tx });
+    } catch (err) {
+      if (err instanceof Error) {
+        program.error(err.message);
+      }
+    }
+  });
+
+vaultHub
+  .command("v-owner-disconnect")
+  .description("disconnects a vault from the hub, msg.sender should be vault's owner")
+  .argument("<address>", "vault address")
+  .action(async (address: Address) => {
+    try {
+      const contract = await getVaultHubContract();
+      const tx = await contract.write.voluntaryDisconnect([address], {
+        account: getAccount(),
+        chain: getChain(),
+      });
+
+      console.table({ Transaction: tx });
+    } catch (err) {
+      if (err instanceof Error) {
+        program.error(err.message);
+      }
+    }
+  });
+
+vaultHub
+  .command("v-bbv-mint")
+  .description(" mint StETH shares backed by vault external balance to the receiver address")
+  .argument("<address>", "vault address")
+  .argument("<recipient>", "address of the receiver")
+  .argument("<amountOfShares>", "amount of stETH shares to mint")
+  .action(async (address: Address, recipient: Address, amountOfShares: string) => {
+    try {
+      const contract = await getVaultHubContract();
+      const tx = await contract.write.mintSharesBackedByVault(
+        [address, recipient, BigInt(amountOfShares)],
         {
           account: getAccount(),
           chain: getChain(),
@@ -119,39 +241,100 @@ vaultHub
       );
 
       console.table({ Transaction: tx });
+    } catch (err) {
+      if (err instanceof Error) {
+        program.error(err.message);
+      }
     }
-  );
+  });
 
-// TODO: test on connected vault
+vaultHub
+  .command("v-bbv-burn")
+  .description("burn steth shares from the balance of the VaultHub contract")
+  .argument("<address>", "vault address")
+  .argument("<amountOfShares>", "amount of stETH shares to mint")
+  .action(async (address: Address, amountOfShares: string) => {
+    try {
+      const contract = await getVaultHubContract();
+      const tx = await contract.write.burnSharesBackedByVault(
+        [address, BigInt(amountOfShares)],
+        {
+          account: getAccount(),
+          chain: getChain(),
+        }
+      );
+
+      console.table({ Transaction: tx });
+    } catch (err) {
+      if (err instanceof Error) {
+        program.error(err.message);
+      }
+    }
+  });
+
+vaultHub
+  .command("v-bbv-transfer")
+  .description("separate burn function for EOA vault owners; requires vaultHub to be approved to transfer stETH")
+  .argument("<address>", "vault address")
+  .argument("<amountOfShares>", "amount of stETH shares to mint")
+  .action(async (address: Address, amountOfShares: string) => {
+    try {
+      const contract = await getVaultHubContract();
+      const tx = await contract.write.transferAndBurnSharesBackedByVault(
+        [address, BigInt(amountOfShares)],
+        {
+          account: getAccount(),
+          chain: getChain(),
+        }
+      );
+
+      console.table({ Transaction: tx });
+    } catch (err) {
+      if (err instanceof Error) {
+        program.error(err.message);
+      }
+    }
+  });
+
 vaultHub
   .command("v-force-rebalance")
   .description("force rebalance of the vault to have sufficient reserve ratio")
   .argument("<address>", "vault address")
   .action(async (address: Address) => {
-    const contract = await getVaultHubContract();
-    const tx = await contract.write.forceRebalance([address], {
-      account: getAccount(),
-      chain: getChain(),
-    });
+    try {
+      const contract = await getVaultHubContract();
+      const tx = await contract.write.forceRebalance([address], {
+        account: getAccount(),
+        chain: getChain(),
+      });
 
-    console.table({
-      Transaction: tx,
-    });
+      console.table({
+        Transaction: tx,
+      });
+    } catch (err) {
+      if (err instanceof Error) {
+        program.error(err.message);
+      }
+    }
   });
 
-// Roles
-// Works
 vaultHub
   .command("v-role-admin")
   .description("returns the admin role that controls `role`")
   .argument("<role>", "role")
   .action(async (role: Address) => {
-    const contract = await getVaultHubContract();
-    const roleAdmin = await contract.read.getRoleAdmin([role]);
+    try {
+      const contract = await getVaultHubContract();
+      const roleAdmin = await contract.read.getRoleAdmin([role]);
 
-    console.table({
-      "Role admin": roleAdmin,
-    });
+      console.table({
+        "Role admin": roleAdmin,
+      });
+    } catch (err) {
+      if (err instanceof Error) {
+        program.error(err.message);
+      }
+    }
   });
 
 // Works
@@ -161,12 +344,18 @@ vaultHub
   .argument("<role>", "role")
   .argument("<index>", "index")
   .action(async (role: Address, index: bigint) => {
-    const contract = await getVaultHubContract();
-    const roleMember = await contract.read.getRoleMember([role, index]);
+    try {
+      const contract = await getVaultHubContract();
+      const roleMember = await contract.read.getRoleMember([role, index]);
 
-    console.table({
-      "Role member": roleMember,
-    });
+      console.table({
+        "Role member": roleMember,
+      });
+    }  catch (err) {
+      if (err instanceof Error) {
+        program.error(err.message);
+      }
+    }
   });
 
 // Works
@@ -175,12 +364,18 @@ vaultHub
   .description("returns the number of accounts that have `role`")
   .argument("<role>", "role")
   .action(async (role: Address) => {
-    const contract = await getVaultHubContract();
-    const roleMemberCount = await contract.read.getRoleMemberCount([role]);
+    try {
+      const contract = await getVaultHubContract();
+      const roleMemberCount = await contract.read.getRoleMemberCount([role]);
 
-    console.table({
-      "Role member count": roleMemberCount,
-    });
+      console.table({
+        "Role member count": roleMemberCount,
+      });
+    } catch (err) {
+      if (err instanceof Error) {
+        program.error(err.message);
+      }
+    }
   });
 
 // Works
@@ -190,10 +385,16 @@ vaultHub
   .argument("<role>", "role")
   .argument("<account>", "account")
   .action(async (role: Address, account: Address) => {
-    const contract = await getVaultHubContract();
-    const roleHas = await contract.read.hasRole([role, account]);
+    try {
+      const contract = await getVaultHubContract();
+      const roleHas = await contract.read.hasRole([role, account]);
 
-    console.table({
-      "Role has": roleHas,
-    });
+      console.table({
+        "Role has": roleHas,
+      });
+    } catch (err) {
+      if (err instanceof Error) {
+        program.error(err.message);
+      }
+    }
   });

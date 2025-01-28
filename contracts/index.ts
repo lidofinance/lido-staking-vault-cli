@@ -5,3 +5,5 @@ export * from "./dashboard";
 export * from "./delegation";
 export * from "./steth";
 export * from "./locator";
+export * from "./token-manager";
+export * from "./voting";

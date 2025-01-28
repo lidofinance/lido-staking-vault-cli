@@ -60,9 +60,9 @@ export const VaultHubAbi = [
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "addr",
-        "type": "address"
+        "internalType": "bytes32",
+        "name": "codehash",
+        "type": "bytes32"
       }
     ],
     "name": "AlreadyExists",
@@ -87,28 +87,6 @@ export const VaultHubAbi = [
       }
     ],
     "name": "ExternalSharesCapReached",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "beacon",
-        "type": "address"
-      }
-    ],
-    "name": "FactoryNotAllowed",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "impl",
-        "type": "address"
-      }
-    ],
-    "name": "ImplNotAllowed",
     "type": "error"
   },
   {
@@ -218,6 +196,16 @@ export const VaultHubAbi = [
     "type": "error"
   },
   {
+    "inputs": [],
+    "name": "PauseUntilMustBeInFuture",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "PausedExpected",
+    "type": "error"
+  },
+  {
     "inputs": [
       {
         "internalType": "address",
@@ -247,6 +235,11 @@ export const VaultHubAbi = [
       }
     ],
     "name": "ReserveRatioTooHigh",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ResumedExpected",
     "type": "error"
   },
   {
@@ -326,12 +319,28 @@ export const VaultHubAbi = [
   {
     "inputs": [
       {
+        "internalType": "address",
+        "name": "beacon",
+        "type": "address"
+      }
+    ],
+    "name": "VaultProxyNotAllowed",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "string",
         "name": "argument",
         "type": "string"
       }
     ],
     "name": "ZeroArgument",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "ZeroPauseDuration",
     "type": "error"
   },
   {
@@ -383,6 +392,25 @@ export const VaultHubAbi = [
       }
     ],
     "name": "MintedSharesOnVault",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "duration",
+        "type": "uint256"
+      }
+    ],
+    "name": "Paused",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [],
+    "name": "Resumed",
     "type": "event"
   },
   {
@@ -528,25 +556,12 @@ export const VaultHubAbi = [
     "inputs": [
       {
         "indexed": true,
-        "internalType": "address",
-        "name": "factory",
-        "type": "address"
+        "internalType": "bytes32",
+        "name": "codehash",
+        "type": "bytes32"
       }
     ],
-    "name": "VaultFactoryAdded",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "impl",
-        "type": "address"
-      }
-    ],
-    "name": "VaultImplAdded",
+    "name": "VaultProxyCodehashAdded",
     "type": "event"
   },
   {
@@ -571,6 +586,45 @@ export const VaultHubAbi = [
   {
     "inputs": [],
     "name": "DEFAULT_ADMIN_ROLE",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "PAUSE_INFINITELY",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "PAUSE_ROLE",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "RESUME_ROLE",
     "outputs": [
       {
         "internalType": "bytes32",
@@ -623,25 +677,12 @@ export const VaultHubAbi = [
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "factory",
-        "type": "address"
+        "internalType": "bytes32",
+        "name": "codehash",
+        "type": "bytes32"
       }
     ],
-    "name": "addFactory",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "impl",
-        "type": "address"
-      }
-    ],
-    "name": "addVaultImpl",
+    "name": "addVaultProxyCodehash",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -724,6 +765,19 @@ export const VaultHubAbi = [
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "getResumeSinceTimestamp",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "bytes32",
@@ -791,6 +845,25 @@ export const VaultHubAbi = [
         "internalType": "bytes32",
         "name": "role",
         "type": "bytes32"
+      }
+    ],
+    "name": "getRoleMembers",
+    "outputs": [
+      {
+        "internalType": "address[]",
+        "name": "",
+        "type": "address[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "role",
+        "type": "bytes32"
       },
       {
         "internalType": "address",
@@ -828,6 +901,19 @@ export const VaultHubAbi = [
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "isPaused",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "address",
@@ -846,6 +932,32 @@ export const VaultHubAbi = [
       }
     ],
     "name": "mintSharesBackedByVault",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_duration",
+        "type": "uint256"
+      }
+    ],
+    "name": "pauseFor",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_pauseUntilInclusive",
+        "type": "uint256"
+      }
+    ],
+    "name": "pauseUntil",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -871,6 +983,13 @@ export const VaultHubAbi = [
       }
     ],
     "name": "renounceRole",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "resume",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

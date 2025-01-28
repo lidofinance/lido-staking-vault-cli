@@ -57,12 +57,12 @@ PRIVATE_KEY_17000=0x...
 ```
 Application supported a few ways to adding or combine different settings
 
-- 1st step
+- #### 1st step
     You can pass link to json file with address of deployed contacts into **DEPLOYED** variable. If you want use
     devnet the all needed addresses of the contracts like VaultHub, VaultFactory etc already passed as example in configs/deployed-holesky-vaults-devnet-1.json.
     Also at near future this feature will be changed to resolving contracts addresses by LIDO locator and link to json
     file will no longer be necessary
-- 2nd step
+- #### 2nd step
     You need to pass link to json config file into **CONFIG** variable. The structure of a config file has to be like
     ```javascript
     {

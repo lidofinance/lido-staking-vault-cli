@@ -3,12 +3,7 @@ export const VaultFactoryAbi = [
     "inputs": [
       {
         "internalType": "address",
-        "name": "_owner",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "_stakingVaultImpl",
+        "name": "_beacon",
         "type": "address"
       },
       {
@@ -21,41 +16,29 @@ export const VaultFactoryAbi = [
     "type": "constructor"
   },
   {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "implementation",
-        "type": "address"
-      }
-    ],
-    "name": "BeaconInvalidImplementation",
+    "inputs": [],
+    "name": "CloneArgumentsTooLong",
     "type": "error"
   },
   {
     "inputs": [],
-    "name": "ERC1167FailedCreateClone",
+    "name": "FailedDeployment",
     "type": "error"
   },
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "owner",
-        "type": "address"
-      }
-    ],
-    "name": "OwnableInvalidOwner",
-    "type": "error"
-  },
-  {
-    "inputs": [
+        "internalType": "uint256",
+        "name": "balance",
+        "type": "uint256"
+      },
       {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
+        "internalType": "uint256",
+        "name": "needed",
+        "type": "uint256"
       }
     ],
-    "name": "OwnableUnauthorizedAccount",
+    "name": "InsufficientBalance",
     "type": "error"
   },
   {
@@ -94,38 +77,6 @@ export const VaultFactoryAbi = [
       {
         "indexed": true,
         "internalType": "address",
-        "name": "previousOwner",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "newOwner",
-        "type": "address"
-      }
-    ],
-    "name": "OwnershipTransferred",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "implementation",
-        "type": "address"
-      }
-    ],
-    "name": "Upgraded",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
         "name": "owner",
         "type": "address"
       },
@@ -140,9 +91,40 @@ export const VaultFactoryAbi = [
     "type": "event"
   },
   {
+    "inputs": [],
+    "name": "BEACON",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "DELEGATION_IMPL",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "components": [
+          {
+            "internalType": "address",
+            "name": "defaultAdmin",
+            "type": "address"
+          },
           {
             "internalType": "address",
             "name": "curator",
@@ -150,32 +132,32 @@ export const VaultFactoryAbi = [
           },
           {
             "internalType": "address",
-            "name": "staker",
+            "name": "minterBurner",
             "type": "address"
           },
           {
             "internalType": "address",
-            "name": "tokenMaster",
+            "name": "funderWithdrawer",
             "type": "address"
           },
           {
             "internalType": "address",
-            "name": "operator",
+            "name": "nodeOperatorManager",
             "type": "address"
           },
           {
             "internalType": "address",
-            "name": "claimOperatorDueRole",
+            "name": "nodeOperatorFeeClaimer",
             "type": "address"
           },
           {
             "internalType": "uint256",
-            "name": "curatorFee",
+            "name": "curatorFeeBP",
             "type": "uint256"
           },
           {
             "internalType": "uint256",
-            "name": "operatorFee",
+            "name": "nodeOperatorFeeBP",
             "type": "uint256"
           }
         ],
@@ -189,7 +171,7 @@ export const VaultFactoryAbi = [
         "type": "bytes"
       }
     ],
-    "name": "createVault",
+    "name": "createVaultWithDelegation",
     "outputs": [
       {
         "internalType": "contract IStakingVault",
@@ -202,78 +184,6 @@ export const VaultFactoryAbi = [
         "type": "address"
       }
     ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "delegationImpl",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "implementation",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "owner",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "renounceOwnership",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "newOwner",
-        "type": "address"
-      }
-    ],
-    "name": "transferOwnership",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "newImplementation",
-        "type": "address"
-      }
-    ],
-    "name": "upgradeTo",
-    "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   }

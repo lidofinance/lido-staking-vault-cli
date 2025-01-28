@@ -1,14 +1,14 @@
 import { getContract, createPublicClient, http } from "viem";
-import { lidoLocator } from "abi";
-import { getChain, getLocatorAddress, getRpcUrl } from "@configs";
+import { tokenManagerAbi } from "abi";
+import { getChain, getRpcUrl, getTokenMasterAddress } from "@configs";
 
-export const getLocatorContract = () => {
+export const getTokenManagerContract = () => {
   const rpcUrl = getRpcUrl();
-  const address = getLocatorAddress();
+  const address = getTokenMasterAddress();
 
   return getContract({
     address,
-    abi: lidoLocator,
+    abi: tokenManagerAbi,
     client: createPublicClient({
       chain: getChain(),
       transport: http(rpcUrl),

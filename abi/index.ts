@@ -5,3 +5,5 @@ export * from "./Dashboard";
 export * from "./Delegation";
 export * from "./StEth";
 export * from "./LidoLocator";
+export * from "./TokenManager";
+export * from "./Voting";

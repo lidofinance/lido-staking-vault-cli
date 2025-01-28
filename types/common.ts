@@ -1,21 +1,23 @@
 import { Address } from "viem";
 
-export interface VaultPayload {
+export interface VaultWithDelegation {
+  defaultAdmin: Address;
   curator: Address;
-  staker: Address;
-  tokenMaster: Address;
-  operator: Address;
-  claimOperatorDueRole: Address;
-  curatorFee: bigint;
-  operatorFee: bigint;
+  minterBurner: Address;
+  funderWithdrawer: Address;
+  nodeOperatorManager: Address;
+  nodeOperatorFeeClaimer: Address;
+  curatorFeeBP: bigint;
+  nodeOperatorFeeBP: bigint;
 }
 
 export interface CreateVaultPayload {
+  admin: Address;
   curator: Address;
-  operator: Address;
-  staker: Address;
-  tokenMaster: Address;
-  claimOperatorDue: Address;
+  minterBurner: Address;
+  funderWithdrawer: Address;
+  nodeOperatorManager: Address;
+  nodeOperatorFeeClaimer: Address;
   quantity: string;
 }
 

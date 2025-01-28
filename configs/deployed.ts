@@ -74,7 +74,7 @@ export const getChain = (): Chain => {
   const id = getChainId();
   const chain = SUPPORTED_CHAINS_LIST.find(chain => chain.id === id);
   return chain ?? SUPPORTED_CHAINS_LIST[0] as Chain;
-};
+}
 
 export const getRpcUrl = (() => {
   let rpcUrls: string;

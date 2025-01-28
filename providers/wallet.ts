@@ -1,4 +1,4 @@
-import { Address, createWalletClient, http } from "viem";
+import { Address, createPublicClient, createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { envs, getConfig, getChainId, getRpcUrl, getChain } from "@configs";
 
@@ -23,11 +23,16 @@ export const getAccount = () => {
 
 export const getWalletWithAccount = () => {
   const account = getAccount();
-  const client = createWalletClient({
+  const walletClient = createWalletClient({
     account,
     chain: getChain(),
     transport: http(getRpcUrl()),
   });
 
-  return { client, account };
+  const client = createPublicClient({
+    chain: getChain(),
+    transport: http(getRpcUrl()),
+  });
+
+  return { walletClient, client, account };
 };

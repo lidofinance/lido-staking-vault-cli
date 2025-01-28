@@ -1,94 +1,118 @@
-import { isAddress, isAddressEqual } from "viem";
+import { isAddress } from "viem";
 import { program } from "@command";
+import { getVaultFactoryContract } from "@contracts";
 import { createVault } from "@features";
-import { CreateVaultPayload } from "@types";
+import {CreateVaultPayload, VaultWithDelegation} from "@types";
 
 const vaultFactory = program.command("vf").description("vault factory contract");
 
 vaultFactory
+  .command("constants")
+  .description("get vault factory constants info")
+  .action(async () => {
+    const { contract } = await getVaultFactoryContract();
+    const beaconAddress = contract.read.BEACON();
+    const delegationImplAddress = contract.read.DELEGATION_IMPL();
+
+    console.table({
+      beaconAddress,
+      delegationImplAddress,
+    });
+  });
+
+vaultFactory
   .command("create-vault")
   .description("create vault contract")
+  .option("-a, --admin <admin>", "default admin address")
   .option("-c, --curator <curator>", "curator address")
-  .option("-o, --operator <operator>", "operator address")
-  .option("-s, --staker <staker>", "staker address")
-  .option("-t, --token-master <tokenMaster>", "token master address")
-  .option("-d, --claim-operator-due <claimOperatorDue>", "operator due address")
+  .option("-s, --mint-burn <minterBurner>", "minter-burner role address")
+  .option("-f, --fund-withdraw <funderWithdrawer>", "funder-withdrawer role address")
+  .option("-n, --no-manager <nodeOperatorManager>", "node operator manager address")
+  .option("-o, --no-fee-claimer <nodeOperatorFeeClaimer>", "node operator fee claimer address")
   .option("-q, --quantity <quantity>", "quantity of vaults to create, default 1")
-  .argument("<managerFee>", "Vault curator fee, for e.g. 100 == 1%")
-  .argument("<performanceFee>", "Node operator fee, for e.g. 100 == 1%")
+  .argument("<curatorFeeBP>", "Vault curator fee, for e.g. 100 == 1%")
+  .argument("<nodeOperatorFeeBP>", "Node operator fee, for e.g. 100 == 1%")
   .action(
     async (
-      managerFee: string,
-      performanceFee: string,
+      curatorFeeBP: string,
+      nodeOperatorFeeBP: string,
       options: CreateVaultPayload
     ) => {
-      const { curator, operator, staker, tokenMaster, claimOperatorDue, quantity = '1' } = options;
-      let curatorFee = parseInt(managerFee);
-      let operatorFee = parseInt(performanceFee);
+      const {
+        admin,
+        curator,
+        minterBurner,
+        funderWithdrawer,
+        nodeOperatorManager,
+        nodeOperatorFeeClaimer,
+        quantity = '1',
+      } = options;
+      let curatorFee = parseInt(curatorFeeBP);
+      let nodeOperatorFee = parseInt(nodeOperatorFeeBP);
       const qnt = parseInt(quantity);
 
       if (isNaN(curatorFee) || curatorFee < 0) {
         program.error("curator fee must be a positive number", { exitCode: 1 });
       }
 
-      if (isNaN(operatorFee) || operatorFee < 0) {
+      if (isNaN(nodeOperatorFee) || nodeOperatorFee < 0) {
         program.error("operator fee must be a positive number", { exitCode: 1 });
+      }
+
+      if (!isAddress(admin)) {
+        program.error("admin address is not valid", { exitCode: 1 });
       }
 
       if (!isAddress(curator)) {
         program.error("curator address is not valid", { exitCode: 1 });
       }
 
-      if (!isAddress(operator)) {
-        program.error("operator address is not valid", { exitCode: 1 });
+      if (!isAddress(minterBurner)) {
+        program.error("minterBurner address is not valid", { exitCode: 1 });
       }
 
-      if (!isAddress(staker)) {
-        program.error("staker address is not valid", { exitCode: 1 });
+      if (!isAddress(funderWithdrawer)) {
+        program.error("funder-withdrawer address is not valid", { exitCode: 1 });
       }
 
-      if (!isAddress(tokenMaster)) {
-        program.error("token master address is not valid", { exitCode: 1 });
+      if (!isAddress(nodeOperatorManager)) {
+        program.error("node operator manager address is not valid", { exitCode: 1 });
       }
 
-      if (!isAddress(claimOperatorDue)) {
-        program.error("operator due address is not valid", { exitCode: 1 });
-      }
-
-      if (isAddressEqual(curator, operator)) {
-        program.error("curator address can't be equal operator address", { exitCode: 1 });
-      }
-
-      if (isAddressEqual(tokenMaster, operator)) {
-        program.error("token master address can't be equal operator address", { exitCode: 1 });
-      }
-
-      if (isAddressEqual(staker, operator)) {
-        program.error("staker address can't be equal operator address", { exitCode: 1 });
+      if (!isAddress(nodeOperatorFeeClaimer)) {
+        program.error("node operator fee claimer address is not valid", { exitCode: 1 });
       }
 
       if (isNaN(qnt)) {
         program.error("quantity must be a number", { exitCode: 1 });
       }
 
-      const list = Array.from(Array(qnt));
+      const list: number[] = Array.from(Array(qnt));
       const payload = {
+        defaultAdmin: admin,
         curator,
-        staker,
-        tokenMaster,
-        operator,
-        claimOperatorDueRole: claimOperatorDue,
-        curatorFee: BigInt(curatorFee),
-        operatorFee: BigInt(operatorFee),
-      }
+        minterBurner,
+        funderWithdrawer,
+        nodeOperatorManager,
+        nodeOperatorFeeClaimer,
+        curatorFeeBP: BigInt(curatorFee),
+        nodeOperatorFeeBP: BigInt(nodeOperatorFee),
+      } as VaultWithDelegation;
 
       const transactions = []
-      for (const _ of list) {
-        const tx = await createVault(payload);
-        transactions.push(tx);
-      }
 
-      console.table(transactions);
+      try {
+        for (const _ of list) {
+          const tx = await createVault(payload);
+          transactions.push(tx);
+        }
+
+        console.table(transactions);
+      } catch (err) {
+        if (err instanceof Error) {
+          console.log('Create vault error:\n', err.message);
+        }
+      }
     }
   );
 

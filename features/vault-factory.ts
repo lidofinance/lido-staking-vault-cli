@@ -2,15 +2,15 @@ import { waitForTransactionReceipt } from "viem/actions";
 import { parseEventLogs } from "viem";
 import { getChain } from "@configs";
 import { getAccount } from "@providers";
-import { VaultPayload } from "@types";
+import { VaultWithDelegation } from "@types";
 import { getVaultFactoryContract } from "@contracts";
 import { VaultFactoryAbi } from "abi";
 
-export const createVault = async (payload: VaultPayload) => {
+export const createVault = async (payload: VaultWithDelegation) => {
   const { contract, client } = getVaultFactoryContract();
   const chain = getChain();
 
-  const tx = await contract.write.createVault(
+  const tx = await contract.write.createVaultWithDelegation(
     [
       { ...payload },
       '0x'
