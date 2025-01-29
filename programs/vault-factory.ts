@@ -4,7 +4,7 @@ import { createVault } from "@features";
 import { CreateVaultPayload, VaultWithDelegation } from "@types";
 import {validateAddressMap} from "@utils";
 
-const vaultFactory = program.command("vf").description("vault factory contract");
+const vaultFactory = program.command("factory").description("vault factory contract");
 
 vaultFactory
   .command("constants")

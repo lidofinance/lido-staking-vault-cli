@@ -4,7 +4,7 @@ import { getAccount } from "@providers";
 import { Address, parseEther } from "viem";
 import { getChain } from "@configs";
 
-const vault = program.command("v").description("vault contract");
+const vault = program.command("vault").description("vault contract");
 
 // Views
 // info - get vault base info
@@ -383,8 +383,8 @@ vault
   });
 
 vault
-  .command("report")
-  .description("Submits a report containing valuation, inOutDelta, and locked amount")
+  .command("compute-deposit")
+  .description("Computes the deposit data root for a validator deposit")
   .argument("<address>", "vault address")
   .argument("<pubkey>", "Validator public key, 48 bytes")
   .argument("<withdrawalCredentials>", "Withdrawal credentials, 32 bytes")

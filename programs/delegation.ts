@@ -5,7 +5,7 @@ import { getDelegationContract } from "@contracts";
 import { getAccount } from "@providers";
 import { getChain } from "@configs";
 
-const delegation = program.command("del").description("delegation contract");
+const delegation = program.command("delegation").description("delegation contract");
 
 delegation
   .command("roles")

@@ -5,7 +5,7 @@ import { getAccount } from "@providers";
 import { getChain } from "@configs";
 import { Permit, RoleAssignment } from "@types";
 
-const dashboard = program.command("d").description("dashboard contract");
+const dashboard = program.command("dashboard").description("dashboard contract");
 
 dashboard
   .command("info")

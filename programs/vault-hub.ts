@@ -4,7 +4,7 @@ import { getVaultHubContract } from "@contracts";
 import { getAccount } from "@providers";
 import { getChain } from "@configs";
 
-const vaultHub = program.command("vh").description("vault hub contract");
+const vaultHub = program.command("hub").description("vault hub contract");
 
 // Works fine
 vaultHub
