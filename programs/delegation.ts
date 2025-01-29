@@ -9,24 +9,38 @@ const delegation = program.command("del").description("delegation contract");
 
 delegation
   .command("roles")
-  .description("get delegation contract base info")
+  .description("get delegation contract roles info")
   .argument("<address>", "delegation contract address")
   .action(async (address: Address) => {
     const contract = getDelegationContract(address);
 
     try {
-      const curator = await contract.read.CURATOR_ROLE();
-      const mintBurnRole = await contract.read.MINT_BURN_ROLE();
-      const fundWithdrawalRole = await contract.read.FUND_WITHDRAW_ROLE();
-      const nodeOperatorManagerRole = await contract.read.NODE_OPERATOR_MANAGER_ROLE();
-      const nodeOperatorFeeClaimerRole = await contract.read.NODE_OPERATOR_FEE_CLAIMER_ROLE();
+      const CURATOR_ROLE = await contract.read.CURATOR_ROLE();
+      const NODE_OPERATOR_MANAGER_ROLE = await contract.read.NODE_OPERATOR_MANAGER_ROLE();
+      const NODE_OPERATOR_FEE_CLAIMER_ROLE = await contract.read.NODE_OPERATOR_FEE_CLAIMER_ROLE();
+      const FUND_ROLE = await contract.read.FUND_ROLE();
+      const WITHDRAW_ROLE = await contract.read.WITHDRAW_ROLE();
+      const MINT_ROLE = await contract.read.MINT_ROLE();
+      const BURN_ROLE = await contract.read.BURN_ROLE();
+      const REBALANCE_ROLE = await contract.read.REBALANCE_ROLE();
+      const PAUSE_BEACON_CHAIN_DEPOSITS_ROLE = await contract.read.PAUSE_BEACON_CHAIN_DEPOSITS_ROLE();
+      const RESUME_BEACON_CHAIN_DEPOSITS_ROLE = await contract.read.RESUME_BEACON_CHAIN_DEPOSITS_ROLE();
+      const REQUEST_VALIDATOR_EXIT_ROLE = await contract.read.REQUEST_VALIDATOR_EXIT_ROLE();
+      const VOLUNTARY_DISCONNECT_ROLE = await contract.read.VOLUNTARY_DISCONNECT_ROLE();
 
       const payload = {
-        curator,
-        mintBurnRole,
-        fundWithdrawalRole,
-        nodeOperatorManagerRole,
-        nodeOperatorFeeClaimerRole,
+        CURATOR_ROLE,
+        NODE_OPERATOR_MANAGER_ROLE,
+        NODE_OPERATOR_FEE_CLAIMER_ROLE,
+        FUND_ROLE,
+        WITHDRAW_ROLE,
+        MINT_ROLE,
+        BURN_ROLE,
+        REBALANCE_ROLE,
+        PAUSE_BEACON_CHAIN_DEPOSITS_ROLE,
+        RESUME_BEACON_CHAIN_DEPOSITS_ROLE,
+        REQUEST_VALIDATOR_EXIT_ROLE,
+        VOLUNTARY_DISCONNECT_ROLE,
       }
 
       console.table(Object.entries(payload));
@@ -63,25 +77,6 @@ delegation
   .action(async (address: Address, callId: Address, role: Address) => {
     const contract = getDelegationContract(address);
     
-    try {
-      const voting = await contract.read.votings([callId, role]);
-      console.table({ voting });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when getting voting:\n', err.message);
-      }
-    }
-  });
-
-delegation
-  .command("voting-info")
-  .description("get committee votes")
-  .argument("<address>", "delegation contract address")
-  .argument("<callId>", "voting id")
-  .argument("<role>", "role that voted")
-  .action(async (address: Address, callId: Address, role: Address) => {
-    const contract = getDelegationContract(address);
-
     try {
       const voting = await contract.read.votings([callId, role]);
       console.table({ voting });
@@ -405,7 +400,7 @@ delegation
     const contract = getDelegationContract(address);
 
     try {
-      const tx = await contract.write.mint(
+      const tx = await contract.write.mintShares(
         [recipient, BigInt(amountOfShares)],
         {
           account: getAccount(),
@@ -430,7 +425,7 @@ delegation
     const contract = getDelegationContract(address);
 
     try {
-      const tx = await contract.write.burn(
+      const tx = await contract.write.burnShares(
         [BigInt(amountOfShares)],
         {
           account: getAccount(),
@@ -504,7 +499,7 @@ delegation
     const contract = getDelegationContract(address);
     
     try {
-      const tx = await contract.write.transferStVaultOwnership(
+      const tx = await contract.write.transferStakingVaultOwnership(
         [newOwner],
         {
           account: getAccount(),

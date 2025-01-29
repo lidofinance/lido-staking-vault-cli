@@ -45,7 +45,7 @@ export const VaultFactoryAbi = [
     "inputs": [
       {
         "internalType": "string",
-        "name": "",
+        "name": "argument",
         "type": "string"
       }
     ],
@@ -127,17 +127,52 @@ export const VaultFactoryAbi = [
           },
           {
             "internalType": "address",
+            "name": "funder",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "withdrawer",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "minter",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "burner",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "rebalancer",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "depositPauser",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "depositResumer",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "exitRequester",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "disconnecter",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
             "name": "curator",
-            "type": "address"
-          },
-          {
-            "internalType": "address",
-            "name": "minterBurner",
-            "type": "address"
-          },
-          {
-            "internalType": "address",
-            "name": "funderWithdrawer",
             "type": "address"
           },
           {
@@ -151,18 +186,18 @@ export const VaultFactoryAbi = [
             "type": "address"
           },
           {
-            "internalType": "uint256",
+            "internalType": "uint16",
             "name": "curatorFeeBP",
-            "type": "uint256"
+            "type": "uint16"
           },
           {
-            "internalType": "uint256",
+            "internalType": "uint16",
             "name": "nodeOperatorFeeBP",
-            "type": "uint256"
+            "type": "uint16"
           }
         ],
-        "internalType": "struct IDelegation.InitialState",
-        "name": "_delegationInitialState",
+        "internalType": "struct DelegationConfig",
+        "name": "_delegationConfig",
         "type": "tuple"
       },
       {
@@ -179,7 +214,7 @@ export const VaultFactoryAbi = [
         "type": "address"
       },
       {
-        "internalType": "contract IDelegation",
+        "internalType": "contract Delegation",
         "name": "delegation",
         "type": "address"
       }

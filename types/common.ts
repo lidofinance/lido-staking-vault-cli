@@ -2,20 +2,34 @@ import { Address } from "viem";
 
 export interface VaultWithDelegation {
   defaultAdmin: Address;
+  funder: Address;
+  withdrawer: Address;
+  minter: Address;
+  burner: Address;
+  rebalancer: Address;
+  depositPauser: Address;
+  depositResumer: Address;
+  exitRequester: Address;
+  disconnecter: Address;
   curator: Address;
-  minterBurner: Address;
-  funderWithdrawer: Address;
   nodeOperatorManager: Address;
   nodeOperatorFeeClaimer: Address;
-  curatorFeeBP: bigint;
-  nodeOperatorFeeBP: bigint;
+  curatorFeeBP: number;
+  nodeOperatorFeeBP: number;
 }
 
 export interface CreateVaultPayload {
-  admin: Address;
+  defaultAdmin: Address;
+  funder: Address;
+  withdrawer: Address;
+  minter: Address;
+  burner: Address;
+  rebalancer: Address;
+  depositPauser: Address;
+  depositResumer: Address;
+  exitRequester: Address;
+  disconnecter: Address;
   curator: Address;
-  minterBurner: Address;
-  funderWithdrawer: Address;
   nodeOperatorManager: Address;
   nodeOperatorFeeClaimer: Address;
   quantity: string;
@@ -27,4 +41,9 @@ export interface Permit {
   v: number;
   r: Address;
   s: Address;
+}
+
+export interface RoleAssignment {
+  account: Address;
+  role: `0x${string}`;
 }

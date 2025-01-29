@@ -45,3 +45,13 @@ export const isValidUrl = (value: string | undefined): boolean => {
     return false;
   }
 }
+
+export const validateAddressMap = (payload: Record<any, any>) => {
+  return Object.keys(payload).reduce((acc, key) => {
+    if (!isAddress(payload[key]!)) {
+      acc.push(`${key} is not a valid address`);
+    }
+
+    return acc;
+  }, [] as string[]);
+}

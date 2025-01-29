@@ -3,17 +3,12 @@ export const DashboardAbi = [
     "inputs": [
       {
         "internalType": "address",
-        "name": "_stETH",
+        "name": "_wETH",
         "type": "address"
       },
       {
         "internalType": "address",
-        "name": "_weth",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "_wstETH",
+        "name": "_lidoLocator",
         "type": "address"
       }
     ],
@@ -49,17 +44,28 @@ export const DashboardAbi = [
   {
     "inputs": [
       {
-        "internalType": "uint256",
-        "name": "withdrawable",
-        "type": "uint256"
+        "internalType": "address",
+        "name": "recipient",
+        "type": "address"
       },
       {
         "internalType": "uint256",
-        "name": "requested",
+        "name": "amount",
         "type": "uint256"
       }
     ],
-    "name": "InsufficientWithdrawableAmount",
+    "name": "EthTransferFailed",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      }
+    ],
+    "name": "InvalidPermit",
     "type": "error"
   },
   {
@@ -68,15 +74,91 @@ export const DashboardAbi = [
     "type": "error"
   },
   {
+    "inputs": [],
+    "name": "NotACommitteeMember",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      }
+    ],
+    "name": "SafeERC20FailedOperation",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "VoteLifetimeCannotBeZero",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "VoteLifetimeNotSet",
+    "type": "error"
+  },
+  {
     "inputs": [
       {
         "internalType": "string",
-        "name": "argName",
+        "name": "argument",
         "type": "string"
       }
     ],
     "name": "ZeroArgument",
     "type": "error"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "ERC20Recovered",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "token",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      }
+    ],
+    "name": "ERC721Recovered",
+    "type": "event"
   },
   {
     "anonymous": false,
@@ -139,6 +221,37 @@ export const DashboardAbi = [
     "inputs": [
       {
         "indexed": true,
+        "internalType": "address",
+        "name": "member",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "role",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "timestamp",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes",
+        "name": "data",
+        "type": "bytes"
+      }
+    ],
+    "name": "RoleMemberVoted",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
         "internalType": "bytes32",
         "name": "role",
         "type": "bytes32"
@@ -160,8 +273,137 @@ export const DashboardAbi = [
     "type": "event"
   },
   {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "sender",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "oldVoteLifetime",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "newVoteLifetime",
+        "type": "uint256"
+      }
+    ],
+    "name": "VoteLifetimeSet",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "BURN_ROLE",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "DEFAULT_ADMIN_ROLE",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "ETH",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "FUND_ROLE",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "MINT_ROLE",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "PAUSE_BEACON_CHAIN_DEPOSITS_ROLE",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "REBALANCE_ROLE",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "REQUEST_VALIDATOR_EXIT_ROLE",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "RESUME_BEACON_CHAIN_DEPOSITS_ROLE",
     "outputs": [
       {
         "internalType": "bytes32",
@@ -187,12 +429,38 @@ export const DashboardAbi = [
   },
   {
     "inputs": [],
+    "name": "VOLUNTARY_DISCONNECT_ROLE",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "WETH",
     "outputs": [
       {
-        "internalType": "contract IWeth",
+        "internalType": "contract IWETH9",
         "name": "",
         "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "WITHDRAW_ROLE",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
       }
     ],
     "stateMutability": "view",
@@ -219,7 +487,7 @@ export const DashboardAbi = [
         "type": "uint256"
       }
     ],
-    "name": "burn",
+    "name": "burnShares",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -228,7 +496,7 @@ export const DashboardAbi = [
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "_tokens",
+        "name": "_amountOfShares",
         "type": "uint256"
       },
       {
@@ -264,7 +532,7 @@ export const DashboardAbi = [
         "type": "tuple"
       }
     ],
-    "name": "burnWithPermit",
+    "name": "burnSharesWithPermit",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -273,7 +541,65 @@ export const DashboardAbi = [
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "_tokens",
+        "name": "_amountOfStETH",
+        "type": "uint256"
+      }
+    ],
+    "name": "burnStETH",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_amountOfStETH",
+        "type": "uint256"
+      },
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "value",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "deadline",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint8",
+            "name": "v",
+            "type": "uint8"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "r",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "s",
+            "type": "bytes32"
+          }
+        ],
+        "internalType": "struct Dashboard.PermitInput",
+        "name": "_permit",
+        "type": "tuple"
+      }
+    ],
+    "name": "burnStETHWithPermit",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_amountOfWstETH",
         "type": "uint256"
       }
     ],
@@ -286,7 +612,7 @@ export const DashboardAbi = [
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "_tokens",
+        "name": "_amountOfWstETH",
         "type": "uint256"
       },
       {
@@ -338,32 +664,13 @@ export const DashboardAbi = [
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "_wethAmount",
+        "name": "_amountOfWETH",
         "type": "uint256"
       }
     ],
-    "name": "fundByWeth",
+    "name": "fundWeth",
     "outputs": [],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_ether",
-        "type": "uint256"
-      }
-    ],
-    "name": "getMintableShares",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -448,19 +755,6 @@ export const DashboardAbi = [
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "getWithdrawableEther",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
         "internalType": "bytes32",
@@ -474,6 +768,31 @@ export const DashboardAbi = [
       }
     ],
     "name": "grantRole",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "account",
+            "type": "address"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "role",
+            "type": "bytes32"
+          }
+        ],
+        "internalType": "struct Dashboard.RoleAssignment[]",
+        "name": "_assignments",
+        "type": "tuple[]"
+      }
+    ],
+    "name": "grantRoles",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -503,7 +822,13 @@ export const DashboardAbi = [
     "type": "function"
   },
   {
-    "inputs": [],
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_defaultAdmin",
+        "type": "address"
+      }
+    ],
     "name": "initialize",
     "outputs": [],
     "stateMutability": "nonpayable",
@@ -535,7 +860,7 @@ export const DashboardAbi = [
         "type": "uint256"
       }
     ],
-    "name": "mint",
+    "name": "mintShares",
     "outputs": [],
     "stateMutability": "payable",
     "type": "function"
@@ -549,7 +874,25 @@ export const DashboardAbi = [
       },
       {
         "internalType": "uint256",
-        "name": "_tokens",
+        "name": "_amountOfStETH",
+        "type": "uint256"
+      }
+    ],
+    "name": "mintStETH",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_recipient",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_amountOfWstETH",
         "type": "uint256"
       }
     ],
@@ -569,6 +912,25 @@ export const DashboardAbi = [
     "inputs": [
       {
         "internalType": "uint256",
+        "name": "_etherToFund",
+        "type": "uint256"
+      }
+    ],
+    "name": "projectedNewMintableShares",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
         "name": "_ether",
         "type": "uint256"
       }
@@ -576,6 +938,52 @@ export const DashboardAbi = [
     "name": "rebalanceVault",
     "outputs": [],
     "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_token",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_recipient",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "recoverERC20",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_token",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_tokenId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "_recipient",
+        "type": "address"
+      }
+    ],
+    "name": "recoverERC721",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -611,7 +1019,7 @@ export const DashboardAbi = [
   },
   {
     "inputs": [],
-    "name": "reserveRatio",
+    "name": "reserveRatioBP",
     "outputs": [
       {
         "internalType": "uint16",
@@ -643,6 +1051,31 @@ export const DashboardAbi = [
       }
     ],
     "name": "revokeRole",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "account",
+            "type": "address"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "role",
+            "type": "bytes32"
+          }
+        ],
+        "internalType": "struct Dashboard.RoleAssignment[]",
+        "name": "_assignments",
+        "type": "tuple[]"
+      }
+    ],
+    "name": "revokeRoles",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -707,7 +1140,7 @@ export const DashboardAbi = [
   },
   {
     "inputs": [],
-    "name": "thresholdReserveRatio",
+    "name": "thresholdReserveRatioBP",
     "outputs": [
       {
         "internalType": "uint16",
@@ -739,7 +1172,7 @@ export const DashboardAbi = [
         "type": "address"
       }
     ],
-    "name": "transferStVaultOwnership",
+    "name": "transferStakingVaultOwnership",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -841,6 +1274,56 @@ export const DashboardAbi = [
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "voteLifetime",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "votingCommittee",
+    "outputs": [
+      {
+        "internalType": "bytes32[]",
+        "name": "",
+        "type": "bytes32[]"
+      }
+    ],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "callId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "role",
+        "type": "bytes32"
+      }
+    ],
+    "name": "votings",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "voteTimestamp",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "address",
@@ -867,13 +1350,26 @@ export const DashboardAbi = [
       },
       {
         "internalType": "uint256",
-        "name": "_ether",
+        "name": "_amountOfWETH",
         "type": "uint256"
       }
     ],
-    "name": "withdrawToWeth",
+    "name": "withdrawWETH",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "withdrawableEther",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
