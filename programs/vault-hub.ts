@@ -38,8 +38,8 @@ vaultHub
 
 vaultHub
   .command("add-codehash")
-  .description("get vault hub constants")
-  .argument("<codehash>", "get vault hub constants")
+  .description("add vault proxy codehash to allowed list")
+  .argument("<codehash>", "codehash vault proxy codehash")
   .action(async (codehash: Address) => {
     const contract = await getVaultHubContract();
 
