@@ -1,7 +1,7 @@
 import { Address } from "viem";
 
 import { program } from "@command";
-import { getDelegationContract } from "@contracts";
+import {getDelegationContract, getStakingVaultContract} from "@contracts";
 import { getAccount } from "@providers";
 import { getChain } from "@configs";
 
@@ -67,6 +67,42 @@ delegation
       }
     }
   });
+
+delegation
+  .command("is-healthy")
+    .description("get vault healthy info")
+    .argument("<address>", "vault address")
+    .action(async (address: Address) => {
+      const contract = getDelegationContract(address);
+
+      try {
+        const valuation = await contract.read.valuation();
+        const curatorUnclaimedFee = await contract.read.curatorUnclaimedFee();
+        const nodeOperatorUnclaimedFee = await contract.read.nodeOperatorUnclaimedFee();
+        const minted = await contract.read.sharesMinted();
+
+        const { vault } = await contract.read.vaultSocket();
+        const vaultContract = getStakingVaultContract(vault);
+        const locked = await vaultContract.read.locked();
+
+        const reserved = locked + curatorUnclaimedFee + nodeOperatorUnclaimedFee;
+        const valuationPerc = valuation / (reserved + minted) * 100n;
+        const isHealthy = valuationPerc >= 100n;
+
+        console.table({
+          'Vault Healthy': isHealthy,
+          'Valuation': valuation,
+          'Curator Unclaimed Fee': curatorUnclaimedFee,
+          'Node Operator Unclaimed Fee': nodeOperatorUnclaimedFee,
+          'Minted': minted,
+          'Reserved': reserved,
+        })
+      } catch (err) {
+        if (err instanceof Error) {
+          console.log('Error when getting info:\n', err.message);
+        }
+      }
+    });
 
 delegation
   .command("voting-info")
