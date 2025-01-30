@@ -96,6 +96,22 @@ vault
       }
     }
   });
+vault
+  .command("node-operator")
+  .description("Returns the address of the node operator")
+  .argument("<address>", "vault address")
+  .action(async (address: Address) => {
+    const contract = getStakingVaultContract(address);
+    try {
+      const nodeOperator = await contract.read.nodeOperator();
+
+      console.table({"Node Operator": nodeOperator});
+    } catch (err) {
+      if (err instanceof Error) {
+        program.error(err.message);
+      }
+    }
+  });
 
 // Works
 vault
