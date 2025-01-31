@@ -92,7 +92,7 @@ vaultFactory
         console.table(transactions);
       } catch (err) {
         if (err instanceof Error) {
-          program.error(err.message);
+          console.log('Error occurred while creating vaults', err.message);
         }
       }
     }
