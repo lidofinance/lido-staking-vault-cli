@@ -38,3 +38,4 @@ export const createVault = async (payload: VaultWithDelegation) => {
     blockNumber: receipt.blockNumber,
   };
 }
+

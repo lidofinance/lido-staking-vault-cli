@@ -32,7 +32,6 @@ export interface CreateVaultPayload {
   curator: Address;
   nodeOperatorManager: Address;
   nodeOperatorFeeClaimer: Address;
-  quantity: string;
 }
 
 export interface Permit {
