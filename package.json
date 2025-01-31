@@ -11,6 +11,8 @@
   "scripts": {
     "start": "ts-node ./index.ts",
     "build": "npx tsc && tsc-alias",
+    "lint": "echo 'No linting yet'",
+    "types": "echo 'No types yet'",
     "test": "echo 'No tests yet'"
   },
   "homepage": "https://github.com/lidofinance/liquid-staking-vault-cli/",
