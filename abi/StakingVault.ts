@@ -1,696 +1,782 @@
 export const StakingVaultAbi = [
   {
-    inputs: [
+    "inputs": [
       {
-        internalType: "address",
-        name: "_vaultHub",
-        type: "address",
+        "internalType": "address",
+        "name": "_vaultHub",
+        "type": "address"
       },
       {
-        internalType: "address",
-        name: "_stETH",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "_owner",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "_beaconChainDepositContract",
-        type: "address",
-      },
+        "internalType": "address",
+        "name": "_beaconChainDepositContract",
+        "type": "address"
+      }
     ],
-    stateMutability: "nonpayable",
-    type: "constructor",
+    "stateMutability": "nonpayable",
+    "type": "constructor"
   },
   {
-    inputs: [],
-    name: "DepositContractZeroAddress",
-    type: "error",
+    "inputs": [],
+    "name": "BeaconChainDepositsArePaused",
+    "type": "error"
   },
   {
-    inputs: [
+    "inputs": [],
+    "name": "BeaconChainDepositsPauseExpected",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "BeaconChainDepositsResumeExpected",
+    "type": "error"
+  },
+  {
+    "inputs": [
       {
-        internalType: "uint256",
-        name: "balance",
-        type: "uint256",
-      },
+        "internalType": "uint256",
+        "name": "balance",
+        "type": "uint256"
+      }
     ],
-    name: "InsufficientBalance",
-    type: "error",
+    "name": "InsufficientBalance",
+    "type": "error"
   },
   {
-    inputs: [
+    "inputs": [
       {
-        internalType: "uint256",
-        name: "unlocked",
-        type: "uint256",
-      },
+        "internalType": "uint256",
+        "name": "unlocked",
+        "type": "uint256"
+      }
     ],
-    name: "InsufficientUnlocked",
-    type: "error",
+    "name": "InsufficientUnlocked",
+    "type": "error"
   },
   {
-    inputs: [],
-    name: "InvalidInitialization",
-    type: "error",
+    "inputs": [],
+    "name": "InvalidInitialization",
+    "type": "error"
   },
   {
-    inputs: [
+    "inputs": [
       {
-        internalType: "uint256",
-        name: "actual",
-        type: "uint256",
+        "internalType": "uint256",
+        "name": "currentlyLocked",
+        "type": "uint256"
       },
       {
-        internalType: "uint256",
-        name: "expected",
-        type: "uint256",
-      },
+        "internalType": "uint256",
+        "name": "attemptedLocked",
+        "type": "uint256"
+      }
     ],
-    name: "InvalidPublicKeysBatchLength",
-    type: "error",
+    "name": "LockedCannotDecreaseOutsideOfReport",
+    "type": "error"
   },
   {
-    inputs: [
+    "inputs": [
       {
-        internalType: "uint256",
-        name: "actual",
-        type: "uint256",
+        "internalType": "string",
+        "name": "operation",
+        "type": "string"
       },
       {
-        internalType: "uint256",
-        name: "expected",
-        type: "uint256",
-      },
+        "internalType": "address",
+        "name": "sender",
+        "type": "address"
+      }
     ],
-    name: "InvalidSignaturesBatchLength",
-    type: "error",
+    "name": "NotAuthorized",
+    "type": "error"
   },
   {
-    inputs: [
+    "inputs": [],
+    "name": "NotInitializing",
+    "type": "error"
+  },
+  {
+    "inputs": [
       {
-        internalType: "string",
-        name: "operation",
-        type: "string",
-      },
-      {
-        internalType: "address",
-        name: "sender",
-        type: "address",
-      },
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      }
     ],
-    name: "NotAuthorized",
-    type: "error",
+    "name": "OwnableInvalidOwner",
+    "type": "error"
   },
   {
-    inputs: [],
-    name: "NotHealthy",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "NotInitializing",
-    type: "error",
-  },
-  {
-    inputs: [
+    "inputs": [
       {
-        internalType: "address",
-        name: "owner",
-        type: "address",
-      },
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
     ],
-    name: "OwnableInvalidOwner",
-    type: "error",
+    "name": "OwnableUnauthorizedAccount",
+    "type": "error"
   },
   {
-    inputs: [
+    "inputs": [
       {
-        internalType: "address",
-        name: "account",
-        type: "address",
+        "internalType": "uint256",
+        "name": "valuation",
+        "type": "uint256"
       },
+      {
+        "internalType": "uint256",
+        "name": "rebalanceAmount",
+        "type": "uint256"
+      }
     ],
-    name: "OwnableUnauthorizedAccount",
-    type: "error",
+    "name": "RebalanceAmountExceedsValuation",
+    "type": "error"
   },
   {
-    inputs: [
+    "inputs": [
       {
-        internalType: "uint8",
-        name: "bits",
-        type: "uint8",
+        "internalType": "address",
+        "name": "sender",
+        "type": "address"
       },
       {
-        internalType: "int256",
-        name: "value",
-        type: "int256",
-      },
+        "internalType": "address",
+        "name": "beacon",
+        "type": "address"
+      }
     ],
-    name: "SafeCastOverflowedIntDowncast",
-    type: "error",
+    "name": "SenderNotBeacon",
+    "type": "error"
   },
   {
-    inputs: [
+    "inputs": [
       {
-        internalType: "uint8",
-        name: "bits",
-        type: "uint8",
+        "internalType": "address",
+        "name": "recipient",
+        "type": "address"
       },
       {
-        internalType: "uint256",
-        name: "value",
-        type: "uint256",
-      },
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
     ],
-    name: "SafeCastOverflowedUintDowncast",
-    type: "error",
+    "name": "TransferFailed",
+    "type": "error"
   },
   {
-    inputs: [
+    "inputs": [],
+    "name": "Unbalanced",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "UnrecoverableError",
+    "type": "error"
+  },
+  {
+    "inputs": [
       {
-        internalType: "address",
-        name: "recipient",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
+        "internalType": "string",
+        "name": "name",
+        "type": "string"
+      }
     ],
-    name: "TransferFailed",
-    type: "error",
+    "name": "ZeroArgument",
+    "type": "error"
   },
   {
-    inputs: [
+    "anonymous": false,
+    "inputs": [],
+    "name": "BeaconChainDepositsPaused",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [],
+    "name": "BeaconChainDepositsResumed",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
       {
-        internalType: "string",
-        name: "name",
-        type: "string",
+        "indexed": true,
+        "internalType": "address",
+        "name": "sender",
+        "type": "address"
       },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "deposits",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "totalAmount",
+        "type": "uint256"
+      }
     ],
-    name: "ZeroArgument",
-    type: "error",
+    "name": "DepositedToBeaconChain",
+    "type": "event"
   },
   {
-    anonymous: false,
-    inputs: [
+    "anonymous": false,
+    "inputs": [
       {
-        indexed: true,
-        internalType: "address",
-        name: "sender",
-        type: "address",
+        "indexed": true,
+        "internalType": "address",
+        "name": "sender",
+        "type": "address"
       },
       {
-        indexed: false,
-        internalType: "uint256",
-        name: "deposits",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
     ],
-    name: "DepositedToBeaconChain",
-    type: "event",
+    "name": "Funded",
+    "type": "event"
   },
   {
-    anonymous: false,
-    inputs: [
+    "anonymous": false,
+    "inputs": [
       {
-        indexed: true,
-        internalType: "address",
-        name: "sender",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
+        "indexed": false,
+        "internalType": "uint64",
+        "name": "version",
+        "type": "uint64"
+      }
     ],
-    name: "ExecutionLayerRewardsReceived",
-    type: "event",
+    "name": "Initialized",
+    "type": "event"
   },
   {
-    anonymous: false,
-    inputs: [
+    "anonymous": false,
+    "inputs": [
       {
-        indexed: true,
-        internalType: "address",
-        name: "sender",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "locked",
+        "type": "uint256"
+      }
     ],
-    name: "Funded",
-    type: "event",
+    "name": "LockedIncreased",
+    "type": "event"
   },
   {
-    anonymous: false,
-    inputs: [
+    "anonymous": false,
+    "inputs": [
       {
-        indexed: false,
-        internalType: "uint64",
-        name: "version",
-        type: "uint64",
-      },
+        "indexed": false,
+        "internalType": "bytes",
+        "name": "reason",
+        "type": "bytes"
+      }
     ],
-    name: "Initialized",
-    type: "event",
+    "name": "OnReportFailed",
+    "type": "event"
   },
   {
-    anonymous: false,
-    inputs: [
+    "anonymous": false,
+    "inputs": [
       {
-        indexed: false,
-        internalType: "uint256",
-        name: "locked",
-        type: "uint256",
+        "indexed": true,
+        "internalType": "address",
+        "name": "previousOwner",
+        "type": "address"
       },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
     ],
-    name: "Locked",
-    type: "event",
+    "name": "OwnershipTransferred",
+    "type": "event"
   },
   {
-    anonymous: false,
-    inputs: [
+    "anonymous": false,
+    "inputs": [
       {
-        indexed: false,
-        internalType: "bytes",
-        name: "reason",
-        type: "bytes",
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "valuation",
+        "type": "uint256"
       },
+      {
+        "indexed": false,
+        "internalType": "int256",
+        "name": "inOutDelta",
+        "type": "int256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "locked",
+        "type": "uint256"
+      }
     ],
-    name: "OnReportFailed",
-    type: "event",
+    "name": "Reported",
+    "type": "event"
   },
   {
-    anonymous: false,
-    inputs: [
+    "anonymous": false,
+    "inputs": [
       {
-        indexed: true,
-        internalType: "address",
-        name: "previousOwner",
-        type: "address",
+        "indexed": true,
+        "internalType": "address",
+        "name": "sender",
+        "type": "address"
       },
       {
-        indexed: true,
-        internalType: "address",
-        name: "newOwner",
-        type: "address",
-      },
+        "indexed": false,
+        "internalType": "bytes",
+        "name": "pubkey",
+        "type": "bytes"
+      }
     ],
-    name: "OwnershipTransferred",
-    type: "event",
+    "name": "ValidatorsExitRequest",
+    "type": "event"
   },
   {
-    anonymous: false,
-    inputs: [
+    "anonymous": false,
+    "inputs": [
       {
-        indexed: false,
-        internalType: "uint256",
-        name: "valuation",
-        type: "uint256",
+        "indexed": true,
+        "internalType": "address",
+        "name": "sender",
+        "type": "address"
       },
       {
-        indexed: false,
-        internalType: "int256",
-        name: "inOutDelta",
-        type: "int256",
+        "indexed": true,
+        "internalType": "address",
+        "name": "recipient",
+        "type": "address"
       },
       {
-        indexed: false,
-        internalType: "uint256",
-        name: "locked",
-        type: "uint256",
-      },
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
     ],
-    name: "Reported",
-    type: "event",
+    "name": "Withdrawn",
+    "type": "event"
   },
   {
-    anonymous: false,
-    inputs: [
+    "inputs": [],
+    "name": "beaconChainDepositsPaused",
+    "outputs": [
       {
-        indexed: true,
-        internalType: "address",
-        name: "sender",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "bytes",
-        name: "validatorPublicKey",
-        type: "bytes",
-      },
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
     ],
-    name: "ValidatorsExitRequest",
-    type: "event",
+    "stateMutability": "view",
+    "type": "function"
   },
   {
-    anonymous: false,
-    inputs: [
+    "inputs": [
       {
-        indexed: true,
-        internalType: "address",
-        name: "sender",
-        type: "address",
+        "internalType": "bytes",
+        "name": "_pubkey",
+        "type": "bytes"
       },
       {
-        indexed: true,
-        internalType: "address",
-        name: "recipient",
-        type: "address",
+        "internalType": "bytes",
+        "name": "_withdrawalCredentials",
+        "type": "bytes"
       },
       {
-        indexed: false,
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
+        "internalType": "bytes",
+        "name": "_signature",
+        "type": "bytes"
       },
+      {
+        "internalType": "uint256",
+        "name": "_amount",
+        "type": "uint256"
+      }
     ],
-    name: "Withdrawn",
-    type: "event",
-  },
-  {
-    inputs: [],
-    name: "DEPOSIT_CONTRACT",
-    outputs: [
+    "name": "computeDepositDataRoot",
+    "outputs": [
       {
-        internalType: "contract IDepositContract",
-        name: "",
-        type: "address",
-      },
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
     ],
-    stateMutability: "view",
-    type: "function",
+    "stateMutability": "view",
+    "type": "function"
   },
   {
-    inputs: [
+    "inputs": [],
+    "name": "depositContract",
+    "outputs": [
       {
-        internalType: "uint256",
-        name: "_tokens",
-        type: "uint256",
-      },
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
     ],
-    name: "burn",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
+    "stateMutability": "view",
+    "type": "function"
   },
   {
-    inputs: [
+    "inputs": [
       {
-        internalType: "uint256",
-        name: "_numberOfDeposits",
-        type: "uint256",
-      },
-      {
-        internalType: "bytes",
-        name: "_pubkeys",
-        type: "bytes",
-      },
-      {
-        internalType: "bytes",
-        name: "_signatures",
-        type: "bytes",
-      },
+        "components": [
+          {
+            "internalType": "bytes",
+            "name": "pubkey",
+            "type": "bytes"
+          },
+          {
+            "internalType": "bytes",
+            "name": "signature",
+            "type": "bytes"
+          },
+          {
+            "internalType": "uint256",
+            "name": "amount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "depositDataRoot",
+            "type": "bytes32"
+          }
+        ],
+        "internalType": "struct IStakingVault.Deposit[]",
+        "name": "_deposits",
+        "type": "tuple[]"
+      }
     ],
-    name: "depositToBeaconChain",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
+    "name": "depositToBeaconChain",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
   },
   {
-    inputs: [],
-    name: "disconnectFromHub",
-    outputs: [],
-    stateMutability: "payable",
-    type: "function",
+    "inputs": [],
+    "name": "fund",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
   },
   {
-    inputs: [],
-    name: "fund",
-    outputs: [],
-    stateMutability: "payable",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "inOutDelta",
-    outputs: [
+    "inputs": [],
+    "name": "getInitializedVersion",
+    "outputs": [
       {
-        internalType: "int256",
-        name: "",
-        type: "int256",
-      },
+        "internalType": "uint64",
+        "name": "",
+        "type": "uint64"
+      }
     ],
-    stateMutability: "view",
-    type: "function",
+    "stateMutability": "view",
+    "type": "function"
   },
   {
-    inputs: [],
-    name: "isHealthy",
-    outputs: [
+    "inputs": [],
+    "name": "inOutDelta",
+    "outputs": [
       {
-        internalType: "bool",
-        name: "",
-        type: "bool",
-      },
+        "internalType": "int256",
+        "name": "",
+        "type": "int256"
+      }
     ],
-    stateMutability: "view",
-    type: "function",
+    "stateMutability": "view",
+    "type": "function"
   },
   {
-    inputs: [],
-    name: "latestReport",
-    outputs: [
+    "inputs": [
       {
-        internalType: "uint128",
-        name: "valuation",
-        type: "uint128",
+        "internalType": "address",
+        "name": "_owner",
+        "type": "address"
       },
       {
-        internalType: "int128",
-        name: "inOutDelta",
-        type: "int128",
+        "internalType": "address",
+        "name": "_nodeOperator",
+        "type": "address"
       },
+      {
+        "internalType": "bytes",
+        "name": "",
+        "type": "bytes"
+      }
     ],
-    stateMutability: "view",
-    type: "function",
+    "name": "initialize",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
   },
   {
-    inputs: [],
-    name: "locked",
-    outputs: [
+    "inputs": [],
+    "name": "isBalanced",
+    "outputs": [
       {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
     ],
-    stateMutability: "view",
-    type: "function",
+    "stateMutability": "view",
+    "type": "function"
   },
   {
-    inputs: [
+    "inputs": [],
+    "name": "latestReport",
+    "outputs": [
       {
-        internalType: "address",
-        name: "_recipient",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "_tokens",
-        type: "uint256",
-      },
+        "components": [
+          {
+            "internalType": "uint128",
+            "name": "valuation",
+            "type": "uint128"
+          },
+          {
+            "internalType": "int128",
+            "name": "inOutDelta",
+            "type": "int128"
+          }
+        ],
+        "internalType": "struct IStakingVault.Report",
+        "name": "",
+        "type": "tuple"
+      }
     ],
-    name: "mint",
-    outputs: [],
-    stateMutability: "payable",
-    type: "function",
+    "stateMutability": "view",
+    "type": "function"
   },
   {
-    inputs: [],
-    name: "owner",
-    outputs: [
+    "inputs": [
       {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
+        "internalType": "uint256",
+        "name": "_locked",
+        "type": "uint256"
+      }
     ],
-    stateMutability: "view",
-    type: "function",
+    "name": "lock",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
   },
   {
-    inputs: [
+    "inputs": [],
+    "name": "locked",
+    "outputs": [
       {
-        internalType: "uint256",
-        name: "_ether",
-        type: "uint256",
-      },
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
     ],
-    name: "rebalance",
-    outputs: [],
-    stateMutability: "payable",
-    type: "function",
+    "stateMutability": "view",
+    "type": "function"
   },
   {
-    inputs: [],
-    name: "renounceOwnership",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
+    "inputs": [],
+    "name": "nodeOperator",
+    "outputs": [
       {
-        internalType: "uint256",
-        name: "_valuation",
-        type: "uint256",
-      },
-      {
-        internalType: "int256",
-        name: "_inOutDelta",
-        type: "int256",
-      },
-      {
-        internalType: "uint256",
-        name: "_locked",
-        type: "uint256",
-      },
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
     ],
-    name: "report",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
+    "stateMutability": "view",
+    "type": "function"
   },
   {
-    inputs: [
+    "inputs": [],
+    "name": "owner",
+    "outputs": [
       {
-        internalType: "bytes",
-        name: "_validatorPublicKey",
-        type: "bytes",
-      },
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
     ],
-    name: "requestValidatorExit",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
+    "stateMutability": "view",
+    "type": "function"
   },
   {
-    inputs: [],
-    name: "stETH",
-    outputs: [
+    "inputs": [],
+    "name": "pauseBeaconChainDeposits",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
       {
-        internalType: "contract IERC20",
-        name: "",
-        type: "address",
-      },
+        "internalType": "uint256",
+        "name": "_ether",
+        "type": "uint256"
+      }
     ],
-    stateMutability: "view",
-    type: "function",
+    "name": "rebalance",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
   },
   {
-    inputs: [
+    "inputs": [],
+    "name": "renounceOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
       {
-        internalType: "address",
-        name: "newOwner",
-        type: "address",
+        "internalType": "uint256",
+        "name": "_valuation",
+        "type": "uint256"
       },
+      {
+        "internalType": "int256",
+        "name": "_inOutDelta",
+        "type": "int256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_locked",
+        "type": "uint256"
+      }
     ],
-    name: "transferOwnership",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
+    "name": "report",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
   },
   {
-    inputs: [],
-    name: "unlocked",
-    outputs: [
+    "inputs": [
       {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
+        "internalType": "bytes",
+        "name": "_pubkeys",
+        "type": "bytes"
+      }
     ],
-    stateMutability: "view",
-    type: "function",
+    "name": "requestValidatorExit",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
   },
   {
-    inputs: [],
-    name: "valuation",
-    outputs: [
+    "inputs": [],
+    "name": "resumeBeaconChainDeposits",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
       {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
     ],
-    stateMutability: "view",
-    type: "function",
+    "name": "transferOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
   },
   {
-    inputs: [],
-    name: "vaultHub",
-    outputs: [
+    "inputs": [],
+    "name": "unlocked",
+    "outputs": [
       {
-        internalType: "contract VaultHub",
-        name: "",
-        type: "address",
-      },
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
     ],
-    stateMutability: "view",
-    type: "function",
+    "stateMutability": "view",
+    "type": "function"
   },
   {
-    inputs: [
+    "inputs": [],
+    "name": "valuation",
+    "outputs": [
       {
-        internalType: "address",
-        name: "_recipient",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "_ether",
-        type: "uint256",
-      },
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
     ],
-    name: "withdraw",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
+    "stateMutability": "view",
+    "type": "function"
   },
   {
-    inputs: [],
-    name: "withdrawalCredentials",
-    outputs: [
+    "inputs": [],
+    "name": "vaultHub",
+    "outputs": [
       {
-        internalType: "bytes32",
-        name: "",
-        type: "bytes32",
-      },
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
     ],
-    stateMutability: "view",
-    type: "function",
+    "stateMutability": "view",
+    "type": "function"
   },
   {
-    stateMutability: "payable",
-    type: "receive",
+    "inputs": [],
+    "name": "version",
+    "outputs": [
+      {
+        "internalType": "uint64",
+        "name": "",
+        "type": "uint64"
+      }
+    ],
+    "stateMutability": "pure",
+    "type": "function"
   },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_recipient",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_ether",
+        "type": "uint256"
+      }
+    ],
+    "name": "withdraw",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "withdrawalCredentials",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "stateMutability": "payable",
+    "type": "receive"
+  }
 ] as const;

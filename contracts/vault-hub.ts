@@ -1,18 +1,19 @@
-import { getContract, createPublicClient, http, Chain } from "viem";
+import { getContract, createPublicClient, http } from "viem";
 import { VaultHubAbi } from "abi";
-import { getDeployedAddress, envs } from "@configs";
+import { getChain, getRpcUrl } from "@configs";
+import { getLocatorContract } from "@contracts";
 
-export const getVaultHubContract = (chainId?: Chain) => {
-  const rpcUrl = envs?.[`RPC_URL_${chainId || process.env.CHAIN_ID}`];
+export const getVaultHubContract = async () => {
+  const rpcUrl = getRpcUrl();
+  const locator = getLocatorContract();
+  const address = await locator.read.accounting();
 
-  const vaultHubContract = getContract({
-    address: getDeployedAddress("accounting"),
+  return getContract({
+    address,
     abi: VaultHubAbi,
     client: createPublicClient({
-      chain: chainId,
+      chain: getChain(),
       transport: http(rpcUrl),
     }),
   });
-
-  return vaultHubContract;
 };

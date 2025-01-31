@@ -25,7 +25,9 @@
       "@scripts": ["scripts"],
       "@utils": ["utils"],
       "@abi": ["abi"],
-      "@providers": ["providers"]
+      "@providers": ["providers"],
+      "@features": ["features"],
+      "@types": ["types"]
     },
     "outDir": "dist",
     "sourceMap": true,

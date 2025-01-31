@@ -2,15 +2,12 @@ import * as dotenv from "dotenv";
 
 const { parsed } = dotenv.config();
 
-export const envs = parsed;
+export const envs = structuredClone(parsed);
 if (envs) {
-  envs.DEPLOYED = envs?.DEPLOYED || (process.env.DEPLOYED as string);
-  envs.RPC_URL_1 = envs?.RPC_URL_1 || (process.env.RPC_URL_1 as string);
-  envs.RPC_URL_17000 =
-    envs?.RPC_URL_17000 || (process.env.RPC_URL_17000 as string);
-
-  envs.PRIVATE_KEY_1 =
-    envs?.PRIVATE_KEY_1 || (process.env.PRIVATE_KEY_1 as string);
-  envs.PRIVATE_KEY_17000 =
-    envs?.PRIVATE_KEY_137 || (process.env.PRIVATE_KEY_137 as string);
+  envs.DEPLOYED = (process.env.DEPLOYED as string) ?? envs?.DEPLOYED;
+  envs.CONFIG = (process.env.CONFIG as string) ?? envs?.CONFIG ;
+  envs.RPC_URL_1 = (process.env.RPC_URL_1 as string) ?? envs?.RPC_URL_1;
+  envs.RPC_URL_17000 = (process.env.RPC_URL_17000 as string) ?? envs?.RPC_URL_17000;
+  envs.PRIVATE_KEY_1 = (process.env.PRIVATE_KEY_1 as string) ?? envs?.PRIVATE_KEY_1;
+  envs.PRIVATE_KEY_17000 = (process.env.PRIVATE_KEY_17000 as string) ?? envs?.PRIVATE_KEY_17000;
 }
