@@ -708,10 +708,10 @@ dashboard
   .command("role-grant")
   .description("Mass-revokes multiple roles from multiple accounts.")
   .argument("<address>", "dashboard address")
-  .argument("<roleAssignment>", "JSON array of role assignments")
-  .action(async (address: Address, roleAssignment: string) => {
+  .argument("<roleAssignmentJSON>", "JSON array of role assignments")
+  .action(async (address: Address, roleAssignmentJSON: string) => {
     const contract = getDashboardContract(address);
-    const payload = JSON.parse(roleAssignment) as RoleAssignment[];
+    const payload = JSON.parse(roleAssignmentJSON) as RoleAssignment[];
 
     try {
       const tx = await contract.write.grantRoles(
@@ -734,10 +734,10 @@ dashboard
   .command("role-revoke")
   .description("Resumes beacon chain deposits on the staking vault.")
   .argument("<address>", "dashboard address")
-  .argument("<roleAssignment>", "JSON array of role assignments")
-  .action(async (address: Address, roleAssignment: string) => {
+  .argument("<roleAssignmentJSON>", "JSON array of role assignments")
+  .action(async (address: Address, roleAssignmentJSON: string) => {
     const contract = getDashboardContract(address);
-    const payload = JSON.parse(roleAssignment) as RoleAssignment[];
+    const payload = JSON.parse(roleAssignmentJSON) as RoleAssignment[];
 
     try {
       const tx = await contract.write.revokeRoles(
