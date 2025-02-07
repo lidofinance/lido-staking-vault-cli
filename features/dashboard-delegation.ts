@@ -3,7 +3,7 @@ import { Address } from "viem";
 import { printError } from "@utils";
 import { getAccount } from "@providers";
 import { getChain } from "@configs";
-import {DashboardContract, DelegationContract, getDashboardContract, getDelegationContract} from "@contracts";
+import { DashboardContract, DelegationContract } from "@contracts";
 import { Permit, RoleAssignment } from "@types";
 
 export const getBaseInfo = async (contract: DashboardContract | DelegationContract) => {
