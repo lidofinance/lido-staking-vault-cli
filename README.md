@@ -288,10 +288,10 @@ lsv-cli dashboard -h
 **\<roleAssignmentJSON>**
 
 ```json
-{
+[{
   "account": string as Address;
   "role": string as `0x${string}`;
-}
+}]
 ```
 
 ### Delegation
