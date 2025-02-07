@@ -1,41 +1,13 @@
 import { program } from "@command";
 import { getDashboardContract } from "@contracts";
 import { Address } from "viem";
-import { Permit } from "@types";
-import {
-  burnShares,
-  burnSharesWithPermit,
-  burnStETH,
-  burnStETHWithPermit,
-  burnWstETH,
-  burnWstETHWithPermit, fund, fundWeth, getBaseInfo,
-  getCommittee,
-  getProjectedNewMintableShares,
-  getReserveRatioBP,
-  getShareLimit,
-  getSharesMinted,
-  getThresholdReserveRatioBP,
-  getTotalMintableShares,
-  getTreasuryFee,
-  getValuation,
-  getVaultSocket,
-  getWithdrawableEther,
-  grantRoles,
-  mintShares,
-  mintStETH,
-  mintWstETH,
-  pauseBeaconChainDeposits,
-  rebalanceVault,
-  recoverERC20,
-  recoverERC721,
-  requestValidatorExit,
-  resumeBeaconChainDeposits,
-  revokeRoles,
-  transferStakingVaultOwnership,
-  voluntaryDisconnect, withdraw, withdrawWETH,
-} from "@features";
+import { Permit, RoleAssignment } from "@types";
+import { callWriteMethod, callReadMethod } from "@utils";
+import { getBaseInfo } from "@features";
 
-const dashboard = program.command("dashboard").description("dashboard contract");
+const dashboard = program
+  .command("dashboard")
+  .description("dashboard contract");
 
 dashboard
   .command("info")
@@ -43,6 +15,7 @@ dashboard
   .argument("<address>", "dashboard address")
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
+
     await getBaseInfo(contract);
   });
 
@@ -52,7 +25,8 @@ dashboard
   .argument("<address>", "dashboard address")
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
-    await getCommittee(contract);
+
+    await callReadMethod(contract, "votingCommittee");
   });
 
 dashboard
@@ -61,7 +35,8 @@ dashboard
   .argument("<address>", "dashboard address")
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
-    await getVaultSocket(contract);
+
+    await callReadMethod(contract, "vaultSocket");
   });
 
 dashboard
@@ -70,7 +45,8 @@ dashboard
   .argument("<address>", "dashboard address")
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
-    await getShareLimit(contract);
+
+    await callReadMethod(contract, "shareLimit");
   });
 
 dashboard
@@ -79,7 +55,8 @@ dashboard
   .argument("<address>", "dashboard address")
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
-    await getSharesMinted(contract);
+
+    await callReadMethod(contract, "sharesMinted");
   });
 
 dashboard
@@ -88,7 +65,8 @@ dashboard
   .argument("<address>", "dashboard address")
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
-    await getReserveRatioBP(contract);
+
+    await callReadMethod(contract, "reserveRatioBP");
   });
 
 dashboard
@@ -97,7 +75,8 @@ dashboard
   .argument("<address>", "dashboard address")
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
-    await getThresholdReserveRatioBP(contract);
+
+    await callReadMethod(contract, "thresholdReserveRatioBP");
   });
 
 dashboard
@@ -106,7 +85,8 @@ dashboard
   .argument("<address>", "dashboard address")
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
-    await getTreasuryFee(contract);
+
+    await callReadMethod(contract, "treasuryFee");
   });
 
 dashboard
@@ -115,7 +95,8 @@ dashboard
   .argument("<address>", "dashboard address")
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
-    await getValuation(contract);
+
+    await callReadMethod(contract, "valuation");
   });
 
 dashboard
@@ -124,17 +105,23 @@ dashboard
   .argument("<address>", "dashboard address")
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
-    await getTotalMintableShares(contract);
+
+    await callReadMethod(contract, "totalMintableShares");
   });
 
 dashboard
   .command("get-shares")
-  .description("maximum number of shares that can be minted with deposited ether")
+  .description(
+    "maximum number of shares that can be minted with deposited ether"
+  )
   .argument("<address>", "dashboard address")
   .argument("<ether>", "amount of ether to be funded")
   .action(async (address: Address, ether: string) => {
     const contract = getDashboardContract(address);
-    await getProjectedNewMintableShares(contract, [BigInt(ether)]);
+
+    await callReadMethod(contract, "projectedNewMintableShares", [
+      BigInt(ether),
+    ]);
   });
 
 dashboard
@@ -143,7 +130,8 @@ dashboard
   .argument("<address>", "dashboard address")
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
-    await getWithdrawableEther(contract);
+
+    await callReadMethod(contract, "withdrawableEther");
   });
 
 // TODO: test without voting
@@ -154,7 +142,10 @@ dashboard
   .argument("<newOwner>", "address of the new owner")
   .action(async (address: Address, newOwner: Address) => {
     const contract = getDashboardContract(address);
-    await transferStakingVaultOwnership(contract, [newOwner]);
+
+    await callWriteMethod(contract, "transferStakingVaultOwnership", [
+      newOwner,
+    ]);
   });
 
 dashboard
@@ -163,7 +154,8 @@ dashboard
   .argument("<address>", "dashboard address")
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
-    await voluntaryDisconnect(contract);
+
+    await callWriteMethod(contract, "voluntaryDisconnect", []);
   });
 
 dashboard
@@ -173,7 +165,8 @@ dashboard
   .argument("<ether>", "amount of ether to be funded")
   .action(async (address: Address, ether: string) => {
     const contract = getDashboardContract(address);
-    await fund(contract, BigInt(ether));
+
+    await callWriteMethod(contract, "fund", [], BigInt(ether));
   });
 
 dashboard
@@ -183,7 +176,8 @@ dashboard
   .argument("<wethAmount>", "amount of weth to be funded")
   .action(async (address: Address, wethAmount: string) => {
     const contract = getDashboardContract(address);
-    await fundWeth(contract, [BigInt(wethAmount)]);
+
+    await callWriteMethod(contract, "fundWeth", [BigInt(wethAmount)]);
   });
 
 dashboard
@@ -194,7 +188,8 @@ dashboard
   .argument("<ether>", "amount of ether to withdraw")
   .action(async (address: Address, recipient: Address, ether: string) => {
     const contract = getDashboardContract(address);
-    await withdraw(contract, [recipient, BigInt(ether)]);
+
+    await callWriteMethod(contract, "withdraw", [recipient, BigInt(ether)]);
   });
 
 dashboard
@@ -205,7 +200,8 @@ dashboard
   .argument("<ether>", "amount of ether to withdraw")
   .action(async (address: Address, recipient: Address, ether: string) => {
     const contract = getDashboardContract(address);
-    await withdrawWETH(contract, [recipient, BigInt(ether)])
+
+    await callWriteMethod(contract, "withdrawWETH", [recipient, BigInt(ether)]);
   });
 
 dashboard
@@ -215,7 +211,8 @@ dashboard
   .argument("<validatorPubKey>", "public key of the validator to exit")
   .action(async (address: Address, validatorPubKey: Address) => {
     const contract = getDashboardContract(address);
-    await requestValidatorExit(contract, [validatorPubKey]);
+
+    await callWriteMethod(contract, "requestValidatorExit", [validatorPubKey]);
   });
 
 dashboard
@@ -224,10 +221,16 @@ dashboard
   .argument("<address>", "dashboard address")
   .argument("<recipient>", "address of the recipient")
   .argument("<amountOfShares>", "amount of shares to mint")
-  .action(async (address: Address, recipient: Address, amountOfShares: string) => {
-    const contract = getDashboardContract(address);
-    await mintShares(contract, [recipient, BigInt(amountOfShares)])
-  });
+  .action(
+    async (address: Address, recipient: Address, amountOfShares: string) => {
+      const contract = getDashboardContract(address);
+
+      await callWriteMethod(contract, "mintShares", [
+        recipient,
+        BigInt(amountOfShares),
+      ]);
+    }
+  );
 
 dashboard
   .command("mint-steth")
@@ -235,10 +238,16 @@ dashboard
   .argument("<address>", "dashboard address")
   .argument("<recipient>", "address of the recipient")
   .argument("<amountOfShares>", "amount of shares to mint")
-  .action(async (address: Address, recipient: Address, amountOfShares: string) => {
-    const contract = getDashboardContract(address);
-    await mintStETH(contract, [recipient, BigInt(amountOfShares)]);
-  });
+  .action(
+    async (address: Address, recipient: Address, amountOfShares: string) => {
+      const contract = getDashboardContract(address);
+
+      await callWriteMethod(contract, "mintStETH", [
+        recipient,
+        BigInt(amountOfShares),
+      ]);
+    }
+  );
 
 dashboard
   .command("mint-wsteth")
@@ -248,27 +257,34 @@ dashboard
   .argument("<tokens>", "amount of tokens to mint")
   .action(async (address: Address, recipient: Address, tokens: string) => {
     const contract = getDashboardContract(address);
-    await mintWstETH(contract, [recipient, BigInt(tokens)]);
+
+    await callWriteMethod(contract, "mintWstETH", [recipient, BigInt(tokens)]);
   });
 
 dashboard
   .command("burn-shares")
-  .description("Burns stETH shares from the sender backed by the vault. Expects corresponding amount of stETH approved to this contract")
+  .description(
+    "Burns stETH shares from the sender backed by the vault. Expects corresponding amount of stETH approved to this contract"
+  )
   .argument("<address>", "dashboard address")
   .argument("<amountOfShares>", "amount of shares to burn")
   .action(async (address: Address, amountOfShares: string) => {
     const contract = getDashboardContract(address);
-    await burnShares(contract, [BigInt(amountOfShares)]);
+
+    await callWriteMethod(contract, "burnShares", [BigInt(amountOfShares)]);
   });
 
 dashboard
   .command("burn-steth")
-  .description("Burns stETH shares from the sender backed by the vault. Expects stETH amount approved to this contract.")
+  .description(
+    "Burns stETH shares from the sender backed by the vault. Expects stETH amount approved to this contract."
+  )
   .argument("<address>", "dashboard address")
   .argument("<amountOfShares>", "amount of shares to burn")
   .action(async (address: Address, amountOfShares: string) => {
     const contract = getDashboardContract(address);
-    await burnStETH(contract, [BigInt(amountOfShares)])
+
+    await callWriteMethod(contract, "burnStETH", [BigInt(amountOfShares)]);
   });
 
 dashboard
@@ -278,43 +294,71 @@ dashboard
   .argument("<tokens>", "amount of wstETH tokens to burn")
   .action(async (address: Address, tokens: string) => {
     const contract = getDashboardContract(address);
-    await burnWstETH(contract, [BigInt(tokens)]);
+
+    await callWriteMethod(contract, "burnWstETH", [BigInt(tokens)]);
   });
 
 dashboard
   .command("burn-shares-permit")
-  .description("Burns stETH tokens (in shares) backed by the vault from the sender using permit (with value in stETH).")
+  .description(
+    "Burns stETH tokens (in shares) backed by the vault from the sender using permit (with value in stETH)."
+  )
   .argument("<address>", "dashboard address")
   .argument("<tokens>", "amount of stETH tokens to burn")
-  .argument("<permitJSON>", "JSON data required for the stETH.permit() method to set the allowance")
+  .argument(
+    "<permitJSON>",
+    "JSON data required for the stETH.permit() method to set the allowance"
+  )
   .action(async (address: Address, tokens: string, permitJSON: string) => {
     const permit = JSON.parse(permitJSON) as Permit;
     const contract = getDashboardContract(address);
-    await burnSharesWithPermit(contract, [BigInt(tokens), permit]);
+
+    await callWriteMethod(contract, "burnSharesWithPermit", [
+      BigInt(tokens),
+      permit,
+    ]);
   });
 
 dashboard
   .command("burn-steth-permit")
-  .description("Burns stETH tokens backed by the vault from the sender using permit.")
+  .description(
+    "Burns stETH tokens backed by the vault from the sender using permit."
+  )
   .argument("<address>", "dashboard address")
   .argument("<tokens>", "amount of stETH tokens to burn")
-  .argument("<permitJSON>", "JSON data required for the stETH.permit() method to set the allowance")
+  .argument(
+    "<permitJSON>",
+    "JSON data required for the stETH.permit() method to set the allowance"
+  )
   .action(async (address: Address, tokens: string, permitJSON: string) => {
     const permit = JSON.parse(permitJSON) as Permit;
     const contract = getDashboardContract(address);
-    await burnStETHWithPermit(contract, [BigInt(tokens), permit]);
+
+    await callWriteMethod(contract, "burnStETHWithPermit", [
+      BigInt(tokens),
+      permit,
+    ]);
   });
 
 dashboard
   .command("burn-wsteth-permit")
-  .description("burn wstETH tokens from the sender backed by the vault using EIP-2612 Permit")
+  .description(
+    "burn wstETH tokens from the sender backed by the vault using EIP-2612 Permit"
+  )
   .argument("<address>", "dashboard address")
   .argument("<tokens>", "amount of wstETH tokens to burn")
-  .argument("<permitJSON>", "JSON data required for the wstETH.permit() method to set the allowance")
+  .argument(
+    "<permitJSON>",
+    "JSON data required for the wstETH.permit() method to set the allowance"
+  )
   .action(async (address: Address, tokens: string, permitJSON: string) => {
     const permit = JSON.parse(permitJSON) as Permit;
     const contract = getDashboardContract(address);
-    await burnWstETHWithPermit(contract, [BigInt(tokens), permit]);
+
+    await callWriteMethod(contract, "burnWstETHWithPermit", [
+      BigInt(tokens),
+      permit,
+    ]);
   });
 
 dashboard
@@ -324,32 +368,64 @@ dashboard
   .argument("<ether>", "amount of ether to rebalance")
   .action(async (address: Address, ether: string) => {
     const contract = getDashboardContract(address);
-    await rebalanceVault(contract, [BigInt(ether)]);
+
+    await callWriteMethod(contract, "rebalanceVault", [BigInt(ether)]);
   });
 
 dashboard
   .command("recover-erc20")
-  .description("recovers ERC20 tokens or ether from the dashboard contract to sender")
+  .description(
+    "recovers ERC20 tokens or ether from the dashboard contract to sender"
+  )
   .argument("<address>", "dashboard address")
-  .argument("<token>", "Address of the token to recover or 0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee for ether")
+  .argument(
+    "<token>",
+    "Address of the token to recover or 0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee for ether"
+  )
   .argument("<recipient>", "Address of the recovery recipient")
   .argument("<amount>", "amount of ether to recover")
-  .action(async (address: Address, token: Address, recipient: Address, amount: string) => {
-    const contract = getDashboardContract(address);
-    await recoverERC20(contract, [token, recipient, BigInt(amount)]);
-  });
+  .action(
+    async (
+      address: Address,
+      token: Address,
+      recipient: Address,
+      amount: string
+    ) => {
+      const contract = getDashboardContract(address);
+
+      await callWriteMethod(contract, "recoverERC20", [
+        token,
+        recipient,
+        BigInt(amount),
+      ]);
+    }
+  );
 
 dashboard
   .command("recover-erc721")
-  .description("Transfers a given token_id of an ERC721-compatible NFT (defined by the token contract address)")
+  .description(
+    "Transfers a given token_id of an ERC721-compatible NFT (defined by the token contract address)"
+  )
   .argument("<address>", "dashboard address")
   .argument("<token>", "an ERC721-compatible token")
   .argument("<tokenId>", "token id to recover")
   .argument("<recipient>", "Address of the recovery recipient")
-  .action(async (address: Address, token: Address, tokenId: string, recipient: Address) => {
-    const contract = getDashboardContract(address);
-    await recoverERC721(contract, [token, BigInt(tokenId), recipient]);
-  });
+  .action(
+    async (
+      address: Address,
+      token: Address,
+      tokenId: string,
+      recipient: Address
+    ) => {
+      const contract = getDashboardContract(address);
+
+      await callWriteMethod(contract, "recoverERC721", [
+        token,
+        BigInt(tokenId),
+        recipient,
+      ]);
+    }
+  );
 
 dashboard
   .command("deposit-pause")
@@ -357,7 +433,8 @@ dashboard
   .argument("<address>", "dashboard address")
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
-    await pauseBeaconChainDeposits(contract);
+
+    await callWriteMethod(contract, "pauseBeaconChainDeposits", []);
   });
 
 dashboard
@@ -366,7 +443,8 @@ dashboard
   .argument("<address>", "dashboard address")
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
-    await resumeBeaconChainDeposits(contract);
+
+    await callWriteMethod(contract, "resumeBeaconChainDeposits", []);
   });
 
 dashboard
@@ -376,7 +454,14 @@ dashboard
   .argument("<roleAssignmentJSON>", "JSON array of role assignments")
   .action(async (address: Address, roleAssignmentJSON: string) => {
     const contract = getDashboardContract(address);
-    await grantRoles(contract, roleAssignmentJSON);
+    const payload = JSON.parse(roleAssignmentJSON) as RoleAssignment[];
+    if (!Array.isArray(payload)) {
+      throw new Error(
+        "the 2nd argument should be an array of role assignments"
+      );
+    }
+
+    await callWriteMethod(contract, "grantRoles", [payload]);
   });
 
 dashboard
@@ -386,6 +471,12 @@ dashboard
   .argument("<roleAssignmentJSON>", "JSON array of role assignments")
   .action(async (address: Address, roleAssignmentJSON: string) => {
     const contract = getDashboardContract(address);
-    await revokeRoles(contract, roleAssignmentJSON);
-  });
+    const payload = JSON.parse(roleAssignmentJSON) as RoleAssignment[];
+    if (!Array.isArray(payload)) {
+      throw new Error(
+        "the 2nd argument should be an array of role assignments"
+      );
+    }
 
+    await callWriteMethod(contract, "revokeRoles", [payload]);
+  });

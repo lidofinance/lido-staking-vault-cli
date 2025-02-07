@@ -1,49 +1,14 @@
 import { Address } from "viem";
 
 import { program } from "@command";
-import { getDelegationContract, getStakingVaultContract }  from "@contracts";
-import { getAccount } from "@providers";
-import { getChain } from "@configs";
-import { Permit } from "@types";
-import {
-  burnShares,
-  burnSharesWithPermit,
-  burnStETH,
-  burnStETHWithPermit,
-  burnWstETH,
-  burnWstETHWithPermit,
-  fund,
-  fundWeth,
-  getBaseInfo,
-  getCommittee,
-  getProjectedNewMintableShares,
-  getReserveRatioBP,
-  getShareLimit,
-  getSharesMinted,
-  getThresholdReserveRatioBP,
-  getTotalMintableShares,
-  getTreasuryFee,
-  getValuation,
-  getVaultSocket,
-  getWithdrawableEther,
-  grantRoles,
-  mintShares,
-  mintStETH,
-  mintWstETH,
-  pauseBeaconChainDeposits,
-  rebalanceVault,
-  recoverERC20,
-  recoverERC721,
-  requestValidatorExit,
-  resumeBeaconChainDeposits,
-  revokeRoles,
-  transferStakingVaultOwnership,
-  voluntaryDisconnect,
-  withdraw,
-  withdrawWETH
-} from "@features";
+import { getDelegationContract, getStakingVaultContract } from "@contracts";
+import { Permit, RoleAssignment } from "@types";
+import { callWriteMethod, callReadMethod } from "@utils";
+import { getBaseInfo } from "@features";
 
-const delegation = program.command("delegation").description("delegation contract");
+const delegation = program
+  .command("delegation")
+  .description("delegation contract");
 
 delegation
   .command("roles")
@@ -54,17 +19,23 @@ delegation
 
     try {
       const CURATOR_ROLE = await contract.read.CURATOR_ROLE();
-      const NODE_OPERATOR_MANAGER_ROLE = await contract.read.NODE_OPERATOR_MANAGER_ROLE();
-      const NODE_OPERATOR_FEE_CLAIMER_ROLE = await contract.read.NODE_OPERATOR_FEE_CLAIMER_ROLE();
+      const NODE_OPERATOR_MANAGER_ROLE =
+        await contract.read.NODE_OPERATOR_MANAGER_ROLE();
+      const NODE_OPERATOR_FEE_CLAIMER_ROLE =
+        await contract.read.NODE_OPERATOR_FEE_CLAIMER_ROLE();
       const FUND_ROLE = await contract.read.FUND_ROLE();
       const WITHDRAW_ROLE = await contract.read.WITHDRAW_ROLE();
       const MINT_ROLE = await contract.read.MINT_ROLE();
       const BURN_ROLE = await contract.read.BURN_ROLE();
       const REBALANCE_ROLE = await contract.read.REBALANCE_ROLE();
-      const PAUSE_BEACON_CHAIN_DEPOSITS_ROLE = await contract.read.PAUSE_BEACON_CHAIN_DEPOSITS_ROLE();
-      const RESUME_BEACON_CHAIN_DEPOSITS_ROLE = await contract.read.RESUME_BEACON_CHAIN_DEPOSITS_ROLE();
-      const REQUEST_VALIDATOR_EXIT_ROLE = await contract.read.REQUEST_VALIDATOR_EXIT_ROLE();
-      const VOLUNTARY_DISCONNECT_ROLE = await contract.read.VOLUNTARY_DISCONNECT_ROLE();
+      const PAUSE_BEACON_CHAIN_DEPOSITS_ROLE =
+        await contract.read.PAUSE_BEACON_CHAIN_DEPOSITS_ROLE();
+      const RESUME_BEACON_CHAIN_DEPOSITS_ROLE =
+        await contract.read.RESUME_BEACON_CHAIN_DEPOSITS_ROLE();
+      const REQUEST_VALIDATOR_EXIT_ROLE =
+        await contract.read.REQUEST_VALIDATOR_EXIT_ROLE();
+      const VOLUNTARY_DISCONNECT_ROLE =
+        await contract.read.VOLUNTARY_DISCONNECT_ROLE();
 
       const payload = {
         CURATOR_ROLE,
@@ -79,12 +50,12 @@ delegation
         RESUME_BEACON_CHAIN_DEPOSITS_ROLE,
         REQUEST_VALIDATOR_EXIT_ROLE,
         VOLUNTARY_DISCONNECT_ROLE,
-      }
+      };
 
       console.table(Object.entries(payload));
     } catch (err) {
       if (err instanceof Error) {
-        console.log('Error when getting roles:\n', err.message);
+        console.log("Error when getting roles:\n", err.message);
       }
     }
   });
@@ -104,52 +75,46 @@ delegation
   .argument("<address>", "delegation contract address")
   .action(async (address: Address) => {
     const contract = getDelegationContract(address);
-    try {
-      const voteLifetime = await contract.read.voteLifetime();
 
-      console.table({ 'Vote Lifetime': voteLifetime });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when getting vote lifetime:\n', err.message);
-      }
-    }
+    await callReadMethod(contract, "voteLifetime");
   });
 
 delegation
   .command("is-healthy")
-    .description("get vault healthy info")
-    .argument("<address>", "vault address")
-    .action(async (address: Address) => {
-      const contract = getDelegationContract(address);
+  .description("get vault healthy info")
+  .argument("<address>", "vault address")
+  .action(async (address: Address) => {
+    const contract = getDelegationContract(address);
 
-      try {
-        const valuation = await contract.read.valuation();
-        const curatorUnclaimedFee = await contract.read.curatorUnclaimedFee();
-        const nodeOperatorUnclaimedFee = await contract.read.nodeOperatorUnclaimedFee();
-        const minted = await contract.read.sharesMinted();
+    try {
+      const valuation = await contract.read.valuation();
+      const curatorUnclaimedFee = await contract.read.curatorUnclaimedFee();
+      const nodeOperatorUnclaimedFee =
+        await contract.read.nodeOperatorUnclaimedFee();
+      const minted = await contract.read.sharesMinted();
 
-        const { vault } = await contract.read.vaultSocket();
-        const vaultContract = getStakingVaultContract(vault);
-        const locked = await vaultContract.read.locked();
+      const { vault } = await contract.read.vaultSocket();
+      const vaultContract = getStakingVaultContract(vault);
+      const locked = await vaultContract.read.locked();
 
-        const reserved = locked + curatorUnclaimedFee + nodeOperatorUnclaimedFee;
-        const valuationPerc = valuation / (reserved + minted) * 100n;
-        const isHealthy = valuationPerc >= 100n;
+      const reserved = locked + curatorUnclaimedFee + nodeOperatorUnclaimedFee;
+      const valuationPerc = (valuation / (reserved + minted)) * 100n;
+      const isHealthy = valuationPerc >= 100n;
 
-        console.table({
-          'Vault Healthy': isHealthy,
-          'Valuation': valuation,
-          'Curator Unclaimed Fee': curatorUnclaimedFee,
-          'Node Operator Unclaimed Fee': nodeOperatorUnclaimedFee,
-          'Minted': minted,
-          'Reserved': reserved,
-        })
-      } catch (err) {
-        if (err instanceof Error) {
-          console.log('Error when getting info:\n', err.message);
-        }
+      console.table({
+        "Vault Healthy": isHealthy,
+        Valuation: valuation,
+        "Curator Unclaimed Fee": curatorUnclaimedFee,
+        "Node Operator Unclaimed Fee": nodeOperatorUnclaimedFee,
+        Minted: minted,
+        Reserved: reserved,
+      });
+    } catch (err) {
+      if (err instanceof Error) {
+        console.log("Error when getting info:\n", err.message);
       }
-    });
+    }
+  });
 
 delegation
   .command("voting-info")
@@ -159,15 +124,8 @@ delegation
   .argument("<role>", "role that voted")
   .action(async (address: Address, callId: Address, role: Address) => {
     const contract = getDelegationContract(address);
-    
-    try {
-      const voting = await contract.read.votings([callId, role]);
-      console.table({ voting });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when getting voting:\n', err.message);
-      }
-    }
+
+    await callReadMethod(contract, "votings", [callId, role]);
   });
 
 delegation
@@ -177,54 +135,37 @@ delegation
   .action(async (address: Address) => {
     const contract = getDelegationContract(address);
 
-    try {
-      const curatorFeeBP = await contract.read.curatorFeeBP();
-      console.table({ 'Curator Fee in BP': curatorFeeBP });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when getting Curator Fee BP:\n', err.message);
-      }
-    }
+    await callReadMethod(contract, "curatorFeeBP");
   });
 
 delegation
   .command("cf-report")
-  .description("The last report for which curator fee was claimed. Updated on each claim.")
+  .description(
+    "The last report for which curator fee was claimed. Updated on each claim."
+  )
   .argument("<address>", "delegation contract address")
   .action(async (address: Address) => {
     const contract = getDelegationContract(address);
 
-    try {
-      const report = await contract.read.curatorFeeClaimedReport();
-      console.table({ 'Curator Fee Report': report });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when getting Curator Report:\n', err.message);
-      }
-    }
+    await callReadMethod(contract, "curatorFeeClaimedReport");
   });
 
 delegation
   .command("cf-unclaimed")
-  .description(`Returns the accumulated unclaimed curator fee in ether,
+  .description(
+    `Returns the accumulated unclaimed curator fee in ether,
     calculated as: U = (R * F) / T
     where:
     - U is the curator unclaimed fee;
     - R is the StakingVault rewards accrued since the last curator fee claim;
     - F is curatorFeeBP
-    - T is the total basis points, 10,000.`)
+    - T is the total basis points, 10,000.`
+  )
   .argument("<address>", "delegation contract address")
   .action(async (address: Address) => {
     const contract = getDelegationContract(address);
 
-    try {
-      const unclaimed = await contract.read.curatorUnclaimedFee();
-      console.table({ "Curator's accumulated unclaimed fee in ether": unclaimed });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when getting Curator\'s accumulated unclaimed fee:\n', err.message);
-      }
-    }
+    await callReadMethod(contract, "curatorUnclaimedFee");
   });
 
 delegation
@@ -235,21 +176,7 @@ delegation
   .action(async (address: Address, newCuratorFee: string) => {
     const contract = getDelegationContract(address);
 
-    try {
-      const tx = await contract.write.setCuratorFeeBP(
-        [BigInt(newCuratorFee)],
-        {
-          account: getAccount(),
-          chain: getChain(),
-        }
-      );
-
-      console.table({ Transaction: tx });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when setting curator fee:\n', err.message);
-      }
-    }
+    callWriteMethod(contract, "setCuratorFeeBP", [BigInt(newCuratorFee)]);
   });
 
 delegation
@@ -260,21 +187,7 @@ delegation
   .action(async (address: Address, recipient: Address) => {
     const contract = getDelegationContract(address);
 
-    try {
-      const tx = await contract.write.claimCuratorFee(
-        [recipient],
-        {
-          account: getAccount(),
-          chain: getChain(),
-        }
-      );
-
-      console.table({ Transaction: tx });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when claiming curator fee:\n', err.message);
-      }
-    }
+    callWriteMethod(contract, "claimCuratorFee", [recipient]);
   });
 
 delegation
@@ -286,103 +199,72 @@ delegation
 
     try {
       const nodeOperatorFeeBP = await contract.read.nodeOperatorFeeBP();
-      console.table({ 'Node Operator Fee BP:': nodeOperatorFeeBP });
+      console.table({ "Node Operator Fee BP:": nodeOperatorFeeBP });
     } catch (err) {
       if (err instanceof Error) {
-        console.log('Error when getting Node Operator Fee BP:\n', err.message);
+        console.log("Error when getting Node Operator Fee BP:\n", err.message);
       }
     }
   });
 
 delegation
   .command("nof-report")
-  .description("The last report for which node operator fee was claimed. Updated on each claim.")
+  .description(
+    "The last report for which node operator fee was claimed. Updated on each claim."
+  )
   .argument("<address>", "delegation contract address")
   .action(async (address: Address) => {
     const contract = getDelegationContract(address);
 
-    try {
-      const report = await contract.read.nodeOperatorFeeClaimedReport();
-      console.table({ 'Node Operator Report:': report });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when getting Node Operator Report:\n', err.message);
-      }
-    }
+    await callReadMethod(contract, "nodeOperatorUnclaimedFee");
   });
-
 
 delegation
   .command("nof-unclaimed")
-  .description(`Returns the accumulated unclaimed node operator fee in ether,
+  .description(
+    `Returns the accumulated unclaimed node operator fee in ether,
     calculated as: U = (R * F) / T
     where:
     - U is the node operator unclaimed fee;
     - R is the StakingVault rewards accrued since the last node operator fee claim;
     - F is nodeOperatorFeeBP
-    - T is the total basis points, 10,000.`)
+    - T is the total basis points, 10,000.`
+  )
   .argument("<address>", "delegation contract address")
   .action(async (address: Address) => {
     const contract = getDelegationContract(address);
 
-    try {
-      const unclaimed = await contract.read.nodeOperatorUnclaimedFee();
-      console.table({ "Node operator's accumulated unclaimed fee in ether": unclaimed });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when getting node operator\'s accumulated unclaimed fee:\n', err.message);
-      }
-    }
+    await callReadMethod(contract, "nodeOperatorUnclaimedFee");
   });
 
 delegation
   .command("nof-set")
   .description("sets the node operator fee")
   .argument("<address>", "delegation contract address")
-  .argument("<newNodeOperatorFeeBP>", "The new node operator fee in basis points")
+  .argument(
+    "<newNodeOperatorFeeBP>",
+    "The new node operator fee in basis points"
+  )
   .action(async (address: Address, newNodeOperatorFeeBP: string) => {
     const contract = getDelegationContract(address);
 
-    try {
-      const tx = await contract.write.setNodeOperatorFeeBP(
-        [BigInt(newNodeOperatorFeeBP)],
-        {
-          account: getAccount(),
-          chain: getChain(),
-        }
-      );
-
-      console.table({ Transaction: tx });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when setting node operator fee:\n', err.message);
-      }
-    }
+    callWriteMethod(contract, "setNodeOperatorFeeBP", [
+      BigInt(newNodeOperatorFeeBP),
+    ]);
   });
 
 delegation
   .command("nof-claim")
   .description("claims the node operator fee")
   .argument("<address>", "delegation contract address")
-  .argument("<recipient>", "address to which the node operator fee will be sent")
+  .argument(
+    "<recipient>",
+    "address to which the node operator fee will be sent"
+  )
   .action(async (address: Address, recipient: Address) => {
     const contract = getDelegationContract(address);
 
-    try {
-      const tx = await contract.write.claimNodeOperatorFee(
-        [recipient],
-        {
-          account: getAccount(),
-          chain: getChain(),
-        }
-      );
-
-      console.table({ Transaction: tx });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when claiming node operator fee:\n', err.message);
-      }
-    }
+    callWriteMethod(contract, "claimNodeOperatorFee", [recipient]);
   });
 
 delegation
@@ -392,14 +274,7 @@ delegation
   .action(async (address: Address) => {
     const contract = getDelegationContract(address);
 
-    try {
-      const unreserved = await contract.read.unreserved();
-      console.table({ Unreserved: unreserved });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when getting unreserved:\n', err.message);
-      }
-    }
+    await callReadMethod(contract, "unreserved");
   });
 
 delegation
@@ -409,29 +284,23 @@ delegation
   .action(async (address: Address) => {
     const contract = getDelegationContract(address);
 
-    try {
-      const committeeList = await contract.read.votingCommittee();
-      const committee = {
-        CURATOR_ROLE: committeeList[0],
-        NODE_OPERATOR_MANAGER_ROLE: committeeList[1],
-      };
-
-      console.table({ committee });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when getting the voting committee:\n', err.message);
-      }
-    }
+    const committeeList = await callReadMethod(contract, "votingCommittee");
+    const committee = {
+      CURATOR_ROLE: committeeList[0],
+      NODE_OPERATOR_MANAGER_ROLE: committeeList[1],
+    };
+    console.table({ committee });
   });
 
 delegation
   .command("fund")
   .description("funds the StakingVault with ether")
   .argument("<address>", "delegation contract address")
-  .argument("<ether>", "ether to found")
+  .argument("<ether>", "ether to fund")
   .action(async (address: Address, ether: string) => {
     const contract = getDelegationContract(address);
-    await fund(contract, BigInt(ether));
+
+    await callWriteMethod(contract, "fund", [], BigInt(ether));
   });
 
 delegation
@@ -442,7 +311,7 @@ delegation
   .argument("<ether>", "ether to found")
   .action(async (address: Address, recipient: Address, ether: string) => {
     const contract = getDelegationContract(address);
-    await withdraw(contract, [recipient, BigInt(ether)]);
+    await callWriteMethod(contract, "withdraw", [recipient, BigInt(ether)]);
   });
 
 delegation
@@ -451,25 +320,16 @@ delegation
   .argument("<address>", "delegation contract address")
   .argument("<recipient>", "address to which the ether will be sent")
   .argument("<amountOfShares>", "amount of shares to mint")
-  .action(async (address: Address, recipient: Address, amountOfShares: string) => {
-    const contract = getDelegationContract(address);
+  .action(
+    async (address: Address, recipient: Address, amountOfShares: string) => {
+      const contract = getDelegationContract(address);
 
-    try {
-      const tx = await contract.write.mintShares(
-        [recipient, BigInt(amountOfShares)],
-        {
-          account: getAccount(),
-          chain: getChain(),
-        }
-      );
-
-      console.table({ Transaction: tx });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when minting:\n', err.message);
-      }
+      callWriteMethod(contract, "mintShares", [
+        recipient,
+        BigInt(amountOfShares),
+      ]);
     }
-  });
+  );
 
 delegation
   .command("burn")
@@ -479,21 +339,7 @@ delegation
   .action(async (address: Address, amountOfShares: string) => {
     const contract = getDelegationContract(address);
 
-    try {
-      const tx = await contract.write.burnShares(
-        [BigInt(amountOfShares)],
-        {
-          account: getAccount(),
-          chain: getChain(),
-        }
-      );
-
-      console.table({ Transaction: tx });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when burning:\n', err.message);
-      }
-    }
+    callWriteMethod(contract, "burnShares", [BigInt(amountOfShares)]);
   });
 
 delegation
@@ -503,7 +349,8 @@ delegation
   .argument("<ether>", "amount of ether to rebalance with")
   .action(async (address: Address, ether: string) => {
     const contract = getDelegationContract(address);
-    await rebalanceVault(contract, [BigInt(ether)]);
+
+    await callWriteMethod(contract, "rebalanceVault", [BigInt(ether)]);
   });
 
 delegation
@@ -512,22 +359,8 @@ delegation
   .argument("<address>", "delegation contract address")
   .argument("<newVoteLifetime>", "new vote lifetime in seconds")
   .action(async (address: Address, newVoteLifetime: string) => {
-    const contract = getDelegationContract(address)
-    try {
-      const tx = await contract.write.setVoteLifetime(
-        [BigInt(newVoteLifetime)],
-        {
-          account: getAccount(),
-          chain: getChain(),
-        }
-      );
-
-      console.table({ Transaction: tx });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when setVoteLifetime:\n', err.message);
-      }
-    }
+    const contract = getDelegationContract(address);
+    callWriteMethod(contract, "setVoteLifetime", [BigInt(newVoteLifetime)]);
   });
 
 delegation
@@ -537,22 +370,10 @@ delegation
   .argument("<newOwner>", "address to which the ownership will be transferred")
   .action(async (address: Address, newOwner: Address) => {
     const contract = getDelegationContract(address);
-    
-    try {
-      const tx = await contract.write.transferStakingVaultOwnership(
-        [newOwner],
-        {
-          account: getAccount(),
-          chain: getChain(),
-        }
-      );
 
-      console.table({ Transaction: tx });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when transferStVaultOwnership:\n', err.message);
-      }
-    }
+    await callWriteMethod(contract, "transferStakingVaultOwnership", [
+      newOwner,
+    ]);
   });
 
 delegation
@@ -562,20 +383,7 @@ delegation
   .action(async (address: Address) => {
     const contract = getDelegationContract(address);
 
-    try {
-      const tx = await contract.write.voluntaryDisconnect(
-        {
-          account: getAccount(),
-          chain: getChain(),
-        }
-      );
-
-      console.table({ Transaction: tx });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when voluntaryDisconnect:\n', err.message);
-      }
-    }
+    callWriteMethod(contract, "voluntaryDisconnect", []);
   });
 
 delegation
@@ -585,20 +393,7 @@ delegation
   .action(async (address: Address) => {
     const contract = getDelegationContract(address);
 
-    try {
-      const tx = await contract.write.pauseBeaconChainDeposits(
-        {
-          account: getAccount(),
-          chain: getChain(),
-        }
-      );
-
-      console.table({ Transaction: tx });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when pauseBeaconChainDeposits:\n', err.message);
-      }
-    }
+    await callWriteMethod(contract, "pauseBeaconChainDeposits", []);
   });
 
 delegation
@@ -608,29 +403,7 @@ delegation
   .action(async (address: Address) => {
     const contract = getDelegationContract(address);
 
-    try {
-      const tx = await contract.write.resumeBeaconChainDeposits(
-        {
-          account: getAccount(),
-          chain: getChain(),
-        }
-      );
-
-      console.table({ Transaction: tx });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when resumeBeaconChainDeposits:\n', err.message);
-      }
-    }
-  });
-
-delegation
-  .command("committee")
-  .description("voting committee info")
-  .argument("<address>", "delegation address")
-  .action(async (address: Address) => {
-    const contract = getDelegationContract(address);
-    await getCommittee(contract);
+    await callWriteMethod(contract, "resumeBeaconChainDeposits", []);
   });
 
 delegation
@@ -639,7 +412,8 @@ delegation
   .argument("<address>", "delegation address")
   .action(async (address: Address) => {
     const contract = getDelegationContract(address);
-    await getVaultSocket(contract);
+
+    await callReadMethod(contract, "vaultSocket");
   });
 
 delegation
@@ -648,7 +422,8 @@ delegation
   .argument("<address>", "delegation address")
   .action(async (address: Address) => {
     const contract = getDelegationContract(address);
-    await getShareLimit(contract);
+
+    await callReadMethod(contract, "shareLimit");
   });
 
 delegation
@@ -657,7 +432,8 @@ delegation
   .argument("<address>", "delegation address")
   .action(async (address: Address) => {
     const contract = getDelegationContract(address);
-    await getSharesMinted(contract);
+
+    await callReadMethod(contract, "sharesMinted");
   });
 
 delegation
@@ -666,7 +442,8 @@ delegation
   .argument("<address>", "delegation address")
   .action(async (address: Address) => {
     const contract = getDelegationContract(address);
-    await getReserveRatioBP(contract);
+
+    await callReadMethod(contract, "reserveRatioBP");
   });
 
 delegation
@@ -675,7 +452,8 @@ delegation
   .argument("<address>", "delegation address")
   .action(async (address: Address) => {
     const contract = getDelegationContract(address);
-    await getThresholdReserveRatioBP(contract);
+
+    await callReadMethod(contract, "thresholdReserveRatioBP");
   });
 
 delegation
@@ -684,7 +462,8 @@ delegation
   .argument("<address>", "delegation address")
   .action(async (address: Address) => {
     const contract = getDelegationContract(address);
-    await getTreasuryFee(contract);
+
+    await callReadMethod(contract, "treasuryFee");
   });
 
 delegation
@@ -693,7 +472,8 @@ delegation
   .argument("<address>", "delegation address")
   .action(async (address: Address) => {
     const contract = getDelegationContract(address);
-    await getValuation(contract);
+
+    await callReadMethod(contract, "valuation");
   });
 
 delegation
@@ -702,17 +482,23 @@ delegation
   .argument("<address>", "delegation address")
   .action(async (address: Address) => {
     const contract = getDelegationContract(address);
-    await getTotalMintableShares(contract);
+
+    await callReadMethod(contract, "totalMintableShares");
   });
 
 delegation
   .command("get-shares")
-  .description("maximum number of shares that can be minted with deposited ether")
+  .description(
+    "maximum number of shares that can be minted with deposited ether"
+  )
   .argument("<address>", "delegation address")
   .argument("<ether>", "amount of ether to be funded")
   .action(async (address: Address, ether: string) => {
     const contract = getDelegationContract(address);
-    await getProjectedNewMintableShares(contract, [BigInt(ether)]);
+
+    await callReadMethod(contract, "projectedNewMintableShares", [
+      BigInt(ether),
+    ]);
   });
 
 delegation
@@ -721,7 +507,8 @@ delegation
   .argument("<address>", "delegation address")
   .action(async (address: Address) => {
     const contract = getDelegationContract(address);
-    await getWithdrawableEther(contract);
+
+    await callReadMethod(contract, "withdrawableEther");
   });
 
 // TODO: test without voting
@@ -732,16 +519,10 @@ delegation
   .argument("<newOwner>", "address of the new owner")
   .action(async (address: Address, newOwner: Address) => {
     const contract = getDelegationContract(address);
-    await transferStakingVaultOwnership(contract, [newOwner]);
-  });
 
-delegation
-  .command("disconnect")
-  .description("disconnects the staking vault from the vault hub")
-  .argument("<address>", "delegation address")
-  .action(async (address: Address) => {
-    const contract = getDelegationContract(address);
-    await voluntaryDisconnect(contract);
+    await callWriteMethod(contract, "transferStakingVaultOwnership", [
+      newOwner,
+    ]);
   });
 
 delegation
@@ -751,7 +532,8 @@ delegation
   .argument("<wethAmount>", "amount of weth to be funded")
   .action(async (address: Address, wethAmount: string) => {
     const contract = getDelegationContract(address);
-    await fundWeth(contract, [BigInt(wethAmount)]);
+
+    await callWriteMethod(contract, "fundWeth", [BigInt(wethAmount)]);
   });
 
 delegation
@@ -762,7 +544,8 @@ delegation
   .argument("<ether>", "amount of ether to withdraw")
   .action(async (address: Address, recipient: Address, ether: string) => {
     const contract = getDelegationContract(address);
-    await withdrawWETH(contract, [recipient, BigInt(ether)])
+
+    await callWriteMethod(contract, "withdrawWETH", [recipient, BigInt(ether)]);
   });
 
 delegation
@@ -772,7 +555,8 @@ delegation
   .argument("<validatorPubKey>", "public key of the validator to exit")
   .action(async (address: Address, validatorPubKey: Address) => {
     const contract = getDelegationContract(address);
-    await requestValidatorExit(contract, [validatorPubKey]);
+
+    await callWriteMethod(contract, "requestValidatorExit", [validatorPubKey]);
   });
 
 delegation
@@ -781,10 +565,16 @@ delegation
   .argument("<address>", "delegation address")
   .argument("<recipient>", "address of the recipient")
   .argument("<amountOfShares>", "amount of shares to mint")
-  .action(async (address: Address, recipient: Address, amountOfShares: string) => {
-    const contract = getDelegationContract(address);
-    await mintShares(contract, [recipient, BigInt(amountOfShares)])
-  });
+  .action(
+    async (address: Address, recipient: Address, amountOfShares: string) => {
+      const contract = getDelegationContract(address);
+
+      await callWriteMethod(contract, "mintShares", [
+        recipient,
+        BigInt(amountOfShares),
+      ]);
+    }
+  );
 
 delegation
   .command("mint-steth")
@@ -792,10 +582,16 @@ delegation
   .argument("<address>", "delegation address")
   .argument("<recipient>", "address of the recipient")
   .argument("<amountOfShares>", "amount of shares to mint")
-  .action(async (address: Address, recipient: Address, amountOfShares: string) => {
-    const contract = getDelegationContract(address);
-    await mintStETH(contract, [recipient, BigInt(amountOfShares)]);
-  });
+  .action(
+    async (address: Address, recipient: Address, amountOfShares: string) => {
+      const contract = getDelegationContract(address);
+
+      await callWriteMethod(contract, "mintStETH", [
+        recipient,
+        BigInt(amountOfShares),
+      ]);
+    }
+  );
 
 delegation
   .command("mint-wsteth")
@@ -805,27 +601,32 @@ delegation
   .argument("<tokens>", "amount of tokens to mint")
   .action(async (address: Address, recipient: Address, tokens: string) => {
     const contract = getDelegationContract(address);
-    await mintWstETH(contract, [recipient, BigInt(tokens)]);
+
+    await callWriteMethod(contract, "mintWstETH", [recipient, BigInt(tokens)]);
   });
 
 delegation
   .command("burn-shares")
-  .description("Burns stETH shares from the sender backed by the vault. Expects corresponding amount of stETH approved to this contract")
+  .description(
+    "Burns stETH shares from the sender backed by the vault. Expects corresponding amount of stETH approved to this contract"
+  )
   .argument("<address>", "delegation address")
   .argument("<amountOfShares>", "amount of shares to burn")
   .action(async (address: Address, amountOfShares: string) => {
     const contract = getDelegationContract(address);
-    await burnShares(contract, [BigInt(amountOfShares)]);
+    callWriteMethod(contract, "burnShares", [BigInt(amountOfShares)]);
   });
 
 delegation
   .command("burn-steth")
-  .description("Burns stETH shares from the sender backed by the vault. Expects stETH amount approved to this contract.")
+  .description(
+    "Burns stETH shares from the sender backed by the vault. Expects stETH amount approved to this contract."
+  )
   .argument("<address>", "delegation address")
   .argument("<amountOfShares>", "amount of shares to burn")
   .action(async (address: Address, amountOfShares: string) => {
     const contract = getDelegationContract(address);
-    await burnStETH(contract, [BigInt(amountOfShares)])
+    callWriteMethod(contract, "burnStETH", [BigInt(amountOfShares)]);
   });
 
 delegation
@@ -835,86 +636,113 @@ delegation
   .argument("<tokens>", "amount of wstETH tokens to burn")
   .action(async (address: Address, tokens: string) => {
     const contract = getDelegationContract(address);
-    await burnWstETH(contract, [BigInt(tokens)]);
+    callWriteMethod(contract, "burnWstETH", [BigInt(tokens)]);
   });
 
 delegation
   .command("burn-shares-permit")
-  .description("Burns stETH tokens (in shares) backed by the vault from the sender using permit (with value in stETH).")
+  .description(
+    "Burns stETH tokens (in shares) backed by the vault from the sender using permit (with value in stETH)."
+  )
   .argument("<address>", "delegation address")
   .argument("<tokens>", "amount of stETH tokens to burn")
-  .argument("<permitJSON>", "JSON data required for the stETH.permit() method to set the allowance")
+  .argument(
+    "<permitJSON>",
+    "JSON data required for the stETH.permit() method to set the allowance"
+  )
   .action(async (address: Address, tokens: string, permitJSON: string) => {
     const permit = JSON.parse(permitJSON) as Permit;
     const contract = getDelegationContract(address);
-    await burnSharesWithPermit(contract, [BigInt(tokens), permit]);
+    callWriteMethod(contract, "burnSharesWithPermit", [BigInt(tokens), permit]);
   });
 
 delegation
   .command("burn-steth-permit")
-  .description("Burns stETH tokens backed by the vault from the sender using permit.")
+  .description(
+    "Burns stETH tokens backed by the vault from the sender using permit."
+  )
   .argument("<address>", "delegation address")
   .argument("<tokens>", "amount of stETH tokens to burn")
-  .argument("<permitJSON>", "JSON data required for the stETH.permit() method to set the allowance")
+  .argument(
+    "<permitJSON>",
+    "JSON data required for the stETH.permit() method to set the allowance"
+  )
   .action(async (address: Address, tokens: string, permitJSON: string) => {
     const permit = JSON.parse(permitJSON) as Permit;
     const contract = getDelegationContract(address);
-    await burnStETHWithPermit(contract, [BigInt(tokens), permit]);
+    callWriteMethod(contract, "burnStETHWithPermit", [BigInt(tokens), permit]);
   });
 
 delegation
   .command("burn-wsteth-permit")
-  .description("burn wstETH tokens from the sender backed by the vault using EIP-2612 Permit")
+  .description(
+    "burn wstETH tokens from the sender backed by the vault using EIP-2612 Permit"
+  )
   .argument("<address>", "delegation address")
   .argument("<tokens>", "amount of wstETH tokens to burn")
-  .argument("<permitJSON>", "JSON data required for the wstETH.permit() method to set the allowance")
+  .argument(
+    "<permitJSON>",
+    "JSON data required for the wstETH.permit() method to set the allowance"
+  )
   .action(async (address: Address, tokens: string, permitJSON: string) => {
     const permit = JSON.parse(permitJSON) as Permit;
     const contract = getDelegationContract(address);
-    await burnWstETHWithPermit(contract, [BigInt(tokens), permit]);
+    callWriteMethod(contract, "burnWstETHWithPermit", [BigInt(tokens), permit]);
   });
 
 delegation
   .command("recover-erc20")
-  .description("recovers ERC20 tokens or ether from the delegation contract to sender")
+  .description(
+    "recovers ERC20 tokens or ether from the delegation contract to sender"
+  )
   .argument("<address>", "delegation address")
-  .argument("<token>", "Address of the token to recover or 0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee for ether")
+  .argument(
+    "<token>",
+    "Address of the token to recover or 0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee for ether"
+  )
   .argument("<recipient>", "Address of the recovery recipient")
   .argument("<amount>", "amount of ether to recover")
-  .action(async (address: Address, token: Address, recipient: Address, amount: string) => {
-    const contract = getDelegationContract(address);
-    await recoverERC20(contract, [token, recipient, BigInt(amount)]);
-  });
+  .action(
+    async (
+      address: Address,
+      token: Address,
+      recipient: Address,
+      amount: string
+    ) => {
+      const contract = getDelegationContract(address);
+      callWriteMethod(contract, "recoverERC20", [
+        token,
+        recipient,
+        BigInt(amount),
+      ]);
+    }
+  );
 
 delegation
   .command("recover-erc721")
-  .description("Transfers a given token_id of an ERC721-compatible NFT (defined by the token contract address)")
+  .description(
+    "Transfers a given token_id of an ERC721-compatible NFT (defined by the token contract address)"
+  )
   .argument("<address>", "delegation address")
   .argument("<token>", "an ERC721-compatible token")
   .argument("<tokenId>", "token id to recover")
   .argument("<recipient>", "Address of the recovery recipient")
-  .action(async (address: Address, token: Address, tokenId: string, recipient: Address) => {
-    const contract = getDelegationContract(address);
-    await recoverERC721(contract, [token, BigInt(tokenId), recipient]);
-  });
+  .action(
+    async (
+      address: Address,
+      token: Address,
+      tokenId: string,
+      recipient: Address
+    ) => {
+      const contract = getDelegationContract(address);
 
-delegation
-  .command("deposit-pause")
-  .description("Pauses beacon chain deposits on the staking vault.")
-  .argument("<address>", "delegation address")
-  .action(async (address: Address) => {
-    const contract = getDelegationContract(address);
-    await pauseBeaconChainDeposits(contract);
-  });
-
-delegation
-  .command("deposit-resume")
-  .description("Mass-grants multiple roles to multiple accounts.")
-  .argument("<address>", "delegation address")
-  .action(async (address: Address) => {
-    const contract = getDelegationContract(address);
-    await resumeBeaconChainDeposits(contract);
-  });
+      await callWriteMethod(contract, "recoverERC721", [
+        token,
+        BigInt(tokenId),
+        recipient,
+      ]);
+    }
+  );
 
 delegation
   .command("role-grant")
@@ -923,7 +751,15 @@ delegation
   .argument("<roleAssignmentJSON>", "JSON array of role assignments")
   .action(async (address: Address, roleAssignmentJSON: string) => {
     const contract = getDelegationContract(address);
-    await grantRoles(contract, roleAssignmentJSON);
+
+    const payload = JSON.parse(roleAssignmentJSON) as RoleAssignment[];
+    if (!Array.isArray(payload)) {
+      throw new Error(
+        "the 2nd argument should be an array of role assignments"
+      );
+    }
+
+    await callWriteMethod(contract, "grantRoles", [payload]);
   });
 
 delegation
@@ -933,5 +769,13 @@ delegation
   .argument("<roleAssignmentJSON>", "JSON array of role assignments")
   .action(async (address: Address, roleAssignmentJSON: string) => {
     const contract = getDelegationContract(address);
-    await revokeRoles(contract, roleAssignmentJSON);
+
+    const payload = JSON.parse(roleAssignmentJSON) as RoleAssignment[];
+    if (!Array.isArray(payload)) {
+      throw new Error(
+        "the 2nd argument should be an array of role assignments"
+      );
+    }
+
+    await callWriteMethod(contract, "revokeRoles", [payload]);
   });
