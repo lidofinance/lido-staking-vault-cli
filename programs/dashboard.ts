@@ -1,9 +1,39 @@
 import { program } from "@command";
 import { getDashboardContract } from "@contracts";
 import { Address } from "viem";
-import { getAccount } from "@providers";
-import { getChain } from "@configs";
-import { Permit, RoleAssignment } from "@types";
+import { Permit } from "@types";
+import {
+  burnShares,
+  burnSharesWithPermit,
+  burnStETH,
+  burnStETHWithPermit,
+  burnWstETH,
+  burnWstETHWithPermit, fund, fundWeth, getBaseInfo,
+  getCommittee,
+  getProjectedNewMintableShares,
+  getReserveRatioBP,
+  getShareLimit,
+  getSharesMinted,
+  getThresholdReserveRatioBP,
+  getTotalMintableShares,
+  getTreasuryFee,
+  getValuation,
+  getVaultSocket,
+  getWithdrawableEther,
+  grantRoles,
+  mintShares,
+  mintStETH,
+  mintWstETH,
+  pauseBeaconChainDeposits,
+  rebalanceVault,
+  recoverERC20,
+  recoverERC721,
+  requestValidatorExit,
+  resumeBeaconChainDeposits,
+  revokeRoles,
+  transferStakingVaultOwnership,
+  voluntaryDisconnect, withdraw, withdrawWETH,
+} from "@features";
 
 const dashboard = program.command("dashboard").description("dashboard contract");
 
@@ -13,28 +43,7 @@ dashboard
   .argument("<address>", "dashboard address")
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
-
-    try {
-      const steth = await contract.read.STETH();
-      const wsteth = await contract.read.WSTETH();
-      const weth = await contract.read.WETH();
-      const isInit = await contract.read.initialized();
-      const vault = await contract.read.stakingVault();
-
-      const payload = {
-        steth,
-        wsteth,
-        weth,
-        vault,
-        isInit,
-      }
-
-      console.table(Object.entries(payload));
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when getting info:\n', err.message);
-      }
-    }
+    await getBaseInfo(contract);
   });
 
 dashboard
@@ -42,16 +51,8 @@ dashboard
   .description("voting committee info")
   .argument("<address>", "dashboard address")
   .action(async (address: Address) => {
-    try {
-      const contract = getDashboardContract(address);
-      const votingCommittee = await contract.read.votingCommittee();
-
-      console.table(votingCommittee);
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when getting voting committee info:\n', err.message);
-      }
-    }
+    const contract = getDashboardContract(address);
+    await getCommittee(contract);
   });
 
 dashboard
@@ -59,16 +60,8 @@ dashboard
   .description("vault info")
   .argument("<address>", "dashboard address")
   .action(async (address: Address) => {
-    try {
-      const contract = getDashboardContract(address);
-      const vaultInfo = await contract.read.vaultSocket();
-
-      console.table(Object.values(vaultInfo));
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when getting vault info:\n', err.message);
-      }
-    }
+    const contract = getDashboardContract(address);
+    await getVaultSocket(contract);
   });
 
 dashboard
@@ -77,14 +70,7 @@ dashboard
   .argument("<address>", "dashboard address")
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
-    try {
-      const shareLimit = await contract.read.shareLimit();
-      console.table({ 'Share limit': shareLimit });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when getting share limit:\n', err.message);
-      }
-    }
+    await getShareLimit(contract);
   });
 
 dashboard
@@ -93,14 +79,7 @@ dashboard
   .argument("<address>", "dashboard address")
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
-    try {
-      const sharesMinted = await contract.read.sharesMinted();
-      console.table({ 'Share minted': sharesMinted });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when getting shares minted:\n', err.message);
-      }
-    }
+    await getSharesMinted(contract);
   });
 
 dashboard
@@ -109,15 +88,7 @@ dashboard
   .argument("<address>", "dashboard address")
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
-
-    try {
-      const reserveRatio = await contract.read.reserveRatioBP();
-      console.table({ 'Reserve ratio BP': reserveRatio });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when getting reserve ratio:\n', err.message);
-      }
-    }
+    await getReserveRatioBP(contract);
   });
 
 dashboard
@@ -126,14 +97,7 @@ dashboard
   .argument("<address>", "dashboard address")
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
-    try {
-      const thresholdReserveRatio = await contract.read.thresholdReserveRatioBP();
-      console.table({ 'Threshold reserve ratio BP': thresholdReserveRatio });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when getting threshold reserve ratio:\n', err.message);
-      }
-    }
+    await getThresholdReserveRatioBP(contract);
   });
 
 dashboard
@@ -142,14 +106,7 @@ dashboard
   .argument("<address>", "dashboard address")
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
-    try {
-      const treasuryFee = await contract.read.treasuryFee();
-      console.table({ 'Treasury fee': treasuryFee });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when getting treasury fee:\n', err.message);
-      }
-    }
+    await getTreasuryFee(contract);
   });
 
 dashboard
@@ -158,15 +115,7 @@ dashboard
   .argument("<address>", "dashboard address")
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
-
-    try {
-      const valuation = await contract.read.valuation();
-      console.table({ Valuation: valuation });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when getting valuation of the vault in ether:\n', err.message);
-      }
-    }
+    await getValuation(contract);
   });
 
 dashboard
@@ -175,15 +124,7 @@ dashboard
   .argument("<address>", "dashboard address")
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
-
-    try {
-      const totalMintableShares = await contract.read.totalMintableShares();
-      console.table({ 'Total mintable shares': totalMintableShares });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when getting total of shares that can be minted on the vault:\n', err.message);
-      }
-    }
+    await getTotalMintableShares(contract);
   });
 
 dashboard
@@ -193,15 +134,7 @@ dashboard
   .argument("<ether>", "amount of ether to be funded")
   .action(async (address: Address, ether: string) => {
     const contract = getDashboardContract(address);
-
-    try {
-      const mintableShares = await contract.read.projectedNewMintableShares([BigInt(ether)]);
-      console.table({ 'Mintable shares': mintableShares });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when getting maximum number of shares that can be minted with deposited ether:\n', err.message);
-      }
-    }
+    await getProjectedNewMintableShares(contract, [BigInt(ether)]);
   });
 
 dashboard
@@ -210,15 +143,7 @@ dashboard
   .argument("<address>", "dashboard address")
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
-
-    try {
-      const withdrawableEther = await contract.read.withdrawableEther();
-      console.table({ 'Withdrawable ether': withdrawableEther });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when getting amount of ether that can be withdrawn from the staking vault:\n', err.message);
-      }
-    }
+    await getWithdrawableEther(contract);
   });
 
 // TODO: test without voting
@@ -229,22 +154,7 @@ dashboard
   .argument("<newOwner>", "address of the new owner")
   .action(async (address: Address, newOwner: Address) => {
     const contract = getDashboardContract(address);
-
-    try {
-      const tx = await contract.write.transferStakingVaultOwnership(
-        [newOwner],
-        {
-          account: getAccount(),
-          chain: getChain(),
-        }
-      );
-
-      console.table({ Transaction: tx });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when transferring ownership of the staking vault to a new owner:\n', err.message);
-      }
-    }
+    await transferStakingVaultOwnership(contract, [newOwner]);
   });
 
 dashboard
@@ -253,18 +163,7 @@ dashboard
   .argument("<address>", "dashboard address")
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
-    try {
-      const tx = await contract.write.voluntaryDisconnect({
-        account: getAccount(),
-        chain: getChain(),
-      });
-
-      console.table({ Transaction: tx });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when disconnecting the staking vault from the vault hub:\n', err.message);
-      }
-    }
+    await voluntaryDisconnect(contract);
   });
 
 dashboard
@@ -274,20 +173,7 @@ dashboard
   .argument("<ether>", "amount of ether to be funded")
   .action(async (address: Address, ether: string) => {
     const contract = getDashboardContract(address);
-
-    try {
-      const tx = await contract.write.fund({
-        account: getAccount(),
-        chain: getChain(),
-        value: BigInt(ether),
-      });
-
-      console.table({ Transaction: tx });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when funding:\n', err.message);
-      }
-    }
+    await fund(contract, BigInt(ether));
   });
 
 dashboard
@@ -297,19 +183,7 @@ dashboard
   .argument("<wethAmount>", "amount of weth to be funded")
   .action(async (address: Address, wethAmount: string) => {
     const contract = getDashboardContract(address);
-
-    try {
-      const tx = await contract.write.fundWeth([BigInt(wethAmount)], {
-        account: getAccount(),
-        chain: getChain(),
-      });
-
-      console.table({ Transaction: tx });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when funding weth:\n', err.message);
-      }
-    }
+    await fundWeth(contract, [BigInt(wethAmount)]);
   });
 
 dashboard
@@ -320,19 +194,7 @@ dashboard
   .argument("<ether>", "amount of ether to withdraw")
   .action(async (address: Address, recipient: Address, ether: string) => {
     const contract = getDashboardContract(address);
-
-    try {
-      const tx = await contract.write.withdraw([recipient, BigInt(ether)], {
-        account: getAccount(),
-        chain: getChain(),
-      });
-
-      console.table({ Transaction: tx });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when withdrawing:\n', err.message);
-      }
-    }
+    await withdraw(contract, [recipient, BigInt(ether)]);
   });
 
 dashboard
@@ -343,19 +205,7 @@ dashboard
   .argument("<ether>", "amount of ether to withdraw")
   .action(async (address: Address, recipient: Address, ether: string) => {
     const contract = getDashboardContract(address);
-
-    try {
-      const tx = await contract.write.withdrawWETH([recipient, BigInt(ether)], {
-        account: getAccount(),
-        chain: getChain(),
-      });
-
-      console.table({ Transaction: tx });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when withdrawing weth:\n', err.message);
-      }
-    }
+    await withdrawWETH(contract, [recipient, BigInt(ether)])
   });
 
 dashboard
@@ -365,18 +215,7 @@ dashboard
   .argument("<validatorPubKey>", "public key of the validator to exit")
   .action(async (address: Address, validatorPubKey: Address) => {
     const contract = getDashboardContract(address);
-    try {
-      const tx = await contract.write.requestValidatorExit([validatorPubKey], {
-        account: getAccount(),
-        chain: getChain(),
-      });
-
-      console.table({ Transaction: tx });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when requesting the exit of a validator from the staking vault:\n', err.message);
-      }
-    }
+    await requestValidatorExit(contract, [validatorPubKey]);
   });
 
 dashboard
@@ -387,19 +226,7 @@ dashboard
   .argument("<amountOfShares>", "amount of shares to mint")
   .action(async (address: Address, recipient: Address, amountOfShares: string) => {
     const contract = getDashboardContract(address);
-
-    try {
-      const tx = await contract.write.mintShares([recipient, BigInt(amountOfShares)], {
-        account: getAccount(),
-        chain: getChain(),
-      });
-
-      console.table({ Transaction: tx });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when minting shares:\n', err.message);
-      }
-    }
+    await mintShares(contract, [recipient, BigInt(amountOfShares)])
   });
 
 dashboard
@@ -410,19 +237,7 @@ dashboard
   .argument("<amountOfShares>", "amount of shares to mint")
   .action(async (address: Address, recipient: Address, amountOfShares: string) => {
     const contract = getDashboardContract(address);
-
-    try {
-      const tx = await contract.write.mintStETH([recipient, BigInt(amountOfShares)], {
-        account: getAccount(),
-        chain: getChain(),
-      });
-
-      console.table({ Transaction: tx });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when minting stETH:\n', err.message);
-      }
-    }
+    await mintStETH(contract, [recipient, BigInt(amountOfShares)]);
   });
 
 dashboard
@@ -433,19 +248,7 @@ dashboard
   .argument("<tokens>", "amount of tokens to mint")
   .action(async (address: Address, recipient: Address, tokens: string) => {
     const contract = getDashboardContract(address);
-
-    try {
-      const tx = await contract.write.mintWstETH([recipient, BigInt(tokens)], {
-        account: getAccount(),
-        chain: getChain(),
-      });
-
-      console.table({ Transaction: tx });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when minting wstETH:\n', err.message);
-      }
-    }
+    await mintWstETH(contract, [recipient, BigInt(tokens)]);
   });
 
 dashboard
@@ -455,19 +258,7 @@ dashboard
   .argument("<amountOfShares>", "amount of shares to burn")
   .action(async (address: Address, amountOfShares: string) => {
     const contract = getDashboardContract(address);
-
-    try {
-      const tx = await contract.write.burnShares([BigInt(amountOfShares)], {
-        account: getAccount(),
-        chain: getChain(),
-      });
-
-      console.table({ Transaction: tx });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when burning shares:\n', err.message);
-      }
-    }
+    await burnShares(contract, [BigInt(amountOfShares)]);
   });
 
 dashboard
@@ -477,19 +268,7 @@ dashboard
   .argument("<amountOfShares>", "amount of shares to burn")
   .action(async (address: Address, amountOfShares: string) => {
     const contract = getDashboardContract(address);
-
-    try {
-      const tx = await contract.write.burnStETH([BigInt(amountOfShares)], {
-        account: getAccount(),
-        chain: getChain(),
-      });
-
-      console.table({ Transaction: tx });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when burning stETH:\n', err.message);
-      }
-    }
+    await burnStETH(contract, [BigInt(amountOfShares)])
   });
 
 dashboard
@@ -499,19 +278,7 @@ dashboard
   .argument("<tokens>", "amount of wstETH tokens to burn")
   .action(async (address: Address, tokens: string) => {
     const contract = getDashboardContract(address);
-
-    try {
-      const tx = await contract.write.burnWstETH([BigInt(tokens)], {
-        account: getAccount(),
-        chain: getChain(),
-      });
-
-      console.table({ Transaction: tx });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when burning wstETH:\n', err.message);
-      }
-    }
+    await burnWstETH(contract, [BigInt(tokens)]);
   });
 
 dashboard
@@ -523,19 +290,7 @@ dashboard
   .action(async (address: Address, tokens: string, permitJSON: string) => {
     const permit = JSON.parse(permitJSON) as Permit;
     const contract = getDashboardContract(address);
-
-    try {
-      const tx = await contract.write.burnSharesWithPermit([BigInt(tokens), permit], {
-        account: getAccount(),
-        chain: getChain(),
-      });
-
-      console.table({ Transaction: tx });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when burning stETH (in shares) using permit:\n', err.message);
-      }
-    }
+    await burnSharesWithPermit(contract, [BigInt(tokens), permit]);
   });
 
 dashboard
@@ -547,19 +302,7 @@ dashboard
   .action(async (address: Address, tokens: string, permitJSON: string) => {
     const permit = JSON.parse(permitJSON) as Permit;
     const contract = getDashboardContract(address);
-
-    try {
-      const tx = await contract.write.burnStETHWithPermit([BigInt(tokens), permit], {
-        account: getAccount(),
-        chain: getChain(),
-      });
-
-      console.table({ Transaction: tx });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when burning stETH using permit:\n', err.message);
-      }
-    }
+    await burnStETHWithPermit(contract, [BigInt(tokens), permit]);
   });
 
 dashboard
@@ -571,19 +314,7 @@ dashboard
   .action(async (address: Address, tokens: string, permitJSON: string) => {
     const permit = JSON.parse(permitJSON) as Permit;
     const contract = getDashboardContract(address);
-
-    try {
-      const tx = await contract.write.burnWstETHWithPermit([BigInt(tokens), permit], {
-        account: getAccount(),
-        chain: getChain(),
-      });
-
-      console.table({ Transaction: tx });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when burning wstETH using permit:\n', err.message);
-      }
-    }
+    await burnWstETHWithPermit(contract, [BigInt(tokens), permit]);
   });
 
 dashboard
@@ -593,19 +324,7 @@ dashboard
   .argument("<ether>", "amount of ether to rebalance")
   .action(async (address: Address, ether: string) => {
     const contract = getDashboardContract(address);
-
-    try {
-      const tx = await contract.write.rebalanceVault([BigInt(ether)], {
-        account: getAccount(),
-        chain: getChain(),
-      });
-
-      console.table({ Transaction: tx });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when rebalancing:\n', err.message);
-      }
-    }
+    await rebalanceVault(contract, [BigInt(ether)]);
   });
 
 dashboard
@@ -617,22 +336,7 @@ dashboard
   .argument("<amount>", "amount of ether to recover")
   .action(async (address: Address, token: Address, recipient: Address, amount: string) => {
     const contract = getDashboardContract(address);
-
-    try {
-      const tx = await contract.write.recoverERC20(
-        [token, recipient, BigInt(amount)],
-        {
-          account: getAccount(),
-          chain: getChain(),
-        }
-      );
-
-      console.table({ Transaction: tx });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when recovering:\n', err.message);
-      }
-    }
+    await recoverERC20(contract, [token, recipient, BigInt(amount)]);
   });
 
 dashboard
@@ -644,22 +348,7 @@ dashboard
   .argument("<recipient>", "Address of the recovery recipient")
   .action(async (address: Address, token: Address, tokenId: string, recipient: Address) => {
     const contract = getDashboardContract(address);
-
-    try {
-      const tx = await contract.write.recoverERC721(
-        [token, BigInt(tokenId), recipient],
-        {
-          account: getAccount(),
-          chain: getChain(),
-        }
-      );
-
-      console.table({ Transaction: tx });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when recovering:\n', err.message);
-      }
-    }
+    await recoverERC721(contract, [token, BigInt(tokenId), recipient]);
   });
 
 dashboard
@@ -668,19 +357,7 @@ dashboard
   .argument("<address>", "dashboard address")
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
-
-    try {
-      const tx = await contract.write.pauseBeaconChainDeposits({
-        account: getAccount(),
-        chain: getChain(),
-      });
-
-      console.table({ Transaction: tx });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when pausing deposit:\n', err.message);
-      }
-    }
+    await pauseBeaconChainDeposits(contract);
   });
 
 dashboard
@@ -689,19 +366,7 @@ dashboard
   .argument("<address>", "dashboard address")
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
-
-    try {
-      const tx = await contract.write.resumeBeaconChainDeposits({
-        account: getAccount(),
-        chain: getChain(),
-      });
-
-      console.table({ Transaction: tx });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when resuming deposit:\n', err.message);
-      }
-    }
+    await resumeBeaconChainDeposits(contract);
   });
 
 dashboard
@@ -711,23 +376,7 @@ dashboard
   .argument("<roleAssignmentJSON>", "JSON array of role assignments")
   .action(async (address: Address, roleAssignmentJSON: string) => {
     const contract = getDashboardContract(address);
-    const payload = JSON.parse(roleAssignmentJSON) as RoleAssignment[];
-
-    try {
-      const tx = await contract.write.grantRoles(
-        [payload],
-        {
-          account: getAccount(),
-          chain: getChain(),
-        }
-      );
-
-      console.table({ Transaction: tx });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when granting role:\n', err.message);
-      }
-    }
+    await grantRoles(contract, roleAssignmentJSON);
   });
 
 dashboard
@@ -737,22 +386,6 @@ dashboard
   .argument("<roleAssignmentJSON>", "JSON array of role assignments")
   .action(async (address: Address, roleAssignmentJSON: string) => {
     const contract = getDashboardContract(address);
-    const payload = JSON.parse(roleAssignmentJSON) as RoleAssignment[];
-
-    try {
-      const tx = await contract.write.revokeRoles(
-        [payload],
-        {
-          account: getAccount(),
-          chain: getChain(),
-        }
-      );
-
-      console.table({ Transaction: tx });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.log('Error when revoking role:\n', err.message);
-      }
-    }
+    await revokeRoles(contract, roleAssignmentJSON);
   });
 
