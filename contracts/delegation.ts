@@ -1,16 +1,13 @@
-import { getContract, createPublicClient, http, Address } from "viem";
+import { getContract, Address } from "viem";
 import { DelegationAbi } from "abi";
-import { getChain, getRpcUrl } from "@configs";
+import { getPublicClient } from "@providers";
 
 export const getDelegationContract = (address: Address) => {
-  const rpcUrl = getRpcUrl();
-
   return getContract({
     address: address,
     abi: DelegationAbi,
-    client: createPublicClient({
-      chain: getChain(),
-      transport: http(rpcUrl),
-    }),
+    client: getPublicClient(),
   });
 };
+
+export type DelegationContract = ReturnType<typeof getDelegationContract>;
