@@ -1,6 +1,6 @@
-import { Address, createPublicClient, createWalletClient, http } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
-import { envs, getConfig, getChainId, getRpcUrl, getChain } from "@configs";
+import { Address, createPublicClient, createWalletClient, http } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
+import { envs, getConfig, getChainId, getRpcUrl, getChain } from 'configs';
 
 export const getAccount = () => {
   const config = getConfig();

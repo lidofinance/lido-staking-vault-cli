@@ -1,6 +1,6 @@
 #! /usr/bin/env node
 
-import { program } from "./command";
-import "./programs";
+import { program } from "./command/index.js";
+import "./programs/index.js";
 
 program.parse(process.argv);

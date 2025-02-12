@@ -1,6 +1,6 @@
-import { getContract, Address } from "viem";
-import { DashboardAbi } from "abi";
-import { getPublicClient } from "@providers";
+import { getContract, Address } from 'viem';
+import { DashboardAbi } from 'abi/index.js';
+import { getPublicClient } from 'providers';
 
 export const getDashboardContract = (address: Address) => {
   return getContract({

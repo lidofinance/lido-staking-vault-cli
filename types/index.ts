@@ -1,2 +1,2 @@
-export * from "./config";
-export * from "./common";
+export * from "./config.js";
+export * from "./common.js";

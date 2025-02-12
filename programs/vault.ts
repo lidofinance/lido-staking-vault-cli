@@ -1,10 +1,10 @@
-import { program } from "@command";
-import { getStakingVaultContract } from "@contracts";
-import { getAccount } from "@providers";
-import { Address, parseEther } from "viem";
-import { getChain } from "@configs";
+import { program } from 'command';
+import { getStakingVaultContract } from 'contracts';
+import { getAccount } from 'providers';
+import { Address, parseEther } from 'viem';
+import { getChain } from 'configs';
 
-const vault = program.command("vault").description("vault contract");
+const vault = program.command('vault').description('vault contract');
 
 // Views
 // info - get vault base info
@@ -24,9 +24,9 @@ const vault = program.command("vault").description("vault contract");
 
 // Works
 vault
-  .command("info")
-  .description("get vault base info")
-  .argument("<address>", "vault address")
+  .command('info')
+  .description('get vault base info')
+  .argument('<address>', 'vault address')
   .action(async (address: Address) => {
     const contract = getStakingVaultContract(address);
 
@@ -50,7 +50,7 @@ vault
         depositContract,
         nodeOperator,
         isBalanced,
-      }
+      };
 
       console.table(payload);
     } catch (err) {
@@ -62,16 +62,16 @@ vault
 
 // Works
 vault
-  .command("l-report")
-  .description("get latest vault report")
-  .argument("<address>", "vault address")
+  .command('l-report')
+  .description('get latest vault report')
+  .argument('<address>', 'vault address')
   .action(async (address: Address) => {
     const contract = getStakingVaultContract(address);
 
     try {
       const latestReport = await contract.read.latestReport();
 
-      console.table({ "latest report": latestReport });
+      console.table({ 'latest report': latestReport });
     } catch (err) {
       if (err instanceof Error) {
         program.error(err.message);
@@ -81,15 +81,17 @@ vault
 
 // Works
 vault
-  .command("is-balanced")
-  .description("returns whether `StakingVault` is balanced, i.e. its valuation is greater than the locked amount")
-  .argument("<address>", "vault address")
+  .command('is-balanced')
+  .description(
+    'returns whether `StakingVault` is balanced, i.e. its valuation is greater than the locked amount',
+  )
+  .argument('<address>', 'vault address')
   .action(async (address: Address) => {
     const contract = getStakingVaultContract(address);
     try {
       const isBalanced = await contract.read.isBalanced();
 
-      console.table({"Is balanced": isBalanced});
+      console.table({ 'Is balanced': isBalanced });
     } catch (err) {
       if (err instanceof Error) {
         program.error(err.message);
@@ -97,15 +99,15 @@ vault
     }
   });
 vault
-  .command("node-operator")
-  .description("Returns the address of the node operator")
-  .argument("<address>", "vault address")
+  .command('node-operator')
+  .description('Returns the address of the node operator')
+  .argument('<address>', 'vault address')
   .action(async (address: Address) => {
     const contract = getStakingVaultContract(address);
     try {
       const nodeOperator = await contract.read.nodeOperator();
 
-      console.table({"Node Operator": nodeOperator});
+      console.table({ 'Node Operator': nodeOperator });
     } catch (err) {
       if (err instanceof Error) {
         program.error(err.message);
@@ -115,16 +117,16 @@ vault
 
 // Works
 vault
-  .command("valuation")
-  .description("get vault valuation")
-  .argument("<address>", "vault address")
+  .command('valuation')
+  .description('get vault valuation')
+  .argument('<address>', 'vault address')
   .action(async (address: Address) => {
     const contract = getStakingVaultContract(address);
 
     try {
       const valuation = await contract.read.valuation();
 
-      console.table({valuation});
+      console.table({ valuation });
     } catch (err) {
       if (err instanceof Error) {
         program.error(err.message);
@@ -134,15 +136,15 @@ vault
 
 // Works
 vault
-  .command("unlocked")
-  .description("get vault unlocked")
-  .argument("<address>", "vault address")
+  .command('unlocked')
+  .description('get vault unlocked')
+  .argument('<address>', 'vault address')
   .action(async (address: Address) => {
     const contract = getStakingVaultContract(address);
     try {
       const unlocked = await contract.read.unlocked();
 
-      console.table({unlocked});
+      console.table({ unlocked });
     } catch (err) {
       if (err instanceof Error) {
         program.error(err.message);
@@ -152,15 +154,15 @@ vault
 
 // Works
 vault
-  .command("locked")
-  .description("get vault locked")
-  .argument("<address>", "vault address")
+  .command('locked')
+  .description('get vault locked')
+  .argument('<address>', 'vault address')
   .action(async (address: Address) => {
     const contract = getStakingVaultContract(address);
     try {
       const locked = await contract.read.locked();
 
-      console.table({locked});
+      console.table({ locked });
     } catch (err) {
       if (err instanceof Error) {
         program.error(err.message);
@@ -170,16 +172,16 @@ vault
 
 // Works
 vault
-  .command("withdrawal-c")
-  .description("get vault withdrawal credentials")
-  .argument("<address>", "vault address")
+  .command('withdrawal-c')
+  .description('get vault withdrawal credentials')
+  .argument('<address>', 'vault address')
   .action(async (address: Address) => {
     const contract = getStakingVaultContract(address);
 
     try {
       const wc = await contract.read.withdrawalCredentials();
 
-      console.table({wc});
+      console.table({ wc });
     } catch (err) {
       if (err instanceof Error) {
         program.error(err.message);
@@ -188,10 +190,10 @@ vault
   });
 
 vault
-  .command("fund")
-  .description("fund vault")
-  .argument("<address>", "vault address")
-  .argument("<amount>", "amount to fund")
+  .command('fund')
+  .description('fund vault')
+  .argument('<address>', 'vault address')
+  .argument('<amount>', 'amount to fund')
   .action(async (address: Address, amount: string) => {
     const contract = getStakingVaultContract(address);
 
@@ -212,11 +214,11 @@ vault
 
 // TODO: investigate why only owner can fund vault
 vault
-  .command("withdraw")
-  .description("withdraw from vault")
-  .argument("<address>", "vault address")
-  .argument("<recipient>", "recipient address")
-  .argument("<amount>", "amount to withdraw")
+  .command('withdraw')
+  .description('withdraw from vault')
+  .argument('<address>', 'vault address')
+  .argument('<recipient>', 'recipient address')
+  .argument('<amount>', 'amount to withdraw')
   .action(async (address: Address, recipient: Address, amount: string) => {
     const contract = getStakingVaultContract(address);
 
@@ -231,64 +233,67 @@ vault
 // NOs
 // TODO: get more details
 vault
-  .command("no-deposit-beacon")
-  .description("deposit to beacon chain")
-  .argument("<address>", "vault address")
-  .argument("<amountOfDeposit>", "amount of deposits")
-  .argument("<pubkey>", "pubkey")
-  .argument("<signature>", "signature")
-  .argument("<depositDataRoot>", "depositDataRoot")
-  .action(async (
-    vault: Address,
-    amountOfDeposit: string,
-    pubkey: `0x${string}`,
-    signature: `0x${string}`,
-    depositDataRoot:
-    `0x${string}`
-  ) => {
-    const amount = BigInt(amountOfDeposit);
-    const contract = getStakingVaultContract(vault);
+  .command('no-deposit-beacon')
+  .description('deposit to beacon chain')
+  .argument('<address>', 'vault address')
+  .argument('<amountOfDeposit>', 'amount of deposits')
+  .argument('<pubkey>', 'pubkey')
+  .argument('<signature>', 'signature')
+  .argument('<depositDataRoot>', 'depositDataRoot')
+  .action(
+    async (
+      vault: Address,
+      amountOfDeposit: string,
+      pubkey: `0x${string}`,
+      signature: `0x${string}`,
+      depositDataRoot: `0x${string}`,
+    ) => {
+      const amount = BigInt(amountOfDeposit);
+      const contract = getStakingVaultContract(vault);
 
-    const payload = [{
-      pubkey,
-      signature,
-      amount,
-      depositDataRoot
-    }];
-
-    try {
-      const tx = await contract.write.depositToBeaconChain(
-        [payload],
+      const payload = [
         {
+          pubkey,
+          signature,
+          amount,
+          depositDataRoot,
+        },
+      ];
+
+      try {
+        const tx = await contract.write.depositToBeaconChain([payload], {
           account: getAccount(),
           chain: getChain(),
-        }
-      );
+        });
 
-      console.table({Transaction: tx});
-    } catch (err) {
-      if (err instanceof Error) {
-        program.error(err.message);
+        console.table({ Transaction: tx });
+      } catch (err) {
+        if (err instanceof Error) {
+          program.error(err.message);
+        }
       }
-    }
-  });
+    },
+  );
 
 // TODO: get more details
 vault
-  .command("no-val-exit")
-  .description("request to exit validator")
-  .argument("<address>", "vault address")
-  .argument("<validatorPublicKey>", "validator public key")
+  .command('no-val-exit')
+  .description('request to exit validator')
+  .argument('<address>', 'vault address')
+  .argument('<validatorPublicKey>', 'validator public key')
   .action(async (address: Address, validatorPublicKey: Address) => {
     const contract = getStakingVaultContract(address);
 
     try {
-      const tx = await contract.write.requestValidatorExit([validatorPublicKey], {
-        account: getAccount(),
-        chain: getChain(),
-      });
+      const tx = await contract.write.requestValidatorExit(
+        [validatorPublicKey],
+        {
+          account: getAccount(),
+          chain: getChain(),
+        },
+      );
 
-      console.table({Transaction: tx});
+      console.table({ Transaction: tx });
     } catch (err) {
       if (err instanceof Error) {
         program.error(err.message);
@@ -298,16 +303,16 @@ vault
 
 // Works
 vault
-  .command("delta")
-  .description("the net difference between deposits and withdrawals")
-  .argument("<address>", "vault address")
+  .command('delta')
+  .description('the net difference between deposits and withdrawals')
+  .argument('<address>', 'vault address')
   .action(async (address: Address) => {
     const contract = getStakingVaultContract(address);
 
     try {
       const inOutDelta = await contract.read.inOutDelta();
 
-      console.table({'In Out Delta': inOutDelta});
+      console.table({ 'In Out Delta': inOutDelta });
     } catch (err) {
       if (err instanceof Error) {
         program.error(err.message);
@@ -316,15 +321,15 @@ vault
   });
 
 vault
-  .command("is-paused")
-  .description("Returns whether deposits are paused by the vault owner")
-  .argument("<address>", "vault address")
+  .command('is-paused')
+  .description('Returns whether deposits are paused by the vault owner')
+  .argument('<address>', 'vault address')
   .action(async (address: Address) => {
     const contract = getStakingVaultContract(address);
     try {
       const isPaused = await contract.read.beaconChainDepositsPaused();
 
-      console.table({'Is paused': isPaused});
+      console.table({ 'Is paused': isPaused });
     } catch (err) {
       if (err instanceof Error) {
         program.error(err.message);
@@ -333,9 +338,9 @@ vault
   });
 
 vault
-  .command("bc-resume")
-  .description("Resumes deposits to beacon chain")
-  .argument("<address>", "vault address")
+  .command('bc-resume')
+  .description('Resumes deposits to beacon chain')
+  .argument('<address>', 'vault address')
   .action(async (address: Address) => {
     const contract = getStakingVaultContract(address);
     try {
@@ -353,9 +358,9 @@ vault
   });
 
 vault
-  .command("bc-pause")
-  .description("Pauses deposits to beacon chain")
-  .argument("<address>", "vault address")
+  .command('bc-pause')
+  .description('Pauses deposits to beacon chain')
+  .argument('<address>', 'vault address')
   .action(async (address: Address) => {
     const contract = getStakingVaultContract(address);
     try {
@@ -373,56 +378,76 @@ vault
   });
 
 vault
-  .command("report")
-  .description("Submits a report containing valuation, inOutDelta, and locked amount")
-  .argument("<address>", "vault address")
-  .argument("<valuation>", "New total valuation: validator balances + StakingVault balance")
-  .argument("<inOutDelta>", "New net difference between funded and withdrawn ether")
-  .argument("<locked>", "New amount of locked ether")
-  .action(async (address: Address, valuation: string, inOutDelta: string, locked: string) => {
-    const contract = getStakingVaultContract(address);
-    try {
-      const tx = await contract.write.report(
-        [BigInt(valuation), BigInt(inOutDelta), BigInt(locked)],
-        {
-          account: getAccount(),
-          chain: getChain(),
-        }
-      );
+  .command('report')
+  .description(
+    'Submits a report containing valuation, inOutDelta, and locked amount',
+  )
+  .argument('<address>', 'vault address')
+  .argument(
+    '<valuation>',
+    'New total valuation: validator balances + StakingVault balance',
+  )
+  .argument(
+    '<inOutDelta>',
+    'New net difference between funded and withdrawn ether',
+  )
+  .argument('<locked>', 'New amount of locked ether')
+  .action(
+    async (
+      address: Address,
+      valuation: string,
+      inOutDelta: string,
+      locked: string,
+    ) => {
+      const contract = getStakingVaultContract(address);
+      try {
+        const tx = await contract.write.report(
+          [BigInt(valuation), BigInt(inOutDelta), BigInt(locked)],
+          {
+            account: getAccount(),
+            chain: getChain(),
+          },
+        );
 
-      console.table({ 'Transaction': tx });
-    } catch (err) {
-      if (err instanceof Error) {
-        program.error(err.message);
+        console.table({ Transaction: tx });
+      } catch (err) {
+        if (err instanceof Error) {
+          program.error(err.message);
+        }
       }
-    }
-  });
+    },
+  );
 
 vault
-  .command("compute-deposit")
-  .description("Computes the deposit data root for a validator deposit")
-  .argument("<address>", "vault address")
-  .argument("<pubkey>", "Validator public key, 48 bytes")
-  .argument("<withdrawalCredentials>", "Withdrawal credentials, 32 bytes")
-  .argument("<signature>", "Signature of the deposit, 96 bytes")
-  .argument("<amount>", "Amount of ether to deposit, in wei")
-  .action(async (
-    address: Address,
-    pubkey: `0x${string}`,
-    withdrawalCredentials: `0x${string}`,
-    signature: `0x${string}`,
-    amount: string
-  ) => {
-    const contract = getStakingVaultContract(address);
-    try {
-      const encodedData = await contract.read.computeDepositDataRoot(
-        [pubkey, withdrawalCredentials, signature, BigInt(amount)]
-      );
+  .command('compute-deposit')
+  .description('Computes the deposit data root for a validator deposit')
+  .argument('<address>', 'vault address')
+  .argument('<pubkey>', 'Validator public key, 48 bytes')
+  .argument('<withdrawalCredentials>', 'Withdrawal credentials, 32 bytes')
+  .argument('<signature>', 'Signature of the deposit, 96 bytes')
+  .argument('<amount>', 'Amount of ether to deposit, in wei')
+  .action(
+    async (
+      address: Address,
+      pubkey: `0x${string}`,
+      withdrawalCredentials: `0x${string}`,
+      signature: `0x${string}`,
+      amount: string,
+    ) => {
+      const contract = getStakingVaultContract(address);
+      try {
+        const encodedData = await contract.read.computeDepositDataRoot([
+          pubkey,
+          withdrawalCredentials,
+          signature,
+          BigInt(amount),
+        ]);
 
-      console.table({ 'Encoded data': encodedData });
-    } catch (err) {
-      if (err instanceof Error) {
-        program.error(err.message);
+        console.table({ 'Encoded data': encodedData });
+      } catch (err) {
+        if (err instanceof Error) {
+          program.error(err.message);
+        }
       }
-    }
-  });
+    },
+  );

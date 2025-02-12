@@ -1,23 +1,23 @@
-import { printError } from "@utils";
-import { getAccount } from "@providers";
-import { getChain } from "@configs";
+import { printError } from 'utils';
+import { getAccount } from 'providers';
+import { getChain } from 'configs';
 
 type Writeable<T> = { -readonly [P in keyof T]: T[P] };
 
 type GetFirst<T extends unknown[]> = T extends [infer First, infer _Second]
   ? First
   : T extends any
-  ? []
-  : T;
+    ? []
+    : T;
 
 export const callWriteMethod = async <
   T extends { write: Record<string, (...args: any[]) => Promise<any>> },
-  M extends keyof T["write"] & string
+  M extends keyof T['write'] & string,
 >(
   contract: T,
   methodName: M,
-  payload: Writeable<GetFirst<Parameters<T["write"][M]>>> | never[],
-  value?: bigint
+  payload: Writeable<GetFirst<Parameters<T['write'][M]>>> | never[],
+  value?: bigint,
 ) => {
   try {
     const method = contract.write[methodName];
@@ -35,11 +35,11 @@ export const callWriteMethod = async <
 
 export const callReadMethod = async <
   T extends { read: Record<string, (...args: any[]) => Promise<any>> },
-  M extends keyof T["read"] & string
+  M extends keyof T['read'] & string,
 >(
   contract: T,
   methodName: M,
-  ...payload: Parameters<T["read"][M]>
+  ...payload: Parameters<T['read'][M]>
 ) => {
   try {
     const method = contract.read[methodName];

@@ -1,6 +1,6 @@
-import { getContract, createPublicClient, http } from "viem";
-import { lidoLocator } from "abi";
-import { getChain, getLocatorAddress, getRpcUrl } from "@configs";
+import { getContract, createPublicClient, http } from 'viem';
+import { lidoLocator } from 'abi/index.js';
+import { getChain, getLocatorAddress, getRpcUrl } from 'configs';
 
 export const getLocatorContract = () => {
   const rpcUrl = getRpcUrl();

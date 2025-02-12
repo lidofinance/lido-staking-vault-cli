@@ -1,4 +1,4 @@
-import { program } from "@command";
+import { program } from 'command';
 
 export const printError = (err: unknown, message: string) => {
   if (err instanceof Error) {

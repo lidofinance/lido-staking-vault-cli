@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "lib": ["DOM", "ES2022"],
-    "target": "ES2021",
-    "moduleResolution": "node",
+    "target": "ES2022",
+    "moduleResolution": "NodeNext",
     "useDefineForClassFields": true, // Not enabled by default in `strict` mode unless we bump `target` to ES2022.
     "noFallthroughCasesInSwitch": true, // Not enabled by default in `strict` mode.
     "noImplicitReturns": true, // Not enabled by default in `strict` mode.
@@ -19,20 +19,20 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@command": ["command"],
-      "@configs": ["configs"],
-      "@contracts": ["contracts"],
-      "@scripts": ["scripts"],
-      "@utils": ["utils"],
-      "@abi": ["abi"],
-      "@providers": ["providers"],
-      "@features": ["features"],
-      "@types": ["types"]
+      "command": ["command/index.js"],
+      "configs": ["configs/index.js"],
+      "contracts": ["contracts/index.js"],
+      "scripts": ["scripts/index.js"],
+      "utils": ["utils/index.js"],
+      "abi": ["abi/index.js"],
+      "providers": ["providers/index.js"],
+      "features": ["features/index.js"],
+      "types": ["types/index.js"]
     },
     "outDir": "dist",
     "sourceMap": true,
     "rootDir": ".",
-    "module": "CommonJS"
+    "module": "NodeNext"
   },
   "ts-node": {
     "swc": true,
