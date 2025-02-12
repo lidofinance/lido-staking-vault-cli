@@ -1,6 +1,6 @@
-import { getContract, createPublicClient, http } from "viem";
-import { tokenManagerAbi } from "abi";
-import { getChain, getRpcUrl, getTokenMasterAddress } from "@configs";
+import { getContract, createPublicClient, http } from 'viem';
+import { tokenManagerAbi } from 'abi/index.js';
+import { getChain, getRpcUrl, getTokenMasterAddress } from 'configs';
 
 export const getTokenManagerContract = () => {
   const rpcUrl = getRpcUrl();

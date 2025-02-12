@@ -1,11 +1,11 @@
-import { getContract, createPublicClient, http } from "viem";
-import { votingAbi } from "abi";
-import { getChain, getRpcUrl, getVotingAddress } from "@configs";
+import { getContract, createPublicClient, http } from 'viem';
+import { votingAbi } from 'abi/index.js';
+import { getChain, getRpcUrl, getVotingAddress } from 'configs';
 
 export const getVotingContract = () => {
   const rpcUrl = getRpcUrl();
   const address = getVotingAddress();
-  const client =  createPublicClient({
+  const client = createPublicClient({
     chain: getChain(),
     transport: http(rpcUrl),
   });

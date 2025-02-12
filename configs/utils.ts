@@ -1,5 +1,5 @@
-import { Address } from "viem";
-import { getConfig, getDeployed } from "@configs";
+import { Address } from 'viem';
+import { getConfig, getDeployed } from 'configs';
 
 export const getLocatorAddress = (): Address => {
   const config = getConfig();

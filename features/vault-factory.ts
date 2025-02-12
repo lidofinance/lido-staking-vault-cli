@@ -1,24 +1,21 @@
-import { waitForTransactionReceipt } from "viem/actions";
-import { parseEventLogs } from "viem";
-import { getChain } from "@configs";
-import { getAccount } from "@providers";
-import { VaultWithDelegation } from "@types";
-import { getVaultFactoryContract } from "@contracts";
-import { VaultFactoryAbi } from "abi";
+import { waitForTransactionReceipt } from 'viem/actions';
+import { parseEventLogs } from 'viem';
+import { getChain } from 'configs';
+import { getAccount } from 'providers';
+import { VaultWithDelegation } from 'types';
+import { getVaultFactoryContract } from 'contracts';
+import { VaultFactoryAbi } from 'abi/index.js';
 
 export const createVault = async (payload: VaultWithDelegation) => {
   const { contract, client } = getVaultFactoryContract();
   const chain = getChain();
 
   const tx = await contract.write.createVaultWithDelegation(
-    [
-      { ...payload },
-      '0x'
-    ],
+    [{ ...payload }, '0x'],
     {
       account: getAccount(),
       chain,
-    }
+    },
   );
 
   const receipt = await waitForTransactionReceipt(client, { hash: tx });
@@ -27,7 +24,7 @@ export const createVault = async (payload: VaultWithDelegation) => {
     logs: receipt.logs,
   });
 
-  const vaultEvent = events.find(event => event.eventName === 'VaultCreated');
+  const vaultEvent = events.find((event) => event.eventName === 'VaultCreated');
   const vault = vaultEvent?.args.vault;
   const delegation = vaultEvent?.args.owner;
 
@@ -37,5 +34,4 @@ export const createVault = async (payload: VaultWithDelegation) => {
     tx,
     blockNumber: receipt.blockNumber,
   };
-}
-
+};

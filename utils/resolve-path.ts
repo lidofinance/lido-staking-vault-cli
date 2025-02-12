@@ -1,10 +1,10 @@
-import { isAbsolute, join, resolve } from "path";
-import { homedir } from "os";
+import path from 'path';
+import { homedir } from 'os';
 
-export function resolvePath(path: string) {
-  return path.startsWith('~')
-    ? join(homedir(), path.slice(1))
-    : isAbsolute(path)
-      ? path
-      : resolve(path);
-}
+export const resolvePath = (pathString: string) => {
+  return pathString.startsWith('~')
+    ? path.join(homedir(), pathString.slice(1))
+    : path.isAbsolute(pathString)
+      ? pathString
+      : path.resolve(pathString);
+};

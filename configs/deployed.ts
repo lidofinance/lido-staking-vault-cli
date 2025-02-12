@@ -1,35 +1,43 @@
-import { lstatSync } from "fs";
-import { resolve } from "path";
-import { zeroAddress, Address, Chain } from "viem";
-import { getValueByPath, resolvePath, validateConfig } from "@utils";
-import { JSONConfig } from "@types";
-import { envs } from "./envs";
-import { SUPPORTED_CHAINS_LIST } from "./constants";
-import * as process from "node:process";
+import { lstatSync, readFileSync } from 'fs';
+import path from 'path';
+import { zeroAddress, Address, Chain } from 'viem';
+import { getValueByPath, resolvePath, validateConfig } from 'utils';
+import { JSONConfig } from 'types';
+import { envs } from './envs.js';
+import { SUPPORTED_CHAINS_LIST } from './constants.js';
+import * as process from 'node:process';
 
 export const importDeployFile = () => {
-  const fullPath = resolve("configs", envs?.DEPLOYED ?? "");
+  const fullPath = path.resolve('configs', envs?.DEPLOYED ?? '');
   if (!fullPath) {
-    throw new Error("Deployed contracts file is not set, check .env file");
+    throw new Error('Deployed contracts file is not set, check .env file');
   }
 
   let json: Record<string, number | string | Chain | any> = {};
 
   if (lstatSync(fullPath).isFile()) {
-    json = structuredClone(require(fullPath));
+    const fileContent = readFileSync(fullPath, 'utf-8');
+    const config = JSON.parse(fileContent);
+    json = structuredClone(config);
   }
 
   return json;
 };
 
 export const importConfigFile = (pathToConfig?: string) => {
-  const path = pathToConfig ?? envs?.CONFIG as string;
+  const path = pathToConfig ?? (envs?.CONFIG as string);
   const fullPath = resolvePath(path);
 
   let json = {} as JSONConfig;
 
   if (lstatSync(fullPath).isFile()) {
-    json = structuredClone(require(fullPath));
+    try {
+      const fileContent = readFileSync(fullPath, 'utf-8');
+      const config = JSON.parse(fileContent);
+      json = structuredClone(config);
+    } catch (error) {
+      console.info(error);
+    }
   }
 
   return json;
@@ -41,7 +49,9 @@ export const getConfig = (() => {
   const errors = validateConfig(configJSON as unknown as JSONConfig);
   const errorKeys = Object.keys(errors);
   if (errorKeys.length > 0) {
-    errorKeys.forEach((key) => console.error(`${errors[key as keyof JSONConfig]}`));
+    errorKeys.forEach((key) =>
+      console.error(`${errors[key as keyof JSONConfig]}`),
+    );
     process.exit(1);
   }
 
@@ -72,9 +82,9 @@ export const getChainId = (() => {
 
 export const getChain = (): Chain => {
   const id = getChainId();
-  const chain = SUPPORTED_CHAINS_LIST.find(chain => chain.id === id);
-  return chain ?? SUPPORTED_CHAINS_LIST[0] as Chain;
-}
+  const chain = SUPPORTED_CHAINS_LIST.find((chain) => chain.id === id);
+  return chain ?? (SUPPORTED_CHAINS_LIST[0] as Chain);
+};
 
 export const getRpcUrl = (() => {
   let rpcUrls: string;
@@ -96,7 +106,7 @@ export const getContracts = () => {
 
   if (config) {
     const { lidoLocator, accounting } = config;
-    return { ...deployedJSON, lidoLocator, accounting }
+    return { ...deployedJSON, lidoLocator, accounting };
   }
 
   return { ...deployedJSON };
@@ -108,24 +118,29 @@ export const getContractDeploy = (path: string) => {
 
 export const getDeployedAddress = (...contractKeys: string[]) => {
   const contracts = contractKeys.map((contractKey) =>
-    getContractDeploy(contractKey)
+    getContractDeploy(contractKey),
   );
 
   const contract = contracts.find((contract) => contract);
 
-  if (typeof contract === "string") {
+  if (typeof contract === 'string') {
     return contract as Address;
   }
 
-  if (!contract || typeof contract !== "object") {
+  if (!contract || typeof contract !== 'object') {
     throw new Error(`Contracts by ${contractKeys} not found`);
   }
 
-  if ("proxy" in contract && typeof contract.proxy === 'object' && "address" in contract.proxy!) {
+  if (
+    'proxy' in contract &&
+    typeof contract.proxy === 'object' &&
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    'address' in contract.proxy!
+  ) {
     return contract.proxy.address as Address;
   }
 
-  if ("address" in contract) {
+  if ('address' in contract) {
     return contract.address as Address;
   }
 
@@ -143,27 +158,29 @@ export const getOptionalDeployedAddress = (...contractKeys: string[]) => {
 export const getAddressMap = () => {
   const contracts = getContracts();
 
-  return Object.entries(contracts).reduce((acc, [key, value]) => {
-    const name = value?.contract || key;
-    const proxy =
-      value?.proxy || (value?.implementation && value?.address);
-    const implementation = value?.implementation.address;
-    const isNotProxy = !implementation && !proxy;
+  return Object.entries(contracts).reduce(
+    (acc, [key, value]) => {
+      const name = value?.contract || key;
+      const proxy = value?.proxy || (value?.implementation && value?.address);
+      const implementation = value?.implementation.address;
+      const isNotProxy = !implementation && !proxy;
 
-    if (proxy) {
-      acc[proxy.toLowerCase()] = `Proxy (${name})`;
-    }
+      if (proxy) {
+        acc[proxy.toLowerCase()] = `Proxy (${name})`;
+      }
 
-    if (implementation) {
-      acc[implementation.toLowerCase()] = `Implementation (${name})`;
-    }
+      if (implementation) {
+        acc[implementation.toLowerCase()] = `Implementation (${name})`;
+      }
 
-    if (isNotProxy && value?.address) {
-      acc[value?.address.toLowerCase()] = name;
-    }
+      if (isNotProxy && value?.address) {
+        acc[value?.address.toLowerCase()] = name;
+      }
 
-    return acc;
-  }, {} as Record<string, string>);
+      return acc;
+    },
+    {} as Record<string, string>,
+  );
 };
 
 let addressMapCache: Record<string, string> | undefined;

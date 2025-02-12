@@ -1,45 +1,45 @@
-import progress, { SingleBar } from "cli-progress";
+import progress, { SingleBar } from 'cli-progress';
 
-import { getVotingContract } from "@contracts";
-import { getAccount } from "@providers";
-import { getChain } from "@configs";
-import { sleep } from "@utils";
-import { Vote } from "@types";
+import { getVotingContract } from 'contracts';
+import { getAccount } from 'providers';
+import { getChain } from 'configs';
+import { sleep } from 'utils';
+import { Vote } from 'types';
 
 const voteAbi = [
   {
-    name: "open",
+    name: 'open',
   },
   {
-    name: "executed",
+    name: 'executed',
   },
   {
-    name: "startDate",
+    name: 'startDate',
   },
   {
-    name: "snapshotBlock",
+    name: 'snapshotBlock',
   },
   {
-    name: "supportRequired",
+    name: 'supportRequired',
   },
   {
-    name: "minAcceptQuorum",
+    name: 'minAcceptQuorum',
   },
   {
-    name: "yea",
+    name: 'yea',
   },
   {
-    name: "nay",
+    name: 'nay',
   },
   {
-    name: "votingPower",
+    name: 'votingPower',
   },
   {
-    name: "script",
+    name: 'script',
   },
   {
-    name: "phase",
-  }
+    name: 'phase',
+  },
 ];
 
 export const voteLastVoting = async () => {
@@ -54,10 +54,10 @@ export const voteLastVoting = async () => {
 
   const lastVote = await contract.read.getVote([lastVoteId]);
   const voteMap = createVoteMap(lastVote);
-  console.log('voteLastVoting')
-  console.log('voteMap', voteMap)
+  console.info('voteLastVoting');
+  console.info('voteMap', voteMap);
 
-  if (voteMap.open == false) {
+  if (!voteMap.open) {
     console.warn('Vote is not open');
     return;
   }
@@ -75,14 +75,20 @@ export const voteLastVoting = async () => {
 export const voteFor = async (voteId: bigint) => {
   const { contract } = getVotingContract();
 
-  await contract.write.vote([voteId, true, false], { account: getAccount(), chain: getChain() });
-  console.log('Vote voted');
+  await contract.write.vote([voteId, true, false], {
+    account: getAccount(),
+    chain: getChain(),
+  });
+  console.info('Vote voted');
 };
 
 export const executeVote = async (voteId: bigint) => {
   const { contract } = getVotingContract();
-  await contract.write.executeVote([voteId], { account: getAccount(), chain: getChain() });
-  console.log('Vote executed');
+  await contract.write.executeVote([voteId], {
+    account: getAccount(),
+    chain: getChain(),
+  });
+  console.info('Vote executed');
 };
 
 export const waitForEnd = async (voteId: bigint, progressBar?: SingleBar) => {
@@ -113,7 +119,9 @@ export const waitForEnd = async (voteId: bigint, progressBar?: SingleBar) => {
     progressBar.update(currentPosition, { secondsLeft });
   } else {
     progressBar = new progress.SingleBar(
-      { format: `Vote #${voteId} in progress |{bar}| {percentage}% | {secondsLeft}s left` },
+      {
+        format: `Vote #${voteId} in progress |{bar}| {percentage}% | {secondsLeft}s left`,
+      },
       progress.Presets.shades_classic,
     );
 
@@ -125,14 +133,17 @@ export const waitForEnd = async (voteId: bigint, progressBar?: SingleBar) => {
 };
 
 export const createVoteMap = (vote: Vote) => {
-  return vote.reduce((acc, item, index) => {
-    if (voteAbi[index]) {
-      acc[voteAbi[index].name] = item;
-    }
+  return vote.reduce(
+    (acc, item, index) => {
+      if (voteAbi[index]) {
+        acc[voteAbi[index].name] = item;
+      }
 
-    return acc;
-  }, {} as Record<string, any>);
-}
+      return acc;
+    },
+    {} as Record<string, any>,
+  );
+};
 
 // export const checkTmCanForward = async () => {
 //   const vContract = getVotingContract();

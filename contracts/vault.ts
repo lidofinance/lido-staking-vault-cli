@@ -1,6 +1,6 @@
-import { getContract, createPublicClient, http, Address } from "viem";
-import { StakingVaultAbi } from "abi";
-import { getChain, getRpcUrl } from "@configs";
+import { getContract, createPublicClient, http, Address } from 'viem';
+import { StakingVaultAbi } from 'abi/index.js';
+import { getChain, getRpcUrl } from 'configs';
 
 export const getStakingVaultContract = (address: Address) => {
   return getContract({

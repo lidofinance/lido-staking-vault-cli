@@ -17,3 +17,7 @@ tsconfig.tsbuildinfo
 # production
 /build
 /dist
+
+#ide
+.vscode
+.idea

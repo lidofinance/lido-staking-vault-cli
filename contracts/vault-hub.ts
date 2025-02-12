@@ -1,7 +1,7 @@
-import { getContract, createPublicClient, http } from "viem";
-import { VaultHubAbi } from "abi";
-import { getChain, getRpcUrl } from "@configs";
-import { getLocatorContract } from "@contracts";
+import { getContract, createPublicClient, http } from 'viem';
+import { VaultHubAbi } from 'abi/index.js';
+import { getChain, getRpcUrl } from 'configs';
+import { getLocatorContract } from 'contracts';
 
 export const getVaultHubContract = async () => {
   const rpcUrl = getRpcUrl();

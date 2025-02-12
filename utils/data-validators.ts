@@ -1,6 +1,6 @@
-import { isAddress } from "viem";
+import { isAddress } from 'viem';
 
-import { JSONConfig } from "@types";
+import { JSONConfig } from 'types';
 
 export const validateConfig = (config: JSONConfig) => {
   const errors = {} as Record<keyof JSONConfig, string>;
@@ -17,8 +17,12 @@ export const validateConfig = (config: JSONConfig) => {
     errors.chainId = 'Invalid chainId: must be a string representing a number.';
   }
 
-  if (typeof config.lidoLocator !== 'string' || !isAddress(config.lidoLocator)) {
-    errors.lidoLocator = 'Invalid lidoLocator: must be a valid Ethereum address.';
+  if (
+    typeof config.lidoLocator !== 'string' ||
+    !isAddress(config.lidoLocator)
+  ) {
+    errors.lidoLocator =
+      'Invalid lidoLocator: must be a valid Ethereum address.';
   }
 
   if (typeof config.accounting !== 'string' || !isAddress(config.accounting)) {
@@ -26,7 +30,7 @@ export const validateConfig = (config: JSONConfig) => {
   }
 
   return errors;
-}
+};
 
 export const isValidUrl = (value: string | undefined): boolean => {
   if (!value) {
@@ -44,14 +48,15 @@ export const isValidUrl = (value: string | undefined): boolean => {
   } catch {
     return false;
   }
-}
+};
 
 export const validateAddressMap = (payload: Record<any, any>) => {
   return Object.keys(payload).reduce((acc, key) => {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     if (!isAddress(payload[key]!)) {
       acc.push(`${key} is not a valid address`);
     }
 
     return acc;
   }, [] as string[]);
-}
+};

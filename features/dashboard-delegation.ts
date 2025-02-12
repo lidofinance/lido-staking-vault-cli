@@ -1,8 +1,8 @@
-import { printError } from "@utils";
-import { DashboardContract, DelegationContract } from "@contracts";
+import { printError } from 'utils';
+import { DashboardContract, DelegationContract } from 'contracts';
 
 export const getBaseInfo = async (
-  contract: DashboardContract | DelegationContract
+  contract: DashboardContract | DelegationContract,
 ) => {
   try {
     const steth = await contract.read.STETH();
@@ -21,6 +21,6 @@ export const getBaseInfo = async (
 
     console.table(Object.entries(payload));
   } catch (err) {
-    printError(err, "Error when getting base info");
+    printError(err, 'Error when getting base info');
   }
 };
