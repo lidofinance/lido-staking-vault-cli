@@ -1,10 +1,9 @@
 {
   "env": {
-    "browser": true,
     "es2021": true,
     "node": true
   },
-  "extends": ["plugin:jsx-a11y/recommended", "@lidofinance", "prettier"],
+  "extends": ["@lidofinance", "prettier"],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "sourceType": "module",
@@ -16,11 +15,11 @@
     "deprecation/deprecation": "warn",
     "@typescript-eslint/require-await": "off",
     "@typescript-eslint/no-shadow": "off",
-    "jsx-a11y/no-autofocus": "off",
-    "jsx-a11y/anchor-is-valid": "off",
-    "@next/next/no-img-element": "off",
     "eslint-plugin-unicorn": "off",
-    "no-console": ["warn", { "allow": ["warn", "error", "info", "debug", "table"] }],
+    "no-console": [
+      "warn",
+      { "allow": ["warn", "error", "info", "debug", "table"] }
+    ],
     "@typescript-eslint/no-unused-vars": [
       "warn",
       {
@@ -66,7 +65,7 @@
     "import/resolver": {
       "typescript": {},
       "node": {
-        "extensions": [".js", ".jsx", ".ts", ".tsx"]
+        "extensions": [".js", ".ts"]
       }
     }
   }
