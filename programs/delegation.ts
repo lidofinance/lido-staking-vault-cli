@@ -296,7 +296,7 @@ delegation
   .command('fund')
   .description('funds the StakingVault with ether')
   .argument('<address>', 'delegation contract address')
-  .argument('<ether>', 'ether to fund')
+  .argument('<wei>', 'ether to fund (in WEI)')
   .action(async (address: Address, ether: string) => {
     const contract = getDelegationContract(address);
 
@@ -308,7 +308,7 @@ delegation
   .description('withdraws ether from the StakingVault')
   .argument('<address>', 'delegation contract address')
   .argument('<recipient>', 'address to which the ether will be sent')
-  .argument('<ether>', 'ether to found')
+  .argument('<wei>', 'ether to found (in WEI)')
   .action(async (address: Address, recipient: Address, ether: string) => {
     const contract = getDelegationContract(address);
     await callWriteMethod(contract, 'withdraw', [recipient, BigInt(ether)]);

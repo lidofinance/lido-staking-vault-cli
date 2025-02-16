@@ -1,28 +1,12 @@
 import { program } from 'command';
 import { getStakingVaultContract } from 'contracts';
 import { getAccount } from 'providers';
-import { Address, parseEther } from 'viem';
+import { Address } from 'viem';
 import { getChain } from 'configs';
+import { isContractAddress } from '../utils/index.js';
 
 const vault = program.command('vault').description('vault contract');
 
-// Views
-// info - get vault base info
-// l-report - get latest vault report
-// valuation - get vault valuation
-// unlocked - get vault unlocked
-// locked - get vault locked
-// is-balanced - vault isBalanced
-// withdrawal-c - get vault withdrawal credentials
-// fund - fund vault
-// withdraw - withdraw from vault
-// no-deposit-beacon -deposit to beacon chain
-// no-val-exit - request to exit validator
-// delta - inOutDelta
-
-// ? - change user permissions / roles by quorum of a pair of addresses
-
-// Works
 vault
   .command('info')
   .description('get vault base info')
@@ -32,24 +16,28 @@ vault
 
     try {
       const withdrawalCredentials = await contract.read.withdrawalCredentials();
-      const latestReport = await contract.read.latestReport();
       const inOutDelta = await contract.read.inOutDelta();
+      const valuation = await contract.read.valuation();
       const version = await contract.read.version();
       const initializedVersion = await contract.read.getInitializedVersion();
       const depositContract = await contract.read.depositContract();
       const nodeOperator = await contract.read.nodeOperator();
+      const owner = await contract.read.owner();
       const isBalanced = await contract.read.isBalanced();
+      const isOwnerContract = await isContractAddress(owner);
 
       const payload = {
         vault: address,
         withdrawalCredentials,
-        latestReport,
         inOutDelta,
+        valuation,
+        isBalanced,
         version,
         initializedVersion,
         depositContract,
         nodeOperator,
-        isBalanced,
+        owner,
+        isOwnerContract,
       };
 
       console.table(payload);
@@ -193,7 +181,7 @@ vault
   .command('fund')
   .description('fund vault')
   .argument('<address>', 'vault address')
-  .argument('<amount>', 'amount to fund')
+  .argument('<wei>', 'amount to fund (in WEI)')
   .action(async (address: Address, amount: string) => {
     const contract = getStakingVaultContract(address);
 
@@ -201,7 +189,7 @@ vault
       const tx = await contract.write.fund({
         account: getAccount(),
         chain: getChain(),
-        value: parseEther(amount),
+        value: BigInt(amount),
       });
 
       console.table({ Transaction: tx });
@@ -218,11 +206,11 @@ vault
   .description('withdraw from vault')
   .argument('<address>', 'vault address')
   .argument('<recipient>', 'recipient address')
-  .argument('<amount>', 'amount to withdraw')
+  .argument('<wei>', 'amount to withdraw (in WEI)')
   .action(async (address: Address, recipient: Address, amount: string) => {
     const contract = getStakingVaultContract(address);
 
-    const tx = await contract.write.withdraw([recipient, parseEther(amount)], {
+    const tx = await contract.write.withdraw([recipient, BigInt(amount)], {
       account: getAccount(),
       chain: getChain(),
     });

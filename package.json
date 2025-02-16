@@ -15,7 +15,8 @@
     "types": "echo 'No types yet'",
     "lint": "eslint . --ext .ts --max-warnings 0",
     "test": "echo 'No tests yet'",
-    "prepare": "git config core.hooksPath .git-hooks || echo 'Not in a git repo'"
+    "prepare": "git config core.hooksPath .git-hooks || echo 'Not in a git repo'",
+    "prepublishOnly": "node scripts/updateVersion.js"
   },
   "homepage": "https://github.com/lidofinance/liquid-staking-vault-cli/",
   "repository": {
@@ -38,16 +39,18 @@
     "cli-progress": "^3.12.0",
     "commander": "^12.1.0",
     "dotenv": "^16.4.5",
+    "fs-extra": "^11.3.0",
     "viem": "^2.21.37"
   },
   "devDependencies": {
+    "@chainsafe/persistent-merkle-tree": "^1.0.1",
     "@commitlint/cli": "^17.4.4",
     "@commitlint/config-conventional": "^17.4.4",
     "@commitlint/prompt": "^17.4.4",
-    "@chainsafe/persistent-merkle-tree": "^1.0.1",
     "@lidofinance/eslint-config": "^0.48.0",
     "@swc/core": "^1.7.42",
     "@types/cli-progress": "^3.11.6",
+    "@types/fs-extra": "^11.0.4",
     "@types/node": "^22.10.2",
     "@typescript-eslint/eslint-plugin": "^5",
     "@typescript-eslint/parser": "^5.46.0",

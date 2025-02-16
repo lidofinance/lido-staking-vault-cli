@@ -162,7 +162,7 @@ dashboard
   .command('fund')
   .description('funds the staking vault with ether')
   .argument('<address>', 'dashboard address')
-  .argument('<ether>', 'amount of ether to be funded')
+  .argument('<wei>', 'amount of ether to be funded (in WEI)')
   .action(async (address: Address, ether: string) => {
     const contract = getDashboardContract(address);
 
@@ -185,7 +185,7 @@ dashboard
   .description('withdraws ether from the staking vault to a recipient')
   .argument('<address>', 'dashboard address')
   .argument('<recipient>', 'address of the recipient')
-  .argument('<ether>', 'amount of ether to withdraw')
+  .argument('<wei>', 'amount of ether to withdraw (in WEI)')
   .action(async (address: Address, recipient: Address, ether: string) => {
     const contract = getDashboardContract(address);
 

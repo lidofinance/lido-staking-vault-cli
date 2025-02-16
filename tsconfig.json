@@ -27,7 +27,8 @@
       "abi": ["abi/index.js"],
       "providers": ["providers/index.js"],
       "features": ["features/index.js"],
-      "types": ["types/index.js"]
+      "types": ["types/index.js"],
+      "version": ["version/index.js"]
     },
     "outDir": "dist",
     "sourceMap": true,

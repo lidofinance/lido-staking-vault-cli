@@ -1,21 +1,7 @@
-import { Command } from "commander";
-// import { setAdvancedConfig } from "@features";
-// import { validateConfig } from "@utils";
-// import { importConfigFile } from "@configs";
+import { Command } from 'commander';
 
-export const program = new Command()
+import { version } from 'version/index.js';
 
-// program
-//   .option("-c, --config <config>", "link to config file")
-//   .action(async ({ config }: { config: string }) => {
-//     console.log('++++++++++++++++++++++++++++')
-//     console.log('HERE')
-//     console.log('++++++++++++++++++++++++++++')
-//     const file = importConfigFile(config);
-//     if (validateConfig(file)) {
-//       await setAdvancedConfig(file);
-//     } else {
-//       p.error('Config file not valid', { exitCode: 1 });
-//     }
-//   });
+export const program = new Command();
 
+program.version(version, '-v, --version', 'output the current version');
