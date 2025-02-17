@@ -21,52 +21,6 @@
   resolved "https://registry.yarnpkg.com/@babel/helper-validator-identifier/-/helper-validator-identifier-7.25.9.tgz#24b64e2c3ec7cd3b3c547729b8d16871f22cbdc7"
   integrity sha512-Ed61U6XJc3CVRfkERJWDz4dJwKe7iLmmJsbOGu9wSloNSFttHV0I8g6UAgb7qnK5ly5bGLPd4oXZlxCdANBOWQ==
 
-"@chainsafe/as-sha256@1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@chainsafe/as-sha256/-/as-sha256-1.0.0.tgz#9095ad42dce13887b5877fce70592e573940ecd7"
-  integrity sha512-EYw5IZ99Mhn7K8d1eDDH66AFhPy9GcD7bfiqm9mwFjsg8MViEEicGl62b5YPzufBTFh7X7qWAe6yWpr/gbaVEw==
-
-"@chainsafe/hashtree-darwin-arm64@1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@chainsafe/hashtree-darwin-arm64/-/hashtree-darwin-arm64-1.0.1.tgz#e2c60090c56a1c8dc8bdff329856184ad32e4cd5"
-  integrity sha512-+KmEgQMpO7FDL3klAcpXbQ4DPZvfCe0qSaBBrtT4vLF8V1JGm3sp+j7oibtxtOsLKz7nJMiK1pZExi7vjXu8og==
-
-"@chainsafe/hashtree-linux-arm64-gnu@1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@chainsafe/hashtree-linux-arm64-gnu/-/hashtree-linux-arm64-gnu-1.0.1.tgz#49d2604a6c9106219448af3eaf76f4da6e44daca"
-  integrity sha512-p1hnhGq2aFY+Zhdn1Q6L/6yLYNKjqXfn/Pc8jiM0e3+Lf/hB+yCdqYVu1pto26BrZjugCFZfupHaL4DjUTDttw==
-
-"@chainsafe/hashtree-linux-x64-gnu@1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@chainsafe/hashtree-linux-x64-gnu/-/hashtree-linux-x64-gnu-1.0.1.tgz#31c5a2bb196b78f04f2bf4bfb5c1bf1f3331f071"
-  integrity sha512-uCIGuUWuWV0LiB4KLMy6JFa7Jp6NmPl3hKF5BYWu8TzUBe7vSXMZfqTzGxXPggFYN2/0KymfRdG9iDCOJfGRqg==
-
-"@chainsafe/hashtree@1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@chainsafe/hashtree/-/hashtree-1.0.1.tgz#587666a261e1da6a37904095ce875fddc53c7c89"
-  integrity sha512-bleu9FjqBeR/l6W1u2Lz+HsS0b0LLJX2eUt3hOPBN7VqOhidx8wzkVh2S7YurS+iTQtfdK4K5QU9tcTGNrGwDg==
-  optionalDependencies:
-    "@chainsafe/hashtree-darwin-arm64" "1.0.1"
-    "@chainsafe/hashtree-linux-arm64-gnu" "1.0.1"
-    "@chainsafe/hashtree-linux-x64-gnu" "1.0.1"
-
-"@chainsafe/persistent-merkle-tree@1.0.1", "@chainsafe/persistent-merkle-tree@^1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@chainsafe/persistent-merkle-tree/-/persistent-merkle-tree-1.0.1.tgz#4eb5a8e3367bc3957c88c8b9bad9610209e00fed"
-  integrity sha512-aQtYdXHmWRowcQK0h91HfHMO3bezQLk9wjQXv2CCcTbTim31BnCbPVpNbvAUWvEbifLQYvM18moygvEtdUNhXg==
-  dependencies:
-    "@chainsafe/as-sha256" "1.0.0"
-    "@chainsafe/hashtree" "1.0.1"
-    "@noble/hashes" "^1.3.0"
-
-"@chainsafe/ssz@^1.0.1", "@chainsafe/ssz@^1.0.2":
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/@chainsafe/ssz/-/ssz-1.0.2.tgz#af09775ac1f14c19a75bfd45279f71dce67545a1"
-  integrity sha512-T/hiLYRJoM0NkTgTc6XLIL5Nobc/poNqFnJ/8GlvG08czCcri5l8H5DF/6RKdL+1a++LRZCdtHElMaFryszkww==
-  dependencies:
-    "@chainsafe/as-sha256" "1.0.0"
-    "@chainsafe/persistent-merkle-tree" "1.0.1"
-
 "@colors/colors@1.5.0":
   version "1.5.0"
   resolved "https://registry.npmjs.org/@colors/colors/-/colors-1.5.0.tgz"
@@ -351,27 +305,6 @@
   dependencies:
     typescript "^4.7"
 
-"@lodestar/params@^1.26.0":
-  version "1.26.0"
-  resolved "https://registry.yarnpkg.com/@lodestar/params/-/params-1.26.0.tgz#bfa7b391a5b09747ad3aa7558d2fb0df70da541f"
-  integrity sha512-yaDjhgkCgzac628jM5AC8UYHjCVkZe/ZVh6uLSVHZyIzgDSuSauzFLMP7TGaMoNB/LgM442yr/9yksubBbjElA==
-
-"@lodestar/types@^1.26.0":
-  version "1.26.0"
-  resolved "https://registry.yarnpkg.com/@lodestar/types/-/types-1.26.0.tgz#191bb381d7d675d6b46bea93a33e703055544894"
-  integrity sha512-1MktBIUdUWWcTFt/21pYH363jEE6cNTwqptSH4FWzmg3tGDLoQRqc6K8pNAO01CZoxMMLlaix/hEyLOmOITBEQ==
-  dependencies:
-    "@chainsafe/ssz" "^1.0.1"
-    "@lodestar/params" "^1.26.0"
-    ethereum-cryptography "^2.0.0"
-
-"@noble/curves@1.4.2", "@noble/curves@~1.4.0":
-  version "1.4.2"
-  resolved "https://registry.yarnpkg.com/@noble/curves/-/curves-1.4.2.tgz#40309198c76ed71bc6dbf7ba24e81ceb4d0d1fe9"
-  integrity sha512-TavHr8qycMChk8UwMld0ZDRvatedkzWfH8IiaeGCfymOP5i0hSCozz9vHOL0nkwk7HRMlFnAiKpS2jrUmSybcw==
-  dependencies:
-    "@noble/hashes" "1.4.0"
-
 "@noble/curves@1.6.0", "@noble/curves@^1.4.0", "@noble/curves@~1.6.0":
   version "1.6.0"
   resolved "https://registry.npmjs.org/@noble/curves/-/curves-1.6.0.tgz"
@@ -379,20 +312,10 @@
   dependencies:
     "@noble/hashes" "1.5.0"
 
-"@noble/hashes@1.4.0", "@noble/hashes@~1.4.0":
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/@noble/hashes/-/hashes-1.4.0.tgz#45814aa329f30e4fe0ba49426f49dfccdd066426"
-  integrity sha512-V1JJ1WTRUqHHrOSh597hURcMqVKVGL/ea3kv0gSnEdsEZ0/+VyPghM1lMNGc00z7CIQorSvbKpuJkxvuHbvdbg==
-
 "@noble/hashes@1.5.0", "@noble/hashes@^1.4.0", "@noble/hashes@~1.5.0":
   version "1.5.0"
   resolved "https://registry.npmjs.org/@noble/hashes/-/hashes-1.5.0.tgz"
   integrity sha512-1j6kQFb7QRru7eKN3ZDvRcP13rugwdxZqCjbiAVZfIJwgj2A65UmT4TgARXGlXgnRkORLTDTrO19ZErt7+QXgA==
-
-"@noble/hashes@^1.3.0":
-  version "1.7.1"
-  resolved "https://registry.yarnpkg.com/@noble/hashes/-/hashes-1.7.1.tgz#5738f6d765710921e7a751e00c20ae091ed8db0f"
-  integrity sha512-B8XBPsn4vT/KJAGqDzbwztd+6Yte3P4V7iafm24bxgDe/mlRuK6xmWPuCNrKt2vDafZ8MfJLlchDG/vYafQEjQ==
 
 "@nodelib/fs.scandir@2.1.5":
   version "2.1.5"
@@ -741,19 +664,10 @@
   resolved "https://registry.yarnpkg.com/@rtsao/scc/-/scc-1.1.0.tgz#927dd2fae9bc3361403ac2c7a00c32ddce9ad7e8"
   integrity sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g==
 
-"@scure/base@~1.1.6", "@scure/base@~1.1.7", "@scure/base@~1.1.8":
+"@scure/base@~1.1.7", "@scure/base@~1.1.8":
   version "1.1.9"
   resolved "https://registry.npmjs.org/@scure/base/-/base-1.1.9.tgz"
   integrity sha512-8YKhl8GHiNI/pU2VMaofa2Tor7PJRAjwQLBBuilkJ9L5+13yVbC7JO/wS7piioAvPSwR3JKM1IJ/u4xQzbcXKg==
-
-"@scure/bip32@1.4.0":
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/@scure/bip32/-/bip32-1.4.0.tgz#4e1f1e196abedcef395b33b9674a042524e20d67"
-  integrity sha512-sVUpc0Vq3tXCkDGYVWGIZTRfnvu8LoTDaev7vbwh0omSvVORONr960MQWdKqJDCReIEmTj3PAr73O3aoxz7OPg==
-  dependencies:
-    "@noble/curves" "~1.4.0"
-    "@noble/hashes" "~1.4.0"
-    "@scure/base" "~1.1.6"
 
 "@scure/bip32@1.5.0":
   version "1.5.0"
@@ -763,14 +677,6 @@
     "@noble/curves" "~1.6.0"
     "@noble/hashes" "~1.5.0"
     "@scure/base" "~1.1.7"
-
-"@scure/bip39@1.3.0":
-  version "1.3.0"
-  resolved "https://registry.yarnpkg.com/@scure/bip39/-/bip39-1.3.0.tgz#0f258c16823ddd00739461ac31398b4e7d6a18c3"
-  integrity sha512-disdg7gHuTDZtY+ZdkmLpPCk7fxZSu3gBiEGuoC1XYxv9cGx3Z6cpTggCgW6odSOOIXCiDjuGejW+aJKCY/pIQ==
-  dependencies:
-    "@noble/hashes" "~1.4.0"
-    "@scure/base" "~1.1.6"
 
 "@scure/bip39@1.4.0":
   version "1.4.0"
@@ -2674,16 +2580,6 @@ esutils@^2.0.2:
   version "2.0.3"
   resolved "https://registry.yarnpkg.com/esutils/-/esutils-2.0.3.tgz#74d2eb4de0b8da1293711910d50775b9b710ef64"
   integrity sha512-kVscqXk4OCp68SZ0dkgEKVi6/8ij300KBWTJq32P/dYeWTSwK41WyTxalN1eRmA5Z9UU/LX9D7FWSmV9SAYx6g==
-
-ethereum-cryptography@^2.0.0:
-  version "2.2.1"
-  resolved "https://registry.yarnpkg.com/ethereum-cryptography/-/ethereum-cryptography-2.2.1.tgz#58f2810f8e020aecb97de8c8c76147600b0b8ccf"
-  integrity sha512-r/W8lkHSiTLxUxW8Rf3u4HGB0xQweG2RyETjywylKZSzLWoWAijRz8WCuOtJ6wah+avllXBqZuk29HCCvhEIRg==
-  dependencies:
-    "@noble/curves" "1.4.2"
-    "@noble/hashes" "1.4.0"
-    "@scure/bip32" "1.4.0"
-    "@scure/bip39" "1.3.0"
 
 eventemitter3@^5.0.1:
   version "5.0.1"
