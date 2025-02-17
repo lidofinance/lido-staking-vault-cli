@@ -16,7 +16,7 @@
     "lint": "eslint . --ext .ts --max-warnings 0",
     "test": "echo 'No tests yet'",
     "prepare": "git config core.hooksPath .git-hooks || echo 'Not in a git repo'",
-    "prepublishOnly": "node scripts/updateVersion.js"
+    "prepublishOnly": "node scripts/updateVersion.cjs"
   },
   "homepage": "https://github.com/lidofinance/liquid-staking-vault-cli/",
   "repository": {
