@@ -1,9 +1,10 @@
-import { program } from 'command';
-import { getStakingVaultContract } from 'contracts';
-import { getAccount } from 'providers';
 import { Address } from 'viem';
+import { program } from 'command';
+
+import { getStakingVaultContract } from 'contracts';
+import { getAccount, getPublicClient } from 'providers';
 import { getChain } from 'configs';
-import { isContractAddress } from '../utils/index.js';
+import { isContractAddress } from 'utils/index.js';
 
 const vault = program.command('vault').description('vault contract');
 
@@ -13,10 +14,12 @@ vault
   .argument('<address>', 'vault address')
   .action(async (address: Address) => {
     const contract = getStakingVaultContract(address);
+    const publicClient = getPublicClient();
 
     try {
       const withdrawalCredentials = await contract.read.withdrawalCredentials();
       const inOutDelta = await contract.read.inOutDelta();
+      const balance = await publicClient.getBalance({ address });
       const valuation = await contract.read.valuation();
       const version = await contract.read.version();
       const initializedVersion = await contract.read.getInitializedVersion();
@@ -30,6 +33,7 @@ vault
         vault: address,
         withdrawalCredentials,
         inOutDelta,
+        balance,
         valuation,
         isBalanced,
         version,
