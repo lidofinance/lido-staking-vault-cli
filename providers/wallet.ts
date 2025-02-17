@@ -23,13 +23,9 @@ export const getPublicClient = () => {
 
 export const getWalletWithAccount = () => {
   const account = getAccount();
-  const walletClient = createWalletClient({
+  return createWalletClient({
     account,
     chain: getChain(),
     transport: http(getRpcUrl()),
   });
-
-  const publicClient = getPublicClient();
-
-  return { walletClient, publicClient, account };
 };

@@ -1,6 +1,7 @@
 import { printError } from 'utils';
-import { getAccount } from 'providers';
+import { getAccount, getPublicClient } from 'providers';
 import { getChain } from 'configs';
+import { Address } from 'viem';
 
 type Writeable<T> = { -readonly [P in keyof T]: T[P] };
 
@@ -51,4 +52,13 @@ export const callReadMethod = async <
   } catch (err) {
     printError(err, `Error when calling read method ${methodName}`);
   }
+};
+
+export const isContractAddress = async (address: Address) => {
+  const publicClient = getPublicClient();
+  const bytecode = await publicClient.getCode({
+    address: address,
+  });
+
+  return bytecode !== undefined;
 };
