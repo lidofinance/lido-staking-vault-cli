@@ -1,6 +1,6 @@
-# Liquid Staking Vault CLI
+# Lido Staking Vault CLI
 
-A command-line interface (CLI) tool for managing liquid staking vaults. Simplify your staking operations with intuitive commands and streamlined workflows.
+A command-line interface (CLI) tool for managing lido staking vaults. Simplify your staking operations with intuitive commands and streamlined workflows.
 
 ## Table of Contents
 
@@ -26,7 +26,7 @@ A command-line interface (CLI) tool for managing liquid staking vaults. Simplify
 
 ## Installation
 
-Install the Liquid Staking Vault CLI globally using npm:
+Install the Lido Staking Vault CLI globally using npm:
 
 ```bash
 npm install -g @lidofinance/lsv-cli
