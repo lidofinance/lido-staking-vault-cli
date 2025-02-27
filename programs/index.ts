@@ -5,3 +5,4 @@ export * from './dashboard.js';
 export * from './delegation.js';
 export * from './voting.js';
 export * from './account.js';
+export * from './predeposit-guarantee.js';

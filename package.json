@@ -33,6 +33,9 @@
     "provenance": true
   },
   "dependencies": {
+    "@chainsafe/persistent-merkle-tree": "^1.0.1",
+    "@chainsafe/ssz": "^1.0.2",
+    "@lodestar/types": "^1.27.1",
     "cli-progress": "^3.12.0",
     "commander": "^12.1.0",
     "dotenv": "^16.4.5",

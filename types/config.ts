@@ -1,4 +1,4 @@
-import { Address } from "viem";
+import { Address } from 'viem';
 
 export interface JSONConfig {
   rpcLink: string | undefined;
@@ -8,6 +8,19 @@ export interface JSONConfig {
   accounting: Address | undefined;
   tokenManager: Address | undefined;
   voting: Address | undefined;
+  clLink: string | undefined;
 }
 
-export type Vote = readonly [boolean, boolean, bigint, bigint, bigint, bigint, bigint, bigint, bigint, `0x${string}`, number];
+export type Vote = readonly [
+  boolean,
+  boolean,
+  bigint,
+  bigint,
+  bigint,
+  bigint,
+  bigint,
+  bigint,
+  bigint,
+  `0x${string}`,
+  number,
+];
