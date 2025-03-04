@@ -1,7 +1,6 @@
 import { program } from 'command';
-import { getCLProofVerifierContract } from 'contracts';
 
-import { createPDGProof } from 'utils/index.js';
+import { createPDGProof, getFirstValidatorGIndex } from 'utils/index.js';
 
 const predepositGuarantee = program
   .command('pdg')
@@ -9,20 +8,12 @@ const predepositGuarantee = program
 
 predepositGuarantee
   .command('create-proof')
-  .description('create predeposit proof')
+  .description('create predeposit proof by validator index')
   .argument('<validator-index>', 'validator index')
   .action(async (validatorIndex: bigint) => {
-    const clProofVerifierContract = getCLProofVerifierContract();
-
     const packageProof = await createPDGProof(Number(validatorIndex));
     const { proof, pubkey, childBlockTimestamp, withdrawalCredentials } =
       packageProof;
-
-    // verification by test contract
-    await clProofVerifierContract.read.TEST_validatePubKeyWCProof([
-      { proof, pubkey, validatorIndex, childBlockTimestamp },
-      withdrawalCredentials,
-    ]);
 
     console.info('-----------------proof verified-----------------');
     console.info('------------------------------------------------');
@@ -36,4 +27,12 @@ predepositGuarantee
     console.table(withdrawalCredentials);
     console.info('------------------------------------------------');
     console.info('-----------------------end-----------------------');
+  });
+
+predepositGuarantee
+  .command('fv-gindex')
+  .argument('<forks...>', 'fork name')
+  .description('get first validator gindex')
+  .action(async (forks: string[]) => {
+    getFirstValidatorGIndex(forks);
   });
