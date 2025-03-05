@@ -2,7 +2,7 @@ import { program } from 'command';
 import { getDashboardContract } from 'contracts';
 import { Address } from 'viem';
 import { Permit, RoleAssignment } from 'types';
-import { callWriteMethod, callReadMethod } from 'utils';
+import { callWriteMethod, callReadMethod, textPrompt } from 'utils';
 import { getBaseInfo } from 'features';
 
 const dashboard = program
@@ -12,9 +12,21 @@ const dashboard = program
 dashboard
   .command('info')
   .description('get dashboard base info')
-  .argument('<address>', 'dashboard address')
-  .action(async (address: Address) => {
-    const contract = getDashboardContract(address);
+  .option('-a, --address <address>', 'dashboard address')
+  .action(async ({ address }: { address: Address }) => {
+    let dashboardAddress = address;
+
+    if (!dashboardAddress) {
+      const answer = await textPrompt('Enter dashboard address', 'address');
+      dashboardAddress = answer.address;
+
+      if (!dashboardAddress) {
+        console.info('Command cancelled');
+        return;
+      }
+    }
+
+    const contract = getDashboardContract(dashboardAddress);
 
     await getBaseInfo(contract);
   });

@@ -3,6 +3,8 @@ import { getAccount, getPublicClient } from 'providers';
 import { getChain } from 'configs';
 import { Address } from 'viem';
 
+import { showSpinner } from 'utils/index.js';
+
 type Writeable<T> = { -readonly [P in keyof T]: T[P] };
 
 type GetFirst<T extends unknown[]> = T extends [infer First, infer _Second]
@@ -20,6 +22,7 @@ export const callWriteMethod = async <
   payload: Writeable<GetFirst<Parameters<T['write'][M]>>> | never[],
   value?: bigint,
 ) => {
+  const hideSpinner = showSpinner();
   try {
     const method = contract.write[methodName];
     const tx = await method?.(payload, {
@@ -27,9 +30,11 @@ export const callWriteMethod = async <
       chain: getChain(),
       value,
     });
+    hideSpinner();
 
     console.table({ Transaction: tx });
   } catch (err) {
+    hideSpinner();
     printError(err, `Error when calling write method ${methodName}`);
   }
 };
@@ -42,14 +47,18 @@ export const callReadMethod = async <
   methodName: M,
   ...payload: Parameters<T['read'][M]>
 ) => {
+  const hideSpinner = showSpinner();
+
   try {
     const method = contract.read[methodName];
     const result = await method?.(payload);
+    hideSpinner();
     // TODO: do message better or show in called place
     console.table({ Result: result });
 
     return result;
   } catch (err) {
+    hideSpinner();
     printError(err, `Error when calling read method ${methodName}`);
   }
 };

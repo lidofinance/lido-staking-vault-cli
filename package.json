@@ -40,6 +40,8 @@
     "commander": "^12.1.0",
     "dotenv": "^16.4.5",
     "fs-extra": "^11.3.0",
+    "log-update": "^6.1.0",
+    "prompts": "^2.4.2",
     "viem": "^2.21.37"
   },
   "devDependencies": {
@@ -50,7 +52,9 @@
     "@swc/core": "^1.7.42",
     "@types/cli-progress": "^3.11.6",
     "@types/fs-extra": "^11.0.4",
+    "@types/log-update": "^3.1.0",
     "@types/node": "^22.10.2",
+    "@types/prompts": "^2.4.9",
     "@typescript-eslint/eslint-plugin": "^5",
     "@typescript-eslint/parser": "^5.46.0",
     "eslint": "^8.46.0",

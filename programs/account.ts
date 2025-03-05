@@ -1,7 +1,7 @@
 import { formatEther } from 'viem';
 import { program } from 'command';
 import { getWalletWithAccount, getPublicClient } from 'providers/index.js';
-import { printError } from 'utils/index.js';
+import { printError, showSpinner } from 'utils/index.js';
 
 const account = program
   .command('account')
@@ -16,7 +16,9 @@ account
     const { address } = walletClient.account;
 
     try {
+      const hideSpinner = showSpinner();
       const balance = await publicClient.getBalance({ address });
+      hideSpinner();
 
       console.table({
         address,
