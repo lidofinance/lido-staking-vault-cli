@@ -2,7 +2,12 @@ import { program } from 'command';
 import { getDashboardContract } from 'contracts';
 import { Address } from 'viem';
 import { Permit, RoleAssignment } from 'types';
-import { callWriteMethod, callReadMethod, textPrompt } from 'utils';
+import {
+  callWriteMethod,
+  callReadMethod,
+  textPrompt,
+  confirmFund,
+} from 'utils';
 import { getBaseInfo } from 'features';
 
 const dashboard = program
@@ -173,12 +178,16 @@ dashboard
 dashboard
   .command('fund')
   .description('funds the staking vault with ether')
-  .argument('<address>', 'dashboard address')
-  .argument('<wei>', 'amount of ether to be funded (in WEI)')
-  .action(async (address: Address, ether: string) => {
-    const contract = getDashboardContract(address);
+  .option('-a, --address <address>', 'dashboard address')
+  .option('-e, --ether <ether>', 'amount of ether to be funded (in WEI)')
+  .action(async ({ address, ether }: { address: Address; ether: string }) => {
+    const { dashboard, amount } = await confirmFund(address, ether);
 
-    await callWriteMethod(contract, 'fund', [], BigInt(ether));
+    if (!dashboard || !amount) return;
+
+    const contract = getDashboardContract(dashboard);
+
+    await callWriteMethod(contract, 'fund', [], BigInt(amount));
   });
 
 dashboard
