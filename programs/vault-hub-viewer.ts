@@ -14,7 +14,7 @@ const vaultHubViewer = program
   .description('vault hub viewer');
 
 vaultHubViewer
-  .command('vaults-c')
+  .command('connected')
   .description('get vaults connected to vault hub')
   .action(async () => {
     const contract = getVaultHubViewerContract(ADDRESS);
@@ -23,7 +23,7 @@ vaultHubViewer
   });
 
 vaultHubViewer
-  .command('vaults-m')
+  .command('my')
   .description('get my vaults')
   .action(async () => {
     const contract = getVaultHubViewerContract(ADDRESS);
@@ -33,7 +33,7 @@ vaultHubViewer
   });
 
 vaultHubViewer
-  .command('vault-by-owner')
+  .command('by-owner')
   .description('get vaults by owner')
   .argument('<address>', 'owner address')
   .action(async (address: Address) => {
@@ -43,7 +43,7 @@ vaultHubViewer
   });
 
 vaultHubViewer
-  .command('vault-by-role')
+  .command('by-role')
   .description('get vaults by role')
   .argument('<role>', 'role')
   .action(async (role: Address) => {
@@ -54,7 +54,7 @@ vaultHubViewer
   });
 
 vaultHubViewer
-  .command('vault-by-role-and-address')
+  .command('by-role-and-address')
   .description('get vaults by role and address')
   .argument('<role>', 'role')
   .argument('<address>', 'address')
