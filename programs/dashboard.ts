@@ -2,7 +2,12 @@ import { program } from 'command';
 import { getDashboardContract } from 'contracts';
 import { Address } from 'viem';
 import { Permit, RoleAssignment } from 'types';
-import { callWriteMethod, callReadMethod } from 'utils';
+import {
+  callWriteMethod,
+  callReadMethod,
+  textPrompt,
+  confirmFund,
+} from 'utils';
 import { getBaseInfo } from 'features';
 
 const dashboard = program
@@ -12,9 +17,21 @@ const dashboard = program
 dashboard
   .command('info')
   .description('get dashboard base info')
-  .argument('<address>', 'dashboard address')
-  .action(async (address: Address) => {
-    const contract = getDashboardContract(address);
+  .option('-a, --address <address>', 'dashboard address')
+  .action(async ({ address }: { address: Address }) => {
+    let dashboardAddress = address;
+
+    if (!dashboardAddress) {
+      const answer = await textPrompt('Enter dashboard address', 'address');
+      dashboardAddress = answer.address;
+
+      if (!dashboardAddress) {
+        console.info('Command cancelled');
+        return;
+      }
+    }
+
+    const contract = getDashboardContract(dashboardAddress);
 
     await getBaseInfo(contract);
   });
@@ -161,12 +178,16 @@ dashboard
 dashboard
   .command('fund')
   .description('funds the staking vault with ether')
-  .argument('<address>', 'dashboard address')
-  .argument('<wei>', 'amount of ether to be funded (in WEI)')
-  .action(async (address: Address, ether: string) => {
-    const contract = getDashboardContract(address);
+  .option('-a, --address <address>', 'dashboard address')
+  .option('-e, --ether <ether>', 'amount of ether to be funded (in WEI)')
+  .action(async ({ address, ether }: { address: Address; ether: string }) => {
+    const { dashboard, amount } = await confirmFund(address, ether);
 
-    await callWriteMethod(contract, 'fund', [], BigInt(ether));
+    if (!dashboard || !amount) return;
+
+    const contract = getDashboardContract(dashboard);
+
+    await callWriteMethod(contract, 'fund', [], BigInt(amount));
   });
 
 dashboard
