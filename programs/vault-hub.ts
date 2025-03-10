@@ -3,6 +3,7 @@ import { program } from 'command';
 import { getVaultHubContract } from 'contracts';
 import { getAccount } from 'providers';
 import { getChain } from 'configs';
+import { callWriteMethodWithReceipt, callReadMethod } from 'utils';
 
 const vaultHub = program.command('hub').description('vault hub contract');
 
@@ -43,18 +44,9 @@ vaultHub
   .action(async (codehash: Address) => {
     const contract = await getVaultHubContract();
 
-    try {
-      const tx = contract.write.addVaultProxyCodehash([codehash], {
-        account: getAccount(),
-        chain: getChain(),
-      });
-
-      console.table({ Transaction: tx });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.info('Error while adding codehash:\n', err.message);
-      }
-    }
+    await callWriteMethodWithReceipt(contract, 'addVaultProxyCodehash', [
+      codehash,
+    ]);
   });
 
 // Works fine
@@ -63,18 +55,11 @@ vaultHub
   .description('get connected vaults number')
   .action(async () => {
     const contract = await getVaultHubContract();
+    const vaultsCount = await callReadMethod(contract, 'vaultsCount');
 
-    try {
-      const vaultsCount = await contract.read.vaultsCount();
-
-      console.table({
-        'Vaults count': Number(vaultsCount),
-      });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.info('Error when getting vaults count:\n', err.message);
-      }
-    }
+    console.table({
+      'Vaults count': Number(vaultsCount),
+    });
   });
 
 vaultHub
@@ -107,15 +92,11 @@ vaultHub
   .argument('<address>', 'address')
   .action(async (address: Address) => {
     const contract = await getVaultHubContract();
-    try {
-      const vaultSocket = await contract.read.vaultSocket([address]);
+    const vaultSocket = await callReadMethod(contract, 'vaultSocket', [
+      address,
+    ]);
 
-      console.table({ 'Vault Socket': vaultSocket });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.info('Error when getting vault:\n', err.message);
-      }
-    }
+    console.table({ 'Vault Socket': vaultSocket });
   });
 
 // TODO: replace by voting
@@ -141,30 +122,15 @@ vaultHub
       reserveRatioThreshold: bigint,
       treasuryFeeBP: bigint,
     ) => {
-      try {
-        const contract = await getVaultHubContract();
-        const account = getAccount();
+      const contract = await getVaultHubContract();
 
-        const tx = await contract.write.connectVault(
-          [
-            address,
-            shareLimit,
-            reserveRatio,
-            reserveRatioThreshold,
-            treasuryFeeBP,
-          ],
-          {
-            account,
-            chain: getChain(),
-          },
-        );
-
-        console.table({ Transaction: tx });
-      } catch (err) {
-        if (err instanceof Error) {
-          program.error(err.message);
-        }
-      }
+      await callWriteMethodWithReceipt(contract, 'connectVault', [
+        address,
+        shareLimit,
+        reserveRatio,
+        reserveRatioThreshold,
+        treasuryFeeBP,
+      ]);
     },
   );
 

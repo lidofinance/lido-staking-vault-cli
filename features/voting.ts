@@ -1,9 +1,7 @@
 import progress, { SingleBar } from 'cli-progress';
 
 import { getVotingContract } from 'contracts';
-import { getAccount } from 'providers';
-import { getChain } from 'configs';
-import { sleep } from 'utils';
+import { sleep, callReadMethod, callWriteMethodWithReceipt } from 'utils';
 import { Vote } from 'types';
 
 const voteAbi = [
@@ -44,7 +42,7 @@ const voteAbi = [
 
 export const voteLastVoting = async () => {
   const { contract } = getVotingContract();
-  const votesLength = await contract.read.votesLength();
+  const votesLength = await callReadMethod(contract, 'votesLength');
   const lastVoteId = votesLength - 1n;
 
   if (lastVoteId === -1n) {
@@ -75,20 +73,14 @@ export const voteLastVoting = async () => {
 export const voteFor = async (voteId: bigint) => {
   const { contract } = getVotingContract();
 
-  await contract.write.vote([voteId, true, false], {
-    account: getAccount(),
-    chain: getChain(),
-  });
-  console.info('Vote voted');
+  await callWriteMethodWithReceipt(contract, 'vote', [voteId, true, false]);
+  console.info('Vote voted', voteId);
 };
 
 export const executeVote = async (voteId: bigint) => {
   const { contract } = getVotingContract();
-  await contract.write.executeVote([voteId], {
-    account: getAccount(),
-    chain: getChain(),
-  });
-  console.info('Vote executed');
+  await callWriteMethodWithReceipt(contract, 'executeVote', [voteId]);
+  console.info('Vote executed', voteId);
 };
 
 export const waitForEnd = async (voteId: bigint, progressBar?: SingleBar) => {

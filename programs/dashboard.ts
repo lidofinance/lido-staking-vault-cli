@@ -3,7 +3,7 @@ import { getDashboardContract } from 'contracts';
 import { Address } from 'viem';
 import { Permit, RoleAssignment } from 'types';
 import {
-  callWriteMethod,
+  callWriteMethodWithReceipt,
   callReadMethod,
   textPrompt,
   confirmFund,
@@ -160,9 +160,11 @@ dashboard
   .action(async (address: Address, newOwner: Address) => {
     const contract = getDashboardContract(address);
 
-    await callWriteMethod(contract, 'transferStakingVaultOwnership', [
-      newOwner,
-    ]);
+    await callWriteMethodWithReceipt(
+      contract,
+      'transferStakingVaultOwnership',
+      [newOwner],
+    );
   });
 
 dashboard
@@ -172,7 +174,7 @@ dashboard
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
 
-    await callWriteMethod(contract, 'voluntaryDisconnect', []);
+    await callWriteMethodWithReceipt(contract, 'voluntaryDisconnect', []);
   });
 
 dashboard
@@ -187,7 +189,7 @@ dashboard
 
     const contract = getDashboardContract(dashboard);
 
-    await callWriteMethod(contract, 'fund', [], BigInt(amount));
+    await callWriteMethodWithReceipt(contract, 'fund', [], BigInt(amount));
   });
 
 dashboard
@@ -198,7 +200,9 @@ dashboard
   .action(async (address: Address, wethAmount: string) => {
     const contract = getDashboardContract(address);
 
-    await callWriteMethod(contract, 'fundWeth', [BigInt(wethAmount)]);
+    await callWriteMethodWithReceipt(contract, 'fundWeth', [
+      BigInt(wethAmount),
+    ]);
   });
 
 dashboard
@@ -210,7 +214,10 @@ dashboard
   .action(async (address: Address, recipient: Address, ether: string) => {
     const contract = getDashboardContract(address);
 
-    await callWriteMethod(contract, 'withdraw', [recipient, BigInt(ether)]);
+    await callWriteMethodWithReceipt(contract, 'withdraw', [
+      recipient,
+      BigInt(ether),
+    ]);
   });
 
 dashboard
@@ -222,7 +229,10 @@ dashboard
   .action(async (address: Address, recipient: Address, ether: string) => {
     const contract = getDashboardContract(address);
 
-    await callWriteMethod(contract, 'withdrawWETH', [recipient, BigInt(ether)]);
+    await callWriteMethodWithReceipt(contract, 'withdrawWETH', [
+      recipient,
+      BigInt(ether),
+    ]);
   });
 
 dashboard
@@ -233,7 +243,9 @@ dashboard
   .action(async (address: Address, validatorPubKey: Address) => {
     const contract = getDashboardContract(address);
 
-    await callWriteMethod(contract, 'requestValidatorExit', [validatorPubKey]);
+    await callWriteMethodWithReceipt(contract, 'requestValidatorExit', [
+      validatorPubKey,
+    ]);
   });
 
 dashboard
@@ -246,7 +258,7 @@ dashboard
     async (address: Address, recipient: Address, amountOfShares: string) => {
       const contract = getDashboardContract(address);
 
-      await callWriteMethod(contract, 'mintShares', [
+      await callWriteMethodWithReceipt(contract, 'mintShares', [
         recipient,
         BigInt(amountOfShares),
       ]);
@@ -263,7 +275,7 @@ dashboard
     async (address: Address, recipient: Address, amountOfShares: string) => {
       const contract = getDashboardContract(address);
 
-      await callWriteMethod(contract, 'mintStETH', [
+      await callWriteMethodWithReceipt(contract, 'mintStETH', [
         recipient,
         BigInt(amountOfShares),
       ]);
@@ -279,7 +291,10 @@ dashboard
   .action(async (address: Address, recipient: Address, tokens: string) => {
     const contract = getDashboardContract(address);
 
-    await callWriteMethod(contract, 'mintWstETH', [recipient, BigInt(tokens)]);
+    await callWriteMethodWithReceipt(contract, 'mintWstETH', [
+      recipient,
+      BigInt(tokens),
+    ]);
   });
 
 dashboard
@@ -292,7 +307,9 @@ dashboard
   .action(async (address: Address, amountOfShares: string) => {
     const contract = getDashboardContract(address);
 
-    await callWriteMethod(contract, 'burnShares', [BigInt(amountOfShares)]);
+    await callWriteMethodWithReceipt(contract, 'burnShares', [
+      BigInt(amountOfShares),
+    ]);
   });
 
 dashboard
@@ -305,7 +322,9 @@ dashboard
   .action(async (address: Address, amountOfShares: string) => {
     const contract = getDashboardContract(address);
 
-    await callWriteMethod(contract, 'burnStETH', [BigInt(amountOfShares)]);
+    await callWriteMethodWithReceipt(contract, 'burnStETH', [
+      BigInt(amountOfShares),
+    ]);
   });
 
 dashboard
@@ -316,7 +335,7 @@ dashboard
   .action(async (address: Address, tokens: string) => {
     const contract = getDashboardContract(address);
 
-    await callWriteMethod(contract, 'burnWstETH', [BigInt(tokens)]);
+    await callWriteMethodWithReceipt(contract, 'burnWstETH', [BigInt(tokens)]);
   });
 
 dashboard
@@ -334,7 +353,7 @@ dashboard
     const permit = JSON.parse(permitJSON) as Permit;
     const contract = getDashboardContract(address);
 
-    await callWriteMethod(contract, 'burnSharesWithPermit', [
+    await callWriteMethodWithReceipt(contract, 'burnSharesWithPermit', [
       BigInt(tokens),
       permit,
     ]);
@@ -355,7 +374,7 @@ dashboard
     const permit = JSON.parse(permitJSON) as Permit;
     const contract = getDashboardContract(address);
 
-    await callWriteMethod(contract, 'burnStETHWithPermit', [
+    await callWriteMethodWithReceipt(contract, 'burnStETHWithPermit', [
       BigInt(tokens),
       permit,
     ]);
@@ -376,7 +395,7 @@ dashboard
     const permit = JSON.parse(permitJSON) as Permit;
     const contract = getDashboardContract(address);
 
-    await callWriteMethod(contract, 'burnWstETHWithPermit', [
+    await callWriteMethodWithReceipt(contract, 'burnWstETHWithPermit', [
       BigInt(tokens),
       permit,
     ]);
@@ -390,7 +409,9 @@ dashboard
   .action(async (address: Address, ether: string) => {
     const contract = getDashboardContract(address);
 
-    await callWriteMethod(contract, 'rebalanceVault', [BigInt(ether)]);
+    await callWriteMethodWithReceipt(contract, 'rebalanceVault', [
+      BigInt(ether),
+    ]);
   });
 
 dashboard
@@ -414,7 +435,7 @@ dashboard
     ) => {
       const contract = getDashboardContract(address);
 
-      await callWriteMethod(contract, 'recoverERC20', [
+      await callWriteMethodWithReceipt(contract, 'recoverERC20', [
         token,
         recipient,
         BigInt(amount),
@@ -440,7 +461,7 @@ dashboard
     ) => {
       const contract = getDashboardContract(address);
 
-      await callWriteMethod(contract, 'recoverERC721', [
+      await callWriteMethodWithReceipt(contract, 'recoverERC721', [
         token,
         BigInt(tokenId),
         recipient,
@@ -455,7 +476,7 @@ dashboard
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
 
-    await callWriteMethod(contract, 'pauseBeaconChainDeposits', []);
+    await callWriteMethodWithReceipt(contract, 'pauseBeaconChainDeposits', []);
   });
 
 dashboard
@@ -465,7 +486,7 @@ dashboard
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
 
-    await callWriteMethod(contract, 'resumeBeaconChainDeposits', []);
+    await callWriteMethodWithReceipt(contract, 'resumeBeaconChainDeposits', []);
   });
 
 dashboard
@@ -482,7 +503,7 @@ dashboard
       );
     }
 
-    await callWriteMethod(contract, 'grantRoles', [payload]);
+    await callWriteMethodWithReceipt(contract, 'grantRoles', [payload]);
   });
 
 dashboard
@@ -499,5 +520,5 @@ dashboard
       );
     }
 
-    await callWriteMethod(contract, 'revokeRoles', [payload]);
+    await callWriteMethodWithReceipt(contract, 'revokeRoles', [payload]);
   });

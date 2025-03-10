@@ -5,9 +5,8 @@ import {
   getVaultHubContract,
   getVotingContract,
 } from 'contracts';
-import { getAccount } from 'providers';
-import { getChain } from 'configs';
 import { voteLastVoting } from 'features';
+import { callWriteMethodWithReceipt, callReadMethod } from 'utils';
 
 const voting = program.command('vote').description('voting contract');
 
@@ -34,47 +33,24 @@ voting
       reserveRatioThreshold: bigint,
       treasuryFeeBP: bigint,
     ) => {
-      try {
-        const contract = await getVaultHubContract();
-        // const tmContract = getTokenManagerContract();
-        // const vContract = getVotingContract();
-        const account = getAccount();
+      const contract = await getVaultHubContract();
 
-        const tx = await contract.write.connectVault(
-          [
-            address,
-            shareLimit,
-            reserveRatio,
-            reserveRatioThreshold,
-            treasuryFeeBP,
-          ],
-          {
-            account,
-            chain: getChain(),
-          },
-        );
-
-        console.table({ Transaction: tx });
-      } catch (err) {
-        if (err instanceof Error) {
-          program.error(err.message);
-        }
-      }
+      await callWriteMethodWithReceipt(contract, 'connectVault', [
+        address,
+        shareLimit,
+        reserveRatio,
+        reserveRatioThreshold,
+        treasuryFeeBP,
+      ]);
     },
   );
 
 voting.command('get-lv').action(async () => {
   const { contract } = getVotingContract();
 
-  try {
-    const tx = await contract.read.votesLength();
+  const tx = await callReadMethod(contract, 'votesLength');
 
-    console.info({ 'Votes length': tx });
-  } catch (err) {
-    if (err instanceof Error) {
-      console.info('Error when getting votes length:\n', err.message);
-    }
-  }
+  console.info({ 'Votes length': tx });
 });
 
 voting.command('connect-and-vote').action(async () => await voteLastVoting());

@@ -2,13 +2,19 @@ import logUpdate from 'log-update';
 
 import spinners from './spinners.json' with { type: 'json' };
 
-export const showSpinner = () => {
-  const spinner = spinners.point;
+type args = {
+  type?: keyof typeof spinners;
+  message?: string;
+};
+
+export const showSpinner = (args?: args) => {
+  const { type = 'point', message = 'Executing...' } = args || {};
+  const spinner = spinners[type || 'point'];
   let index = 0;
 
   const interval = setInterval(() => {
     const { frames } = spinner;
-    logUpdate(frames[(index = ++index % frames.length)] + ' Executing...');
+    logUpdate(frames[(index = ++index % frames.length)] + ` ${message}`);
   }, spinner.interval);
 
   return () => {
