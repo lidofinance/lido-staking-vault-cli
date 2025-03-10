@@ -1,24 +1,20 @@
-import { waitForTransactionReceipt } from 'viem/actions';
 import { parseEventLogs } from 'viem';
-import { getChain } from 'configs';
-import { getAccount } from 'providers';
 import { VaultWithDelegation } from 'types';
 import { getVaultFactoryContract } from 'contracts';
 import { VaultFactoryAbi } from 'abi/index.js';
+import { callWriteMethodWithReceipt } from 'utils';
 
 export const createVault = async (payload: VaultWithDelegation) => {
-  const { contract, client } = getVaultFactoryContract();
-  const chain = getChain();
+  const { contract } = getVaultFactoryContract();
 
-  const tx = await contract.write.createVaultWithDelegation(
-    [{ ...payload }, '0x'],
-    {
-      account: getAccount(),
-      chain,
-    },
+  const result = await callWriteMethodWithReceipt(
+    contract,
+    'createVaultWithDelegation',
+    [payload, '0x'],
   );
+  if (!result) return;
+  const { receipt, tx } = result;
 
-  const receipt = await waitForTransactionReceipt(client, { hash: tx });
   const events = parseEventLogs({
     abi: VaultFactoryAbi,
     logs: receipt.logs,

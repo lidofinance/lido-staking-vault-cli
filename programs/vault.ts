@@ -2,9 +2,12 @@ import { Address } from 'viem';
 import { program } from 'command';
 
 import { getStakingVaultContract } from 'contracts';
-import { getAccount, getPublicClient } from 'providers';
-import { getChain } from 'configs';
-import { isContractAddress } from 'utils/index.js';
+import { getPublicClient } from 'providers';
+import {
+  callWriteMethodWithReceipt,
+  callReadMethod,
+  isContractAddress,
+} from 'utils';
 
 const vault = program.command('vault').description('vault contract');
 
@@ -60,15 +63,9 @@ vault
   .action(async (address: Address) => {
     const contract = getStakingVaultContract(address);
 
-    try {
-      const latestReport = await contract.read.latestReport();
+    const latestReport = await callReadMethod(contract, 'latestReport');
 
-      console.table({ 'latest report': latestReport });
-    } catch (err) {
-      if (err instanceof Error) {
-        program.error(err.message);
-      }
-    }
+    console.table({ 'latest report': latestReport });
   });
 
 // Works
@@ -80,15 +77,9 @@ vault
   .argument('<address>', 'vault address')
   .action(async (address: Address) => {
     const contract = getStakingVaultContract(address);
-    try {
-      const isBalanced = await contract.read.isBalanced();
+    const isBalanced = await callReadMethod(contract, 'isBalanced');
 
-      console.table({ 'Is balanced': isBalanced });
-    } catch (err) {
-      if (err instanceof Error) {
-        program.error(err.message);
-      }
-    }
+    console.table({ 'Is balanced': isBalanced });
   });
 vault
   .command('node-operator')
@@ -96,15 +87,9 @@ vault
   .argument('<address>', 'vault address')
   .action(async (address: Address) => {
     const contract = getStakingVaultContract(address);
-    try {
-      const nodeOperator = await contract.read.nodeOperator();
+    const nodeOperator = await callReadMethod(contract, 'nodeOperator');
 
-      console.table({ 'Node Operator': nodeOperator });
-    } catch (err) {
-      if (err instanceof Error) {
-        program.error(err.message);
-      }
-    }
+    console.table({ 'Node Operator': nodeOperator });
   });
 
 // Works
@@ -114,16 +99,9 @@ vault
   .argument('<address>', 'vault address')
   .action(async (address: Address) => {
     const contract = getStakingVaultContract(address);
+    const valuation = await callReadMethod(contract, 'valuation');
 
-    try {
-      const valuation = await contract.read.valuation();
-
-      console.table({ valuation });
-    } catch (err) {
-      if (err instanceof Error) {
-        program.error(err.message);
-      }
-    }
+    console.table({ valuation });
   });
 
 // Works
@@ -133,15 +111,9 @@ vault
   .argument('<address>', 'vault address')
   .action(async (address: Address) => {
     const contract = getStakingVaultContract(address);
-    try {
-      const unlocked = await contract.read.unlocked();
+    const unlocked = await callReadMethod(contract, 'unlocked');
 
-      console.table({ unlocked });
-    } catch (err) {
-      if (err instanceof Error) {
-        program.error(err.message);
-      }
-    }
+    console.table({ unlocked });
   });
 
 // Works
@@ -151,15 +123,9 @@ vault
   .argument('<address>', 'vault address')
   .action(async (address: Address) => {
     const contract = getStakingVaultContract(address);
-    try {
-      const locked = await contract.read.locked();
+    const locked = await callReadMethod(contract, 'locked');
 
-      console.table({ locked });
-    } catch (err) {
-      if (err instanceof Error) {
-        program.error(err.message);
-      }
-    }
+    console.table({ locked });
   });
 
 // Works
@@ -169,16 +135,9 @@ vault
   .argument('<address>', 'vault address')
   .action(async (address: Address) => {
     const contract = getStakingVaultContract(address);
+    const wc = await callReadMethod(contract, 'withdrawalCredentials');
 
-    try {
-      const wc = await contract.read.withdrawalCredentials();
-
-      console.table({ wc });
-    } catch (err) {
-      if (err instanceof Error) {
-        program.error(err.message);
-      }
-    }
+    console.table({ wc });
   });
 
 vault
@@ -189,19 +148,7 @@ vault
   .action(async (address: Address, amount: string) => {
     const contract = getStakingVaultContract(address);
 
-    try {
-      const tx = await contract.write.fund({
-        account: getAccount(),
-        chain: getChain(),
-        value: BigInt(amount),
-      });
-
-      console.table({ Transaction: tx });
-    } catch (err) {
-      if (err instanceof Error) {
-        program.error(err.message);
-      }
-    }
+    await callWriteMethodWithReceipt(contract, 'fund', [], BigInt(amount));
   });
 
 // TODO: investigate why only owner can fund vault
@@ -214,12 +161,10 @@ vault
   .action(async (address: Address, recipient: Address, amount: string) => {
     const contract = getStakingVaultContract(address);
 
-    const tx = await contract.write.withdraw([recipient, BigInt(amount)], {
-      account: getAccount(),
-      chain: getChain(),
-    });
-
-    console.table({ Transaction: tx });
+    await callWriteMethodWithReceipt(contract, 'withdraw', [
+      recipient,
+      BigInt(amount),
+    ]);
   });
 
 // NOs
@@ -252,18 +197,9 @@ vault
         },
       ];
 
-      try {
-        const tx = await contract.write.depositToBeaconChain([payload], {
-          account: getAccount(),
-          chain: getChain(),
-        });
-
-        console.table({ Transaction: tx });
-      } catch (err) {
-        if (err instanceof Error) {
-          program.error(err.message);
-        }
-      }
+      await callWriteMethodWithReceipt(contract, 'depositToBeaconChain', [
+        payload,
+      ]);
     },
   );
 
@@ -276,21 +212,9 @@ vault
   .action(async (address: Address, validatorPublicKey: Address) => {
     const contract = getStakingVaultContract(address);
 
-    try {
-      const tx = await contract.write.requestValidatorExit(
-        [validatorPublicKey],
-        {
-          account: getAccount(),
-          chain: getChain(),
-        },
-      );
-
-      console.table({ Transaction: tx });
-    } catch (err) {
-      if (err instanceof Error) {
-        program.error(err.message);
-      }
-    }
+    await callWriteMethodWithReceipt(contract, 'requestValidatorExit', [
+      validatorPublicKey,
+    ]);
   });
 
 // Works
@@ -301,15 +225,9 @@ vault
   .action(async (address: Address) => {
     const contract = getStakingVaultContract(address);
 
-    try {
-      const inOutDelta = await contract.read.inOutDelta();
+    const inOutDelta = await callReadMethod(contract, 'inOutDelta');
 
-      console.table({ 'In Out Delta': inOutDelta });
-    } catch (err) {
-      if (err instanceof Error) {
-        program.error(err.message);
-      }
-    }
+    console.table({ 'In Out Delta': inOutDelta });
   });
 
 vault
@@ -318,15 +236,12 @@ vault
   .argument('<address>', 'vault address')
   .action(async (address: Address) => {
     const contract = getStakingVaultContract(address);
-    try {
-      const isPaused = await contract.read.beaconChainDepositsPaused();
+    const isPaused = await callReadMethod(
+      contract,
+      'beaconChainDepositsPaused',
+    );
 
-      console.table({ 'Is paused': isPaused });
-    } catch (err) {
-      if (err instanceof Error) {
-        program.error(err.message);
-      }
-    }
+    console.table({ 'Is paused': isPaused });
   });
 
 vault
@@ -335,18 +250,8 @@ vault
   .argument('<address>', 'vault address')
   .action(async (address: Address) => {
     const contract = getStakingVaultContract(address);
-    try {
-      const tx = await contract.write.resumeBeaconChainDeposits({
-        account: getAccount(),
-        chain: getChain(),
-      });
 
-      console.table({ Transaction: tx });
-    } catch (err) {
-      if (err instanceof Error) {
-        program.error(err.message);
-      }
-    }
+    await callWriteMethodWithReceipt(contract, 'resumeBeaconChainDeposits', []);
   });
 
 vault
@@ -355,18 +260,8 @@ vault
   .argument('<address>', 'vault address')
   .action(async (address: Address) => {
     const contract = getStakingVaultContract(address);
-    try {
-      const tx = await contract.write.pauseBeaconChainDeposits({
-        account: getAccount(),
-        chain: getChain(),
-      });
 
-      console.table({ Transaction: tx });
-    } catch (err) {
-      if (err instanceof Error) {
-        program.error(err.message);
-      }
-    }
+    await callWriteMethodWithReceipt(contract, 'pauseBeaconChainDeposits', []);
   });
 
 vault
@@ -392,21 +287,12 @@ vault
       locked: string,
     ) => {
       const contract = getStakingVaultContract(address);
-      try {
-        const tx = await contract.write.report(
-          [BigInt(valuation), BigInt(inOutDelta), BigInt(locked)],
-          {
-            account: getAccount(),
-            chain: getChain(),
-          },
-        );
 
-        console.table({ Transaction: tx });
-      } catch (err) {
-        if (err instanceof Error) {
-          program.error(err.message);
-        }
-      }
+      await callWriteMethodWithReceipt(contract, 'report', [
+        BigInt(valuation),
+        BigInt(inOutDelta),
+        BigInt(locked),
+      ]);
     },
   );
 
@@ -427,19 +313,12 @@ vault
       amount: string,
     ) => {
       const contract = getStakingVaultContract(address);
-      try {
-        const encodedData = await contract.read.computeDepositDataRoot([
-          pubkey,
-          withdrawalCredentials,
-          signature,
-          BigInt(amount),
-        ]);
+      const encodedData = await callReadMethod(
+        contract,
+        'computeDepositDataRoot',
+        [pubkey, withdrawalCredentials, signature, BigInt(amount)],
+      );
 
-        console.table({ 'Encoded data': encodedData });
-      } catch (err) {
-        if (err instanceof Error) {
-          program.error(err.message);
-        }
-      }
+      console.table({ 'Encoded data': encodedData });
     },
   );

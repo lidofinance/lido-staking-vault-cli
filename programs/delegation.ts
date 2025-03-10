@@ -3,7 +3,7 @@ import { Address } from 'viem';
 import { program } from 'command';
 import { getDelegationContract, getStakingVaultContract } from 'contracts';
 import { Permit, RoleAssignment } from 'types';
-import { callWriteMethod, callReadMethod } from 'utils';
+import { callWriteMethodWithReceipt, callReadMethod } from 'utils';
 import { getBaseInfo } from 'features';
 
 const delegation = program
@@ -176,7 +176,9 @@ delegation
   .action(async (address: Address, newCuratorFee: string) => {
     const contract = getDelegationContract(address);
 
-    await callWriteMethod(contract, 'setCuratorFeeBP', [BigInt(newCuratorFee)]);
+    await callWriteMethodWithReceipt(contract, 'setCuratorFeeBP', [
+      BigInt(newCuratorFee),
+    ]);
   });
 
 delegation
@@ -187,7 +189,7 @@ delegation
   .action(async (address: Address, recipient: Address) => {
     const contract = getDelegationContract(address);
 
-    await callWriteMethod(contract, 'claimCuratorFee', [recipient]);
+    await callWriteMethodWithReceipt(contract, 'claimCuratorFee', [recipient]);
   });
 
 delegation
@@ -248,7 +250,7 @@ delegation
   .action(async (address: Address, newNodeOperatorFeeBP: string) => {
     const contract = getDelegationContract(address);
 
-    await callWriteMethod(contract, 'setNodeOperatorFeeBP', [
+    await callWriteMethodWithReceipt(contract, 'setNodeOperatorFeeBP', [
       BigInt(newNodeOperatorFeeBP),
     ]);
   });
@@ -264,7 +266,9 @@ delegation
   .action(async (address: Address, recipient: Address) => {
     const contract = getDelegationContract(address);
 
-    await callWriteMethod(contract, 'claimNodeOperatorFee', [recipient]);
+    await callWriteMethodWithReceipt(contract, 'claimNodeOperatorFee', [
+      recipient,
+    ]);
   });
 
 delegation
@@ -300,7 +304,7 @@ delegation
   .action(async (address: Address, ether: string) => {
     const contract = getDelegationContract(address);
 
-    await callWriteMethod(contract, 'fund', [], BigInt(ether));
+    await callWriteMethodWithReceipt(contract, 'fund', [], BigInt(ether));
   });
 
 delegation
@@ -311,7 +315,10 @@ delegation
   .argument('<wei>', 'ether to found (in WEI)')
   .action(async (address: Address, recipient: Address, ether: string) => {
     const contract = getDelegationContract(address);
-    await callWriteMethod(contract, 'withdraw', [recipient, BigInt(ether)]);
+    await callWriteMethodWithReceipt(contract, 'withdraw', [
+      recipient,
+      BigInt(ether),
+    ]);
   });
 
 delegation
@@ -322,7 +329,9 @@ delegation
   .action(async (address: Address, ether: string) => {
     const contract = getDelegationContract(address);
 
-    await callWriteMethod(contract, 'rebalanceVault', [BigInt(ether)]);
+    await callWriteMethodWithReceipt(contract, 'rebalanceVault', [
+      BigInt(ether),
+    ]);
   });
 
 delegation
@@ -333,7 +342,7 @@ delegation
   .action(async (address: Address, newVoteLifetime: string) => {
     const contract = getDelegationContract(address);
 
-    await callWriteMethod(contract, 'setVoteLifetime', [
+    await callWriteMethodWithReceipt(contract, 'setVoteLifetime', [
       BigInt(newVoteLifetime),
     ]);
   });
@@ -347,9 +356,11 @@ delegation
   .action(async (address: Address, newOwner: Address) => {
     const contract = getDelegationContract(address);
 
-    await callWriteMethod(contract, 'transferStakingVaultOwnership', [
-      newOwner,
-    ]);
+    await callWriteMethodWithReceipt(
+      contract,
+      'transferStakingVaultOwnership',
+      [newOwner],
+    );
   });
 
 delegation
@@ -359,7 +370,7 @@ delegation
   .action(async (address: Address) => {
     const contract = getDelegationContract(address);
 
-    await callWriteMethod(contract, 'voluntaryDisconnect', []);
+    await callWriteMethodWithReceipt(contract, 'voluntaryDisconnect', []);
   });
 
 delegation
@@ -369,7 +380,7 @@ delegation
   .action(async (address: Address) => {
     const contract = getDelegationContract(address);
 
-    await callWriteMethod(contract, 'pauseBeaconChainDeposits', []);
+    await callWriteMethodWithReceipt(contract, 'pauseBeaconChainDeposits', []);
   });
 
 delegation
@@ -379,7 +390,7 @@ delegation
   .action(async (address: Address) => {
     const contract = getDelegationContract(address);
 
-    await callWriteMethod(contract, 'resumeBeaconChainDeposits', []);
+    await callWriteMethodWithReceipt(contract, 'resumeBeaconChainDeposits', []);
   });
 
 delegation
@@ -495,7 +506,9 @@ delegation
   .action(async (address: Address, wethAmount: string) => {
     const contract = getDelegationContract(address);
 
-    await callWriteMethod(contract, 'fundWeth', [BigInt(wethAmount)]);
+    await callWriteMethodWithReceipt(contract, 'fundWeth', [
+      BigInt(wethAmount),
+    ]);
   });
 
 delegation
@@ -507,7 +520,10 @@ delegation
   .action(async (address: Address, recipient: Address, ether: string) => {
     const contract = getDelegationContract(address);
 
-    await callWriteMethod(contract, 'withdrawWETH', [recipient, BigInt(ether)]);
+    await callWriteMethodWithReceipt(contract, 'withdrawWETH', [
+      recipient,
+      BigInt(ether),
+    ]);
   });
 
 delegation
@@ -518,7 +534,9 @@ delegation
   .action(async (address: Address, validatorPubKey: Address) => {
     const contract = getDelegationContract(address);
 
-    await callWriteMethod(contract, 'requestValidatorExit', [validatorPubKey]);
+    await callWriteMethodWithReceipt(contract, 'requestValidatorExit', [
+      validatorPubKey,
+    ]);
   });
 
 delegation
@@ -531,7 +549,7 @@ delegation
     async (address: Address, recipient: Address, amountOfShares: string) => {
       const contract = getDelegationContract(address);
 
-      await callWriteMethod(contract, 'mintShares', [
+      await callWriteMethodWithReceipt(contract, 'mintShares', [
         recipient,
         BigInt(amountOfShares),
       ]);
@@ -548,7 +566,7 @@ delegation
     async (address: Address, recipient: Address, amountOfShares: string) => {
       const contract = getDelegationContract(address);
 
-      await callWriteMethod(contract, 'mintStETH', [
+      await callWriteMethodWithReceipt(contract, 'mintStETH', [
         recipient,
         BigInt(amountOfShares),
       ]);
@@ -564,7 +582,10 @@ delegation
   .action(async (address: Address, recipient: Address, tokens: string) => {
     const contract = getDelegationContract(address);
 
-    await callWriteMethod(contract, 'mintWstETH', [recipient, BigInt(tokens)]);
+    await callWriteMethodWithReceipt(contract, 'mintWstETH', [
+      recipient,
+      BigInt(tokens),
+    ]);
   });
 
 delegation
@@ -577,7 +598,9 @@ delegation
   .action(async (address: Address, amountOfShares: string) => {
     const contract = getDelegationContract(address);
 
-    await callWriteMethod(contract, 'burnShares', [BigInt(amountOfShares)]);
+    await callWriteMethodWithReceipt(contract, 'burnShares', [
+      BigInt(amountOfShares),
+    ]);
   });
 
 delegation
@@ -590,7 +613,9 @@ delegation
   .action(async (address: Address, amountOfShares: string) => {
     const contract = getDelegationContract(address);
 
-    await callWriteMethod(contract, 'burnStETH', [BigInt(amountOfShares)]);
+    await callWriteMethodWithReceipt(contract, 'burnStETH', [
+      BigInt(amountOfShares),
+    ]);
   });
 
 delegation
@@ -601,7 +626,7 @@ delegation
   .action(async (address: Address, tokens: string) => {
     const contract = getDelegationContract(address);
 
-    await callWriteMethod(contract, 'burnWstETH', [BigInt(tokens)]);
+    await callWriteMethodWithReceipt(contract, 'burnWstETH', [BigInt(tokens)]);
   });
 
 delegation
@@ -619,7 +644,7 @@ delegation
     const permit = JSON.parse(permitJSON) as Permit;
     const contract = getDelegationContract(address);
 
-    await callWriteMethod(contract, 'burnSharesWithPermit', [
+    await callWriteMethodWithReceipt(contract, 'burnSharesWithPermit', [
       BigInt(tokens),
       permit,
     ]);
@@ -640,7 +665,7 @@ delegation
     const permit = JSON.parse(permitJSON) as Permit;
     const contract = getDelegationContract(address);
 
-    await callWriteMethod(contract, 'burnStETHWithPermit', [
+    await callWriteMethodWithReceipt(contract, 'burnStETHWithPermit', [
       BigInt(tokens),
       permit,
     ]);
@@ -661,7 +686,7 @@ delegation
     const permit = JSON.parse(permitJSON) as Permit;
     const contract = getDelegationContract(address);
 
-    await callWriteMethod(contract, 'burnWstETHWithPermit', [
+    await callWriteMethodWithReceipt(contract, 'burnWstETHWithPermit', [
       BigInt(tokens),
       permit,
     ]);
@@ -688,7 +713,7 @@ delegation
     ) => {
       const contract = getDelegationContract(address);
 
-      await callWriteMethod(contract, 'recoverERC20', [
+      await callWriteMethodWithReceipt(contract, 'recoverERC20', [
         token,
         recipient,
         BigInt(amount),
@@ -714,7 +739,7 @@ delegation
     ) => {
       const contract = getDelegationContract(address);
 
-      await callWriteMethod(contract, 'recoverERC721', [
+      await callWriteMethodWithReceipt(contract, 'recoverERC721', [
         token,
         BigInt(tokenId),
         recipient,
@@ -737,7 +762,7 @@ delegation
       );
     }
 
-    await callWriteMethod(contract, 'grantRoles', [payload]);
+    await callWriteMethodWithReceipt(contract, 'grantRoles', [payload]);
   });
 
 delegation
@@ -755,5 +780,5 @@ delegation
       );
     }
 
-    await callWriteMethod(contract, 'revokeRoles', [payload]);
+    await callWriteMethodWithReceipt(contract, 'revokeRoles', [payload]);
   });
