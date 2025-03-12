@@ -1,4 +1,4 @@
-import { Address } from 'viem';
+import { Address, Hex } from 'viem';
 import { program } from 'command';
 
 import { getStakingVaultContract } from 'contracts';
@@ -7,6 +7,7 @@ import {
   callWriteMethodWithReceipt,
   callReadMethod,
   isContractAddress,
+  confirmFund,
 } from 'utils';
 
 const vault = program.command('vault').description('vault contract');
@@ -26,10 +27,14 @@ vault
       const valuation = await contract.read.valuation();
       const version = await contract.read.version();
       const initializedVersion = await contract.read.getInitializedVersion();
-      const depositContract = await contract.read.depositContract();
+      const depositContract = await contract.read.DEPOSIT_CONTRACT();
+      const vaultHub = await contract.read.vaultHub();
       const nodeOperator = await contract.read.nodeOperator();
       const owner = await contract.read.owner();
-      const isBalanced = await contract.read.isBalanced();
+      const locked = await contract.read.locked();
+      const unlocked = await contract.read.unlocked();
+      const isBeaconChainDepositsPaused =
+        await contract.read.beaconChainDepositsPaused();
       const isOwnerContract = await isContractAddress(owner);
 
       const payload = {
@@ -38,10 +43,13 @@ vault
         inOutDelta,
         balance,
         valuation,
-        isBalanced,
+        locked,
+        unlocked,
+        isBeaconChainDepositsPaused,
         version,
         initializedVersion,
         depositContract,
+        vaultHub,
         nodeOperator,
         owner,
         isOwnerContract,
@@ -69,18 +77,7 @@ vault
   });
 
 // Works
-vault
-  .command('is-balanced')
-  .description(
-    'returns whether `StakingVault` is balanced, i.e. its valuation is greater than the locked amount',
-  )
-  .argument('<address>', 'vault address')
-  .action(async (address: Address) => {
-    const contract = getStakingVaultContract(address);
-    const isBalanced = await callReadMethod(contract, 'isBalanced');
 
-    console.table({ 'Is balanced': isBalanced });
-  });
 vault
   .command('node-operator')
   .description('Returns the address of the node operator')
@@ -143,9 +140,12 @@ vault
 vault
   .command('fund')
   .description('fund vault')
-  .argument('<address>', 'vault address')
-  .argument('<wei>', 'amount to fund (in WEI)')
-  .action(async (address: Address, amount: string) => {
+  .option('-a, --address <address>', 'vault address')
+  .option('-e, --ether <ether>', 'amount of ether to be funded (in WEI)')
+  .action(async ({ address, ether }: { address: Address; ether: string }) => {
+    const { address: vault, amount } = await confirmFund(address, ether);
+    if (!vault || !amount) return;
+
     const contract = getStakingVaultContract(address);
 
     await callWriteMethodWithReceipt(contract, 'fund', [], BigInt(amount));
@@ -320,5 +320,54 @@ vault
       );
 
       console.table({ 'Encoded data': encodedData });
+    },
+  );
+
+vault
+  .command('rebalance')
+  .description('Rebalances the vault')
+  .argument('<address>', 'vault address')
+  .argument('<amount>', 'amount to rebalance (in WEI)')
+  .action(async (address: Address, amount: string) => {
+    const contract = getStakingVaultContract(address);
+
+    await callWriteMethodWithReceipt(contract, 'rebalance', [BigInt(amount)]);
+  });
+
+vault
+  .command('calculateValidatorWithdrawalFee')
+  .description('Calculates the withdrawal fee for a validator')
+  .argument('<address>', 'vault address')
+  .argument('<numberOfKeys>', 'number of validators public keys')
+  .action(async (address: Address, numberOfKeys: string) => {
+    const contract = getStakingVaultContract(address);
+
+    await callReadMethod(contract, 'calculateValidatorWithdrawalFee', [
+      BigInt(numberOfKeys),
+    ]);
+  });
+
+vault
+  .command('trigger-v-w')
+  .description('Trigger validator withdrawal')
+  .argument('<address>', 'vault address')
+  .argument('<pubkeys>', 'validator public keys')
+  .argument('<amounts>', 'amounts to withdraw (in WEI)')
+  .argument('<refundRecipient>', 'refund recipient address')
+  .action(
+    async (
+      address: Address,
+      pubkeys: Hex[],
+      amount: string[],
+      refundRecipient: Address,
+    ) => {
+      const contract = getStakingVaultContract(address);
+      const concatenatedPubkeys = pubkeys.join('') as `0x${string}`;
+
+      await callWriteMethodWithReceipt(contract, 'triggerValidatorWithdrawal', [
+        concatenatedPubkeys,
+        amount.map((a) => BigInt(a)),
+        refundRecipient,
+      ]);
     },
   );
