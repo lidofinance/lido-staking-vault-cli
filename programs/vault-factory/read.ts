@@ -1,6 +1,6 @@
 import { getVaultFactoryContract } from 'contracts';
 import { VaultFactoryAbi } from 'abi';
-import { generateVaultCommands } from 'utils';
+import { generateReadCommands } from 'utils';
 
 import { vaultFactory } from './main.js';
 import { readCommandConfig } from './config.js';
@@ -25,7 +25,7 @@ vaultFactory
     }
   });
 
-generateVaultCommands(
+generateReadCommands(
   VaultFactoryAbi,
   getVaultFactoryContract,
   vaultFactory,

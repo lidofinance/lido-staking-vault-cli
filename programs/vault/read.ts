@@ -3,17 +3,10 @@ import { Address } from 'viem';
 import { getStakingVaultContract } from 'contracts';
 import { getPublicClient } from 'providers';
 import { StakingVaultAbi } from 'abi';
-import { generateVaultCommands, isContractAddress, printError } from 'utils';
+import { generateReadCommands, isContractAddress, printError } from 'utils';
 
 import { vault } from './main.js';
 import { readCommandConfig } from './config.js';
-
-generateVaultCommands(
-  StakingVaultAbi,
-  getStakingVaultContract,
-  vault,
-  readCommandConfig,
-);
 
 vault
   .command('info')
@@ -63,3 +56,10 @@ vault
       printError(err, 'Error when calling read method "info"');
     }
   });
+
+generateReadCommands(
+  StakingVaultAbi,
+  getStakingVaultContract,
+  vault,
+  readCommandConfig,
+);
