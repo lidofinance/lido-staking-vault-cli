@@ -226,28 +226,34 @@ lsv-cli vault -h
 
 #### API
 
-| Command                                                                              | Description                                                          |
-| ------------------------------------------------------------------------------------ | -------------------------------------------------------------------- |
-| info \<address>                                                                      | get vault base info                                                  |
-| l-report \<address>                                                                  | get latest vault report                                              |
-| node-operator \<address>                                                             | returns the address of the node operator                             |
-| valuation \<address>                                                                 | get vault valuation                                                  |
-| unlocked \<address>                                                                  | get vault unlocked                                                   |
-| locked \<address>                                                                    | get vault locked                                                     |
-| withdrawal-c \<address>                                                              | get vault withdrawal credentials                                     |
-| fund \<address> \<wei>                                                               | fund vault                                                           |
-| withdraw \<address> \<recipient> \<wei>                                              | withdraw from vault                                                  |
-| rebalance \<address> \<amount>                                                       | rebalance vault                                                      |
-| no-deposit-beacon \<address> \<numberOfDeposits> \<pubkeys> \<signatures>            | deposit to beacon chain                                              |
-| no-val-exit \<address> \<validatorPublicKey>                                         | request to exit validator                                            |
-| delta \<address>                                                                     | the net difference between deposits and withdrawals                  |
-| is-paused \<address>                                                                 | Returns whether deposits are paused by the vault owner               |
-| bc-resume \<address>                                                                 | Resumes deposits to beacon chain                                     |
-| bc-pause \<address>                                                                  | Pauses deposits to beacon chain                                      |
-| report \<address> \<valuation> \<inOutDelta> \<locked>                               | Submits a report containing valuation, inOutDelta, and locked amount |
-| compute-deposit \<address> \<pubkey> \<withdrawalCredentials> \<signature> \<amount> | Computes the deposit data root for a validator deposit               |
-| calculateValidatorWithdrawalFee \<address> \<numberOfKeys>                           | Calculates the withdrawal fee for a validator                        |
-| trigger-v-w \<address> \<pubkeys> \<amounts> \<refundRecipient>                      | Trigger validator withdrawal                                         |
+| Command                                                                                             | Description                                                            |
+| --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| deposit-contract \<address>                                                                         | get vault deposit contract                                             |
+| PUBLIC_KEY_LENGTH \<address>                                                                        | Calls the read-only function "PUBLIC_KEY_LENGTH" on the contract.      |
+| is-paused \<address>                                                                                | get whether deposits are paused by the vault owner                     |
+| validator-w-fee \<address> \<numberOfKeys>                                                          | get calculated withdrawal fee for a validator                          |
+| computeDepositDataRoot \<address> \<\_pubkey> \<\_withdrawalCredentials> \<\_signature> \<\_amount> | Calls the read-only function "computeDepositDataRoot" on the contract. |
+| getInitializedVersion \<address>                                                                    | Calls the read-only function "getInitializedVersion" on the contract.  |
+| delta \<address>                                                                                    | get the net difference between deposits and withdrawals                |
+| l-report \<address>                                                                                 | get latest vault report                                                |
+| locked \<address>                                                                                   | get vault locked                                                       |
+| no \<address>                                                                                       | get vault node operator                                                |
+| owner \<address>                                                                                    | get vault owner                                                        |
+| unlocked \<address>                                                                                 | get vault unlocked                                                     |
+| valuation \<address>                                                                                | get vault valuation                                                    |
+| vault-hub \<address>                                                                                | get vault hub                                                          |
+| version \<address>                                                                                  | get vault version                                                      |
+| wc \<address>                                                                                       | get vault withdrawal credentials                                       |
+| info \<address>                                                                                     | get vault base info                                                    |
+| fund                                                                                                | fund vault                                                             |
+| withdraw \<address> \<recipient> \<wei>                                                             | withdraw from vault                                                    |
+| no-deposit-beacon \<address> \<amountOfDeposit> \<pubkey> \<signature> \<depositDataRoot>           | deposit to beacon chain                                                |
+| no-val-exit \<address> \<validatorPublicKey>                                                        | request to exit validator                                              |
+| bc-resume \<address>                                                                                | Resumes deposits to beacon chain                                       |
+| bc-pause \<address>                                                                                 | Pauses deposits to beacon chain                                        |
+| report \<address> \<valuation> \<inOutDelta> \<locked>                                              | Submits a report containing valuation, inOutDelta, and locked amount   |
+| rebalance \<address> \<amount>                                                                      | Rebalances the vault                                                   |
+| trigger-v-w \<address> \<pubkeys> \<amounts> \<refundRecipient>                                     | Trigger validator withdrawal                                           |
 
 ### Dashboard
 
