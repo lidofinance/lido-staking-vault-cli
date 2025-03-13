@@ -16,17 +16,33 @@ export type ReadProgramCommandConfig = {
   };
 };
 
+export function generateReadCommands<T>(
+  abi: Abi,
+  createContract: (address: T) => ReadContract,
+  command: Command,
+  commandConfig: ReadProgramCommandConfig,
+): Command;
+export function generateReadCommands(
+  abi: Abi,
+  createContractAsync: () => Promise<ReadContract>,
+  command: Command,
+  commandConfig: ReadProgramCommandConfig,
+): Command;
+
 /**
  * Generates a CLI command based on the provided ABI.
  * Only functions with stateMutability === 'view' or 'pure' are taken.
  * Allows adding custom descriptions.
  */
-export const generateReadCommands = <T>(
+// eslint-disable-next-line func-style
+export function generateReadCommands<T>(
   abi: Abi,
-  createContract: (address: T) => ReadContract,
+  createContractOrContract:
+    | ((address: T) => ReadContract)
+    | (() => Promise<ReadContract>),
   command: Command,
   commandConfig: ReadProgramCommandConfig,
-): Command => {
+): Command {
   // Filter only view/pure functions
   const readOnlyFunctions = abi.filter(
     (entry: any) =>
@@ -34,6 +50,14 @@ export const generateReadCommands = <T>(
       (entry.stateMutability === 'view' || entry.stateMutability === 'pure') &&
       entry.name,
   );
+
+  // Check if the contract is already created
+  const isNeedsAddress =
+    (
+      createContractOrContract as
+        | ((address: T) => ReadContract)
+        | (() => Promise<ReadContract>)
+    ).length === 1;
 
   // Generate subcommands
   readOnlyFunctions.forEach((fn: any) => {
@@ -54,8 +78,10 @@ export const generateReadCommands = <T>(
       .command(commandName)
       .description(commandDescription);
 
-    // The first argument is the contract address
-    fnCommand.argument('<address>', 'Contract address');
+    // If the contract needs an address, add the <address> argument
+    if (isNeedsAddress) {
+      fnCommand.argument('<address>', 'Contract address');
+    }
 
     // Add arguments for each function parameter
     inputs.forEach((input: any, index: number) => {
@@ -79,15 +105,29 @@ export const generateReadCommands = <T>(
       else fnCommand.argument(`<${cliArgName}>`, cliArgDesc);
     });
 
-    fnCommand.action(async (...args: any[]) => {
+    fnCommand.action(async (...cliArgs: any[]) => {
       try {
-        // First part of args is the contract address
-        const address = args[0];
-        // Function parameters start from the second element
-        const fnArgs =
-          inputs.length > 0 ? args.slice(1, args.length - 1) : undefined;
+        let contract: ReadContract;
+        let fnArgs: any[] | undefined;
 
-        const contract = createContract(address);
+        if (isNeedsAddress) {
+          // The first argument is the contract address
+          const address = cliArgs[0];
+          // The rest are the function arguments
+          fnArgs = cliArgs.slice(1);
+          // Create the contract
+          contract = (createContractOrContract as (address: T) => ReadContract)(
+            address,
+          );
+        } else {
+          // Create the contract async
+          contract = await (
+            createContractOrContract as () => Promise<ReadContract>
+          )();
+          fnArgs = cliArgs; // all the passed arguments are the function arguments
+        }
+
+        fnArgs = inputs.length > 0 ? fnArgs : undefined;
 
         if (fnArgs) await callReadMethod(contract, fnName, fnArgs);
         else await callReadMethod(contract, fnName);
@@ -99,4 +139,4 @@ export const generateReadCommands = <T>(
   });
 
   return command;
-};
+}
