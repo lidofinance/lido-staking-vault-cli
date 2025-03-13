@@ -1,5 +1,5 @@
 import { getContract, createPublicClient, http } from 'viem';
-import { lidoLocator } from 'abi/index.js';
+import { LidoLocatorAbi } from 'abi';
 import { getChain, getLocatorAddress, getRpcUrl } from 'configs';
 
 export const getLocatorContract = () => {
@@ -8,7 +8,7 @@ export const getLocatorContract = () => {
 
   return getContract({
     address,
-    abi: lidoLocator,
+    abi: LidoLocatorAbi,
     client: createPublicClient({
       chain: getChain(),
       transport: http(rpcUrl),

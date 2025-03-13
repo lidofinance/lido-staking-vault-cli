@@ -1,1379 +1,1497 @@
 export const DashboardAbi = [
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "_wETH",
-        "type": "address"
+        internalType: 'address',
+        name: '_wETH',
+        type: 'address',
       },
       {
-        "internalType": "address",
-        "name": "_lidoLocator",
-        "type": "address"
-      }
+        internalType: 'address',
+        name: '_lidoLocator',
+        type: 'address',
+      },
     ],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
+    stateMutability: 'nonpayable',
+    type: 'constructor',
   },
   {
-    "inputs": [],
-    "name": "AccessControlBadConfirmation",
-    "type": "error"
+    inputs: [],
+    name: 'AccessControlBadConfirmation',
+    type: 'error',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
+        internalType: 'address',
+        name: 'account',
+        type: 'address',
       },
       {
-        "internalType": "bytes32",
-        "name": "neededRole",
-        "type": "bytes32"
-      }
+        internalType: 'bytes32',
+        name: 'neededRole',
+        type: 'bytes32',
+      },
     ],
-    "name": "AccessControlUnauthorizedAccount",
-    "type": "error"
+    name: 'AccessControlUnauthorizedAccount',
+    type: 'error',
   },
   {
-    "inputs": [],
-    "name": "AlreadyInitialized",
-    "type": "error"
+    inputs: [],
+    name: 'AlreadyInitialized',
+    type: 'error',
   },
   {
-    "inputs": [
+    inputs: [],
+    name: 'ConfirmExpiryOutOfBounds',
+    type: 'error',
+  },
+  {
+    inputs: [
       {
-        "internalType": "address",
-        "name": "recipient",
-        "type": "address"
+        internalType: 'address',
+        name: 'recipient',
+        type: 'address',
       },
       {
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
+        internalType: 'uint256',
+        name: 'amount',
+        type: 'uint256',
+      },
     ],
-    "name": "EthTransferFailed",
-    "type": "error"
+    name: 'EthTransferFailed',
+    type: 'error',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "token",
-        "type": "address"
-      }
+        internalType: 'address',
+        name: 'token',
+        type: 'address',
+      },
     ],
-    "name": "InvalidPermit",
-    "type": "error"
+    name: 'InvalidPermit',
+    type: 'error',
   },
   {
-    "inputs": [],
-    "name": "NonProxyCallsForbidden",
-    "type": "error"
+    inputs: [],
+    name: 'NonProxyCallsForbidden',
+    type: 'error',
   },
   {
-    "inputs": [],
-    "name": "NotACommitteeMember",
-    "type": "error"
-  },
-  {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "token",
-        "type": "address"
-      }
+        internalType: 'address',
+        name: 'token',
+        type: 'address',
+      },
     ],
-    "name": "SafeERC20FailedOperation",
-    "type": "error"
+    name: 'SafeERC20FailedOperation',
+    type: 'error',
   },
   {
-    "inputs": [],
-    "name": "VoteLifetimeCannotBeZero",
-    "type": "error"
+    inputs: [],
+    name: 'SenderNotMember',
+    type: 'error',
   },
   {
-    "inputs": [],
-    "name": "VoteLifetimeNotSet",
-    "type": "error"
-  },
-  {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "string",
-        "name": "argument",
-        "type": "string"
-      }
+        internalType: 'string',
+        name: 'argument',
+        type: 'string',
+      },
     ],
-    "name": "ZeroArgument",
-    "type": "error"
+    name: 'ZeroArgument',
+    type: 'error',
   },
   {
-    "anonymous": false,
-    "inputs": [
+    inputs: [],
+    name: 'ZeroConfirmingRoles',
+    type: 'error',
+  },
+  {
+    anonymous: false,
+    inputs: [
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "to",
-        "type": "address"
+        indexed: true,
+        internalType: 'address',
+        name: 'sender',
+        type: 'address',
       },
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "token",
-        "type": "address"
+        indexed: false,
+        internalType: 'uint256',
+        name: 'oldConfirmExpiry',
+        type: 'uint256',
       },
       {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
+        indexed: false,
+        internalType: 'uint256',
+        name: 'newConfirmExpiry',
+        type: 'uint256',
+      },
     ],
-    "name": "ERC20Recovered",
-    "type": "event"
+    name: 'ConfirmExpirySet',
+    type: 'event',
   },
   {
-    "anonymous": false,
-    "inputs": [
+    anonymous: false,
+    inputs: [
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "to",
-        "type": "address"
+        indexed: true,
+        internalType: 'address',
+        name: 'to',
+        type: 'address',
       },
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "token",
-        "type": "address"
+        indexed: true,
+        internalType: 'address',
+        name: 'token',
+        type: 'address',
       },
       {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "tokenId",
-        "type": "uint256"
-      }
+        indexed: false,
+        internalType: 'uint256',
+        name: 'amount',
+        type: 'uint256',
+      },
     ],
-    "name": "ERC721Recovered",
-    "type": "event"
+    name: 'ERC20Recovered',
+    type: 'event',
   },
   {
-    "anonymous": false,
-    "inputs": [],
-    "name": "Initialized",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
+    anonymous: false,
+    inputs: [
       {
-        "indexed": true,
-        "internalType": "bytes32",
-        "name": "role",
-        "type": "bytes32"
+        indexed: true,
+        internalType: 'address',
+        name: 'to',
+        type: 'address',
       },
       {
-        "indexed": true,
-        "internalType": "bytes32",
-        "name": "previousAdminRole",
-        "type": "bytes32"
+        indexed: true,
+        internalType: 'address',
+        name: 'token',
+        type: 'address',
       },
       {
-        "indexed": true,
-        "internalType": "bytes32",
-        "name": "newAdminRole",
-        "type": "bytes32"
-      }
+        indexed: false,
+        internalType: 'uint256',
+        name: 'tokenId',
+        type: 'uint256',
+      },
     ],
-    "name": "RoleAdminChanged",
-    "type": "event"
+    name: 'ERC721Recovered',
+    type: 'event',
   },
   {
-    "anonymous": false,
-    "inputs": [
+    anonymous: false,
+    inputs: [
       {
-        "indexed": true,
-        "internalType": "bytes32",
-        "name": "role",
-        "type": "bytes32"
+        indexed: false,
+        internalType: 'address',
+        name: '_defaultAdmin',
+        type: 'address',
+      },
+    ],
+    name: 'Initialized',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'bytes32',
+        name: 'role',
+        type: 'bytes32',
       },
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
+        indexed: true,
+        internalType: 'bytes32',
+        name: 'previousAdminRole',
+        type: 'bytes32',
       },
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "sender",
-        "type": "address"
-      }
+        indexed: true,
+        internalType: 'bytes32',
+        name: 'newAdminRole',
+        type: 'bytes32',
+      },
     ],
-    "name": "RoleGranted",
-    "type": "event"
+    name: 'RoleAdminChanged',
+    type: 'event',
   },
   {
-    "anonymous": false,
-    "inputs": [
+    anonymous: false,
+    inputs: [
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "member",
-        "type": "address"
+        indexed: true,
+        internalType: 'bytes32',
+        name: 'role',
+        type: 'bytes32',
       },
       {
-        "indexed": true,
-        "internalType": "bytes32",
-        "name": "role",
-        "type": "bytes32"
+        indexed: true,
+        internalType: 'address',
+        name: 'account',
+        type: 'address',
       },
       {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "timestamp",
-        "type": "uint256"
+        indexed: true,
+        internalType: 'address',
+        name: 'sender',
+        type: 'address',
+      },
+    ],
+    name: 'RoleGranted',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'member',
+        type: 'address',
       },
       {
-        "indexed": false,
-        "internalType": "bytes",
-        "name": "data",
-        "type": "bytes"
-      }
-    ],
-    "name": "RoleMemberVoted",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "bytes32",
-        "name": "role",
-        "type": "bytes32"
+        indexed: true,
+        internalType: 'bytes32',
+        name: 'role',
+        type: 'bytes32',
       },
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
+        indexed: false,
+        internalType: 'uint256',
+        name: 'expiryTimestamp',
+        type: 'uint256',
       },
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "sender",
-        "type": "address"
-      }
+        indexed: false,
+        internalType: 'bytes',
+        name: 'data',
+        type: 'bytes',
+      },
     ],
-    "name": "RoleRevoked",
-    "type": "event"
+    name: 'RoleMemberConfirmed',
+    type: 'event',
   },
   {
-    "anonymous": false,
-    "inputs": [
+    anonymous: false,
+    inputs: [
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "sender",
-        "type": "address"
+        indexed: true,
+        internalType: 'bytes32',
+        name: 'role',
+        type: 'bytes32',
       },
       {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "oldVoteLifetime",
-        "type": "uint256"
+        indexed: true,
+        internalType: 'address',
+        name: 'account',
+        type: 'address',
       },
       {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "newVoteLifetime",
-        "type": "uint256"
-      }
+        indexed: true,
+        internalType: 'address',
+        name: 'sender',
+        type: 'address',
+      },
     ],
-    "name": "VoteLifetimeSet",
-    "type": "event"
+    name: 'RoleRevoked',
+    type: 'event',
   },
   {
-    "inputs": [],
-    "name": "BURN_ROLE",
-    "outputs": [
+    inputs: [],
+    name: 'ASSET_RECOVERY_ROLE',
+    outputs: [
       {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
+        internalType: 'bytes32',
+        name: '',
+        type: 'bytes32',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [],
-    "name": "DEFAULT_ADMIN_ROLE",
-    "outputs": [
+    inputs: [],
+    name: 'BURN_ROLE',
+    outputs: [
       {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
+        internalType: 'bytes32',
+        name: '',
+        type: 'bytes32',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [],
-    "name": "ETH",
-    "outputs": [
+    inputs: [],
+    name: 'DEFAULT_ADMIN_ROLE',
+    outputs: [
       {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
+        internalType: 'bytes32',
+        name: '',
+        type: 'bytes32',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [],
-    "name": "FUND_ROLE",
-    "outputs": [
+    inputs: [],
+    name: 'ETH',
+    outputs: [
       {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
+        internalType: 'address',
+        name: '',
+        type: 'address',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [],
-    "name": "MINT_ROLE",
-    "outputs": [
+    inputs: [],
+    name: 'FUND_ROLE',
+    outputs: [
       {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
+        internalType: 'bytes32',
+        name: '',
+        type: 'bytes32',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [],
-    "name": "PAUSE_BEACON_CHAIN_DEPOSITS_ROLE",
-    "outputs": [
+    inputs: [],
+    name: 'MAX_CONFIRM_EXPIRY',
+    outputs: [
       {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [],
-    "name": "REBALANCE_ROLE",
-    "outputs": [
+    inputs: [],
+    name: 'MINT_ROLE',
+    outputs: [
       {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
+        internalType: 'bytes32',
+        name: '',
+        type: 'bytes32',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [],
-    "name": "REQUEST_VALIDATOR_EXIT_ROLE",
-    "outputs": [
+    inputs: [],
+    name: 'MIN_CONFIRM_EXPIRY',
+    outputs: [
       {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [],
-    "name": "RESUME_BEACON_CHAIN_DEPOSITS_ROLE",
-    "outputs": [
+    inputs: [],
+    name: 'PAUSE_BEACON_CHAIN_DEPOSITS_ROLE',
+    outputs: [
       {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
+        internalType: 'bytes32',
+        name: '',
+        type: 'bytes32',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [],
-    "name": "STETH",
-    "outputs": [
+    inputs: [],
+    name: 'PDG_WITHDRAWAL_ROLE',
+    outputs: [
       {
-        "internalType": "contract ILido",
-        "name": "",
-        "type": "address"
-      }
+        internalType: 'bytes32',
+        name: '',
+        type: 'bytes32',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [],
-    "name": "VOLUNTARY_DISCONNECT_ROLE",
-    "outputs": [
+    inputs: [],
+    name: 'REBALANCE_ROLE',
+    outputs: [
       {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
+        internalType: 'bytes32',
+        name: '',
+        type: 'bytes32',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [],
-    "name": "WETH",
-    "outputs": [
+    inputs: [],
+    name: 'REQUEST_VALIDATOR_EXIT_ROLE',
+    outputs: [
       {
-        "internalType": "contract IWETH9",
-        "name": "",
-        "type": "address"
-      }
+        internalType: 'bytes32',
+        name: '',
+        type: 'bytes32',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [],
-    "name": "WITHDRAW_ROLE",
-    "outputs": [
+    inputs: [],
+    name: 'RESUME_BEACON_CHAIN_DEPOSITS_ROLE',
+    outputs: [
       {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
+        internalType: 'bytes32',
+        name: '',
+        type: 'bytes32',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [],
-    "name": "WSTETH",
-    "outputs": [
+    inputs: [],
+    name: 'STETH',
+    outputs: [
       {
-        "internalType": "contract IWstETH",
-        "name": "",
-        "type": "address"
-      }
+        internalType: 'contract ILido',
+        name: '',
+        type: 'address',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [
+    inputs: [],
+    name: 'TRIGGER_VALIDATOR_WITHDRAWAL_ROLE',
+    outputs: [
       {
-        "internalType": "uint256",
-        "name": "_amountOfShares",
-        "type": "uint256"
-      }
+        internalType: 'bytes32',
+        name: '',
+        type: 'bytes32',
+      },
     ],
-    "name": "burnShares",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [
+    inputs: [],
+    name: 'VOLUNTARY_DISCONNECT_ROLE',
+    outputs: [
       {
-        "internalType": "uint256",
-        "name": "_amountOfShares",
-        "type": "uint256"
+        internalType: 'bytes32',
+        name: '',
+        type: 'bytes32',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'WETH',
+    outputs: [
+      {
+        internalType: 'contract IWETH9',
+        name: '',
+        type: 'address',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'WITHDRAW_ROLE',
+    outputs: [
+      {
+        internalType: 'bytes32',
+        name: '',
+        type: 'bytes32',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'WSTETH',
+    outputs: [
+      {
+        internalType: 'contract IWstETH',
+        name: '',
+        type: 'address',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: '_amountOfShares',
+        type: 'uint256',
+      },
+    ],
+    name: 'burnShares',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: '_amountOfShares',
+        type: 'uint256',
       },
       {
-        "components": [
+        components: [
           {
-            "internalType": "uint256",
-            "name": "value",
-            "type": "uint256"
+            internalType: 'uint256',
+            name: 'value',
+            type: 'uint256',
           },
           {
-            "internalType": "uint256",
-            "name": "deadline",
-            "type": "uint256"
+            internalType: 'uint256',
+            name: 'deadline',
+            type: 'uint256',
           },
           {
-            "internalType": "uint8",
-            "name": "v",
-            "type": "uint8"
+            internalType: 'uint8',
+            name: 'v',
+            type: 'uint8',
           },
           {
-            "internalType": "bytes32",
-            "name": "r",
-            "type": "bytes32"
+            internalType: 'bytes32',
+            name: 'r',
+            type: 'bytes32',
           },
           {
-            "internalType": "bytes32",
-            "name": "s",
-            "type": "bytes32"
-          }
+            internalType: 'bytes32',
+            name: 's',
+            type: 'bytes32',
+          },
         ],
-        "internalType": "struct Dashboard.PermitInput",
-        "name": "_permit",
-        "type": "tuple"
-      }
+        internalType: 'struct Dashboard.PermitInput',
+        name: '_permit',
+        type: 'tuple',
+      },
     ],
-    "name": "burnSharesWithPermit",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: 'burnSharesWithPermit',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "uint256",
-        "name": "_amountOfStETH",
-        "type": "uint256"
-      }
+        internalType: 'uint256',
+        name: '_amountOfStETH',
+        type: 'uint256',
+      },
     ],
-    "name": "burnStETH",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: 'burnStETH',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "uint256",
-        "name": "_amountOfStETH",
-        "type": "uint256"
+        internalType: 'uint256',
+        name: '_amountOfStETH',
+        type: 'uint256',
       },
       {
-        "components": [
+        components: [
           {
-            "internalType": "uint256",
-            "name": "value",
-            "type": "uint256"
+            internalType: 'uint256',
+            name: 'value',
+            type: 'uint256',
           },
           {
-            "internalType": "uint256",
-            "name": "deadline",
-            "type": "uint256"
+            internalType: 'uint256',
+            name: 'deadline',
+            type: 'uint256',
           },
           {
-            "internalType": "uint8",
-            "name": "v",
-            "type": "uint8"
+            internalType: 'uint8',
+            name: 'v',
+            type: 'uint8',
           },
           {
-            "internalType": "bytes32",
-            "name": "r",
-            "type": "bytes32"
+            internalType: 'bytes32',
+            name: 'r',
+            type: 'bytes32',
           },
           {
-            "internalType": "bytes32",
-            "name": "s",
-            "type": "bytes32"
-          }
+            internalType: 'bytes32',
+            name: 's',
+            type: 'bytes32',
+          },
         ],
-        "internalType": "struct Dashboard.PermitInput",
-        "name": "_permit",
-        "type": "tuple"
-      }
+        internalType: 'struct Dashboard.PermitInput',
+        name: '_permit',
+        type: 'tuple',
+      },
     ],
-    "name": "burnStETHWithPermit",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: 'burnStETHWithPermit',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "uint256",
-        "name": "_amountOfWstETH",
-        "type": "uint256"
-      }
+        internalType: 'uint256',
+        name: '_amountOfWstETH',
+        type: 'uint256',
+      },
     ],
-    "name": "burnWstETH",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: 'burnWstETH',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "uint256",
-        "name": "_amountOfWstETH",
-        "type": "uint256"
+        internalType: 'uint256',
+        name: '_amountOfWstETH',
+        type: 'uint256',
       },
       {
-        "components": [
+        components: [
           {
-            "internalType": "uint256",
-            "name": "value",
-            "type": "uint256"
+            internalType: 'uint256',
+            name: 'value',
+            type: 'uint256',
           },
           {
-            "internalType": "uint256",
-            "name": "deadline",
-            "type": "uint256"
+            internalType: 'uint256',
+            name: 'deadline',
+            type: 'uint256',
           },
           {
-            "internalType": "uint8",
-            "name": "v",
-            "type": "uint8"
+            internalType: 'uint8',
+            name: 'v',
+            type: 'uint8',
           },
           {
-            "internalType": "bytes32",
-            "name": "r",
-            "type": "bytes32"
+            internalType: 'bytes32',
+            name: 'r',
+            type: 'bytes32',
           },
           {
-            "internalType": "bytes32",
-            "name": "s",
-            "type": "bytes32"
-          }
+            internalType: 'bytes32',
+            name: 's',
+            type: 'bytes32',
+          },
         ],
-        "internalType": "struct Dashboard.PermitInput",
-        "name": "_permit",
-        "type": "tuple"
-      }
+        internalType: 'struct Dashboard.PermitInput',
+        name: '_permit',
+        type: 'tuple',
+      },
     ],
-    "name": "burnWstETHWithPermit",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: 'burnWstETHWithPermit',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "inputs": [],
-    "name": "fund",
-    "outputs": [],
-    "stateMutability": "payable",
-    "type": "function"
-  },
-  {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "uint256",
-        "name": "_amountOfWETH",
-        "type": "uint256"
-      }
-    ],
-    "name": "fundWeth",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "role",
-        "type": "bytes32"
-      }
-    ],
-    "name": "getRoleAdmin",
-    "outputs": [
-      {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "role",
-        "type": "bytes32"
+        internalType: 'bytes',
+        name: '_pubkey',
+        type: 'bytes',
       },
       {
-        "internalType": "uint256",
-        "name": "index",
-        "type": "uint256"
-      }
+        internalType: 'address',
+        name: '_recipient',
+        type: 'address',
+      },
     ],
-    "name": "getRoleMember",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
+    name: 'compensateDisprovenPredepositFromPDG',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "bytes32",
-        "name": "role",
-        "type": "bytes32"
-      }
-    ],
-    "name": "getRoleMemberCount",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "role",
-        "type": "bytes32"
-      }
-    ],
-    "name": "getRoleMembers",
-    "outputs": [
-      {
-        "internalType": "address[]",
-        "name": "",
-        "type": "address[]"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "role",
-        "type": "bytes32"
+        internalType: 'bytes',
+        name: 'callData',
+        type: 'bytes',
       },
       {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      }
+        internalType: 'bytes32',
+        name: 'role',
+        type: 'bytes32',
+      },
     ],
-    "name": "grantRole",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: 'confirmations',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: 'expiryTimestamp',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [
+    inputs: [],
+    name: 'confirmingRoles',
+    outputs: [
       {
-        "components": [
+        internalType: 'bytes32[]',
+        name: '',
+        type: 'bytes32[]',
+      },
+    ],
+    stateMutability: 'pure',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'fund',
+    outputs: [],
+    stateMutability: 'payable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: '_amountOfWETH',
+        type: 'uint256',
+      },
+    ],
+    name: 'fundWeth',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'getConfirmExpiry',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'bytes32',
+        name: 'role',
+        type: 'bytes32',
+      },
+    ],
+    name: 'getRoleAdmin',
+    outputs: [
+      {
+        internalType: 'bytes32',
+        name: '',
+        type: 'bytes32',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'bytes32',
+        name: 'role',
+        type: 'bytes32',
+      },
+      {
+        internalType: 'uint256',
+        name: 'index',
+        type: 'uint256',
+      },
+    ],
+    name: 'getRoleMember',
+    outputs: [
+      {
+        internalType: 'address',
+        name: '',
+        type: 'address',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'bytes32',
+        name: 'role',
+        type: 'bytes32',
+      },
+    ],
+    name: 'getRoleMemberCount',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'bytes32',
+        name: 'role',
+        type: 'bytes32',
+      },
+    ],
+    name: 'getRoleMembers',
+    outputs: [
+      {
+        internalType: 'address[]',
+        name: '',
+        type: 'address[]',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'bytes32',
+        name: 'role',
+        type: 'bytes32',
+      },
+      {
+        internalType: 'address',
+        name: 'account',
+        type: 'address',
+      },
+    ],
+    name: 'grantRole',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        components: [
           {
-            "internalType": "address",
-            "name": "account",
-            "type": "address"
+            internalType: 'address',
+            name: 'account',
+            type: 'address',
           },
           {
-            "internalType": "bytes32",
-            "name": "role",
-            "type": "bytes32"
-          }
+            internalType: 'bytes32',
+            name: 'role',
+            type: 'bytes32',
+          },
         ],
-        "internalType": "struct Dashboard.RoleAssignment[]",
-        "name": "_assignments",
-        "type": "tuple[]"
-      }
+        internalType: 'struct Permissions.RoleAssignment[]',
+        name: '_assignments',
+        type: 'tuple[]',
+      },
     ],
-    "name": "grantRoles",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: 'grantRoles',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "bytes32",
-        "name": "role",
-        "type": "bytes32"
+        internalType: 'bytes32',
+        name: 'role',
+        type: 'bytes32',
       },
       {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      }
+        internalType: 'address',
+        name: 'account',
+        type: 'address',
+      },
     ],
-    "name": "hasRole",
-    "outputs": [
+    name: 'hasRole',
+    outputs: [
       {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
+        internalType: 'bool',
+        name: '',
+        type: 'bool',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "_defaultAdmin",
-        "type": "address"
-      }
-    ],
-    "name": "initialize",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "initialized",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_recipient",
-        "type": "address"
+        internalType: 'address',
+        name: '_defaultAdmin',
+        type: 'address',
       },
       {
-        "internalType": "uint256",
-        "name": "_amountOfShares",
-        "type": "uint256"
-      }
+        internalType: 'uint256',
+        name: '_confirmExpiry',
+        type: 'uint256',
+      },
     ],
-    "name": "mintShares",
-    "outputs": [],
-    "stateMutability": "payable",
-    "type": "function"
+    name: 'initialize',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "inputs": [
+    inputs: [],
+    name: 'initialized',
+    outputs: [
       {
-        "internalType": "address",
-        "name": "_recipient",
-        "type": "address"
+        internalType: 'bool',
+        name: '',
+        type: 'bool',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: '_recipient',
+        type: 'address',
       },
       {
-        "internalType": "uint256",
-        "name": "_amountOfStETH",
-        "type": "uint256"
-      }
+        internalType: 'uint256',
+        name: '_amountOfShares',
+        type: 'uint256',
+      },
     ],
-    "name": "mintStETH",
-    "outputs": [],
-    "stateMutability": "payable",
-    "type": "function"
+    name: 'mintShares',
+    outputs: [],
+    stateMutability: 'payable',
+    type: 'function',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "_recipient",
-        "type": "address"
+        internalType: 'address',
+        name: '_recipient',
+        type: 'address',
       },
       {
-        "internalType": "uint256",
-        "name": "_amountOfWstETH",
-        "type": "uint256"
-      }
+        internalType: 'uint256',
+        name: '_amountOfStETH',
+        type: 'uint256',
+      },
     ],
-    "name": "mintWstETH",
-    "outputs": [],
-    "stateMutability": "payable",
-    "type": "function"
+    name: 'mintStETH',
+    outputs: [],
+    stateMutability: 'payable',
+    type: 'function',
   },
   {
-    "inputs": [],
-    "name": "pauseBeaconChainDeposits",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "uint256",
-        "name": "_etherToFund",
-        "type": "uint256"
-      }
-    ],
-    "name": "projectedNewMintableShares",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_ether",
-        "type": "uint256"
-      }
-    ],
-    "name": "rebalanceVault",
-    "outputs": [],
-    "stateMutability": "payable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_token",
-        "type": "address"
+        internalType: 'address',
+        name: '_recipient',
+        type: 'address',
       },
       {
-        "internalType": "address",
-        "name": "_recipient",
-        "type": "address"
+        internalType: 'uint256',
+        name: '_amountOfWstETH',
+        type: 'uint256',
+      },
+    ],
+    name: 'mintWstETH',
+    outputs: [],
+    stateMutability: 'payable',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'pauseBeaconChainDeposits',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: '_etherToFund',
+        type: 'uint256',
+      },
+    ],
+    name: 'projectedNewMintableShares',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'rebalanceThresholdBP',
+    outputs: [
+      {
+        internalType: 'uint16',
+        name: '',
+        type: 'uint16',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: '_ether',
+        type: 'uint256',
+      },
+    ],
+    name: 'rebalanceVault',
+    outputs: [],
+    stateMutability: 'payable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: '_token',
+        type: 'address',
       },
       {
-        "internalType": "uint256",
-        "name": "_amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "recoverERC20",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_token",
-        "type": "address"
+        internalType: 'address',
+        name: '_recipient',
+        type: 'address',
       },
       {
-        "internalType": "uint256",
-        "name": "_tokenId",
-        "type": "uint256"
+        internalType: 'uint256',
+        name: '_amount',
+        type: 'uint256',
+      },
+    ],
+    name: 'recoverERC20',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: '_token',
+        type: 'address',
       },
       {
-        "internalType": "address",
-        "name": "_recipient",
-        "type": "address"
-      }
-    ],
-    "name": "recoverERC721",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "role",
-        "type": "bytes32"
+        internalType: 'uint256',
+        name: '_tokenId',
+        type: 'uint256',
       },
       {
-        "internalType": "address",
-        "name": "callerConfirmation",
-        "type": "address"
-      }
+        internalType: 'address',
+        name: '_recipient',
+        type: 'address',
+      },
     ],
-    "name": "renounceRole",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: 'recoverERC721',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "bytes",
-        "name": "_validatorPublicKey",
-        "type": "bytes"
-      }
-    ],
-    "name": "requestValidatorExit",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "reserveRatioBP",
-    "outputs": [
-      {
-        "internalType": "uint16",
-        "name": "",
-        "type": "uint16"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "resumeBeaconChainDeposits",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "role",
-        "type": "bytes32"
+        internalType: 'bytes32',
+        name: 'role',
+        type: 'bytes32',
       },
       {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      }
+        internalType: 'address',
+        name: 'callerConfirmation',
+        type: 'address',
+      },
     ],
-    "name": "revokeRole",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: 'renounceRole',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "components": [
+        internalType: 'bytes',
+        name: '_pubkeys',
+        type: 'bytes',
+      },
+    ],
+    name: 'requestValidatorExit',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'reserveRatioBP',
+    outputs: [
+      {
+        internalType: 'uint16',
+        name: '',
+        type: 'uint16',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'resumeBeaconChainDeposits',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'bytes32',
+        name: 'role',
+        type: 'bytes32',
+      },
+      {
+        internalType: 'address',
+        name: 'account',
+        type: 'address',
+      },
+    ],
+    name: 'revokeRole',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        components: [
           {
-            "internalType": "address",
-            "name": "account",
-            "type": "address"
+            internalType: 'address',
+            name: 'account',
+            type: 'address',
           },
           {
-            "internalType": "bytes32",
-            "name": "role",
-            "type": "bytes32"
-          }
+            internalType: 'bytes32',
+            name: 'role',
+            type: 'bytes32',
+          },
         ],
-        "internalType": "struct Dashboard.RoleAssignment[]",
-        "name": "_assignments",
-        "type": "tuple[]"
-      }
+        internalType: 'struct Permissions.RoleAssignment[]',
+        name: '_assignments',
+        type: 'tuple[]',
+      },
     ],
-    "name": "revokeRoles",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: 'revokeRoles',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "inputs": [],
-    "name": "shareLimit",
-    "outputs": [
+    inputs: [],
+    name: 'shareLimit',
+    outputs: [
       {
-        "internalType": "uint96",
-        "name": "",
-        "type": "uint96"
-      }
+        internalType: 'uint96',
+        name: '',
+        type: 'uint96',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [],
-    "name": "sharesMinted",
-    "outputs": [
+    inputs: [],
+    name: 'sharesMinted',
+    outputs: [
       {
-        "internalType": "uint96",
-        "name": "",
-        "type": "uint96"
-      }
+        internalType: 'uint96',
+        name: '',
+        type: 'uint96',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [],
-    "name": "stakingVault",
-    "outputs": [
+    inputs: [],
+    name: 'stakingVault',
+    outputs: [
       {
-        "internalType": "contract IStakingVault",
-        "name": "",
-        "type": "address"
-      }
+        internalType: 'contract IStakingVault',
+        name: '',
+        type: 'address',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "bytes4",
-        "name": "interfaceId",
-        "type": "bytes4"
-      }
+        internalType: 'bytes4',
+        name: 'interfaceId',
+        type: 'bytes4',
+      },
     ],
-    "name": "supportsInterface",
-    "outputs": [
+    name: 'supportsInterface',
+    outputs: [
       {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
+        internalType: 'bool',
+        name: '',
+        type: 'bool',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [],
-    "name": "thresholdReserveRatioBP",
-    "outputs": [
+    inputs: [],
+    name: 'totalMintableShares',
+    outputs: [
       {
-        "internalType": "uint16",
-        "name": "",
-        "type": "uint16"
-      }
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [],
-    "name": "totalMintableShares",
-    "outputs": [
+    inputs: [
       {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
+        internalType: 'address',
+        name: '_newOwner',
+        type: 'address',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    name: 'transferStakingVaultOwnership',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "inputs": [
+    inputs: [],
+    name: 'treasuryFeeBP',
+    outputs: [
       {
-        "internalType": "address",
-        "name": "_newOwner",
-        "type": "address"
-      }
+        internalType: 'uint16',
+        name: '',
+        type: 'uint16',
+      },
     ],
-    "name": "transferStakingVaultOwnership",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [],
-    "name": "treasuryFee",
-    "outputs": [
+    inputs: [
       {
-        "internalType": "uint16",
-        "name": "",
-        "type": "uint16"
-      }
+        internalType: 'bytes',
+        name: '_pubkeys',
+        type: 'bytes',
+      },
+      {
+        internalType: 'uint64[]',
+        name: '_amounts',
+        type: 'uint64[]',
+      },
+      {
+        internalType: 'address',
+        name: '_refundRecipient',
+        type: 'address',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    name: 'triggerValidatorWithdrawal',
+    outputs: [],
+    stateMutability: 'payable',
+    type: 'function',
   },
   {
-    "inputs": [],
-    "name": "valuation",
-    "outputs": [
+    inputs: [],
+    name: 'valuation',
+    outputs: [
       {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [],
-    "name": "vaultHub",
-    "outputs": [
+    inputs: [],
+    name: 'vaultHub',
+    outputs: [
       {
-        "internalType": "contract VaultHub",
-        "name": "",
-        "type": "address"
-      }
+        internalType: 'contract VaultHub',
+        name: '',
+        type: 'address',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [],
-    "name": "vaultSocket",
-    "outputs": [
+    inputs: [],
+    name: 'vaultSocket',
+    outputs: [
       {
-        "components": [
+        components: [
           {
-            "internalType": "address",
-            "name": "vault",
-            "type": "address"
+            internalType: 'address',
+            name: 'vault',
+            type: 'address',
           },
           {
-            "internalType": "uint96",
-            "name": "sharesMinted",
-            "type": "uint96"
+            internalType: 'uint96',
+            name: 'sharesMinted',
+            type: 'uint96',
           },
           {
-            "internalType": "uint96",
-            "name": "shareLimit",
-            "type": "uint96"
+            internalType: 'uint96',
+            name: 'shareLimit',
+            type: 'uint96',
           },
           {
-            "internalType": "uint16",
-            "name": "reserveRatioBP",
-            "type": "uint16"
+            internalType: 'uint16',
+            name: 'reserveRatioBP',
+            type: 'uint16',
           },
           {
-            "internalType": "uint16",
-            "name": "reserveRatioThresholdBP",
-            "type": "uint16"
+            internalType: 'uint16',
+            name: 'rebalanceThresholdBP',
+            type: 'uint16',
           },
           {
-            "internalType": "uint16",
-            "name": "treasuryFeeBP",
-            "type": "uint16"
+            internalType: 'uint16',
+            name: 'treasuryFeeBP',
+            type: 'uint16',
           },
           {
-            "internalType": "bool",
-            "name": "isDisconnected",
-            "type": "bool"
-          }
+            internalType: 'bool',
+            name: 'pendingDisconnect',
+            type: 'bool',
+          },
         ],
-        "internalType": "struct VaultHub.VaultSocket",
-        "name": "",
-        "type": "tuple"
-      }
+        internalType: 'struct VaultHub.VaultSocket',
+        name: '',
+        type: 'tuple',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [],
-    "name": "voluntaryDisconnect",
-    "outputs": [],
-    "stateMutability": "payable",
-    "type": "function"
+    inputs: [],
+    name: 'voluntaryDisconnect',
+    outputs: [],
+    stateMutability: 'payable',
+    type: 'function',
   },
   {
-    "inputs": [],
-    "name": "voteLifetime",
-    "outputs": [
+    inputs: [
       {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "votingCommittee",
-    "outputs": [
-      {
-        "internalType": "bytes32[]",
-        "name": "",
-        "type": "bytes32[]"
-      }
-    ],
-    "stateMutability": "pure",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "callId",
-        "type": "bytes32"
+        internalType: 'address',
+        name: '_recipient',
+        type: 'address',
       },
       {
-        "internalType": "bytes32",
-        "name": "role",
-        "type": "bytes32"
-      }
+        internalType: 'uint256',
+        name: '_ether',
+        type: 'uint256',
+      },
     ],
-    "name": "votings",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "voteTimestamp",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
+    name: 'withdraw',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "_recipient",
-        "type": "address"
+        internalType: 'address',
+        name: '_recipient',
+        type: 'address',
       },
       {
-        "internalType": "uint256",
-        "name": "_ether",
-        "type": "uint256"
-      }
-    ],
-    "name": "withdraw",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_recipient",
-        "type": "address"
+        internalType: 'uint256',
+        name: '_amountOfWETH',
+        type: 'uint256',
       },
-      {
-        "internalType": "uint256",
-        "name": "_amountOfWETH",
-        "type": "uint256"
-      }
     ],
-    "name": "withdrawWETH",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: 'withdrawWETH',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "inputs": [],
-    "name": "withdrawableEther",
-    "outputs": [
+    inputs: [],
+    name: 'withdrawableEther',
+    outputs: [
       {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "stateMutability": "payable",
-    "type": "receive"
-  }
+    stateMutability: 'payable',
+    type: 'receive',
+  },
 ] as const;
