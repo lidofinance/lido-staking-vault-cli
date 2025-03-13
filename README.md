@@ -72,6 +72,7 @@ Application supported a few ways to adding or combine different settings
     "chainId": 1, // or another number of chain id
     "lidoLocator": "LIDO locator address", // take LIDO locator address in paticular chainId
     "accounting": "LIDO accountind address" // take LIDO accounting address in paticular chainId
+    "clLink": "url" // CL url
   }
   ```
   If you plan to manage contracts the **privateKey** is required property for this type of operations.
