@@ -18,14 +18,14 @@
     "prepare": "git config core.hooksPath .git-hooks || echo 'Not in a git repo'",
     "prepublishOnly": "node scripts/updateVersion.cjs"
   },
-  "homepage": "https://github.com/lidofinance/liquid-staking-vault-cli/",
+  "homepage": "https://github.com/lidofinance/lido-staking-vault-cli/",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/lidofinance/liquid-staking-vault-cli.git",
+    "url": "git+https://github.com/lidofinance/lido-staking-vault-cli.git",
     "directory": "packages/sdk"
   },
   "bugs": {
-    "url": "https://github.com/lidofinance/liquid-staking-vault-cli/issues"
+    "url": "https://github.com/lidofinance/lido-staking-vault-cli/issues"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
