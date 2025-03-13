@@ -26,6 +26,7 @@ delegation
     try {
       const CURATOR_FEE_CLAIM_ROLE =
         await contract.read.CURATOR_FEE_CLAIM_ROLE();
+      const CURATOR_FEE_SET_ROLE = await contract.read.CURATOR_FEE_SET_ROLE();
       const NODE_OPERATOR_MANAGER_ROLE =
         await contract.read.NODE_OPERATOR_MANAGER_ROLE();
       const NODE_OPERATOR_FEE_CLAIMER_ROLE =
@@ -43,9 +44,14 @@ delegation
         await contract.read.REQUEST_VALIDATOR_EXIT_ROLE();
       const VOLUNTARY_DISCONNECT_ROLE =
         await contract.read.VOLUNTARY_DISCONNECT_ROLE();
+      const TRIGGER_VALIDATOR_WITHDRAWAL_ROLE =
+        await contract.read.TRIGGER_VALIDATOR_WITHDRAWAL_ROLE();
+      const PDG_WITHDRAWAL_ROLE = await contract.read.PDG_WITHDRAWAL_ROLE();
+      const ASSET_RECOVERY_ROLE = await contract.read.ASSET_RECOVERY_ROLE();
 
       const payload = {
         CURATOR_FEE_CLAIM_ROLE,
+        CURATOR_FEE_SET_ROLE,
         NODE_OPERATOR_MANAGER_ROLE,
         NODE_OPERATOR_FEE_CLAIMER_ROLE,
         FUND_ROLE,
@@ -57,6 +63,9 @@ delegation
         RESUME_BEACON_CHAIN_DEPOSITS_ROLE,
         REQUEST_VALIDATOR_EXIT_ROLE,
         VOLUNTARY_DISCONNECT_ROLE,
+        TRIGGER_VALIDATOR_WITHDRAWAL_ROLE,
+        PDG_WITHDRAWAL_ROLE,
+        ASSET_RECOVERY_ROLE,
       };
 
       console.table(Object.entries(payload));
