@@ -21,7 +21,7 @@ export type ReadProgramCommandConfig = {
  * Only functions with stateMutability === 'view' or 'pure' are taken.
  * Allows adding custom descriptions.
  */
-export const generateVaultCommands = <T>(
+export const generateReadCommands = <T>(
   abi: Abi,
   createContract: (address: T) => ReadContract,
   command: Command,

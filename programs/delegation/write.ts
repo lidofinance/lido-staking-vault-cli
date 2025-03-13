@@ -1,172 +1,10 @@
 import { Address } from 'viem';
 
-import { program } from 'command';
-import { getDelegationContract, getStakingVaultContract } from 'contracts';
+import { getDelegationContract } from 'contracts';
 import { Permit, RoleAssignment } from 'types';
-import { callWriteMethodWithReceipt, callReadMethod } from 'utils';
-import { getBaseInfo } from 'features';
+import { callWriteMethodWithReceipt } from 'utils';
 
-const delegation = program
-  .command('delegation')
-  .description('delegation contract');
-
-delegation
-  .command('roles')
-  .description('get delegation contract roles info')
-  .argument('<address>', 'delegation contract address')
-  .action(async (address: Address) => {
-    const contract = getDelegationContract(address);
-
-    try {
-      const CURATOR_ROLE = await contract.read.CURATOR_ROLE();
-      const NODE_OPERATOR_MANAGER_ROLE =
-        await contract.read.NODE_OPERATOR_MANAGER_ROLE();
-      const NODE_OPERATOR_FEE_CLAIMER_ROLE =
-        await contract.read.NODE_OPERATOR_FEE_CLAIMER_ROLE();
-      const FUND_ROLE = await contract.read.FUND_ROLE();
-      const WITHDRAW_ROLE = await contract.read.WITHDRAW_ROLE();
-      const MINT_ROLE = await contract.read.MINT_ROLE();
-      const BURN_ROLE = await contract.read.BURN_ROLE();
-      const REBALANCE_ROLE = await contract.read.REBALANCE_ROLE();
-      const PAUSE_BEACON_CHAIN_DEPOSITS_ROLE =
-        await contract.read.PAUSE_BEACON_CHAIN_DEPOSITS_ROLE();
-      const RESUME_BEACON_CHAIN_DEPOSITS_ROLE =
-        await contract.read.RESUME_BEACON_CHAIN_DEPOSITS_ROLE();
-      const REQUEST_VALIDATOR_EXIT_ROLE =
-        await contract.read.REQUEST_VALIDATOR_EXIT_ROLE();
-      const VOLUNTARY_DISCONNECT_ROLE =
-        await contract.read.VOLUNTARY_DISCONNECT_ROLE();
-
-      const payload = {
-        CURATOR_ROLE,
-        NODE_OPERATOR_MANAGER_ROLE,
-        NODE_OPERATOR_FEE_CLAIMER_ROLE,
-        FUND_ROLE,
-        WITHDRAW_ROLE,
-        MINT_ROLE,
-        BURN_ROLE,
-        REBALANCE_ROLE,
-        PAUSE_BEACON_CHAIN_DEPOSITS_ROLE,
-        RESUME_BEACON_CHAIN_DEPOSITS_ROLE,
-        REQUEST_VALIDATOR_EXIT_ROLE,
-        VOLUNTARY_DISCONNECT_ROLE,
-      };
-
-      console.table(Object.entries(payload));
-    } catch (err) {
-      if (err instanceof Error) {
-        console.info('Error when getting roles:\n', err.message);
-      }
-    }
-  });
-
-delegation
-  .command('base-info')
-  .description('get delegation base info')
-  .argument('<address>', 'delegation address')
-  .action(async (address: Address) => {
-    const contract = getDelegationContract(address);
-    await getBaseInfo(contract);
-  });
-
-delegation
-  .command('voting-lifetime')
-  .description("get committee's voting lifetime period")
-  .argument('<address>', 'delegation contract address')
-  .action(async (address: Address) => {
-    const contract = getDelegationContract(address);
-
-    await callReadMethod(contract, 'voteLifetime');
-  });
-
-delegation
-  .command('is-healthy')
-  .description('get vault healthy info')
-  .argument('<address>', 'vault address')
-  .action(async (address: Address) => {
-    const contract = getDelegationContract(address);
-
-    try {
-      const valuation = await contract.read.valuation();
-      const curatorUnclaimedFee = await contract.read.curatorUnclaimedFee();
-      const nodeOperatorUnclaimedFee =
-        await contract.read.nodeOperatorUnclaimedFee();
-      const minted = await contract.read.sharesMinted();
-
-      const { vault } = await contract.read.vaultSocket();
-      const vaultContract = getStakingVaultContract(vault);
-      const locked = await vaultContract.read.locked();
-
-      const reserved = locked + curatorUnclaimedFee + nodeOperatorUnclaimedFee;
-      const valuationPerc = (valuation / (reserved + minted)) * 100n;
-      const isHealthy = valuationPerc >= 100n;
-
-      console.table({
-        'Vault Healthy': isHealthy,
-        Valuation: valuation,
-        'Curator Unclaimed Fee': curatorUnclaimedFee,
-        'Node Operator Unclaimed Fee': nodeOperatorUnclaimedFee,
-        Minted: minted,
-        Reserved: reserved,
-      });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.info('Error when getting info:\n', err.message);
-      }
-    }
-  });
-
-delegation
-  .command('voting-info')
-  .description('get committee votes')
-  .argument('<address>', 'delegation contract address')
-  .argument('<callId>', 'voting id')
-  .argument('<role>', 'role that voted')
-  .action(async (address: Address, callId: Address, role: Address) => {
-    const contract = getDelegationContract(address);
-
-    await callReadMethod(contract, 'votings', [callId, role]);
-  });
-
-delegation
-  .command('cf')
-  .description('Curator fee in basis points')
-  .argument('<address>', 'delegation contract address')
-  .action(async (address: Address) => {
-    const contract = getDelegationContract(address);
-
-    await callReadMethod(contract, 'curatorFeeBP');
-  });
-
-delegation
-  .command('cf-report')
-  .description(
-    'The last report for which curator fee was claimed. Updated on each claim.',
-  )
-  .argument('<address>', 'delegation contract address')
-  .action(async (address: Address) => {
-    const contract = getDelegationContract(address);
-
-    await callReadMethod(contract, 'curatorFeeClaimedReport');
-  });
-
-delegation
-  .command('cf-unclaimed')
-  .description(
-    `Returns the accumulated unclaimed curator fee in ether,
-    calculated as: U = (R * F) / T
-    where:
-    - U is the curator unclaimed fee;
-    - R is the StakingVault rewards accrued since the last curator fee claim;
-    - F is curatorFeeBP
-    - T is the total basis points, 10,000.`,
-  )
-  .argument('<address>', 'delegation contract address')
-  .action(async (address: Address) => {
-    const contract = getDelegationContract(address);
-
-    await callReadMethod(contract, 'curatorUnclaimedFee');
-  });
+import { delegation } from './main.js';
 
 delegation
   .command('cf-set')
@@ -190,53 +28,6 @@ delegation
     const contract = getDelegationContract(address);
 
     await callWriteMethodWithReceipt(contract, 'claimCuratorFee', [recipient]);
-  });
-
-delegation
-  .command('nof')
-  .description('Node operator fee in basis points')
-  .argument('<address>', 'delegation contract address')
-  .action(async (address: Address) => {
-    const contract = getDelegationContract(address);
-
-    try {
-      const nodeOperatorFeeBP = await contract.read.nodeOperatorFeeBP();
-      console.table({ 'Node Operator Fee BP:': nodeOperatorFeeBP });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.info('Error when getting Node Operator Fee BP:\n', err.message);
-      }
-    }
-  });
-
-delegation
-  .command('nof-report')
-  .description(
-    'The last report for which node operator fee was claimed. Updated on each claim.',
-  )
-  .argument('<address>', 'delegation contract address')
-  .action(async (address: Address) => {
-    const contract = getDelegationContract(address);
-
-    await callReadMethod(contract, 'nodeOperatorFeeClaimedReport');
-  });
-
-delegation
-  .command('nof-unclaimed')
-  .description(
-    `Returns the accumulated unclaimed node operator fee in ether,
-    calculated as: U = (R * F) / T
-    where:
-    - U is the node operator unclaimed fee;
-    - R is the StakingVault rewards accrued since the last node operator fee claim;
-    - F is nodeOperatorFeeBP
-    - T is the total basis points, 10,000.`,
-  )
-  .argument('<address>', 'delegation contract address')
-  .action(async (address: Address) => {
-    const contract = getDelegationContract(address);
-
-    await callReadMethod(contract, 'nodeOperatorUnclaimedFee');
   });
 
 delegation
@@ -269,31 +60,6 @@ delegation
     await callWriteMethodWithReceipt(contract, 'claimNodeOperatorFee', [
       recipient,
     ]);
-  });
-
-delegation
-  .command('unreserved')
-  .description('returns the unreserved amount of ether')
-  .argument('<address>', 'delegation contract address')
-  .action(async (address: Address) => {
-    const contract = getDelegationContract(address);
-
-    await callReadMethod(contract, 'unreserved');
-  });
-
-delegation
-  .command('vc')
-  .description('returns the voting committee')
-  .argument('<address>', 'delegation contract address')
-  .action(async (address: Address) => {
-    const contract = getDelegationContract(address);
-
-    const committeeList = await callReadMethod(contract, 'votingCommittee');
-    const committee = {
-      CURATOR_ROLE: committeeList[0],
-      NODE_OPERATOR_MANAGER_ROLE: committeeList[1],
-    };
-    console.table({ committee });
   });
 
 delegation
@@ -331,19 +97,6 @@ delegation
 
     await callWriteMethodWithReceipt(contract, 'rebalanceVault', [
       BigInt(ether),
-    ]);
-  });
-
-delegation
-  .command('set-vote-lt')
-  .description('sets the vote lifetime')
-  .argument('<address>', 'delegation contract address')
-  .argument('<newVoteLifetime>', 'new vote lifetime in seconds')
-  .action(async (address: Address, newVoteLifetime: string) => {
-    const contract = getDelegationContract(address);
-
-    await callWriteMethodWithReceipt(contract, 'setVoteLifetime', [
-      BigInt(newVoteLifetime),
     ]);
   });
 
@@ -391,111 +144,6 @@ delegation
     const contract = getDelegationContract(address);
 
     await callWriteMethodWithReceipt(contract, 'resumeBeaconChainDeposits', []);
-  });
-
-delegation
-  .command('vault')
-  .description('vault info')
-  .argument('<address>', 'delegation address')
-  .action(async (address: Address) => {
-    const contract = getDelegationContract(address);
-
-    await callReadMethod(contract, 'vaultSocket');
-  });
-
-delegation
-  .command('s-limit')
-  .description('shares limit')
-  .argument('<address>', 'delegation address')
-  .action(async (address: Address) => {
-    const contract = getDelegationContract(address);
-
-    await callReadMethod(contract, 'shareLimit');
-  });
-
-delegation
-  .command('s-minted')
-  .description('shares minted')
-  .argument('<address>', 'delegation address')
-  .action(async (address: Address) => {
-    const contract = getDelegationContract(address);
-
-    await callReadMethod(contract, 'sharesMinted');
-  });
-
-delegation
-  .command('reserve-ratio')
-  .description('vault reserve ratio of the vault')
-  .argument('<address>', 'delegation address')
-  .action(async (address: Address) => {
-    const contract = getDelegationContract(address);
-
-    await callReadMethod(contract, 'reserveRatioBP');
-  });
-
-delegation
-  .command('t-reserve-ratio')
-  .description('threshold reserve ratio of the vault')
-  .argument('<address>', 'delegation address')
-  .action(async (address: Address) => {
-    const contract = getDelegationContract(address);
-
-    await callReadMethod(contract, 'thresholdReserveRatioBP');
-  });
-
-delegation
-  .command('t-fee')
-  .description('treasury fee basis points')
-  .argument('<address>', 'delegation address')
-  .action(async (address: Address) => {
-    const contract = getDelegationContract(address);
-
-    await callReadMethod(contract, 'treasuryFee');
-  });
-
-delegation
-  .command('valuation')
-  .description('valuation of the vault in ether')
-  .argument('<address>', 'delegation address')
-  .action(async (address: Address) => {
-    const contract = getDelegationContract(address);
-
-    await callReadMethod(contract, 'valuation');
-  });
-
-delegation
-  .command('t-shares')
-  .description('total of shares that can be minted on the vault')
-  .argument('<address>', 'delegation address')
-  .action(async (address: Address) => {
-    const contract = getDelegationContract(address);
-
-    await callReadMethod(contract, 'totalMintableShares');
-  });
-
-delegation
-  .command('get-shares')
-  .description(
-    'maximum number of shares that can be minted with deposited ether',
-  )
-  .argument('<address>', 'delegation address')
-  .argument('<ether>', 'amount of ether to be funded')
-  .action(async (address: Address, ether: string) => {
-    const contract = getDelegationContract(address);
-
-    await callReadMethod(contract, 'projectedNewMintableShares', [
-      BigInt(ether),
-    ]);
-  });
-
-delegation
-  .command('withdrawable-eth')
-  .description('amount of ether that can be withdrawn from the staking vault')
-  .argument('<address>', 'delegation address')
-  .action(async (address: Address) => {
-    const contract = getDelegationContract(address);
-
-    await callReadMethod(contract, 'withdrawableEther');
   });
 
 delegation
@@ -781,4 +429,17 @@ delegation
     }
 
     await callWriteMethodWithReceipt(contract, 'revokeRoles', [payload]);
+  });
+
+delegation
+  .command('set-confirm-expiry')
+  .description('set the confirmation expiry')
+  .argument('<address>', 'delegation address')
+  .argument('<newConfirmExpiry>', 'new confirmation expiry')
+  .action(async (address: Address, newConfirmExpiry: string) => {
+    const contract = getDelegationContract(address);
+
+    await callWriteMethodWithReceipt(contract, 'setConfirmExpiry', [
+      BigInt(newConfirmExpiry),
+    ]);
   });

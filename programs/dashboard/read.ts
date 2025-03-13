@@ -1,7 +1,7 @@
 import { getDashboardContract } from 'contracts';
 import { Address } from 'viem';
 import { DashboardAbi } from 'abi';
-import { generateVaultCommands, textPrompt } from 'utils';
+import { generateReadCommands, textPrompt } from 'utils';
 import { getBaseInfo } from 'features';
 
 import { dashboard } from './main.js';
@@ -29,7 +29,7 @@ dashboard
     await getBaseInfo(contract);
   });
 
-generateVaultCommands(
+generateReadCommands(
   DashboardAbi,
   getDashboardContract,
   dashboard,
