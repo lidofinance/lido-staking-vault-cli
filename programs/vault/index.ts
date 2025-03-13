@@ -1,3 +1,3 @@
 export * from './main.js';
-export * from './view.js';
+export * from './read.js';
 export * from './write.js';
