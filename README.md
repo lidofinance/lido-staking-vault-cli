@@ -187,9 +187,12 @@ lsv-cli factory -h
 
 #### API
 
-| Command                                                              | Description           |
-| -------------------------------------------------------------------- | --------------------- |
-| create-vault \[-options] \<managerFee> \<performanceFee> \[quantity] | create vault contract |
+| Command                                                       | Description                                                     |
+| ------------------------------------------------------------- | --------------------------------------------------------------- |
+| constants                                                     | get vault factory constants info                                |
+| BEACON \<address>                                             | Calls the read-only function "BEACON" on the contract.          |
+| DELEGATION_IMPL \<address>                                    | Calls the read-only function "DELEGATION_IMPL" on the contract. |
+| create-vault \<curatorFeeBP> \<nodeOperatorFeeBP> \<quantity> | create vault contract                                           |
 
 Note: \[quantity] is optional argument, default 1
 **[options]**

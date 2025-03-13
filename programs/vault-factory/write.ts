@@ -1,57 +1,62 @@
 import { program } from 'command';
-import { getVaultFactoryContract } from 'contracts';
 import { createVault } from 'features';
 import { CreateVaultPayload, VaultWithDelegation } from 'types';
 import { validateAddressMap } from 'utils';
 
-const vaultFactory = program
-  .command('factory')
-  .description('vault factory contract');
-
-vaultFactory
-  .command('constants')
-  .description('get vault factory constants info')
-  .action(async () => {
-    const { contract } = getVaultFactoryContract();
-    try {
-      const beaconAddress = await contract.read.BEACON();
-      const delegationImplAddress = await contract.read.DELEGATION_IMPL();
-
-      console.table({
-        beaconAddress,
-        delegationImplAddress,
-      });
-    } catch (err) {
-      if (err instanceof Error) {
-        console.info('Error when getting constants:\n', err.message);
-      }
-    }
-  });
+import { vaultFactory } from './main.js';
 
 vaultFactory
   .command('create-vault')
   .description('create vault contract')
   .option('-a, --defaultAdmin <defaultAdmin>', 'default admin address')
-  .option('-f, --funder <funder>', 'funder role address')
-  .option('-w, --withdrawer <withdrawer>', 'withdrawer role address')
-  .option('-m, --minter <minter>', 'minter role address')
-  .option('-b, --burner <burner>', 'burner role address')
-  .option('-r, --rebalancer <rebalancer>', 'rebalancer role address')
-  .option('-p, --depositPauser <depositPauser>', 'depositPauser role address')
-  .option(
-    '-d, --depositResumer <depositResumer>',
-    'depositResumer role address',
-  )
-  .option('-e, --exitRequester <exitRequester>', 'exitRequester role address')
-  .option('-u, --disconnecter <disconnecter>', 'disconnecter role address')
-  .option('-c, --curator <curator>', 'curator address')
   .option(
     '-n, --nodeOperatorManager <nodeOperatorManager>',
     'node operator manager address',
   )
+  .option('-ar, --assetRecoverer <assetRecoverer>', 'asset recoverer address')
+  .option('-ce, --confirmExpiry <confirmExpiry>', 'confirm expiry')
+  .option('-f, --funders <funders>', 'funders role address')
+  .option('-w, --withdrawers <withdrawers>', 'withdrawers role address')
+  .option('-m, --minters <minters>', 'minters role address')
+  .option('-b, --burners <burners>', 'burners role address')
+  .option('-r, --rebalancers <rebalancers>', 'rebalancers role address')
+  .option(
+    '-p, --depositPausers <depositPausers>',
+    'depositPausers role address',
+  )
+  .option(
+    '-d, --depositResumers <depositResumers>',
+    'depositResumers role address',
+  )
+  .option(
+    '-e, --exitRequesters <exitRequesters>',
+    'exitRequesters role address',
+  )
+  .option('-u, --disconnecters <disconnecters>', 'disconnecters role address')
+  .option('-c, --curators <curators>', 'curators role address')
+  .option(
+    '-ve, --validatorExitRequesters <validatorExitRequesters>',
+    'validator exit requesters role addresses',
+  )
+  .option(
+    '-vt, --validatorWithdrawalTriggerers <validatorWithdrawalTriggerers>',
+    'validator withdrawal triggerers role address',
+  )
   .option(
     '-o, --nodeOperatorFeeClaimer <nodeOperatorFeeClaimer>',
     'node operator fee claimer address',
+  )
+  .option(
+    '-cfs, --curatorFeeSetters <curatorFeeSetters>',
+    'curator fee setters role addresses',
+  )
+  .option(
+    '-cfc, --curatorFeeClaimers <curatorFeeClaimers>',
+    'curator fee claimers role addresses',
+  )
+  .option(
+    '-nofc, --nodeOperatorFeeClaimers <nodeOperatorFeeClaimers>',
+    'node operator fee claimers role addresses',
   )
   .argument('<curatorFeeBP>', 'Vault curator fee, for e.g. 100 == 1%')
   .argument('<nodeOperatorFeeBP>', 'Node operator fee, for e.g. 100 == 1%')
