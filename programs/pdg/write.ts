@@ -42,7 +42,10 @@ pdg
     const validatorIndex = await confirmCreateProof(index);
     if (!validatorIndex) return;
 
-    const hideSpinner = showSpinner();
+    const hideSpinner = showSpinner({
+      type: 'bouncingBar',
+      message: 'Creating proof...',
+    });
     try {
       const packageProof = await createPDGProof(Number(validatorIndex));
       hideSpinner();
