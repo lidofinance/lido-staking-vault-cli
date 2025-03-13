@@ -9,11 +9,11 @@ import {
   printError,
 } from 'utils/index.js';
 
-const predepositGuarantee = program
-  .command('pdg')
-  .description('predeposit guarantee contract');
+const predepositGuaranteeHelpers = program
+  .command('pdg-helpers')
+  .description('predeposit guarantee helpers');
 
-predepositGuarantee
+predepositGuaranteeHelpers
   .command('create-proof-and-check')
   .option('-i, --index <index>', 'validator index')
   .description(
@@ -55,7 +55,7 @@ predepositGuarantee
     }
   });
 
-predepositGuarantee
+predepositGuaranteeHelpers
   .command('create-proof')
   .description('create predeposit proof by validator index')
   .option('-i, --index <index>', 'validator index')
@@ -81,7 +81,7 @@ predepositGuarantee
     console.info('-----------------------end-----------------------');
   });
 
-predepositGuarantee
+predepositGuaranteeHelpers
   .command('fv-gindex')
   .argument('<forks...>', 'fork name')
   .description('get first validator gindex')

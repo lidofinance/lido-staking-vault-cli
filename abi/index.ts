@@ -9,3 +9,4 @@ export * from './TokenManager.js';
 export * from './Voting.js';
 export * from './VaultHubViewer.js';
 export * from './CLProofVerifier.js';
+export * from './PredepositGuarantee.js';

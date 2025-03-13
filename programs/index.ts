@@ -7,3 +7,4 @@ export * from './vault/index.js';
 export * from './dashboard/index.js';
 export * from './vault-factory/index.js';
 export * from './delegation/index.js';
+export * from './pdg/index.js';
