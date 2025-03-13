@@ -1,155 +1,9 @@
-import { program } from 'command';
 import { getDashboardContract } from 'contracts';
-import { Address } from 'viem';
+import { Address, Hex } from 'viem';
 import { Permit, RoleAssignment } from 'types';
-import {
-  callWriteMethodWithReceipt,
-  callReadMethod,
-  textPrompt,
-  confirmFund,
-} from 'utils';
-import { getBaseInfo } from 'features';
+import { callWriteMethodWithReceipt, confirmFund } from 'utils';
 
-const dashboard = program
-  .command('dashboard')
-  .description('dashboard contract');
-
-dashboard
-  .command('info')
-  .description('get dashboard base info')
-  .option('-a, --address <address>', 'dashboard address')
-  .action(async ({ address }: { address: Address }) => {
-    let dashboardAddress = address;
-
-    if (!dashboardAddress) {
-      const answer = await textPrompt('Enter dashboard address', 'address');
-      dashboardAddress = answer.address;
-
-      if (!dashboardAddress) {
-        console.info('Command cancelled');
-        return;
-      }
-    }
-
-    const contract = getDashboardContract(dashboardAddress);
-
-    await getBaseInfo(contract);
-  });
-
-dashboard
-  .command('committee')
-  .description('voting committee info')
-  .argument('<address>', 'dashboard address')
-  .action(async (address: Address) => {
-    const contract = getDashboardContract(address);
-
-    await callReadMethod(contract, 'votingCommittee');
-  });
-
-dashboard
-  .command('vault')
-  .description('vault info')
-  .argument('<address>', 'dashboard address')
-  .action(async (address: Address) => {
-    const contract = getDashboardContract(address);
-
-    await callReadMethod(contract, 'vaultSocket');
-  });
-
-dashboard
-  .command('s-limit')
-  .description('shares limit')
-  .argument('<address>', 'dashboard address')
-  .action(async (address: Address) => {
-    const contract = getDashboardContract(address);
-
-    await callReadMethod(contract, 'shareLimit');
-  });
-
-dashboard
-  .command('s-minted')
-  .description('shares minted')
-  .argument('<address>', 'dashboard address')
-  .action(async (address: Address) => {
-    const contract = getDashboardContract(address);
-
-    await callReadMethod(contract, 'sharesMinted');
-  });
-
-dashboard
-  .command('reserve-ratio')
-  .description('vault reserve ratio of the vault')
-  .argument('<address>', 'dashboard address')
-  .action(async (address: Address) => {
-    const contract = getDashboardContract(address);
-
-    await callReadMethod(contract, 'reserveRatioBP');
-  });
-
-dashboard
-  .command('t-reserve-ratio')
-  .description('threshold reserve ratio of the vault')
-  .argument('<address>', 'dashboard address')
-  .action(async (address: Address) => {
-    const contract = getDashboardContract(address);
-
-    await callReadMethod(contract, 'thresholdReserveRatioBP');
-  });
-
-dashboard
-  .command('t-fee')
-  .description('treasury fee basis points')
-  .argument('<address>', 'dashboard address')
-  .action(async (address: Address) => {
-    const contract = getDashboardContract(address);
-
-    await callReadMethod(contract, 'treasuryFee');
-  });
-
-dashboard
-  .command('valuation')
-  .description('valuation of the vault in ether')
-  .argument('<address>', 'dashboard address')
-  .action(async (address: Address) => {
-    const contract = getDashboardContract(address);
-
-    await callReadMethod(contract, 'valuation');
-  });
-
-dashboard
-  .command('t-shares')
-  .description('total of shares that can be minted on the vault')
-  .argument('<address>', 'dashboard address')
-  .action(async (address: Address) => {
-    const contract = getDashboardContract(address);
-
-    await callReadMethod(contract, 'totalMintableShares');
-  });
-
-dashboard
-  .command('get-shares')
-  .description(
-    'maximum number of shares that can be minted with deposited ether',
-  )
-  .argument('<address>', 'dashboard address')
-  .argument('<ether>', 'amount of ether to be funded')
-  .action(async (address: Address, ether: string) => {
-    const contract = getDashboardContract(address);
-
-    await callReadMethod(contract, 'projectedNewMintableShares', [
-      BigInt(ether),
-    ]);
-  });
-
-dashboard
-  .command('withdrawable-eth')
-  .description('amount of ether that can be withdrawn from the staking vault')
-  .argument('<address>', 'dashboard address')
-  .action(async (address: Address) => {
-    const contract = getDashboardContract(address);
-
-    await callReadMethod(contract, 'withdrawableEther');
-  });
+import { dashboard } from './main.js';
 
 // TODO: test without voting
 dashboard
@@ -247,6 +101,30 @@ dashboard
       validatorPubKey,
     ]);
   });
+
+dashboard
+  .command('trigger-validator-withdrawal')
+  .description('triggers the withdrawal of a validator from the staking vault')
+  .argument('<address>', 'dashboard address')
+  .argument('<pubkeys>', 'pubkeys of the validators to withdraw')
+  .argument('<amounts>', 'amounts of ether to withdraw')
+  .argument('<recipient>', 'address of the recipient')
+  .action(
+    async (
+      address: Address,
+      pubkeys: Hex,
+      amounts: string[],
+      recipient: Address,
+    ) => {
+      const contract = getDashboardContract(address);
+
+      await callWriteMethodWithReceipt(contract, 'triggerValidatorWithdrawal', [
+        pubkeys,
+        amounts.map(BigInt),
+        recipient,
+      ]);
+    },
+  );
 
 dashboard
   .command('mint-shares')
@@ -521,4 +399,22 @@ dashboard
     }
 
     await callWriteMethodWithReceipt(contract, 'revokeRoles', [payload]);
+  });
+
+dashboard
+  .command('compensate-disproven-predeposit')
+  .description(
+    'Compensates a disproven predeposit from the Predeposit Guarantee contract.',
+  )
+  .argument('<address>', 'dashboard address')
+  .argument('<pubkey>', 'validator public key')
+  .argument('<recipient>', 'address of the recipient')
+  .action(async (address: Address, pubkey: Address, recipient: Address) => {
+    const contract = getDashboardContract(address);
+
+    await callWriteMethodWithReceipt(
+      contract,
+      'compensateDisprovenPredepositFromPDG',
+      [pubkey, recipient],
+    );
   });
