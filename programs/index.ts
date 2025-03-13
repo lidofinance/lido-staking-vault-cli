@@ -1,5 +1,4 @@
 export * from './vault-hub.js';
-export * from './vault-factory.js';
 export * from './delegation.js';
 export * from './voting.js';
 export * from './account.js';
@@ -7,3 +6,4 @@ export * from './vault-hub-viewer.js';
 export * from './predeposit-guarantee.js';
 export * from './vault/index.js';
 export * from './dashboard/index.js';
+export * from './vault-factory/index.js';

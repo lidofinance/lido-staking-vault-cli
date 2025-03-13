@@ -1,37 +1,45 @@
-import { Address } from "viem";
+import { Address } from 'viem';
 
 export interface VaultWithDelegation {
   defaultAdmin: Address;
-  funder: Address;
-  withdrawer: Address;
-  minter: Address;
-  burner: Address;
-  rebalancer: Address;
-  depositPauser: Address;
-  depositResumer: Address;
-  exitRequester: Address;
-  disconnecter: Address;
-  curator: Address;
   nodeOperatorManager: Address;
-  nodeOperatorFeeClaimer: Address;
+  assetRecoverer: Address;
+  confirmExpiry: bigint;
   curatorFeeBP: number;
   nodeOperatorFeeBP: number;
+  funders: Address[];
+  withdrawers: Address[];
+  minters: Address[];
+  burners: Address[];
+  rebalancers: Address[];
+  depositPausers: Address[];
+  depositResumers: Address[];
+  validatorExitRequesters: Address[];
+  validatorWithdrawalTriggerers: Address[];
+  disconnecters: Address[];
+  curatorFeeSetters: Address[];
+  curatorFeeClaimers: Address[];
+  nodeOperatorFeeClaimers: Address[];
 }
 
 export interface CreateVaultPayload {
   defaultAdmin: Address;
-  funder: Address;
-  withdrawer: Address;
-  minter: Address;
-  burner: Address;
-  rebalancer: Address;
-  depositPauser: Address;
-  depositResumer: Address;
-  exitRequester: Address;
-  disconnecter: Address;
-  curator: Address;
   nodeOperatorManager: Address;
-  nodeOperatorFeeClaimer: Address;
+  assetRecoverer: Address;
+  confirmExpiry: bigint;
+  funders: Address[];
+  withdrawers: Address[];
+  minters: Address[];
+  burners: Address[];
+  rebalancers: Address[];
+  depositPausers: Address[];
+  depositResumers: Address[];
+  validatorExitRequesters: Address[];
+  validatorWithdrawalTriggerers: Address[];
+  disconnecters: Address[];
+  curatorFeeSetters: Address[];
+  curatorFeeClaimers: Address[];
+  nodeOperatorFeeClaimers: Address[];
 }
 
 export interface Permit {

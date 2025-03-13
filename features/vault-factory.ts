@@ -5,7 +5,7 @@ import { VaultFactoryAbi } from 'abi/index.js';
 import { callWriteMethodWithReceipt } from 'utils';
 
 export const createVault = async (payload: VaultWithDelegation) => {
-  const { contract } = getVaultFactoryContract();
+  const contract = getVaultFactoryContract();
 
   const result = await callWriteMethodWithReceipt(
     contract,
