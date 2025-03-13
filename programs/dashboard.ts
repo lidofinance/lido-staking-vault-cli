@@ -183,7 +183,7 @@ dashboard
   .option('-a, --address <address>', 'dashboard address')
   .option('-e, --ether <ether>', 'amount of ether to be funded (in WEI)')
   .action(async ({ address, ether }: { address: Address; ether: string }) => {
-    const { dashboard, amount } = await confirmFund(address, ether);
+    const { address: dashboard, amount } = await confirmFund(address, ether);
 
     if (!dashboard || !amount) return;
 

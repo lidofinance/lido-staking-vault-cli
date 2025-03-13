@@ -6,7 +6,11 @@ import { Address, SimulateContractReturnType, TransactionReceipt } from 'viem';
 import { showSpinner } from 'utils/index.js';
 import { waitForTransactionReceipt } from 'viem/actions';
 
-type PartialContract = {
+export type ReadContract = {
+  read: Record<string, (...args: any[]) => Promise<any>>;
+};
+
+export type PartialContract = ReadContract & {
   simulate: Record<string, (...args: any[]) => Promise<any>>;
   write: Record<string, (...args: any[]) => Promise<any>>;
 };
@@ -96,7 +100,7 @@ export const callWriteMethod = async <
 };
 
 export const callReadMethod = async <
-  T extends { read: Record<string, (...args: any[]) => Promise<any>> },
+  T extends ReadContract,
   M extends keyof T['read'] & string,
 >(
   contract: T,

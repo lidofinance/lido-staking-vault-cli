@@ -9,7 +9,7 @@ export const amountWeiPrompt = async () => {
   return await textPrompt('Enter amount in wei', 'amountWei');
 };
 
-export const confirmDashboardAndAmount = async (
+export const confirmContractAndAmount = async (
   dashboard: Address,
   amountWei: string,
 ) => {
@@ -19,13 +19,13 @@ export const confirmDashboardAndAmount = async (
   );
 };
 
-export const confirmFund = async (dashboard: Address, amountWei: string) => {
-  let dashboardAddress: Address | null = dashboard;
+export const confirmFund = async (address: Address, amountWei: string) => {
+  let contractAddress: Address | null = address;
   let amount: string | null = amountWei;
 
-  if (!dashboardAddress) {
+  if (!contractAddress) {
     const answerDashboardAddress = await dashboardAddressPrompt();
-    dashboardAddress = answerDashboardAddress.address as Address;
+    contractAddress = answerDashboardAddress.address as Address;
   }
 
   if (!amount) {
@@ -33,12 +33,12 @@ export const confirmFund = async (dashboard: Address, amountWei: string) => {
     amount = answerAmount.amountWei as string;
   }
 
-  const { confirm } = await confirmDashboardAndAmount(dashboardAddress, amount);
+  const { confirm } = await confirmContractAndAmount(contractAddress, amount);
 
   if (!confirm) {
     console.info('Command cancelled');
-    return { dashboard: null, amountWei: null };
+    return { address: null, amount: null };
   }
 
-  return { dashboard: dashboardAddress, amount: amount };
+  return { address: contractAddress, amount: amount };
 };
