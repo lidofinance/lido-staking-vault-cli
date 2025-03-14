@@ -105,4 +105,24 @@ export const readCommandConfig: ReadProgramCommandConfig = {
     name: 'v-count',
     description: 'get connected vaults count',
   },
+  vaultSocket: {
+    name: 'vault-socket-i',
+    description: 'get vault socket by index',
+    arguments: {
+      _index: {
+        name: 'index',
+        description: 'index',
+      },
+    },
+  },
+  vaultSocket_vault: {
+    name: 'vault-socket-v',
+    description: 'get vault socket by vault address',
+    arguments: {
+      _vault: {
+        name: 'vault',
+        description: 'vault address',
+      },
+    },
+  },
 };
