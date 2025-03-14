@@ -10,8 +10,8 @@ const HOLESKY_CONTRACTS: Record<string, Address> = {
 
 const CL_PROOF_VERIFIER_BY_CHAIN: Record<number, Address> = {
   [mainnet.id]: '0x',
-  [sepolia.id]: '0x',
-  [holesky.id]: HOLESKY_CONTRACTS.CL_BEFORE_PECTRA as Address,
+  [sepolia.id]: '0x3C4Bc69e2f8B7d7BF6EB7F03E2C974D53613AAaD',
+  [holesky.id]: HOLESKY_CONTRACTS.CL_PECTRA as Address,
 };
 
 export const getCLProofVerifierContract = () => {
