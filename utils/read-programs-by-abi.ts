@@ -69,21 +69,18 @@ export function generateReadCommands<T>(
     // Search for a custom description for this function
     const configForFn = commandConfig[fnName];
     // Custom command name if specified
-    const commandName = configForFn?.name || fnName;
+    const commandName = methods.includes(fnName)
+      ? `${fnName}${inputs[0].name}`
+      : configForFn?.name || fnName;
     // Command description
     const commandDescription =
       configForFn?.description ||
       `Calls the read-only function "${fnName}" on the contract.`;
 
-    let fnCommand: Command;
     // Create a subcommand by function name
-    if (methods.includes(commandName)) {
-      fnCommand = command
-        .command(`${commandName}${inputs[0].name}`)
-        .description(commandDescription);
-    } else {
-      fnCommand = command.command(commandName).description(commandDescription);
-    }
+    const fnCommand = command
+      .command(commandName)
+      .description(commandDescription);
     methods.push(fnName);
 
     // If the contract needs an address, add the <address> argument
@@ -135,9 +132,9 @@ export function generateReadCommands<T>(
           fnArgs = cliArgs; // all the passed arguments are the function arguments
         }
 
-        fnArgs = inputs.length > 0 ? fnArgs : undefined;
+        fnArgs = inputs.length > 0 ? fnArgs.slice(0, inputs.length) : undefined;
 
-        if (fnArgs) await callReadMethod(contract, fnName, fnArgs);
+        if (fnArgs) await callReadMethod(contract, fnName, ...fnArgs);
         else await callReadMethod(contract, fnName);
       } catch (error) {
         console.error(`Error calling function ${fnName}:`, error);
