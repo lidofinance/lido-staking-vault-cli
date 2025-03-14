@@ -111,7 +111,7 @@ export const callReadMethod = async <
 
   try {
     const method = contract.read[methodName];
-    const result = await method?.(payload);
+    const result = await method?.(payload[0]);
     hideSpinner();
     // TODO: do message better or show in called place
     console.table({ Result: result });

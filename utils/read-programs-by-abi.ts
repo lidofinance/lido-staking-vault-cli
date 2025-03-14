@@ -134,7 +134,7 @@ export function generateReadCommands<T>(
 
         fnArgs = inputs.length > 0 ? fnArgs.slice(0, inputs.length) : undefined;
 
-        if (fnArgs) await callReadMethod(contract, fnName, ...fnArgs);
+        if (fnArgs) await callReadMethod(contract, fnName, fnArgs);
         else await callReadMethod(contract, fnName);
       } catch (error) {
         console.error(`Error calling function ${fnName}:`, error);
