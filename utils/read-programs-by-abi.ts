@@ -59,6 +59,8 @@ export function generateReadCommands<T>(
         | (() => Promise<ReadContract>)
     ).length === 1;
 
+  const methods: string[] = [];
+
   // Generate subcommands
   readOnlyFunctions.forEach((fn: any) => {
     const fnName = fn.name;
@@ -73,10 +75,16 @@ export function generateReadCommands<T>(
       configForFn?.description ||
       `Calls the read-only function "${fnName}" on the contract.`;
 
+    let fnCommand: Command;
     // Create a subcommand by function name
-    const fnCommand = command
-      .command(commandName)
-      .description(commandDescription);
+    if (methods.includes(commandName)) {
+      fnCommand = command
+        .command(`${commandName}${inputs[0].name}`)
+        .description(commandDescription);
+    } else {
+      fnCommand = command.command(commandName).description(commandDescription);
+    }
+    methods.push(fnName);
 
     // If the contract needs an address, add the <address> argument
     if (isNeedsAddress) {
