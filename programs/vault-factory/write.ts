@@ -1,20 +1,18 @@
 import { program } from 'command';
 import { createVault } from 'features';
 import { CreateVaultPayload, VaultWithDelegation } from 'types';
-import { validateAddressMap } from 'utils';
+import {
+  validateAddressesMap,
+  validateAddressMap,
+  transformAddressesToArray,
+  confirmCreateVaultParams,
+} from 'utils';
 
 import { vaultFactory } from './main.js';
 
 vaultFactory
   .command('create-vault')
   .description('create vault contract')
-  .option('-a, --defaultAdmin <defaultAdmin>', 'default admin address')
-  .option(
-    '-n, --nodeOperatorManager <nodeOperatorManager>',
-    'node operator manager address',
-  )
-  .option('-ar, --assetRecoverer <assetRecoverer>', 'asset recoverer address')
-  .option('-ce, --confirmExpiry <confirmExpiry>', 'confirm expiry')
   .option('-f, --funders <funders>', 'funders role address')
   .option('-w, --withdrawers <withdrawers>', 'withdrawers role address')
   .option('-m, --minters <minters>', 'minters role address')
@@ -58,11 +56,19 @@ vaultFactory
     '-nofc, --nodeOperatorFeeClaimers <nodeOperatorFeeClaimers>',
     'node operator fee claimers role addresses',
   )
+  .argument('<defaultAdmin>', 'default admin address')
+  .argument('<nodeOperatorManager>', 'node operator manager address')
+  .argument('<assetRecoverer>', 'asset recoverer address')
+  .argument('<confirmExpiry>', 'confirm expiry')
   .argument('<curatorFeeBP>', 'Vault curator fee, for e.g. 100 == 1%')
   .argument('<nodeOperatorFeeBP>', 'Node operator fee, for e.g. 100 == 1%')
   .argument('[quantity]', 'quantity of vaults to create, default 1', '1')
   .action(
     async (
+      defaultAdmin: string,
+      nodeOperatorManager: string,
+      assetRecoverer: string,
+      confirmExpiry: string,
       curatorFeeBP: string,
       nodeOperatorFeeBP: string,
       quantity: string,
@@ -70,6 +76,7 @@ vaultFactory
     ) => {
       const curatorFee = parseInt(curatorFeeBP);
       const nodeOperatorFee = parseInt(nodeOperatorFeeBP);
+      const confirmExpiryNumber = Number(confirmExpiry);
       const qnt = parseInt(quantity);
 
       if (isNaN(curatorFee) || curatorFee < 0) {
@@ -82,11 +89,42 @@ vaultFactory
         });
       }
 
+      if (isNaN(confirmExpiryNumber) || confirmExpiryNumber < 0) {
+        program.error('confirm expiry must be a positive number', {
+          exitCode: 1,
+        });
+      }
+
       if (isNaN(qnt)) {
         program.error('quantity must be a number', { exitCode: 1 });
       }
 
-      const errorsList = validateAddressMap(options);
+      const extraKeys: (keyof CreateVaultPayload)[] = [
+        'funders',
+        'withdrawers',
+        'minters',
+        'burners',
+        'rebalancers',
+        'depositPausers',
+        'depositResumers',
+        'validatorExitRequesters',
+        'validatorWithdrawalTriggerers',
+        'disconnecters',
+        'curatorFeeSetters',
+        'curatorFeeClaimers',
+        'nodeOperatorFeeClaimers',
+      ];
+
+      const addresses = transformAddressesToArray(options, extraKeys);
+      const errorsAddressesList = validateAddressesMap(addresses);
+      const errorsList = [
+        ...errorsAddressesList,
+        ...validateAddressMap([
+          assetRecoverer,
+          defaultAdmin,
+          nodeOperatorManager,
+        ]),
+      ];
       if (errorsList.length > 0) {
         errorsList.forEach((error) => program.error(error));
         return;
@@ -96,11 +134,20 @@ vaultFactory
       const list: number[] = Array.from(Array(qnt));
       const payload = {
         ...options,
+        ...addresses,
+        defaultAdmin,
+        nodeOperatorManager,
+        assetRecoverer,
+        confirmExpiry: BigInt(confirmExpiry),
         curatorFeeBP: curatorFee,
         nodeOperatorFeeBP: nodeOperatorFee,
       } as VaultWithDelegation;
 
       const transactions = [];
+
+      const { confirm } = await confirmCreateVaultParams(payload);
+
+      if (!confirm) program.error('Vault creation cancelled', { exitCode: 1 });
 
       try {
         for (const _ of list) {
