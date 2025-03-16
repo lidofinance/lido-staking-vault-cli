@@ -5,6 +5,7 @@ import {
   validateAddressesMap,
   validateAddressMap,
   transformAddressesToArray,
+  confirmCreateVaultParams,
 } from 'utils';
 
 import { vaultFactory } from './main.js';
@@ -143,6 +144,10 @@ vaultFactory
       } as VaultWithDelegation;
 
       const transactions = [];
+
+      const { confirm } = await confirmCreateVaultParams(payload);
+
+      if (!confirm) program.error('Vault creation cancelled', { exitCode: 1 });
 
       try {
         for (const _ of list) {
