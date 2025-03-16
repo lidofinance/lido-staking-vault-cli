@@ -1,7 +1,11 @@
 import { program } from 'command';
 import { createVault } from 'features';
 import { CreateVaultPayload, VaultWithDelegation } from 'types';
-import { validateAddressMap } from 'utils';
+import {
+  validateAddressesMap,
+  validateAddressMap,
+  transformAddressesToArray,
+} from 'utils';
 
 import { vaultFactory } from './main.js';
 
@@ -82,11 +86,48 @@ vaultFactory
         });
       }
 
+      if (isNaN(Number(options.confirmExpiry)) || options.confirmExpiry < 0) {
+        program.error('confirm expiry must be a positive number', {
+          exitCode: 1,
+        });
+      }
+
       if (isNaN(qnt)) {
         program.error('quantity must be a number', { exitCode: 1 });
       }
 
-      const errorsList = validateAddressMap(options);
+      const {
+        confirmExpiry,
+        assetRecoverer,
+        defaultAdmin,
+        nodeOperatorManager,
+        ...addressOptions
+      } = options;
+
+      const addresses = transformAddressesToArray(addressOptions, [
+        'funders',
+        'withdrawers',
+        'minters',
+        'burners',
+        'rebalancers',
+        'depositPausers',
+        'depositResumers',
+        'validatorExitRequesters',
+        'validatorWithdrawalTriggerers',
+        'disconnecters',
+        'curatorFeeSetters',
+        'curatorFeeClaimers',
+        'nodeOperatorFeeClaimers',
+      ]);
+      const errorsAddressesList = validateAddressesMap(addresses);
+      const errorsList = [
+        ...errorsAddressesList,
+        ...validateAddressMap([
+          assetRecoverer,
+          defaultAdmin,
+          nodeOperatorManager,
+        ]),
+      ];
       if (errorsList.length > 0) {
         errorsList.forEach((error) => program.error(error));
         return;
@@ -96,6 +137,7 @@ vaultFactory
       const list: number[] = Array.from(Array(qnt));
       const payload = {
         ...options,
+        ...addresses,
         curatorFeeBP: curatorFee,
         nodeOperatorFeeBP: nodeOperatorFee,
       } as VaultWithDelegation;

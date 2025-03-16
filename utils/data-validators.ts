@@ -50,6 +50,37 @@ export const isValidUrl = (value: string | undefined): boolean => {
   }
 };
 
+export const transformAddressesToArray = (
+  payload: Record<any, any>,
+  extraKeys: string[] = [],
+) => {
+  return [...Object.keys(payload), ...extraKeys].reduce(
+    (acc, key) => {
+      if (!payload[key]) {
+        acc[key] = [];
+        return acc;
+      }
+      const value = payload[key].split(',');
+
+      acc[key] = value.map((item: string) => item.trim());
+      return acc;
+    },
+    {} as Record<string, string[]>,
+  );
+};
+
+export const validateAddressesMap = (payload: Record<any, any>) => {
+  return Object.keys(payload).reduce((acc, key) => {
+    payload[key].forEach((item: string) => {
+      if (!isAddress(item)) {
+        acc.push(`${key}: ${item} is not a valid address`);
+      }
+    });
+
+    return acc;
+  }, [] as string[]);
+};
+
 export const validateAddressMap = (payload: Record<any, any>) => {
   return Object.keys(payload).reduce((acc, key) => {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
