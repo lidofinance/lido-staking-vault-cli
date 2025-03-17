@@ -7,6 +7,7 @@ import {
   createPDGProof,
   showSpinner,
   printError,
+  parseObjectsArray,
 } from 'utils';
 
 import { pdg } from './main.js';
@@ -23,12 +24,13 @@ pdg
   .description('predeposit')
   .argument('<vault>', 'vault address')
   .argument('<deposits>', 'deposits')
-  .action(async (vault: Address, deposits: Deposit[]) => {
+  .action(async (vault: Address, deposits: string) => {
     const pdgContract = await getPredepositGuaranteeContract();
+    const parsedDeposits = parseObjectsArray(deposits) as Deposit[];
 
     await callWriteMethodWithReceipt(pdgContract, 'predeposit', [
       vault,
-      deposits,
+      parsedDeposits,
     ]);
   });
 
@@ -77,12 +79,13 @@ pdg
   .description('deposit to beacon chain')
   .argument('<vault>', 'vault address')
   .argument('<deposits>', 'deposits')
-  .action(async (vault: Address, deposits: Deposit[]) => {
+  .action(async (vault: Address, deposits: string) => {
     const pdgContract = await getPredepositGuaranteeContract();
+    const parsedDeposits = parseObjectsArray(deposits) as Deposit[];
 
     await callWriteMethodWithReceipt(pdgContract, 'depositToBeaconChain', [
       vault,
-      deposits,
+      parsedDeposits,
     ]);
   });
 
