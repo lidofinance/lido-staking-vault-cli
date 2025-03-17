@@ -9,3 +9,4 @@ export * from './prompts/index.js';
 export * from './spinner/index.js';
 export * from './read-programs-by-abi.js';
 export * from './get-commands.js';
+export * from './parse-string.js';
