@@ -1,4 +1,4 @@
-import { Address, Hex } from 'viem';
+import { Address, Hex, parseEther } from 'viem';
 
 import { getPredepositGuaranteeContract } from 'contracts';
 import {
@@ -84,4 +84,63 @@ pdg
       vault,
       deposits,
     ]);
+  });
+
+pdg
+  .command('top-up')
+  .description('top up no balance')
+  .argument('<nodeOperator>', 'node operator address')
+  .argument('<amount>', 'amount in ETH')
+  .action(async (nodeOperator: Address, amount: string) => {
+    const pdgContract = await getPredepositGuaranteeContract();
+
+    await callWriteMethodWithReceipt(
+      pdgContract,
+      'topUpNodeOperatorBalance',
+      [nodeOperator],
+      parseEther(amount, 'wei'),
+    );
+  });
+
+pdg
+  .command('prove-unknown-validator')
+  .description('prove unknown validator')
+  .argument('<index>', 'validator index')
+  .argument('<vault>', 'vault address')
+  .action(async (index: bigint, vault: Address) => {
+    const pdgContract = await getPredepositGuaranteeContract();
+
+    const validatorIndex = await confirmCreateProof(index);
+    if (!validatorIndex) return;
+
+    const hideSpinner = showSpinner({
+      type: 'bouncingBar',
+      message: 'Creating proof...',
+    });
+    try {
+      const packageProof = await createPDGProof(Number(validatorIndex));
+      hideSpinner();
+
+      const { proof, pubkey, childBlockTimestamp, withdrawalCredentials } =
+        packageProof;
+
+      console.info('----------------------proof----------------------');
+      console.info(proof);
+      console.info('---------------------pubkey---------------------');
+      console.table(pubkey);
+      console.info('---------------childBlockTimestamp---------------');
+      console.table(childBlockTimestamp);
+      console.info('--------------withdrawalCredentials--------------');
+      console.table(withdrawalCredentials);
+      console.info('------------------------------------------------');
+      console.info('-----------------------end-----------------------');
+
+      await callWriteMethodWithReceipt(pdgContract, 'proveUnknownValidator', [
+        { proof, pubkey, validatorIndex, childBlockTimestamp },
+        vault,
+      ]);
+    } catch (err) {
+      hideSpinner();
+      printError(err, 'Error when proving unknown validator');
+    }
   });
