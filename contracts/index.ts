@@ -7,6 +7,6 @@ export * from './steth.js';
 export * from './locator.js';
 export * from './token-manager.js';
 export * from './voting.js';
-export * from './vault-hub-viewer.js';
+export * from './vault-viewer.js';
 export * from './clProofVerifier.js';
 export * from './pdg.js';
