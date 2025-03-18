@@ -43,6 +43,18 @@ export const sha256Pair = (left: Uint8Array, right: Uint8Array): Uint8Array => {
   return createHash('sha256').update(buf).digest();
 };
 
+/**
+ * Helper for SHA-256 over multiple Uint8Array chunks.
+ * Returns a 32-byte hash (Uint8Array of length 32).
+ */
+export const sha256Concat = (...chunks: Uint8Array[]): Uint8Array => {
+  const hash = createHash('sha256');
+  for (const chunk of chunks) {
+    hash.update(chunk);
+  }
+  return hash.digest();
+};
+
 /** 48 => 64 padded => sha256 => 32 */
 export const pubkeyRoot = (pubkey48: Uint8Array): Uint8Array => {
   if (pubkey48.length !== 48) {
@@ -59,6 +71,28 @@ export const uint64To32LE = (val: bigint): Uint8Array => {
   b.writeBigUInt64LE(val, 0);
   return Buffer.concat([b, Buffer.alloc(24)]);
 };
+
+/**
+ * Converts BigInt (gwei) to 8 bytes (big-endian), then reverses it to little-endian.
+ * Returns Uint8Array[8].
+ */
+export const encodeGweiAsLittleEndian8 = (amountGwei: bigint): Uint8Array => {
+  // First 8 bytes big-endian
+  const be = new Uint8Array(8);
+  let tmp = amountGwei;
+  for (let i = 7; i >= 0; i--) {
+    be[i] = Number(tmp & 0xffn);
+    tmp >>= 8n;
+  }
+
+  // Now reverse it (big-endian -> little-endian)
+  const le = new Uint8Array(8);
+  for (let i = 0; i < 8; i++) {
+    le[i] = be[7 - i] ?? 0;
+  }
+  return le;
+};
+
 /** bool => 1 byte => 32 */
 export const boolTo32 = (b: boolean): Uint8Array => {
   const oneByte = Buffer.from([b ? 1 : 0]);

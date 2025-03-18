@@ -7,6 +7,6 @@ export * from './StEth.js';
 export * from './LidoLocator.js';
 export * from './TokenManager.js';
 export * from './Voting.js';
-export * from './VaultHubViewer.js';
+export * from './VaultViewer.js';
 export * from './CLProofVerifier.js';
 export * from './PredepositGuarantee.js';
