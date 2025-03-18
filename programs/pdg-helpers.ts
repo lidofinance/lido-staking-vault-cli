@@ -7,7 +7,8 @@ import {
   confirmCreateProof,
   showSpinner,
   printError,
-} from 'utils/index.js';
+  computeDepositDataRoot,
+} from 'utils';
 
 const predepositGuaranteeHelpers = program
   .command('pdg-helpers')
@@ -88,3 +89,34 @@ predepositGuaranteeHelpers
   .action(async (forks: string[]) => {
     getFirstValidatorGIndex(forks);
   });
+
+predepositGuaranteeHelpers
+  .command('compute-dd-root')
+  .description('compute deposit data root')
+  .argument('<pubkey>', 'pubkey')
+  .argument('<withdrawal-credentials>', 'withdrawal credentials')
+  .argument('<signature>', 'signature')
+  .argument('<amount>', 'amount in wei')
+  .action(
+    async (
+      pubkey: string,
+      withdrawalCredentials: string,
+      signature: string,
+      amount: string,
+    ) => {
+      const result = computeDepositDataRoot(
+        pubkey,
+        withdrawalCredentials,
+        signature,
+        amount,
+      );
+
+      console.table({
+        pubkey,
+        withdrawalCredentials,
+        signature,
+        amount,
+        depositDataRoot: result,
+      });
+    },
+  );
