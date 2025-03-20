@@ -106,4 +106,4 @@ lsv-cli hub v-count
 
 ## Documentation
 
-For additional information about available methods and functionality, refer to the [the documentation for the Lido Ethereum SDK](/category/modules).
+For additional information about available methods and functionality, refer to the [the documentation for the Lido Ethereum SDK](/category/commands).
