@@ -36,15 +36,13 @@ jobs:
       - name: Setup Pages
         id: config_pages
         uses: actions/configure-pages@v5
-      - name: Open docs folder
-        run: cd ./docs
       - name: Install dependencies
-        run: yarn --immutable
+        run: cd ./docs && yarn --immutable
 
       - name: Build
-        run: yarn build
+        run: cd ./docs && yarn build
       - name: Move artifacts
-        run: cd ../ && mkdir -p ./apps && mv ./docs/build/* ./apps
+        run: mkdir -p ./apps && mv ./docs/build/* ./apps
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
