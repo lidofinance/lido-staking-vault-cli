@@ -68,5 +68,6 @@
         "extensions": [".js", ".ts"]
       }
     }
-  }
+  },
+  "ignorePatterns": ["docs"]
 }

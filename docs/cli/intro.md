@@ -1,21 +1,14 @@
-# Lido Staking Vault CLI
+---
+sidebar_position: 1
+title: Introduction
+slug: /
+---
 
-A command-line interface (CLI) tool for managing lido staking vaults. Simplify your staking operations with intuitive commands and streamlined workflows.
+**Lido Staking Vault CLI** is a command-line interface (CLI) tool for managing lido staking vaults. Simplify your staking operations with intuitive commands and streamlined workflows.
 
 ## Changelog
 
-For changes between versions see [Changelog](./CHANGELOG.md)
-
-## Table of Contents
-
-- [Features](#features)
-- [Prerequisites](#prerequisites)
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [Usage](#usage)
-  - [Examples](#examples)
-- [Programs](#programs)
-- [License](#license)
+For changes between versions see [Changelog](./changelog.mdx)
 
 ## Features
 
@@ -111,21 +104,6 @@ lsv-cli hub constants
 lsv-cli hub v-count
 ```
 
-## Programs
-
-- [Account](https://lidofinance.github.io/lido-staking-vault-cli/commands/account)
-- [VaultHub](https://lidofinance.github.io/lido-staking-vault-cli/commands/vault-hub)
-- [VaultFactory](https://lidofinance.github.io/lido-staking-vault-cli/commands/vault-factory)
-- [Vault](https://lidofinance.github.io/lido-staking-vault-cli/commands/vault)
-- [Dashboard](https://lidofinance.github.io/lido-staking-vault-cli/commands/dashboard)
-- [Delegation](https://lidofinance.github.io/lido-staking-vault-cli/commands/delgatio)
-- [PredepositGuarantee](https://lidofinance.github.io/lido-staking-vault-cli/commands/predeposit-guarantee)
-- [VaultViewer](https://lidofinance.github.io/lido-staking-vault-cli/commands/vault-viewer)
-
 ## Documentation
 
-For additional information about available methods and functionality, refer to the [the documentation for the Lido Staking Vault CLI](https://lidofinance.github.io/lido-staking-vault-cli/).
-
-## License
-
-This project is licensed under the [MIT License](LICENSE).
+For additional information about available methods and functionality, refer to the [the documentation for the Lido Ethereum SDK](/category/modules).
