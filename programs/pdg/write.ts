@@ -75,6 +75,68 @@ pdg
   });
 
 pdg
+  .command('prove-and-deposit')
+  .description('prove and deposit')
+  .argument('<indexes>', 'validator indexes')
+  .argument('<vault>', 'vault address')
+  .argument('<deposits>', 'deposits')
+  .action(async (indexes: string, vault: Address, deposits: string) => {
+    const pdgContract = await getPredepositGuaranteeContract();
+    const indexesArray = indexes.split(',').map(BigInt);
+    const parsedDeposits = parseObjectsArray(deposits) as Deposit[];
+
+    const witnesses: {
+      proof: Hex[];
+      pubkey: Hex;
+      validatorIndex: bigint;
+      childBlockTimestamp: bigint;
+    }[] = [];
+
+    for (const index of indexesArray) {
+      const validatorIndex = await confirmCreateProof(index);
+      if (!validatorIndex) return;
+
+      const hideSpinner = showSpinner({
+        type: 'bouncingBar',
+        message: 'Creating proof...',
+      });
+      try {
+        const packageProof = await createPDGProof(Number(validatorIndex));
+        hideSpinner();
+        const { proof, pubkey, childBlockTimestamp, withdrawalCredentials } =
+          packageProof;
+
+        witnesses.push({
+          proof,
+          pubkey,
+          validatorIndex,
+          childBlockTimestamp,
+        });
+
+        console.info('----------------------proof----------------------');
+        console.info(proof);
+        console.info('---------------------pubkey---------------------');
+        console.table(pubkey);
+        console.info('---------------childBlockTimestamp---------------');
+        console.table(childBlockTimestamp);
+        console.info('--------------withdrawalCredentials--------------');
+        console.table(withdrawalCredentials);
+        console.info('------------------------------------------------');
+        console.info('-----------------------end-----------------------');
+      } catch (err) {
+        hideSpinner();
+        printError(err, 'Error when creating proof');
+      }
+    }
+
+    await callWriteMethodWithReceipt(pdgContract, 'proveAndDeposit', [
+      witnesses,
+      parsedDeposits,
+      vault,
+    ]);
+  });
+
+pdg
   .command('deposit-to-beacon-chain')
   .description('deposit to beacon chain')
   .argument('<vault>', 'vault address')
@@ -146,4 +208,109 @@ pdg
       hideSpinner();
       printError(err, 'Error when proving unknown validator');
     }
+  });
+
+pdg
+  .command('prove-invalid-validator-wc')
+  .description('prove invalid validator withdrawal credentials')
+  .argument('<index>', 'validator index')
+  .argument('<invalidWithdrawalCredentials>', 'invalid withdrawal credentials')
+  .action(async (index: bigint, invalidWithdrawalCredentials: Hex) => {
+    const pdgContract = await getPredepositGuaranteeContract();
+
+    const validatorIndex = await confirmCreateProof(index);
+    if (!validatorIndex) return;
+
+    const hideSpinner = showSpinner({
+      type: 'bouncingBar',
+      message: 'Creating proof...',
+    });
+
+    try {
+      const packageProof = await createPDGProof(Number(validatorIndex));
+      hideSpinner();
+      const { proof, pubkey, childBlockTimestamp, withdrawalCredentials } =
+        packageProof;
+
+      console.info('----------------------proof----------------------');
+      console.info(proof);
+      console.info('---------------------pubkey---------------------');
+      console.table(pubkey);
+      console.info('---------------childBlockTimestamp---------------');
+      console.table(childBlockTimestamp);
+      console.info('--------------withdrawalCredentials--------------');
+      console.table(withdrawalCredentials);
+      console.info('------------------------------------------------');
+      console.info('invalid withdrawal credentials');
+      console.table(invalidWithdrawalCredentials);
+      console.info('-----------------------end-----------------------');
+
+      if (withdrawalCredentials !== invalidWithdrawalCredentials) {
+        console.info('withdrawal credentials are valid. Operation cancelled');
+        return;
+      }
+
+      await callWriteMethodWithReceipt(pdgContract, 'proveInvalidValidatorWC', [
+        { proof, pubkey, validatorIndex, childBlockTimestamp },
+        invalidWithdrawalCredentials,
+      ]);
+    } catch (err) {
+      hideSpinner();
+      printError(err, 'Error when creating proof');
+    }
+  });
+
+pdg
+  .command('withdraw-no-balance')
+  .description('withdraw node operator balance')
+  .argument('<nodeOperator>', 'node operator address')
+  .argument('<amount>', 'amount in wei')
+  .argument('<recipient>', 'recipient address')
+  .action(async (nodeOperator: Address, amount: string, recipient: Address) => {
+    const pdgContract = await getPredepositGuaranteeContract();
+
+    await callWriteMethodWithReceipt(
+      pdgContract,
+      'withdrawNodeOperatorBalance',
+      [nodeOperator, BigInt(amount), recipient],
+    );
+  });
+
+pdg
+  .command('set-no-g')
+  .description('set node operator guarantor')
+  .argument('<guarantor>', 'new guarantor address')
+  .action(async (guarantor: Address) => {
+    const pdgContract = await getPredepositGuaranteeContract();
+
+    await callWriteMethodWithReceipt(pdgContract, 'setNodeOperatorGuarantor', [
+      guarantor,
+    ]);
+  });
+
+pdg
+  .command('claim-g-refund')
+  .description('claim guarantor refund')
+  .argument('<recipient>', 'recipient address')
+  .action(async (recipient: Address) => {
+    const pdgContract = await getPredepositGuaranteeContract();
+
+    await callWriteMethodWithReceipt(pdgContract, 'claimGuarantorRefund', [
+      recipient,
+    ]);
+  });
+
+pdg
+  .command('compensate-disproven-predeposit')
+  .description('compensate disproven predeposit')
+  .argument('<pubkey>', 'validator pubkey')
+  .argument('<recipient>', 'recipient address')
+  .action(async (pubkey: Hex, recipient: Address) => {
+    const pdgContract = await getPredepositGuaranteeContract();
+
+    await callWriteMethodWithReceipt(
+      pdgContract,
+      'compensateDisprovenPredeposit',
+      [pubkey, recipient],
+    );
   });
