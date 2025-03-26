@@ -1,7 +1,12 @@
 import progress, { SingleBar } from 'cli-progress';
 
 import { getVotingContract } from 'contracts';
-import { sleep, callReadMethod, callWriteMethodWithReceipt } from 'utils';
+import {
+  sleep,
+  callReadMethod,
+  callWriteMethodWithReceipt,
+  printError,
+} from 'utils';
 import { Vote } from 'types';
 
 const voteAbi = [
@@ -43,6 +48,10 @@ const voteAbi = [
 export const voteLastVoting = async () => {
   const { contract } = getVotingContract();
   const votesLength = await callReadMethod(contract, 'votesLength');
+  if (!votesLength) {
+    printError(null, 'Error when getting votes length');
+    return;
+  }
   const lastVoteId = votesLength - 1n;
 
   if (lastVoteId === -1n) {

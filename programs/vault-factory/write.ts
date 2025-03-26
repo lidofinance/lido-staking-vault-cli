@@ -6,6 +6,7 @@ import {
   validateAddressMap,
   transformAddressesToArray,
   confirmCreateVaultParams,
+  stringToNumber,
 } from 'utils';
 
 import { vaultFactory } from './main.js';
@@ -60,8 +61,16 @@ vaultFactory
   .argument('<nodeOperatorManager>', 'node operator manager address')
   .argument('<assetRecoverer>', 'asset recoverer address')
   .argument('<confirmExpiry>', 'confirm expiry')
-  .argument('<curatorFeeBP>', 'Vault curator fee, for e.g. 100 == 1%')
-  .argument('<nodeOperatorFeeBP>', 'Node operator fee, for e.g. 100 == 1%')
+  .argument(
+    '<curatorFeeBP>',
+    'Vault curator fee, for e.g. 100 == 1%',
+    stringToNumber,
+  )
+  .argument(
+    '<nodeOperatorFeeBP>',
+    'Node operator fee, for e.g. 100 == 1%',
+    stringToNumber,
+  )
   .argument('[quantity]', 'quantity of vaults to create, default 1', '1')
   .action(
     async (
@@ -69,31 +78,12 @@ vaultFactory
       nodeOperatorManager: string,
       assetRecoverer: string,
       confirmExpiry: string,
-      curatorFeeBP: string,
-      nodeOperatorFeeBP: string,
+      curatorFeeBP: number,
+      nodeOperatorFeeBP: number,
       quantity: string,
       options: CreateVaultPayload,
     ) => {
-      const curatorFee = parseInt(curatorFeeBP);
-      const nodeOperatorFee = parseInt(nodeOperatorFeeBP);
-      const confirmExpiryNumber = Number(confirmExpiry);
       const qnt = parseInt(quantity);
-
-      if (isNaN(curatorFee) || curatorFee < 0) {
-        program.error('curator fee must be a positive number', { exitCode: 1 });
-      }
-
-      if (isNaN(nodeOperatorFee) || nodeOperatorFee < 0) {
-        program.error('operator fee must be a positive number', {
-          exitCode: 1,
-        });
-      }
-
-      if (isNaN(confirmExpiryNumber) || confirmExpiryNumber < 0) {
-        program.error('confirm expiry must be a positive number', {
-          exitCode: 1,
-        });
-      }
 
       if (isNaN(qnt)) {
         program.error('quantity must be a number', { exitCode: 1 });
@@ -139,8 +129,8 @@ vaultFactory
         nodeOperatorManager,
         assetRecoverer,
         confirmExpiry: BigInt(confirmExpiry),
-        curatorFeeBP: curatorFee,
-        nodeOperatorFeeBP: nodeOperatorFee,
+        curatorFeeBP,
+        nodeOperatorFeeBP,
       } as VaultWithDelegation;
 
       const transactions = [];

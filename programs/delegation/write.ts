@@ -2,7 +2,11 @@ import { Address } from 'viem';
 
 import { getDelegationContract } from 'contracts';
 import { Permit, RoleAssignment } from 'types';
-import { callWriteMethodWithReceipt } from 'utils';
+import {
+  callWriteMethodWithReceipt,
+  jsonToPermit,
+  jsonToRoleAssignment,
+} from 'utils';
 
 import { delegation } from './main.js';
 
@@ -287,9 +291,9 @@ delegation
   .argument(
     '<permitJSON>',
     'JSON data required for the stETH.permit() method to set the allowance',
+    jsonToPermit,
   )
-  .action(async (address: Address, tokens: string, permitJSON: string) => {
-    const permit = JSON.parse(permitJSON) as Permit;
+  .action(async (address: Address, tokens: string, permit: Permit) => {
     const contract = getDelegationContract(address);
 
     await callWriteMethodWithReceipt(contract, 'burnSharesWithPermit', [
@@ -308,9 +312,9 @@ delegation
   .argument(
     '<permitJSON>',
     'JSON data required for the stETH.permit() method to set the allowance',
+    jsonToPermit,
   )
-  .action(async (address: Address, tokens: string, permitJSON: string) => {
-    const permit = JSON.parse(permitJSON) as Permit;
+  .action(async (address: Address, tokens: string, permit: Permit) => {
     const contract = getDelegationContract(address);
 
     await callWriteMethodWithReceipt(contract, 'burnStETHWithPermit', [
@@ -329,9 +333,9 @@ delegation
   .argument(
     '<permitJSON>',
     'JSON data required for the wstETH.permit() method to set the allowance',
+    jsonToPermit,
   )
-  .action(async (address: Address, tokens: string, permitJSON: string) => {
-    const permit = JSON.parse(permitJSON) as Permit;
+  .action(async (address: Address, tokens: string, permit: Permit) => {
     const contract = getDelegationContract(address);
 
     await callWriteMethodWithReceipt(contract, 'burnWstETHWithPermit', [
@@ -399,18 +403,21 @@ delegation
   .command('role-grant')
   .description('Mass-revokes multiple roles from multiple accounts.')
   .argument('<address>', 'delegation address')
-  .argument('<roleAssignmentJSON>', 'JSON array of role assignments')
-  .action(async (address: Address, roleAssignmentJSON: string) => {
+  .argument(
+    '<roleAssignmentJSON>',
+    'JSON array of role assignments',
+    jsonToRoleAssignment,
+  )
+  .action(async (address: Address, roleAssignment: RoleAssignment[]) => {
     const contract = getDelegationContract(address);
 
-    const payload = JSON.parse(roleAssignmentJSON) as RoleAssignment[];
-    if (!Array.isArray(payload)) {
+    if (!Array.isArray(roleAssignment)) {
       throw new Error(
         'the 2nd argument should be an array of role assignments',
       );
     }
 
-    await callWriteMethodWithReceipt(contract, 'grantRoles', [payload]);
+    await callWriteMethodWithReceipt(contract, 'grantRoles', [roleAssignment]);
   });
 
 delegation
