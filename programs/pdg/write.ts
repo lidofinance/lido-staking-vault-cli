@@ -1,4 +1,4 @@
-import { Address, Hex, parseEther } from 'viem';
+import { Address, Hex } from 'viem';
 
 import { getPredepositGuaranteeContract } from 'contracts';
 import {
@@ -8,6 +8,9 @@ import {
   showSpinner,
   printError,
   parseObjectsArray,
+  stringToBigInt,
+  stringToBigIntArray,
+  etherToWei,
 } from 'utils';
 
 import { pdg } from './main.js';
@@ -37,7 +40,7 @@ pdg
 pdg
   .command('create-proof-and-prove')
   .description('create proof and prove')
-  .argument('<index>', 'validator index')
+  .argument('<index>', 'validator index', stringToBigInt)
   .action(async (index: bigint) => {
     const pdgContract = await getPredepositGuaranteeContract();
 
@@ -77,12 +80,11 @@ pdg
 pdg
   .command('prove-and-deposit')
   .description('prove and deposit')
-  .argument('<indexes>', 'validator indexes')
+  .argument('<indexes>', 'validator indexes', stringToBigIntArray)
   .argument('<vault>', 'vault address')
   .argument('<deposits>', 'deposits')
-  .action(async (indexes: string, vault: Address, deposits: string) => {
+  .action(async (indexes: bigint[], vault: Address, deposits: string) => {
     const pdgContract = await getPredepositGuaranteeContract();
-    const indexesArray = indexes.split(',').map(BigInt);
     const parsedDeposits = parseObjectsArray(deposits) as Deposit[];
 
     const witnesses: {
@@ -92,7 +94,7 @@ pdg
       childBlockTimestamp: bigint;
     }[] = [];
 
-    for (const index of indexesArray) {
+    for (const index of indexes) {
       const validatorIndex = await confirmCreateProof(index);
       if (!validatorIndex) return;
 
@@ -155,22 +157,22 @@ pdg
   .command('top-up')
   .description('top up no balance')
   .argument('<nodeOperator>', 'node operator address')
-  .argument('<amount>', 'amount in ETH')
-  .action(async (nodeOperator: Address, amount: string) => {
+  .argument('<amount>', 'amount in ETH', etherToWei)
+  .action(async (nodeOperator: Address, amount: bigint) => {
     const pdgContract = await getPredepositGuaranteeContract();
 
     await callWriteMethodWithReceipt(
       pdgContract,
       'topUpNodeOperatorBalance',
       [nodeOperator],
-      parseEther(amount, 'wei'),
+      amount,
     );
   });
 
 pdg
   .command('prove-unknown-validator')
   .description('prove unknown validator')
-  .argument('<index>', 'validator index')
+  .argument('<index>', 'validator index', stringToBigInt)
   .argument('<vault>', 'vault address')
   .action(async (index: bigint, vault: Address) => {
     const pdgContract = await getPredepositGuaranteeContract();
@@ -213,7 +215,7 @@ pdg
 pdg
   .command('prove-invalid-validator-wc')
   .description('prove invalid validator withdrawal credentials')
-  .argument('<index>', 'validator index')
+  .argument('<index>', 'validator index', stringToBigInt)
   .argument('<invalidWithdrawalCredentials>', 'invalid withdrawal credentials')
   .action(async (index: bigint, invalidWithdrawalCredentials: Hex) => {
     const pdgContract = await getPredepositGuaranteeContract();
@@ -264,15 +266,15 @@ pdg
   .command('withdraw-no-balance')
   .description('withdraw node operator balance')
   .argument('<nodeOperator>', 'node operator address')
-  .argument('<amount>', 'amount in wei')
+  .argument('<amount>', 'amount in wei', stringToBigInt)
   .argument('<recipient>', 'recipient address')
-  .action(async (nodeOperator: Address, amount: string, recipient: Address) => {
+  .action(async (nodeOperator: Address, amount: bigint, recipient: Address) => {
     const pdgContract = await getPredepositGuaranteeContract();
 
     await callWriteMethodWithReceipt(
       pdgContract,
       'withdrawNodeOperatorBalance',
-      [nodeOperator, BigInt(amount), recipient],
+      [nodeOperator, amount, recipient],
     );
   });
 

@@ -1,7 +1,15 @@
-import { getDashboardContract } from 'contracts';
+import { getDashboardContract, getStakingVaultContract } from 'contracts';
 import { Address, Hex } from 'viem';
 import { Permit, RoleAssignment } from 'types';
-import { callWriteMethodWithReceipt, confirmFund } from 'utils';
+import {
+  callReadMethod,
+  callWriteMethodWithReceipt,
+  confirmFund,
+  printError,
+  stringToBigIntArray,
+  jsonToPermit,
+  jsonToRoleAssignment,
+} from 'utils';
 
 import { dashboard } from './main.js';
 
@@ -107,22 +115,39 @@ dashboard
   .description('triggers the withdrawal of a validator from the staking vault')
   .argument('<address>', 'dashboard address')
   .argument('<pubkeys>', 'pubkeys of the validators to withdraw')
-  .argument('<amounts>', 'amounts of ether to withdraw')
+  .argument('<amounts>', 'amounts of ether to withdraw', stringToBigIntArray)
   .argument('<recipient>', 'address of the recipient')
   .action(
     async (
       address: Address,
       pubkeys: Hex,
-      amounts: string[],
+      amounts: bigint[],
       recipient: Address,
     ) => {
       const contract = getDashboardContract(address);
 
-      await callWriteMethodWithReceipt(contract, 'triggerValidatorWithdrawal', [
-        pubkeys,
-        amounts.map(BigInt),
-        recipient,
-      ]);
+      const vault = await callReadMethod(contract, 'stakingVault');
+      if (!vault) {
+        printError(null, 'Error when getting staking vault address');
+        return;
+      }
+      const vaultContract = getStakingVaultContract(vault);
+      const fee = await callReadMethod(
+        vaultContract,
+        'calculateValidatorWithdrawalFee',
+        [BigInt(amounts.length)],
+      );
+      if (!fee) {
+        printError(null, 'Error when getting withdrawal fee');
+        return;
+      }
+
+      await callWriteMethodWithReceipt(
+        contract,
+        'triggerValidatorWithdrawal',
+        [pubkeys, amounts, recipient],
+        fee,
+      );
     },
   );
 
@@ -226,9 +251,9 @@ dashboard
   .argument(
     '<permitJSON>',
     'JSON data required for the stETH.permit() method to set the allowance',
+    jsonToPermit,
   )
-  .action(async (address: Address, tokens: string, permitJSON: string) => {
-    const permit = JSON.parse(permitJSON) as Permit;
+  .action(async (address: Address, tokens: string, permit: Permit) => {
     const contract = getDashboardContract(address);
 
     await callWriteMethodWithReceipt(contract, 'burnSharesWithPermit', [
@@ -247,9 +272,9 @@ dashboard
   .argument(
     '<permitJSON>',
     'JSON data required for the stETH.permit() method to set the allowance',
+    jsonToPermit,
   )
-  .action(async (address: Address, tokens: string, permitJSON: string) => {
-    const permit = JSON.parse(permitJSON) as Permit;
+  .action(async (address: Address, tokens: string, permit: Permit) => {
     const contract = getDashboardContract(address);
 
     await callWriteMethodWithReceipt(contract, 'burnStETHWithPermit', [
@@ -268,9 +293,9 @@ dashboard
   .argument(
     '<permitJSON>',
     'JSON data required for the wstETH.permit() method to set the allowance',
+    jsonToPermit,
   )
-  .action(async (address: Address, tokens: string, permitJSON: string) => {
-    const permit = JSON.parse(permitJSON) as Permit;
+  .action(async (address: Address, tokens: string, permit: Permit) => {
     const contract = getDashboardContract(address);
 
     await callWriteMethodWithReceipt(contract, 'burnWstETHWithPermit', [
@@ -371,34 +396,40 @@ dashboard
   .command('role-grant')
   .description('Mass-revokes multiple roles from multiple accounts.')
   .argument('<address>', 'dashboard address')
-  .argument('<roleAssignmentJSON>', 'JSON array of role assignments')
-  .action(async (address: Address, roleAssignmentJSON: string) => {
+  .argument(
+    '<roleAssignmentJSON>',
+    'JSON array of role assignments',
+    jsonToRoleAssignment,
+  )
+  .action(async (address: Address, roleAssignment: RoleAssignment[]) => {
     const contract = getDashboardContract(address);
-    const payload = JSON.parse(roleAssignmentJSON) as RoleAssignment[];
-    if (!Array.isArray(payload)) {
+    if (!Array.isArray(roleAssignment)) {
       throw new Error(
         'the 2nd argument should be an array of role assignments',
       );
     }
 
-    await callWriteMethodWithReceipt(contract, 'grantRoles', [payload]);
+    await callWriteMethodWithReceipt(contract, 'grantRoles', [roleAssignment]);
   });
 
 dashboard
   .command('role-revoke')
   .description('Resumes beacon chain deposits on the staking vault.')
   .argument('<address>', 'dashboard address')
-  .argument('<roleAssignmentJSON>', 'JSON array of role assignments')
-  .action(async (address: Address, roleAssignmentJSON: string) => {
+  .argument(
+    '<roleAssignmentJSON>',
+    'JSON array of role assignments',
+    jsonToRoleAssignment,
+  )
+  .action(async (address: Address, roleAssignment: RoleAssignment[]) => {
     const contract = getDashboardContract(address);
-    const payload = JSON.parse(roleAssignmentJSON) as RoleAssignment[];
-    if (!Array.isArray(payload)) {
+    if (!Array.isArray(roleAssignment)) {
       throw new Error(
         'the 2nd argument should be an array of role assignments',
       );
     }
 
-    await callWriteMethodWithReceipt(contract, 'revokeRoles', [payload]);
+    await callWriteMethodWithReceipt(contract, 'revokeRoles', [roleAssignment]);
   });
 
 dashboard

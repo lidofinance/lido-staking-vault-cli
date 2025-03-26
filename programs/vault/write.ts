@@ -1,7 +1,12 @@
 import { Address, Hex } from 'viem';
 
 import { getStakingVaultContract } from 'contracts';
-import { callWriteMethodWithReceipt, confirmFund } from 'utils';
+import {
+  callWriteMethodWithReceipt,
+  confirmFund,
+  stringToBigInt,
+  stringToBigIntArray,
+} from 'utils';
 
 import { vault } from './main.js';
 
@@ -25,14 +30,11 @@ vault
   .description('withdraw from vault')
   .argument('<address>', 'vault address')
   .argument('<recipient>', 'recipient address')
-  .argument('<wei>', 'amount to withdraw (in WEI)')
-  .action(async (address: Address, recipient: Address, amount: string) => {
+  .argument('<wei>', 'amount to withdraw (in WEI)', stringToBigInt)
+  .action(async (address: Address, recipient: Address, amount: bigint) => {
     const contract = getStakingVaultContract(address);
 
-    await callWriteMethodWithReceipt(contract, 'withdraw', [
-      recipient,
-      BigInt(amount),
-    ]);
+    await callWriteMethodWithReceipt(contract, 'withdraw', [recipient, amount]);
   });
 
 // NOs
@@ -41,26 +43,25 @@ vault
   .command('no-deposit-beacon')
   .description('deposit to beacon chain')
   .argument('<address>', 'vault address')
-  .argument('<amountOfDeposit>', 'amount of deposits')
+  .argument('<amountOfDeposit>', 'amount of deposits', stringToBigInt)
   .argument('<pubkey>', 'pubkey')
   .argument('<signature>', 'signature')
   .argument('<depositDataRoot>', 'depositDataRoot')
   .action(
     async (
       vault: Address,
-      amountOfDeposit: string,
+      amountOfDeposit: bigint,
       pubkey: `0x${string}`,
       signature: `0x${string}`,
       depositDataRoot: `0x${string}`,
     ) => {
-      const amount = BigInt(amountOfDeposit);
       const contract = getStakingVaultContract(vault);
 
       const payload = [
         {
           pubkey,
           signature,
-          amount,
+          amount: amountOfDeposit,
           depositDataRoot,
         },
       ];
@@ -114,25 +115,27 @@ vault
   .argument(
     '<valuation>',
     'New total valuation: validator balances + StakingVault balance',
+    stringToBigInt,
   )
   .argument(
     '<inOutDelta>',
     'New net difference between funded and withdrawn ether',
+    stringToBigInt,
   )
-  .argument('<locked>', 'New amount of locked ether')
+  .argument('<locked>', 'New amount of locked ether', stringToBigInt)
   .action(
     async (
       address: Address,
-      valuation: string,
-      inOutDelta: string,
-      locked: string,
+      valuation: bigint,
+      inOutDelta: bigint,
+      locked: bigint,
     ) => {
       const contract = getStakingVaultContract(address);
 
       await callWriteMethodWithReceipt(contract, 'report', [
-        BigInt(valuation),
-        BigInt(inOutDelta),
-        BigInt(locked),
+        valuation,
+        inOutDelta,
+        locked,
       ]);
     },
   );
@@ -141,11 +144,11 @@ vault
   .command('rebalance')
   .description('Rebalances the vault')
   .argument('<address>', 'vault address')
-  .argument('<amount>', 'amount to rebalance (in WEI)')
-  .action(async (address: Address, amount: string) => {
+  .argument('<amount>', 'amount to rebalance (in WEI)', stringToBigInt)
+  .action(async (address: Address, amount: bigint) => {
     const contract = getStakingVaultContract(address);
 
-    await callWriteMethodWithReceipt(contract, 'rebalance', [BigInt(amount)]);
+    await callWriteMethodWithReceipt(contract, 'rebalance', [amount]);
   });
 
 vault
@@ -153,13 +156,13 @@ vault
   .description('Trigger validator withdrawal')
   .argument('<address>', 'vault address')
   .argument('<pubkeys>', 'validator public keys')
-  .argument('<amounts>', 'amounts to withdraw (in WEI)')
+  .argument('<amounts>', 'amounts to withdraw (in WEI)', stringToBigIntArray)
   .argument('<refundRecipient>', 'refund recipient address')
   .action(
     async (
       address: Address,
       pubkeys: Hex[],
-      amount: string[],
+      amounts: bigint[],
       refundRecipient: Address,
     ) => {
       const contract = getStakingVaultContract(address);
@@ -167,7 +170,7 @@ vault
 
       await callWriteMethodWithReceipt(contract, 'triggerValidatorWithdrawal', [
         concatenatedPubkeys,
-        amount.map((a) => BigInt(a)),
+        amounts,
         refundRecipient,
       ]);
     },

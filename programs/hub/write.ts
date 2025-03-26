@@ -1,6 +1,6 @@
 import { Address } from 'viem';
 import { getVaultHubContract } from 'contracts';
-import { callWriteMethodWithReceipt } from 'utils';
+import { callWriteMethodWithReceipt, stringToBigInt } from 'utils';
 
 import { vaultHub } from './main.js';
 
@@ -55,13 +55,13 @@ vaultHub
   .command('v-update-share-limit')
   .description('updates share limit for the vault')
   .argument('<address>', 'vault address')
-  .argument('<shareLimit>', 'vault address')
-  .action(async (address: Address, shareLimit: string) => {
+  .argument('<shareLimit>', 'share limit', stringToBigInt)
+  .action(async (address: Address, shareLimit: bigint) => {
     const contract = await getVaultHubContract();
 
     await callWriteMethodWithReceipt(contract, 'updateShareLimit', [
       address,
-      BigInt(shareLimit),
+      shareLimit,
     ]);
   });
 

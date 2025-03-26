@@ -11,3 +11,4 @@ export * from './read-programs-by-abi.js';
 export * from './get-commands.js';
 export * from './parse-string.js';
 export * from './get-deposit-data-root.js';
+export * from './arguments.js';
