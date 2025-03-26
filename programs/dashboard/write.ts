@@ -1,7 +1,12 @@
-import { getDashboardContract } from 'contracts';
+import { getDashboardContract, getStakingVaultContract } from 'contracts';
 import { Address, Hex } from 'viem';
 import { Permit, RoleAssignment } from 'types';
-import { callWriteMethodWithReceipt, confirmFund } from 'utils';
+import {
+  callReadMethod,
+  callWriteMethodWithReceipt,
+  confirmFund,
+  printError,
+} from 'utils';
 
 import { dashboard } from './main.js';
 
@@ -118,11 +123,32 @@ dashboard
     ) => {
       const contract = getDashboardContract(address);
 
-      await callWriteMethodWithReceipt(contract, 'triggerValidatorWithdrawal', [
-        pubkeys,
-        amounts.map(BigInt),
-        recipient,
-      ]);
+      let amountsArray: bigint[] = [];
+      if (!Array.isArray(amounts)) amountsArray = [BigInt(amounts)];
+      else amountsArray = amounts.map(BigInt);
+
+      const vault = await callReadMethod(contract, 'stakingVault');
+      if (!vault) {
+        printError(null, 'Error when getting staking vault address');
+        return;
+      }
+      const vaultContract = getStakingVaultContract(vault);
+      const fee = await callReadMethod(
+        vaultContract,
+        'calculateValidatorWithdrawalFee',
+        [BigInt(amountsArray.length)],
+      );
+      if (!fee) {
+        printError(null, 'Error when getting withdrawal fee');
+        return;
+      }
+
+      await callWriteMethodWithReceipt(
+        contract,
+        'triggerValidatorWithdrawal',
+        [pubkeys, amountsArray, recipient],
+        fee,
+      );
     },
   );
 

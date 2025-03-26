@@ -106,7 +106,7 @@ export const callReadMethod = async <
   contract: T,
   methodName: M,
   ...payload: Parameters<T['read'][M]>
-) => {
+): Promise<ReturnType<T['read'][M]> | undefined> => {
   const hideSpinner = showSpinner();
 
   try {
@@ -120,6 +120,8 @@ export const callReadMethod = async <
   } catch (err) {
     hideSpinner();
     printError(err, `Error when calling read method "${methodName}"`);
+
+    return;
   }
 };
 
