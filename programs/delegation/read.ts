@@ -1,8 +1,8 @@
-import { Address } from 'viem';
+import { Address, formatEther } from 'viem';
 
 import { DelegationAbi } from 'abi';
-import { getDelegationContract, getStakingVaultContract } from 'contracts';
-import { generateReadCommands } from 'utils';
+import { getDelegationContract, getStethContract } from 'contracts';
+import { generateReadCommands, calculateHealthRatio } from 'utils';
 import { getBaseInfo } from 'features';
 
 import { delegation } from './main.js';
@@ -86,34 +86,42 @@ delegation
   });
 
 delegation
-  .command('is-healthy')
-  .description('get vault healthy info')
-  .argument('<address>', 'vault address')
+  .command('health')
+  .description('get vault health info')
+  .argument('<address>', 'delegation address')
   .action(async (address: Address) => {
     const contract = getDelegationContract(address);
+    const stethContract = await getStethContract();
 
     try {
-      const valuation = await contract.read.valuation();
-      const curatorUnclaimedFee = await contract.read.curatorUnclaimedFee();
-      const nodeOperatorUnclaimedFee =
-        await contract.read.nodeOperatorUnclaimedFee();
-      const minted = await contract.read.sharesMinted();
+      const [valuation, minted, rebalanceThresholdBP] = await Promise.all([
+        contract.read.valuation(), // BigInt, in wei
+        contract.read.sharesMinted(), // BigInt, in shares
+        contract.read.rebalanceThresholdBP(), // number (in basis points)
+      ]);
+      if (minted === BigInt(0)) {
+        console.info('Minted is 0');
+        return;
+      }
 
-      const { vault } = await contract.read.vaultSocket();
-      const vaultContract = getStakingVaultContract(vault);
-      const locked = await vaultContract.read.locked();
+      const mintedInSteth = await stethContract.read.getPooledEthByShares([
+        minted,
+      ]); // BigInt
 
-      const reserved = locked + curatorUnclaimedFee + nodeOperatorUnclaimedFee;
-      const valuationPerc = (valuation / (reserved + minted)) * 100n;
-      const isHealthy = valuationPerc >= 100n;
+      const { healthRatioNumber, isHealthy } = calculateHealthRatio(
+        valuation,
+        mintedInSteth,
+        rebalanceThresholdBP,
+      );
 
       console.table({
         'Vault Healthy': isHealthy,
-        Valuation: valuation,
-        'Curator Unclaimed Fee': curatorUnclaimedFee,
-        'Node Operator Unclaimed Fee': nodeOperatorUnclaimedFee,
-        Minted: minted,
-        Reserved: reserved,
+        'Valuation, wei': valuation,
+        'Valuation, ether': `${formatEther(valuation)} ETH`,
+        'Minted, stETH': `${mintedInSteth} stETH`,
+        'Rebalance Threshold, BP': rebalanceThresholdBP,
+        'Rebalance Threshold, %': `${rebalanceThresholdBP / 100}%`,
+        'Health Rate': `${healthRatioNumber}%`,
       });
     } catch (err) {
       if (err instanceof Error) {
