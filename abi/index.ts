@@ -10,3 +10,4 @@ export * from './Voting.js';
 export * from './VaultViewer.js';
 export * from './CLProofVerifier.js';
 export * from './PredepositGuarantee.js';
+export * from './ReportChecker.js';

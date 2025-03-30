@@ -6,9 +6,7 @@
     "dist"
   ],
   "type": "module",
-  "bin": {
-    "lsv-cli": "dist/index.js"
-  },
+  "bin": "dist/index.js",
   "scripts": {
     "start": "ts-node ./index.ts",
     "build": "npx tsc && tsc-alias",
