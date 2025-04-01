@@ -74,7 +74,7 @@ lsv-cli delegation -h
 | w-ether \<address>                                         | get amount of ether that can be withdrawn from the staking vault                                                        |
 | roles \<address>                                           | get delegation contract roles info                                                                                      |
 | base-info \<address>                                       | get delegation base info                                                                                                |
-| is-healthy \<address>                                      | get vault healthy info                                                                                                  |
+| health \<address>                                          | get vault health info                                                                                                   |
 | cf-set \<address> \<newCuratorFee>                         | sets the curator fee                                                                                                    |
 | cf-claim \<address> \<recipient>                           | claims the curator fee                                                                                                  |
 | nof-set \<address> \<newNodeOperatorFeeBP>                 | sets the node operator fee                                                                                              |

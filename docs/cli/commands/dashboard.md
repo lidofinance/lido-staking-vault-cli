@@ -20,6 +20,8 @@ lsv-cli dashboard -h
 
 | Command                                                                    | Description                                                                                                             |
 | -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| info                                                                       | get dashboard base info                                                                                                 |
+| health \<address>                                                          | get vault health info                                                                                                   |
 | ASSET_RECOVERY_ROLE \<address>                                             | Calls the read-only function "ASSET_RECOVERY_ROLE" on the contract.                                                     |
 | BURN_ROLE \<address>                                                       | Calls the read-only function "BURN_ROLE" on the contract.                                                               |
 | DEFAULT_ADMIN_ROLE \<address>                                              | Calls the read-only function "DEFAULT_ADMIN_ROLE" on the contract.                                                      |
@@ -61,7 +63,6 @@ lsv-cli dashboard -h
 | hub \<address>                                                             | get vaultHub address                                                                                                    |
 | socket \<address>                                                          | get vault socket                                                                                                        |
 | w-ether \<address>                                                         | get amount of ether that can be withdrawn from the staking vault                                                        |
-| info                                                                       | get dashboard base info                                                                                                 |
 | ownership \<address> \<newOwner>                                           | transfers ownership of the staking vault to a new owner                                                                 |
 | disconnect \<address>                                                      | disconnects the staking vault from the vault hub                                                                        |
 | fund                                                                       | funds the staking vault with ether                                                                                      |
