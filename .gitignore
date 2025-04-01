@@ -21,3 +21,6 @@ tsconfig.tsbuildinfo
 #ide
 .vscode
 .idea
+
+# yarn
+.yarn/install-state.gz

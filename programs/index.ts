@@ -8,3 +8,4 @@ export * from './delegation/index.js';
 export * from './pdg/index.js';
 export * from './hub/index.js';
 export * from './vault-viewer/index.js';
+export * from './report.js';
