@@ -31,6 +31,7 @@
     "provenance": true
   },
   "dependencies": {
+    "@chainsafe/blst": "^2.2.0",
     "@chainsafe/persistent-merkle-tree": "^1.0.1",
     "@chainsafe/ssz": "^1.0.2",
     "@lodestar/types": "^1.27.1",
