@@ -1,6 +1,6 @@
 import type { Hex } from 'viem';
 
-type Deposit = {
+export type Deposit = {
   pubkey: Hex;
   signature: Hex;
   amount: bigint;

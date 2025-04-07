@@ -1,4 +1,10 @@
-import { generateReadCommands, parseDepositArray, showSpinner } from 'utils';
+import {
+  callReadMethod,
+  Deposit,
+  generateReadCommands,
+  parseDepositArray,
+  showSpinner,
+} from 'utils';
 import { PredepositGuaranteeAbi } from 'abi';
 
 import { pdg } from './main.js';
@@ -27,10 +33,10 @@ pdg
   .addOption(
     new Option('-wc, --withdrawalCredentials [wc]', 'withdrawal credentials'),
   )
-  .argument('<deposits>', 'deposits')
+  .argument('<deposits>', 'deposits', parseDepositArray)
   .action(
     async (
-      deposits: string,
+      deposits: Deposit[],
       options: { vault: Address; withdrawalCredentials: Hex },
     ) => {
       // eslint-disable-next-line prefer-const
@@ -51,18 +57,18 @@ pdg
         message: 'Loading metadata...',
       });
       const pdg = await getPredepositGuaranteeContract();
-      const PREDEPOSIT_AMOUNT = await pdg.read.PREDEPOSIT_AMOUNT();
+      const PREDEPOSIT_AMOUNT = await callReadMethod(pdg, 'PREDEPOSIT_AMOUNT');
+      if (!PREDEPOSIT_AMOUNT) return;
+
       if (vault) {
         const vaultContract = getStakingVaultContract(vault);
-        withdrawalCredentials =
-          await vaultContract.read.withdrawalCredentials();
+        const wc = await callReadMethod(vaultContract, 'withdrawalCredentials');
+        if (!wc) return;
+        withdrawalCredentials = wc;
       }
       hideSpinner();
 
-      const parsedDeposits = parseDepositArray(deposits);
-      for (const parsedDeposit of parsedDeposits) {
-        const deposit = parsedDeposit;
-
+      for (const deposit of deposits) {
         // amount check
         if (deposit.amount !== PREDEPOSIT_AMOUNT) {
           console.info(

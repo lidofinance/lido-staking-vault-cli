@@ -114,7 +114,10 @@ export const callReadMethod = async <
     const result = await method?.(payload[0]);
     hideSpinner();
     // TODO: do message better or show in called place
-    console.table({ Result: result });
+    console.table({
+      'Method name': methodName,
+      Result: result,
+    });
 
     return result;
   } catch (err) {

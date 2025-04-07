@@ -11,6 +11,7 @@ import {
   stringToBigInt,
   stringToBigIntArray,
   etherToWei,
+  Deposit,
 } from 'utils';
 
 import { pdg } from './main.js';
@@ -19,14 +20,13 @@ pdg
   .command('predeposit')
   .description('predeposit')
   .argument('<vault>', 'vault address')
-  .argument('<deposits>', 'deposits')
-  .action(async (vault: Address, deposits: string) => {
+  .argument('<deposits>', 'deposits', parseDepositArray)
+  .action(async (vault: Address, deposits: Deposit[]) => {
     const pdgContract = await getPredepositGuaranteeContract();
-    const parsedDeposits = parseDepositArray(deposits);
 
     await callWriteMethodWithReceipt(pdgContract, 'predeposit', [
       vault,
-      parsedDeposits,
+      deposits,
     ]);
   });
 
@@ -75,10 +75,9 @@ pdg
   .description('prove and deposit')
   .argument('<indexes>', 'validator indexes', stringToBigIntArray)
   .argument('<vault>', 'vault address')
-  .argument('<deposits>', 'deposits')
-  .action(async (indexes: bigint[], vault: Address, deposits: string) => {
+  .argument('<deposits>', 'deposits', parseDepositArray)
+  .action(async (indexes: bigint[], vault: Address, deposits: Deposit[]) => {
     const pdgContract = await getPredepositGuaranteeContract();
-    const parsedDeposits = parseDepositArray(deposits);
 
     const witnesses: {
       proof: Hex[];
@@ -126,7 +125,7 @@ pdg
 
     await callWriteMethodWithReceipt(pdgContract, 'proveAndDeposit', [
       witnesses,
-      parsedDeposits,
+      deposits,
       vault,
     ]);
   });
@@ -135,14 +134,13 @@ pdg
   .command('deposit-to-beacon-chain')
   .description('deposit to beacon chain')
   .argument('<vault>', 'vault address')
-  .argument('<deposits>', 'deposits')
-  .action(async (vault: Address, deposits: string) => {
+  .argument('<deposits>', 'deposits', parseDepositArray)
+  .action(async (vault: Address, deposits: Deposit[]) => {
     const pdgContract = await getPredepositGuaranteeContract();
-    const parsedDeposits = parseDepositArray(deposits);
 
     await callWriteMethodWithReceipt(pdgContract, 'depositToBeaconChain', [
       vault,
-      parsedDeposits,
+      deposits,
     ]);
   });
 
