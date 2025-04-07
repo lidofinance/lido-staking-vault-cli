@@ -7,20 +7,13 @@ import {
   createPDGProof,
   showSpinner,
   printError,
-  parseObjectsArray,
+  parseDepositArray,
   stringToBigInt,
   stringToBigIntArray,
   etherToWei,
 } from 'utils';
 
 import { pdg } from './main.js';
-
-interface Deposit {
-  pubkey: Hex;
-  signature: Hex;
-  amount: bigint;
-  depositDataRoot: Hex;
-}
 
 pdg
   .command('predeposit')
@@ -29,7 +22,7 @@ pdg
   .argument('<deposits>', 'deposits')
   .action(async (vault: Address, deposits: string) => {
     const pdgContract = await getPredepositGuaranteeContract();
-    const parsedDeposits = parseObjectsArray(deposits) as Deposit[];
+    const parsedDeposits = parseDepositArray(deposits);
 
     await callWriteMethodWithReceipt(pdgContract, 'predeposit', [
       vault,
@@ -85,7 +78,7 @@ pdg
   .argument('<deposits>', 'deposits')
   .action(async (indexes: bigint[], vault: Address, deposits: string) => {
     const pdgContract = await getPredepositGuaranteeContract();
-    const parsedDeposits = parseObjectsArray(deposits) as Deposit[];
+    const parsedDeposits = parseDepositArray(deposits);
 
     const witnesses: {
       proof: Hex[];
@@ -145,7 +138,7 @@ pdg
   .argument('<deposits>', 'deposits')
   .action(async (vault: Address, deposits: string) => {
     const pdgContract = await getPredepositGuaranteeContract();
-    const parsedDeposits = parseObjectsArray(deposits) as Deposit[];
+    const parsedDeposits = parseDepositArray(deposits);
 
     await callWriteMethodWithReceipt(pdgContract, 'depositToBeaconChain', [
       vault,

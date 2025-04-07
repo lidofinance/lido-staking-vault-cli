@@ -1,9 +1,4 @@
-import {
-  generateReadCommands,
-  parseObjectsArray,
-  //printError,
-  showSpinner,
-} from 'utils';
+import { generateReadCommands, parseDepositArray, showSpinner } from 'utils';
 import { PredepositGuaranteeAbi } from 'abi';
 
 import { pdg } from './main.js';
@@ -16,13 +11,7 @@ import { getBLSHarnessContract } from 'contracts/blsHarness.js';
 import { isValidDeposit, expandBLSSignature } from 'utils/bls.js';
 
 import type { Address, Hex } from 'viem';
-
-interface Deposit {
-  pubkey: Hex;
-  signature: Hex;
-  amount: bigint;
-  depositDataRoot: Hex;
-}
+import { Option } from 'commander';
 
 generateReadCommands(
   PredepositGuaranteeAbi,
@@ -34,21 +23,36 @@ generateReadCommands(
 pdg
   .command('verify-predeposit')
   .description('Verifies BLS signature of the deposit')
-  .argument('<vault>', 'vault address')
+  .addOption(new Option('-v, --vault [vault]', 'vault address'))
+  .addOption(new Option('-wc [wc]', 'withdrawal credentials'))
   .argument('<deposits>', 'deposits')
-  .action(async (vault: Address, deposits: string) => {
-    //try {
+  .action(async (deposits: string, options: { Vault: Address; Wc: Hex }) => {
+    // eslint-disable-next-line prefer-const
+    let { Vault, Wc } = options;
+    if (!Vault && !Wc) {
+      throw new Error(
+        'You must provide either vault or withdrawal credentials',
+      );
+    } else if (Vault && Wc) {
+      throw new Error(
+        'You can only provide one of vault or withdrawal credentials',
+      );
+    }
     const bls = getBLSHarnessContract();
-    const vaultContract = getStakingVaultContract(vault);
     let hideSpinner = showSpinner({
       type: 'bouncingBar',
-      message: 'Loading vault metadata...',
+      message: 'Loading metadata...',
     });
     const pdg = await getPredepositGuaranteeContract();
     const PREDEPOSIT_AMOUNT = await pdg.read.PREDEPOSIT_AMOUNT();
-    const wc = await vaultContract.read.withdrawalCredentials();
+    if (Vault) {
+      const vaultContract = getStakingVaultContract(Vault);
+      Wc = await vaultContract.read.withdrawalCredentials();
+    }
     hideSpinner();
-    const parsedDeposits = parseObjectsArray(deposits) as Deposit[];
+
+    // TODO: special parse util for bn conversion handling
+    const parsedDeposits = parseDepositArray(deposits);
     for (const parsedDeposit of parsedDeposits) {
       const deposit = parsedDeposit;
 
@@ -61,7 +65,7 @@ pdg
         console.info(`✅ AMOUNT VALID for Pubkey ${deposit.pubkey}`);
       }
 
-      const check = isValidDeposit(deposit, wc);
+      const check = isValidDeposit(deposit, Wc);
       if (!check.isValid) {
         console.info(
           `❌ Offchain - BLS signature is not valid: ${check.reason} for Pubkey ${deposit.pubkey}`,
@@ -94,7 +98,7 @@ pdg
               c1_b: sigY_c1_b,
             },
           },
-          wc,
+          Wc,
         ])
         .then(
           () => true,

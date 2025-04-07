@@ -1,4 +1,4 @@
-import { pad, bytesToHex, type Hex, hexToBytes, sha256 } from 'viem';
+import { pad, bytesToHex, type Hex } from 'viem';
 import {
   fromHexString,
   ByteVectorType,
@@ -6,6 +6,7 @@ import {
   UintNumberType,
 } from '@chainsafe/ssz';
 import { PublicKey, Signature, verify } from '@chainsafe/blst';
+import { computeDepositDataRoot } from './get-deposit-data-root.js';
 
 type DepositStruct = {
   pubkey: Hex;
@@ -13,8 +14,6 @@ type DepositStruct = {
   amount: bigint;
   depositDataRoot: Hex;
 };
-
-const ONE_GWEI = 1_000_000_000n;
 
 const toHexString = (value: unknown): string => {
   if (typeof value === 'string' && !value.startsWith('0x')) {
@@ -34,11 +33,6 @@ const toHexString = (value: unknown): string => {
   }
 
   throw new Error('Unsupported value type');
-};
-
-const formatAmount = (amount: bigint) => {
-  const gweiAmount = amount / ONE_GWEI;
-  return Buffer.from(gweiAmount.toString(16), 'hex').reverse().toString('hex');
 };
 
 const computeDepositDomain = () => {
@@ -121,44 +115,16 @@ const computeDepositMessageRoot = (
   });
 };
 
-const computeDepositDataRoot = (
-  _withdrawalCredentials: Hex,
-  _pubkey: Hex,
-  _signature: Hex,
-  amount: bigint,
-) => {
-  const withdrawalCredentials = hexToBytes(_withdrawalCredentials);
-  const pubkey = hexToBytes(_pubkey);
-  const signature = hexToBytes(_signature);
-
-  const pubkeyRoot = sha256(pad(pubkey, { dir: 'right', size: 64 })).slice(2);
-
-  const sigSlice1root = sha256(
-    pad(signature.slice(0, 64), { dir: 'right', size: 64 }),
-  ).slice(2);
-  const sigSlice2root = sha256(
-    pad(signature.slice(64), { dir: 'right', size: 64 }),
-  ).slice(2);
-  const sigRoot = sha256(`0x${sigSlice1root}${sigSlice2root}`).slice(2);
-
-  const sizeInGweiLE64 = formatAmount(BigInt(amount));
-
-  const pubkeyCredsRoot = sha256(
-    `0x${pubkeyRoot}${toHexString(withdrawalCredentials).slice(2)}`,
-  ).slice(2);
-  const sizeSigRoot = sha256(
-    `0x${sizeInGweiLE64}${'00'.repeat(24)}${sigRoot}`,
-  ).slice(2);
-  return sha256(`0x${pubkeyCredsRoot}${sizeSigRoot}`);
-};
-
 export const isValidDeposit = (
   deposit: DepositStruct,
   withdrawalCredentials: Hex,
 ) => {
+  // forced conversion
+  deposit.amount = BigInt(deposit.amount);
+
   const depositDataRoot = computeDepositDataRoot(
-    withdrawalCredentials,
     deposit.pubkey,
+    withdrawalCredentials,
     deposit.signature,
     deposit.amount,
   );
