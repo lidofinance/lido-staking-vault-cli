@@ -51,7 +51,6 @@ pdg
     }
     hideSpinner();
 
-    // TODO: special parse util for bn conversion handling
     const parsedDeposits = parseDepositArray(deposits);
     for (const parsedDeposit of parsedDeposits) {
       const deposit = parsedDeposit;
