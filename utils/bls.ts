@@ -6,33 +6,14 @@ import {
   UintNumberType,
 } from '@chainsafe/ssz';
 import { PublicKey, Signature, verify } from '@chainsafe/blst';
-import { computeDepositDataRoot } from './get-deposit-data-root.js';
+
+import { toHex } from './proof/merkle-utils.js';
 
 type DepositStruct = {
   pubkey: Hex;
   signature: Hex;
   amount: bigint;
   depositDataRoot: Hex;
-};
-
-const toHexString = (value: unknown): string => {
-  if (typeof value === 'string' && !value.startsWith('0x')) {
-    return `0x${value}`;
-  }
-
-  if (typeof value === 'string') {
-    return value;
-  }
-
-  if (typeof value === 'number' || typeof value === 'bigint') {
-    return `0x${value.toString(16)}`;
-  }
-
-  if (value instanceof Uint8Array) {
-    return `0x${Buffer.from(value).toString('hex')}`;
-  }
-
-  throw new Error('Unsupported value type');
 };
 
 const computeDepositDomain = () => {
@@ -102,8 +83,8 @@ const computeDepositMessageRoot = (
   );
 
   const depositMessage = {
-    pubkey: BLSPubkey.fromJson(toHexString(pubkey)),
-    withdrawalCredentials: Bytes32.fromJson(toHexString(withdrawalCredentials)),
+    pubkey: BLSPubkey.fromJson(toHex(pubkey)),
+    withdrawalCredentials: Bytes32.fromJson(toHex(withdrawalCredentials)),
     amount: UintNum64.fromJson(amount / 1000000000n),
   };
 
@@ -115,26 +96,10 @@ const computeDepositMessageRoot = (
   });
 };
 
-export const isValidDeposit = (
+export const isValidBLSDeposit = (
   deposit: DepositStruct,
   withdrawalCredentials: Hex,
 ) => {
-  // forced conversion
-  deposit.amount = BigInt(deposit.amount);
-
-  const depositDataRoot = computeDepositDataRoot(
-    deposit.pubkey,
-    withdrawalCredentials,
-    deposit.signature,
-    deposit.amount,
-  );
-  if (depositDataRoot != deposit.depositDataRoot) {
-    return {
-      isValid: false,
-      reason: 'Deposit data root mismatch',
-    };
-  }
-
   const signningRoot = computeDepositMessageRoot(
     deposit.pubkey,
     withdrawalCredentials,
@@ -148,14 +113,8 @@ export const isValidDeposit = (
     true,
     true,
   );
-  if (!isBLSValid) {
-    return {
-      isValid: false,
-      reason: 'BLS signature mismatch',
-    };
-  }
 
-  return { isValid: true };
+  return isBLSValid;
 };
 
 export const expandBLSSignature = (signature: Hex, pubkey: Hex) => {
