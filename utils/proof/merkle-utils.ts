@@ -27,7 +27,7 @@ export const fromHex = (hex: string): Uint8Array => {
   return new Uint8Array(Buffer.from(hex, 'hex'));
 };
 
-/** Bytes -> hex */
+/** anything -> hex */
 export const toHex = (value: unknown) => {
   if (typeof value === 'string' && !value.startsWith('0x')) {
     return `0x${value}`;
