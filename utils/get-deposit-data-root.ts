@@ -21,7 +21,7 @@ export const computeDepositDataRoot = (
   const signatureBytes = fromHex(signature);
   // 1) Convert amount from wei to gwei
   const amountWeiBN =
-    typeof amountWei === 'string' ? BigInt(amountWei) : amountWei;
+    typeof amountWei !== 'bigint' ? BigInt(amountWei) : amountWei;
   const amountGwei = amountWeiBN / 1_000_000_000n;
 
   // 2) Get 8 bytes little-endian

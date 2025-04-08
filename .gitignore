@@ -2,6 +2,7 @@
 .env
 .env.local
 .env.production
+.env.config*
 
 # test
 /deployed.json

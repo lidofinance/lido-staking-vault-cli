@@ -51,6 +51,7 @@ lsv-cli pdg -h
 | ub-bal \<address>                                                   | get unlocked balance                                                      |
 | v-status \<pubkey>                                                  | get validator status                                                      |
 | predeposit \<vault> \<deposits>                                     | predeposit                                                                |
+| verify-predeposit \<deposits>                                       | Verifies BLS signature of the deposit                                     |
 | create-proof-and-prove \<index>                                     | create proof and prove                                                    |
 | prove-and-deposit \<indexes> \<vault> \<deposits>                   | prove and deposit                                                         |
 | deposit-to-beacon-chain \<vault> \<deposits>                        | deposit to beacon chain                                                   |

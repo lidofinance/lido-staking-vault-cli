@@ -1,25 +1,24 @@
-export const parseObjectsArray = (str: string): Record<string, any>[] => {
+import type { Hex } from 'viem';
+
+export type Deposit = {
+  pubkey: Hex;
+  signature: Hex;
+  amount: bigint;
+  depositDataRoot: Hex;
+};
+
+export const parseDepositArray = (str: string): Deposit[] => {
   const trimmed = str.trim();
   if (!trimmed) {
     return [];
   }
 
-  const parts = trimmed.split('},').map((part) => part.trim());
-
-  const normalizedParts = parts.map((part) => {
-    return part.endsWith('}') ? part : part + '}';
+  const parsed = JSON.parse('[' + str.trim() + ']', (key, value) => {
+    if (key === 'amount') {
+      return BigInt(value);
+    }
+    return value;
   });
 
-  const jsonStrings = normalizedParts.map((chunk) => {
-    const withQuotedKeys = chunk.replace(/(\w+)\s*:/g, '"$1":');
-    const replacedQuotes = withQuotedKeys.replace(/'/g, '"');
-
-    return replacedQuotes;
-  });
-
-  const result = jsonStrings.map((jsonStr) => {
-    return JSON.parse(jsonStr);
-  });
-
-  return result;
+  return parsed;
 };

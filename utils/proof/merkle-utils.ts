@@ -27,9 +27,25 @@ export const fromHex = (hex: string): Uint8Array => {
   return new Uint8Array(Buffer.from(hex, 'hex'));
 };
 
-/** Bytes -> hex */
-export const toHex = (b: Uint8Array) => {
-  return '0x' + Buffer.from(b).toString('hex');
+/** anything -> hex */
+export const toHex = (value: unknown) => {
+  if (typeof value === 'string' && !value.startsWith('0x')) {
+    return `0x${value}`;
+  }
+
+  if (typeof value === 'string') {
+    return value;
+  }
+
+  if (typeof value === 'number' || typeof value === 'bigint') {
+    return `0x${value.toString(16)}`;
+  }
+
+  if (value instanceof Uint8Array) {
+    return `0x${Buffer.from(value).toString('hex')}`;
+  }
+
+  throw new Error('Unsupported value type');
 };
 
 /** sha256(32+32) => 32 */
