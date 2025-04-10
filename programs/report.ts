@@ -117,10 +117,6 @@ report
 
     const data = await callReadMethod(reportChecker, 'getReportCheckerData');
 
-    if (!data) {
-      throw new Error('No data');
-    }
-
     console.info({
       vaultsDataTreeRoot: data[0],
       vaultsDataTreeCid: data[1],

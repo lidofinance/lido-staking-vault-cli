@@ -7,6 +7,7 @@ import { showSpinner } from 'utils/index.js';
 import { waitForTransactionReceipt } from 'viem/actions';
 
 export type ReadContract = {
+  address: Address;
   read: Record<string, (...args: any[]) => Promise<any>>;
 };
 
@@ -106,12 +107,12 @@ export const callReadMethod = async <
   contract: T,
   methodName: M,
   ...payload: Parameters<T['read'][M]>
-): Promise<ReturnType<T['read'][M]> | undefined> => {
+): Promise<ReturnType<T['read'][M]>> => {
   const hideSpinner = showSpinner();
 
   try {
     const method = contract.read[methodName];
-    const result = await method?.(payload[0]);
+    const result = await method?.(...payload);
     hideSpinner();
     // TODO: do message better or show in called place
     console.table({
@@ -124,8 +125,32 @@ export const callReadMethod = async <
     hideSpinner();
     printError(err, `Error when calling read method "${methodName}"`);
 
-    return;
+    throw err;
   }
+};
+
+export const callReadMethodWithOptions = async <
+  T extends ReadContract,
+  M extends keyof T['read'] & string,
+>(
+  contract: T,
+  methodName: M,
+  options: {
+    onError?: (err: unknown) => void;
+  },
+  ...payload: Parameters<T['read'][M]>
+): Promise<ReturnType<T['read'][M]>> => {
+  return callReadMethod(contract, methodName, ...payload).catch((err) => {
+    if (options.onError) {
+      options.onError(err);
+    } else {
+      printError(
+        err,
+        `Error when calling read method ${methodName}@${contract?.address}`,
+      );
+    }
+    throw err;
+  });
 };
 
 export const isContractAddress = async (address: Address) => {

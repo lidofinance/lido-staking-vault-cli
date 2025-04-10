@@ -28,14 +28,62 @@ pdg
   .description('predeposit')
   .argument('<vault>', 'vault address')
   .argument('<deposits>', 'deposits', parseDepositArray)
-  .action(async (vault: Address, deposits: Deposit[]) => {
-    const pdgContract = await getPredepositGuaranteeContract();
+  .option('--no-bls-check', 'skip bls signature check')
+  .action(
+    async (
+      vault: Address,
+      deposits: Deposit[],
+      options: { blsCheck: boolean },
+    ) => {
+      const pdgContract = await getPredepositGuaranteeContract();
 
-    await callWriteMethodWithReceipt(pdgContract, 'predeposit', [
-      vault,
-      deposits,
-    ]);
-  });
+      if (options.blsCheck) {
+        const PREDEPOSIT_AMOUNT = await callReadMethod(
+          pdgContract,
+          'PREDEPOSIT_AMOUNT',
+        );
+        const vaultContract = getStakingVaultContract(vault);
+        const withdrawalCredentials = await callReadMethod(
+          vaultContract,
+          'withdrawalCredentials',
+        );
+
+        for (const deposit of deposits) {
+          const isBLSValid = isValidBLSDeposit(deposit, withdrawalCredentials);
+
+          if (deposit.amount !== PREDEPOSIT_AMOUNT) {
+            console.info(
+              `❌ Deposit amount is not equal to PREDEPOSIT_AMOUNT for pubkey ${deposit.pubkey}`,
+            );
+          }
+          if (!isBLSValid) {
+            console.info(
+              `❌ Offchain - BLS signature is not valid for Pubkey ${deposit.pubkey}`,
+            );
+          }
+        }
+      }
+
+      const depositsY = deposits.map((deposit) => {
+        const expanded = expandBLSSignature(deposit.signature, deposit.pubkey);
+        return {
+          pubkeyY: { a: expanded.pubkeyY_a, b: expanded.pubkeyY_b },
+          signatureY: {
+            c0_a: expanded.sigY_c0_a,
+            c0_b: expanded.sigY_c0_b,
+            c1_a: expanded.sigY_c1_a,
+            c1_b: expanded.sigY_c1_b,
+          },
+        };
+      });
+
+      await callWriteMethodWithReceipt(pdgContract, 'predeposit', [
+        vault,
+        deposits,
+        depositsY,
+      ]);
+    },
+  );
 
 pdg
   .command('verify-predeposit')
@@ -67,12 +115,10 @@ pdg
       });
       const pdg = await getPredepositGuaranteeContract();
       const PREDEPOSIT_AMOUNT = await callReadMethod(pdg, 'PREDEPOSIT_AMOUNT');
-      if (!PREDEPOSIT_AMOUNT) return;
 
       if (vault) {
         const vaultContract = getStakingVaultContract(vault);
         const wc = await callReadMethod(vaultContract, 'withdrawalCredentials');
-        if (!wc) return;
         withdrawalCredentials = wc;
       }
       hideSpinner();

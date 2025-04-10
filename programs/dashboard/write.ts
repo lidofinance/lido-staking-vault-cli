@@ -2,7 +2,7 @@ import { getDashboardContract, getStakingVaultContract } from 'contracts';
 import { Address, Hex } from 'viem';
 import { Permit, RoleAssignment } from 'types';
 import {
-  callReadMethod,
+  callReadMethodWithOptions,
   callWriteMethodWithReceipt,
   confirmFund,
   printError,
@@ -126,19 +126,24 @@ dashboard
     ) => {
       const contract = getDashboardContract(address);
 
-      const vault = await callReadMethod(contract, 'stakingVault');
-      if (!vault) {
-        printError(null, 'Error when getting staking vault address');
-        return;
-      }
+      const vault = await callReadMethodWithOptions(contract, 'stakingVault', {
+        onError: (err) => {
+          printError(err, 'Error when getting staking vault address');
+        },
+      });
+
       const vaultContract = getStakingVaultContract(vault);
-      const fee = await callReadMethod(
+      const fee = await callReadMethodWithOptions(
         vaultContract,
         'calculateValidatorWithdrawalFee',
+        {
+          onError: (err) => {
+            printError(err, 'Error when getting validator withdrawal fee');
+          },
+        },
         [BigInt(amounts.length)],
       );
       if (!fee) {
-        printError(null, 'Error when getting withdrawal fee');
         return;
       }
 
