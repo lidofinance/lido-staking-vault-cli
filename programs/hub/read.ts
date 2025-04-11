@@ -1,5 +1,5 @@
 import { getVaultHubContract } from 'contracts';
-import { generateReadCommands, printError } from 'utils';
+import { callReadMethod, generateReadCommands, printError } from 'utils';
 import { VaultHubAbi } from 'abi';
 
 import { vaultHub } from './main.js';

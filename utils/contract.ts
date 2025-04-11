@@ -123,34 +123,13 @@ export const callReadMethod = async <
     return result;
   } catch (err) {
     hideSpinner();
-    printError(err, `Error when calling read method "${methodName}"`);
+    printError(
+      err,
+      `Error when calling read method ${methodName}@${contract.address}`,
+    );
 
     throw err;
   }
-};
-
-export const callReadMethodWithOptions = async <
-  T extends ReadContract,
-  M extends keyof T['read'] & string,
->(
-  contract: T,
-  methodName: M,
-  options: {
-    onError?: (err: unknown) => void;
-  },
-  ...payload: Parameters<T['read'][M]>
-): Promise<ReturnType<T['read'][M]>> => {
-  return callReadMethod(contract, methodName, ...payload).catch((err) => {
-    if (options.onError) {
-      options.onError(err);
-    } else {
-      printError(
-        err,
-        `Error when calling read method ${methodName}@${contract?.address}`,
-      );
-    }
-    throw err;
-  });
 };
 
 export const isContractAddress = async (address: Address) => {
