@@ -1,4 +1,4 @@
-import { printError, showSpinner } from 'utils';
+import { printError, showSpinner, logResult } from 'utils';
 import { DashboardContract, DelegationContract } from 'contracts';
 
 export const getBaseInfo = async (
@@ -22,7 +22,7 @@ export const getBaseInfo = async (
       isInit,
     };
 
-    console.table(Object.entries(payload));
+    logResult(Object.entries(payload));
   } catch (err) {
     hideSpinner();
     printError(err, 'Error when getting base info');

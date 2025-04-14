@@ -1,6 +1,10 @@
 import { Hex, toHex } from 'viem';
-import { RootHex, Slot } from '@lodestar/types';
-import { getConfig } from 'configs';
+
+import {
+  fetchBeaconHeader,
+  fetchBeaconState,
+  fetchBeaconHeaderByParentRoot,
+} from 'utils';
 
 import {
   createStateProof,
@@ -18,29 +22,6 @@ interface ValidatorWitness {
   withdrawalCredentials: Hex;
 }
 
-export type BlockId = RootHex | Slot | 'head' | 'genesis' | 'finalized';
-export type StateId =
-  | RootHex
-  | Slot
-  | 'head'
-  | 'genesis'
-  | 'finalized'
-  | 'justified';
-
-const endpoints = {
-  genesis: 'eth/v1/beacon/genesis',
-  beaconHeader: (blockId: BlockId): string =>
-    `eth/v1/beacon/headers/${blockId}`,
-  beaconHeadersByParentRoot: (parentRoot: RootHex): string =>
-    `eth/v1/beacon/headers?parent_root=${parentRoot}`,
-  state: (stateId: StateId): string => `eth/v2/debug/beacon/states/${stateId}`,
-};
-const SupportedFork = {
-  capella: 'capella',
-  deneb: 'deneb',
-  electra: 'electra',
-};
-
 const slotToTimestamp = (slot: number, genesisTimestamp: number): number => {
   return genesisTimestamp + slot * Number(SECONDS_PER_SLOT);
 };
@@ -48,25 +29,10 @@ const slotToTimestamp = (slot: number, genesisTimestamp: number): number => {
 export const createPDGProof = async (
   validatorIndex: number,
 ): Promise<ValidatorWitness> => {
-  const { clLink } = getConfig();
-
-  const beaconHeaderResp = await fetch(
-    `${clLink}${endpoints.beaconHeader('finalized')}`,
-  );
-  const beaconHeaderJson = await beaconHeaderResp.json();
+  const beaconHeaderJson = await fetchBeaconHeader('finalized');
   const beaconHeader = beaconHeaderJson.data.header.message;
 
-  const stateResp = await fetch(`${clLink}${endpoints.state('finalized')}`, {
-    headers: { accept: 'application/octet-stream' },
-  });
-  const { headers } = stateResp;
-  const forkName = headers.get('eth-consensus-version') as string;
-
-  // Checks
-  if (!(forkName in SupportedFork))
-    throw new Error(`Fork name [${forkName}] is not supported`);
-  const bodyBytes = await stateResp.arrayBuffer();
-  if (!bodyBytes) throw new Error('Body bytes are not found');
+  const { stateBodyBytes, forkName } = await fetchBeaconState('finalized');
 
   // Proofs
 
@@ -79,11 +45,7 @@ export const createPDGProof = async (
     proof: validatorStateProof,
     validator,
     view: validatorStateView,
-  } = await createStateProof(
-    validatorIndex,
-    bodyBytes,
-    forkName as keyof typeof SupportedFork,
-  );
+  } = await createStateProof(validatorIndex, stateBodyBytes, forkName);
 
   // Pubkey WC Proof
   const { proof: pubkeyWCProof } = await createPubkeyWCProof(validator.node);
@@ -97,10 +59,8 @@ export const createPDGProof = async (
 
   const proofHex: Hex[] = proofConcat.map((w) => toHex(w));
 
-  const headerByParentResp = await fetch(
-    `${clLink}${endpoints.beaconHeadersByParentRoot(beaconHeaderRoot)}`,
-  );
-  const headerByParentJson = await headerByParentResp.json();
+  const headerByParentJson =
+    await fetchBeaconHeaderByParentRoot(beaconHeaderRoot);
   const headerByParentSlot = headerByParentJson.data[0].header.message.slot;
   const headerByParentTimestamp = slotToTimestamp(
     headerByParentSlot,

@@ -1,4 +1,5 @@
 import { Address, Hex } from 'viem';
+import { program } from 'commander';
 
 import {
   getPredepositGuaranteeContract,
@@ -17,6 +18,9 @@ import {
   Deposit,
   callReadMethod,
   computeDepositDataRoot,
+  logResult,
+  logInfo,
+  logError,
 } from 'utils';
 
 import { pdg } from './main.js';
@@ -39,9 +43,10 @@ pdg
 
 pdg
   .command('verify-predeposit')
+  .aliases(['verify'])
   .description('Verifies BLS signature of the deposit')
-  .option('-vt, --vault [vault]', 'vault address')
-  .option('-wc, --withdrawalCredentials [wc]', 'withdrawal credentials')
+  .option('-vt, --vault <address>', 'vault address')
+  .option('-wc, --withdrawalCredentials <hex>', 'withdrawal credentials')
   .argument('<deposits>', 'deposits', parseDepositArray)
   .action(
     async (
@@ -52,39 +57,40 @@ pdg
       let withdrawalCredentials = options.withdrawalCredentials;
 
       if (!vault && !withdrawalCredentials) {
-        throw new Error(
+        program.error(
           'You must provide either vault or withdrawal credentials',
+          { exitCode: 1 },
         );
       } else if (vault && withdrawalCredentials) {
-        throw new Error(
+        program.error(
           'You can only provide one of vault or withdrawal credentials',
+          { exitCode: 1 },
         );
       }
       const bls = getBLSHarnessContract();
-      let hideSpinner = showSpinner({
+      const hideMetadataSpinner = showSpinner({
         type: 'bouncingBar',
         message: 'Loading metadata...',
       });
       const pdg = await getPredepositGuaranteeContract();
       const PREDEPOSIT_AMOUNT = await callReadMethod(pdg, 'PREDEPOSIT_AMOUNT');
-      if (!PREDEPOSIT_AMOUNT) return;
 
       if (vault) {
         const vaultContract = getStakingVaultContract(vault);
         const wc = await callReadMethod(vaultContract, 'withdrawalCredentials');
-        if (!wc) return;
         withdrawalCredentials = wc;
       }
-      hideSpinner();
+      hideMetadataSpinner();
 
       for (const deposit of deposits) {
         // amount check
         if (deposit.amount !== PREDEPOSIT_AMOUNT) {
-          console.info(
+          program.error(
             `❌ Deposit amount is not equal to PREDEPOSIT_AMOUNT for pubkey ${deposit.pubkey}`,
+            { exitCode: 1 },
           );
         } else {
-          console.info(`✅ AMOUNT VALID for Pubkey ${deposit.pubkey}`);
+          logInfo(`✅ AMOUNT VALID for Pubkey ${deposit.pubkey}`);
         }
 
         // depositDataRoot check
@@ -95,21 +101,23 @@ pdg
           deposit.amount,
         );
         if (depositDataRoot != deposit.depositDataRoot) {
-          console.info(
+          program.error(
             `❌ depositDataRoot does not match ${deposit.pubkey}, actual root: ${depositDataRoot}`,
+            { exitCode: 1 },
           );
         } else {
-          console.info(`✅ depositDataRoot VALID for Pubkey ${deposit.pubkey}`);
+          logInfo(`✅ depositDataRoot VALID for Pubkey ${deposit.pubkey}`);
         }
 
         // local BLS check
         const isBLSValid = isValidBLSDeposit(deposit, withdrawalCredentials);
         if (!isBLSValid) {
-          console.info(
+          program.error(
             `❌ Offchain - BLS signature is not valid for Pubkey ${deposit.pubkey}`,
+            { exitCode: 1 },
           );
         } else {
-          console.info(`✅ SIGNATURE VALID for Pubkey ${deposit.pubkey}`);
+          logInfo(`✅ SIGNATURE VALID for Pubkey ${deposit.pubkey}`);
         }
 
         // onchain BLS check
@@ -121,7 +129,7 @@ pdg
           sigY_c1_a,
           sigY_c1_b,
         } = expandBLSSignature(deposit.signature, deposit.pubkey);
-        hideSpinner = showSpinner({
+        const hideSpinner = showSpinner({
           type: 'bouncingBar',
           message: 'Checking onchain againts BLSHarness contract',
         });
@@ -145,13 +153,11 @@ pdg
           );
         hideSpinner();
         if (!isValid) {
-          console.info(
+          logError(
             `❌ Onchain - BLS signature is not valid for Pubkey ${deposit.pubkey}`,
           );
         } else {
-          console.info(
-            `✅ ONCHAIN 🔗 SIGNATURE VALID for Pubkey ${deposit.pubkey}`,
-          );
+          logInfo(`✅ ONCHAIN 🔗 SIGNATURE VALID for Pubkey ${deposit.pubkey}`);
         }
       }
     },
@@ -177,16 +183,16 @@ pdg
       const { proof, pubkey, childBlockTimestamp, withdrawalCredentials } =
         packageProof;
 
-      console.info('----------------------proof----------------------');
-      console.info(proof);
-      console.info('---------------------pubkey---------------------');
-      console.table(pubkey);
-      console.info('---------------childBlockTimestamp---------------');
-      console.table(childBlockTimestamp);
-      console.info('--------------withdrawalCredentials--------------');
-      console.table(withdrawalCredentials);
-      console.info('------------------------------------------------');
-      console.info('-----------------------end-----------------------');
+      logInfo('----------------------proof----------------------');
+      logInfo(proof);
+      logInfo('---------------------pubkey---------------------');
+      logResult(pubkey);
+      logInfo('---------------childBlockTimestamp---------------');
+      logResult(childBlockTimestamp);
+      logInfo('--------------withdrawalCredentials--------------');
+      logResult(withdrawalCredentials);
+      logInfo('------------------------------------------------');
+      logInfo('-----------------------end-----------------------');
 
       await callWriteMethodWithReceipt(pdgContract, 'proveValidatorWC', [
         { proof, pubkey, validatorIndex, childBlockTimestamp },
@@ -234,16 +240,16 @@ pdg
           childBlockTimestamp,
         });
 
-        console.info('----------------------proof----------------------');
-        console.info(proof);
-        console.info('---------------------pubkey---------------------');
-        console.table(pubkey);
-        console.info('---------------childBlockTimestamp---------------');
-        console.table(childBlockTimestamp);
-        console.info('--------------withdrawalCredentials--------------');
-        console.table(withdrawalCredentials);
-        console.info('------------------------------------------------');
-        console.info('-----------------------end-----------------------');
+        logInfo('----------------------proof----------------------');
+        logInfo(proof);
+        logInfo('---------------------pubkey---------------------');
+        logResult(pubkey);
+        logInfo('---------------childBlockTimestamp---------------');
+        logResult(childBlockTimestamp);
+        logInfo('--------------withdrawalCredentials--------------');
+        logResult(withdrawalCredentials);
+        logInfo('------------------------------------------------');
+        logInfo('-----------------------end-----------------------');
       } catch (err) {
         hideSpinner();
         printError(err, 'Error when creating proof');
@@ -309,16 +315,16 @@ pdg
       const { proof, pubkey, childBlockTimestamp, withdrawalCredentials } =
         packageProof;
 
-      console.info('----------------------proof----------------------');
-      console.info(proof);
-      console.info('---------------------pubkey---------------------');
-      console.table(pubkey);
-      console.info('---------------childBlockTimestamp---------------');
-      console.table(childBlockTimestamp);
-      console.info('--------------withdrawalCredentials--------------');
-      console.table(withdrawalCredentials);
-      console.info('------------------------------------------------');
-      console.info('-----------------------end-----------------------');
+      logInfo('----------------------proof----------------------');
+      logInfo(proof);
+      logInfo('---------------------pubkey---------------------');
+      logResult(pubkey);
+      logInfo('---------------childBlockTimestamp---------------');
+      logResult(childBlockTimestamp);
+      logInfo('--------------withdrawalCredentials--------------');
+      logResult(withdrawalCredentials);
+      logInfo('------------------------------------------------');
+      logInfo('-----------------------end-----------------------');
 
       await callWriteMethodWithReceipt(pdgContract, 'proveUnknownValidator', [
         { proof, pubkey, validatorIndex, childBlockTimestamp },
@@ -352,21 +358,21 @@ pdg
       const { proof, pubkey, childBlockTimestamp, withdrawalCredentials } =
         packageProof;
 
-      console.info('----------------------proof----------------------');
-      console.info(proof);
-      console.info('---------------------pubkey---------------------');
-      console.table(pubkey);
-      console.info('---------------childBlockTimestamp---------------');
-      console.table(childBlockTimestamp);
-      console.info('--------------withdrawalCredentials--------------');
-      console.table(withdrawalCredentials);
-      console.info('------------------------------------------------');
-      console.info('invalid withdrawal credentials');
-      console.table(invalidWithdrawalCredentials);
-      console.info('-----------------------end-----------------------');
+      logInfo('----------------------proof----------------------');
+      logInfo(proof);
+      logInfo('---------------------pubkey---------------------');
+      logResult(pubkey);
+      logInfo('---------------childBlockTimestamp---------------');
+      logResult(childBlockTimestamp);
+      logInfo('--------------withdrawalCredentials--------------');
+      logResult(withdrawalCredentials);
+      logInfo('------------------------------------------------');
+      logInfo('invalid withdrawal credentials');
+      logResult(invalidWithdrawalCredentials);
+      logInfo('-----------------------end-----------------------');
 
       if (withdrawalCredentials !== invalidWithdrawalCredentials) {
-        console.info('withdrawal credentials are valid. Operation cancelled');
+        logInfo('withdrawal credentials are valid. Operation cancelled');
         return;
       }
 

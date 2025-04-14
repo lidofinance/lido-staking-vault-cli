@@ -2,7 +2,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 import { program } from 'command';
-import { validateConfig } from 'utils';
+import { validateConfig, logInfo } from 'utils';
 import { JSONConfig } from 'types';
 
 program
@@ -27,7 +27,7 @@ program
         process.exit(1);
       }
 
-      console.info('Configuration is valid!');
+      logInfo('Configuration is valid!');
     } catch (error) {
       if (error instanceof Error) {
         console.error('Error loading or validating JSON file:', error.message);

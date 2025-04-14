@@ -6,6 +6,7 @@ import {
   callReadMethod,
   getReportLeaf,
   getAllVaultsReports,
+  logInfo,
 } from 'utils';
 import { getReportCheckerContract } from 'contracts';
 import { Address } from 'viem';
@@ -21,7 +22,7 @@ report
   .action(async (vault, cid, { url }) => {
     const report = await getVaultReport(vault, cid, url);
 
-    console.info(report);
+    logInfo(report);
   });
 
 report
@@ -44,10 +45,10 @@ report
       shares_minted: BigInt(report.data.shares_minted),
       proof: vaultProof.proof as Address[],
     };
-    console.info('txData', txData);
-    console.info('root', report.merkleTreeRoot);
-    console.info('leaf', report.leaf);
-    console.info('leafLocal', reportLeafLocal);
+    logInfo('txData', txData);
+    logInfo('root', report.merkleTreeRoot);
+    logInfo('leaf', report.leaf);
+    logInfo('leafLocal', reportLeafLocal);
 
     if (reportLeafLocal !== vaultProof.leaf) {
       throw new Error(
@@ -64,9 +65,29 @@ report
       txData.proof,
     ]);
 
-    console.info('--------------------------------');
-    console.info('Report checked');
-    console.info('--------------------------------');
+    logInfo('--------------------------------');
+    logInfo('Report checked');
+    logInfo('--------------------------------');
+  });
+
+report
+  .command('by-root-check')
+  .description('check report by root')
+  .argument('<vault>', 'vault address')
+  .argument('<cid>', 'cid')
+  .option('-u, --url', 'ipfs gateway url')
+  .action(async (vault, cid, { url }) => {
+    const report = await getVaultReport(vault, cid, url);
+
+    const root = report.merkleTreeRoot;
+
+    const vaultProof = await getReportProof(root, cid);
+    const reportLeafLocal = getReportLeaf(report.data);
+
+    logInfo('root', root);
+    logInfo('leaf', report.leaf);
+    logInfo('leafLocal', reportLeafLocal);
+    logInfo('vaultProof', vaultProof);
   });
 
 report
@@ -77,7 +98,7 @@ report
   .action(async (cid: string, { url }) => {
     const allVaultsReports = await getAllVaultsReports(cid, url);
 
-    console.info(allVaultsReports);
+    logInfo(allVaultsReports);
   });
 
 report
@@ -90,9 +111,9 @@ report
     const report = await getVaultReport(vault, cid, url);
 
     const reportLeaf = getReportLeaf(report.data);
-    console.info('local leaf', reportLeaf);
-    console.info('ipfs leaf', report.leaf);
-    console.info('ipfs merkle tree root', report.merkleTreeRoot);
+    logInfo('local leaf', reportLeaf);
+    logInfo('ipfs leaf', report.leaf);
+    logInfo('ipfs merkle tree root', report.merkleTreeRoot);
   });
 
 report
@@ -117,11 +138,7 @@ report
 
     const data = await callReadMethod(reportChecker, 'getReportCheckerData');
 
-    if (!data) {
-      throw new Error('No data');
-    }
-
-    console.info({
+    logInfo({
       vaultsDataTreeRoot: data[0],
       vaultsDataTreeCid: data[1],
     });

@@ -1,11 +1,13 @@
 import { lstatSync, readFileSync } from 'fs';
+import * as process from 'node:process';
 import path from 'path';
 import { zeroAddress, Address, Chain } from 'viem';
-import { getValueByPath, resolvePath, validateConfig } from 'utils';
+
+import { getValueByPath, resolvePath, validateConfig, logError } from 'utils';
 import { JSONConfig } from 'types';
+
 import { envs } from './envs.js';
 import { SUPPORTED_CHAINS_LIST } from './constants.js';
-import * as process from 'node:process';
 
 export const importDeployFile = () => {
   const fullPath = path.resolve('configs', envs?.DEPLOYED ?? '');
@@ -36,7 +38,7 @@ export const importConfigFile = (pathToConfig?: string) => {
       const config = JSON.parse(fileContent);
       json = structuredClone(config);
     } catch (error) {
-      console.info(error);
+      logError(error);
     }
   }
 

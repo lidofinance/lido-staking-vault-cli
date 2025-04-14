@@ -8,6 +8,8 @@ import {
   showSpinner,
   printError,
   computeDepositDataRoot,
+  logResult,
+  logInfo,
 } from 'utils';
 
 const predepositGuaranteeHelpers = program
@@ -15,7 +17,8 @@ const predepositGuaranteeHelpers = program
   .description('predeposit guarantee helpers');
 
 predepositGuaranteeHelpers
-  .command('create-proof-and-check')
+  .command('proof-and-check')
+  .aliases(['proof-check'])
   .option('-i, --index <index>', 'validator index')
   .description(
     'create predeposit proof by validator index and check by test contract',
@@ -38,18 +41,18 @@ predepositGuaranteeHelpers
         withdrawalCredentials,
       ]);
 
-      console.info('-----------------proof verified-----------------');
-      console.info('------------------------------------------------');
-      console.info('----------------------proof----------------------');
-      console.info(proof);
-      console.info('---------------------pubkey---------------------');
-      console.table(pubkey);
-      console.info('---------------childBlockTimestamp---------------');
-      console.table(childBlockTimestamp);
-      console.info('--------------withdrawalCredentials--------------');
-      console.table(withdrawalCredentials);
-      console.info('------------------------------------------------');
-      console.info('-----------------------end-----------------------');
+      logInfo('-----------------proof verified-----------------');
+      logInfo('------------------------------------------------');
+      logInfo('----------------------proof----------------------');
+      logInfo(proof);
+      logInfo('---------------------pubkey---------------------');
+      logResult(pubkey);
+      logInfo('---------------childBlockTimestamp---------------');
+      logResult(childBlockTimestamp);
+      logInfo('--------------withdrawalCredentials--------------');
+      logResult(withdrawalCredentials);
+      logInfo('------------------------------------------------');
+      logInfo('-----------------------end-----------------------');
     } catch (err) {
       hideSpinner();
       printError(err, 'Error when creating proof');
@@ -57,7 +60,7 @@ predepositGuaranteeHelpers
   });
 
 predepositGuaranteeHelpers
-  .command('create-proof')
+  .command('proof')
   .description('create predeposit proof by validator index')
   .option('-i, --index <index>', 'validator index')
   .action(async ({ index }: { index: bigint }) => {
@@ -68,18 +71,18 @@ predepositGuaranteeHelpers
     const { proof, pubkey, childBlockTimestamp, withdrawalCredentials } =
       packageProof;
 
-    console.info('-----------------proof verified-----------------');
-    console.info('------------------------------------------------');
-    console.info('----------------------proof----------------------');
-    console.info(proof);
-    console.info('---------------------pubkey---------------------');
-    console.table(pubkey);
-    console.info('---------------childBlockTimestamp---------------');
-    console.table(childBlockTimestamp);
-    console.info('--------------withdrawalCredentials--------------');
-    console.table(withdrawalCredentials);
-    console.info('------------------------------------------------');
-    console.info('-----------------------end-----------------------');
+    logInfo('-----------------proof verified-----------------');
+    logInfo('------------------------------------------------');
+    logInfo('----------------------proof----------------------');
+    logInfo(proof);
+    logInfo('---------------------pubkey---------------------');
+    logResult(pubkey);
+    logInfo('---------------childBlockTimestamp---------------');
+    logResult(childBlockTimestamp);
+    logInfo('--------------withdrawalCredentials--------------');
+    logResult(withdrawalCredentials);
+    logInfo('------------------------------------------------');
+    logInfo('-----------------------end-----------------------');
   });
 
 predepositGuaranteeHelpers
@@ -91,7 +94,8 @@ predepositGuaranteeHelpers
   });
 
 predepositGuaranteeHelpers
-  .command('compute-dd-root')
+  .command('compute-deposit-data-root')
+  .aliases(['compute-dd-root'])
   .description('compute deposit data root')
   .argument('<pubkey>', 'pubkey')
   .argument('<withdrawal-credentials>', 'withdrawal credentials')
@@ -111,7 +115,7 @@ predepositGuaranteeHelpers
         amount,
       );
 
-      console.table({
+      logResult({
         pubkey,
         withdrawalCredentials,
         signature,

@@ -16,7 +16,11 @@ vault
   .option('-a, --address <address>', 'vault address')
   .option('-e, --ether <ether>', 'amount of ether to be funded (in WEI)')
   .action(async ({ address, ether }: { address: Address; ether: string }) => {
-    const { address: vault, amount } = await confirmFund(address, ether);
+    const { address: vault, amount } = await confirmFund(
+      address,
+      ether,
+      'vault',
+    );
     if (!vault || !amount) return;
 
     const contract = getStakingVaultContract(address);

@@ -5,7 +5,6 @@ import {
   callReadMethod,
   callWriteMethodWithReceipt,
   confirmFund,
-  printError,
   stringToBigIntArray,
   jsonToPermit,
   jsonToRoleAssignment,
@@ -45,7 +44,11 @@ dashboard
   .option('-a, --address <address>', 'dashboard address')
   .option('-e, --ether <ether>', 'amount of ether to be funded (in WEI)')
   .action(async ({ address, ether }: { address: Address; ether: string }) => {
-    const { address: dashboard, amount } = await confirmFund(address, ether);
+    const { address: dashboard, amount } = await confirmFund(
+      address,
+      ether,
+      'dashboard',
+    );
 
     if (!dashboard || !amount) return;
 
@@ -127,20 +130,12 @@ dashboard
       const contract = getDashboardContract(address);
 
       const vault = await callReadMethod(contract, 'stakingVault');
-      if (!vault) {
-        printError(null, 'Error when getting staking vault address');
-        return;
-      }
       const vaultContract = getStakingVaultContract(vault);
       const fee = await callReadMethod(
         vaultContract,
         'calculateValidatorWithdrawalFee',
         [BigInt(amounts.length)],
       );
-      if (!fee) {
-        printError(null, 'Error when getting withdrawal fee');
-        return;
-      }
 
       await callWriteMethodWithReceipt(
         contract,
