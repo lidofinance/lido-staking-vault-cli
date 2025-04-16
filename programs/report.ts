@@ -7,6 +7,8 @@ import {
   getReportLeaf,
   getAllVaultsReports,
   logInfo,
+  getReport,
+  fetchAndVerifyFile,
 } from 'utils';
 import { getReportCheckerContract } from 'contracts';
 import { Address } from 'viem';
@@ -88,6 +90,18 @@ report
     logInfo('leaf', report.leaf);
     logInfo('leafLocal', reportLeafLocal);
     logInfo('vaultProof', vaultProof);
+  });
+
+report
+  .command('check-cid')
+  .description('check ipfs CID')
+  .argument('<cid>', 'cid')
+  .option('-u, --url', 'ipfs gateway url')
+  .action(async (cid, { url }) => {
+    const report = await getReport(cid, url);
+    logInfo(report);
+    const fileContent = await fetchAndVerifyFile(cid, url);
+    logInfo(fileContent);
   });
 
 report
