@@ -1,6 +1,7 @@
 import { program } from 'command';
-import { getCLProofVerifierContract } from 'contracts';
+import { Option } from 'commander';
 
+import { getCLProofVerifierContract } from 'contracts';
 import {
   createPDGProof,
   getFirstValidatorGIndex,
@@ -10,11 +11,18 @@ import {
   computeDepositDataRoot,
   logResult,
   logInfo,
+  getCommandsJson,
 } from 'utils';
 
 const predepositGuaranteeHelpers = program
   .command('pdg-helpers')
   .description('predeposit guarantee helpers');
+
+predepositGuaranteeHelpers.addOption(new Option('-cmd2json'));
+predepositGuaranteeHelpers.on('option:-cmd2json', function () {
+  logInfo(getCommandsJson(predepositGuaranteeHelpers));
+  process.exit();
+});
 
 predepositGuaranteeHelpers
   .command('proof-and-check')

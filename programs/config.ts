@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 
 import { program } from 'command';
 import { validateConfig, logInfo } from 'utils';
-import { JSONConfig } from 'types';
+import { Config } from 'types';
 
 program
   .command('conf <path>')
@@ -22,7 +22,7 @@ program
       const errorKeys = Object.keys(errors);
       if (errorKeys.length > 0) {
         errorKeys.forEach((key) =>
-          program.error(`${key} - ${errors[key as keyof JSONConfig]}`),
+          program.error(`${key} - ${errors[key as keyof Config]}`),
         );
         process.exit(1);
       }

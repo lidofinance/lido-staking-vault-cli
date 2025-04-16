@@ -20,6 +20,7 @@ lsv-cli vault -h
 
 | Command                                                                                   | Description                                                           |
 | ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| info \<address>                                                                           | get vault base info                                                   |
 | deposit-contract \<address>                                                               | get vault deposit contract                                            |
 | PUBLIC_KEY_LENGTH \<address>                                                              | Calls the read-only function "PUBLIC_KEY_LENGTH" on the contract.     |
 | is-paused \<address>                                                                      | get whether deposits are paused by the vault owner                    |
@@ -36,9 +37,8 @@ lsv-cli vault -h
 | vault-hub \<address>                                                                      | get vault hub                                                         |
 | version \<address>                                                                        | get vault version                                                     |
 | wc \<address>                                                                             | get vault withdrawal credentials                                      |
-| info \<address>                                                                           | get vault base info                                                   |
 | fund                                                                                      | fund vault                                                            |
-| withdraw \<address> \<recipient> \<wei>                                                   | withdraw from vault                                                   |
+| withdraw \<address> \<recipient> \<eth>                                                   | withdraw from vault                                                   |
 | no-deposit-beacon \<address> \<amountOfDeposit> \<pubkey> \<signature> \<depositDataRoot> | deposit to beacon chain                                               |
 | no-val-exit \<address> \<validatorPublicKey>                                              | request to exit validator                                             |
 | bc-resume \<address>                                                                      | Resumes deposits to beacon chain                                      |

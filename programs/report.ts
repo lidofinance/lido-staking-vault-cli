@@ -1,4 +1,7 @@
 import { program } from 'command';
+import { Address } from 'viem';
+import { Option } from 'commander';
+
 import {
   getVaultReport,
   getReportProof,
@@ -9,11 +12,16 @@ import {
   logInfo,
   getReport,
   fetchAndVerifyFile,
+  getCommandsJson,
 } from 'utils';
 import { getReportCheckerContract } from 'contracts';
-import { Address } from 'viem';
 
 const report = program.command('report').description('report utilities');
+report.addOption(new Option('-cmd2json'));
+report.on('option:-cmd2json', function () {
+  logInfo(getCommandsJson(report));
+  process.exit();
+});
 
 report
   .command('by-vault')

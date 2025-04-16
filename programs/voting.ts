@@ -1,10 +1,21 @@
 import { Address } from 'viem';
+import { Option } from 'commander';
 import { program } from 'command';
 import { getVaultHubContract, getVotingContract } from 'contracts';
 import { voteLastVoting } from 'features';
-import { callWriteMethodWithReceipt, callReadMethod, logInfo } from 'utils';
+import {
+  callWriteMethodWithReceipt,
+  callReadMethod,
+  logInfo,
+  getCommandsJson,
+} from 'utils';
 
 const voting = program.command('vote').description('voting contract');
+voting.addOption(new Option('-cmd2json'));
+voting.on('option:-cmd2json', function () {
+  logInfo(getCommandsJson(voting));
+  process.exit();
+});
 
 voting
   .command('connect-vault')

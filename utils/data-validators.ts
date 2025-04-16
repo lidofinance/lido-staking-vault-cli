@@ -1,32 +1,12 @@
 import { isAddress } from 'viem';
 
-import { JSONConfig } from 'types';
+import { Config } from 'types';
 
-export const validateConfig = (config: JSONConfig) => {
-  const errors = {} as Record<keyof JSONConfig, string>;
+export const validateConfig = (config: Config) => {
+  const errors = {} as Record<keyof Config, string>;
 
-  if (!isValidUrl(config.rpcLink)) {
-    errors.rpcLink = 'Invalid rpcLink: must be a valid URL.';
-  }
-
-  if (typeof config.privateKey !== 'string' || !config.privateKey) {
-    errors.privateKey = 'Invalid privateKey: must be a non-empty string.';
-  }
-
-  if (typeof config.chainId !== 'number' || isNaN(config.chainId)) {
-    errors.chainId = 'Invalid chainId: must be a string representing a number.';
-  }
-
-  if (
-    typeof config.lidoLocator !== 'string' ||
-    !isAddress(config.lidoLocator)
-  ) {
-    errors.lidoLocator =
-      'Invalid lidoLocator: must be a valid Ethereum address.';
-  }
-
-  if (typeof config.accounting !== 'string' || !isAddress(config.accounting)) {
-    errors.accounting = 'Invalid accounting: must be a valid Ethereum address.';
+  if (isNaN(config.CHAIN_ID)) {
+    errors.CHAIN_ID = 'Invalid chainId: must be in config.';
   }
 
   return errors;

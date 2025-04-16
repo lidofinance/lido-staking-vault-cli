@@ -5,12 +5,8 @@ const { parsed } = dotenv.config();
 export const envs = structuredClone(parsed);
 if (envs) {
   envs.DEPLOYED = (process.env.DEPLOYED as string) ?? envs?.DEPLOYED;
-  envs.CONFIG = (process.env.CONFIG as string) ?? envs?.CONFIG;
-  envs.RPC_URL_1 = (process.env.RPC_URL_1 as string) ?? envs?.RPC_URL_1;
-  envs.RPC_URL_17000 =
-    (process.env.RPC_URL_17000 as string) ?? envs?.RPC_URL_17000;
-  envs.PRIVATE_KEY_1 =
-    (process.env.PRIVATE_KEY_1 as string) ?? envs?.PRIVATE_KEY_1;
-  envs.PRIVATE_KEY_17000 =
-    (process.env.PRIVATE_KEY_17000 as string) ?? envs?.PRIVATE_KEY_17000;
+  envs.PRIVATE_KEY = (process.env.PRIVATE_KEY as string) ?? envs?.PRIVATE_KEY;
+  envs.CL_URL = (process.env.CL_URL as string) ?? envs?.CL_URL;
+  envs.EL_URL = (process.env.EL_URL as string) ?? envs?.EL_URL;
+  envs.CHAIN_ID = (process.env.CHAIN_ID as string) ?? envs?.CHAIN_ID;
 }

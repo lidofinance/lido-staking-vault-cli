@@ -1,7 +1,7 @@
 import { getContract, createPublicClient, http, Address } from 'viem';
 import { mainnet, sepolia } from 'viem/chains';
 import { ReportCheckerAbi } from 'abi/index.js';
-import { getChain, getRpcUrl } from 'configs';
+import { getChain, getElUrl } from 'configs';
 
 const REPORT_CHECKER_BY_CHAIN: Record<number, Address> = {
   [mainnet.id]: '0x',
@@ -21,7 +21,7 @@ export const getReportCheckerContract = () => {
     abi: ReportCheckerAbi,
     client: createPublicClient({
       chain: getChain(),
-      transport: http(getRpcUrl()),
+      transport: http(getElUrl()),
     }),
   });
 };

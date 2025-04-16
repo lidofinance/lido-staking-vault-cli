@@ -79,8 +79,8 @@ lsv-cli delegation -h
 | cf-claim \<address> \<recipient>                           | claims the curator fee                                                                                                  |
 | nof-set \<address> \<newNodeOperatorFeeBP>                 | sets the node operator fee                                                                                              |
 | nof-claim \<address> \<recipient>                          | claims the node operator fee                                                                                            |
-| fund \<address> \<wei>                                     | funds the StakingVault with ether                                                                                       |
-| withdraw \<address> \<recipient> \<wei>                    | withdraws ether from the StakingVault                                                                                   |
+| fund \<address> \<eth>                                     | funds the StakingVault with ether                                                                                       |
+| withdraw \<address> \<recipient> \<eth>                    | withdraws ether from the StakingVault                                                                                   |
 | rebalance \<address> \<ether>                              | rebalances the StakingVault with a given amount of ether                                                                |
 | t-ownership \<address> \<newOwner>                         | transfers the ownership of the StakingVault                                                                             |
 | disconnect \<address>                                      | voluntarily disconnects a StakingVault from VaultHub                                                                    |
