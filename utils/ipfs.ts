@@ -20,7 +20,7 @@ export const fetchIPFS = async (CID: string, url = IPFS_GATEWAY) => {
   return response.json();
 };
 
-// Получение контента по CID через IPFS-гейтвей
+// Fetching content by CID through IPFS gateway
 export const fetchIPFSBuffer = async (
   cid: string,
   gateway = IPFS_GATEWAY,
@@ -33,13 +33,13 @@ export const fetchIPFSBuffer = async (
   return new Uint8Array(buffer);
 };
 
-// Пересчёт CID на основе скачанного контента
+// Recalculating CID based on downloaded content
 export const calculateCID = async (content: Uint8Array) => {
   const hashDigest = await sha256.digest(content);
   return CID.createV1(0x55, hashDigest);
 };
 
-// Загрузка файла из IPFS и проверка его целостности
+// Downloading file from IPFS and checking its integrity
 export const fetchAndVerifyFile = async (
   cidStr: string,
   gateway = IPFS_GATEWAY,
