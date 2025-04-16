@@ -1,8 +1,15 @@
-import { getDashboardContract, getStethContract } from 'contracts';
 import { Address, formatEther } from 'viem';
+
 import { DashboardAbi } from 'abi';
-import { calculateHealthRatio, generateReadCommands, textPrompt } from 'utils';
 import { getBaseInfo } from 'features';
+import { getDashboardContract, getStethContract } from 'contracts';
+import {
+  calculateHealthRatio,
+  generateReadCommands,
+  textPrompt,
+  logResult,
+  logInfo,
+} from 'utils';
 
 import { dashboard } from './main.js';
 import { readCommandConfig } from './config.js';
@@ -19,7 +26,7 @@ dashboard
       dashboardAddress = answer.address;
 
       if (!dashboardAddress) {
-        console.info('Command cancelled');
+        logInfo('Command cancelled');
         return;
       }
     }
@@ -43,8 +50,8 @@ dashboard
         contract.read.sharesMinted(), // BigInt, in shares
         contract.read.rebalanceThresholdBP(), // number (in basis points)
       ]);
-      if (minted === BigInt(0)) {
-        console.info('Minted is 0');
+      if (minted === 0n) {
+        logInfo('Minted is 0');
         return;
       }
 
@@ -58,7 +65,7 @@ dashboard
         rebalanceThresholdBP,
       );
 
-      console.table({
+      logResult({
         'Vault Healthy': isHealthy,
         'Valuation, wei': valuation,
         'Valuation, ether': `${formatEther(valuation)} ETH`,
@@ -69,7 +76,7 @@ dashboard
       });
     } catch (err) {
       if (err instanceof Error) {
-        console.info('Error when getting info:\n', err.message);
+        logInfo('Error when getting info:\n', err.message);
       }
     }
   });

@@ -1,11 +1,10 @@
 import { getDashboardContract, getStakingVaultContract } from 'contracts';
-import { Address, Hex } from 'viem';
+import { Address, Hex, parseEther } from 'viem';
 import { Permit, RoleAssignment } from 'types';
 import {
   callReadMethod,
   callWriteMethodWithReceipt,
   confirmFund,
-  printError,
   stringToBigIntArray,
   jsonToPermit,
   jsonToRoleAssignment,
@@ -43,15 +42,19 @@ dashboard
   .command('fund')
   .description('funds the staking vault with ether')
   .option('-a, --address <address>', 'dashboard address')
-  .option('-e, --ether <ether>', 'amount of ether to be funded (in WEI)')
+  .option('-e, --ether <ether>', 'amount of ether to be funded (in ETH)')
   .action(async ({ address, ether }: { address: Address; ether: string }) => {
-    const { address: dashboard, amount } = await confirmFund(address, ether);
+    const { address: dashboard, amount } = await confirmFund(
+      address,
+      ether,
+      'dashboard',
+    );
 
     if (!dashboard || !amount) return;
 
     const contract = getDashboardContract(dashboard);
 
-    await callWriteMethodWithReceipt(contract, 'fund', [], BigInt(amount));
+    await callWriteMethodWithReceipt(contract, 'fund', [], parseEther(amount));
   });
 
 dashboard
@@ -72,13 +75,13 @@ dashboard
   .description('withdraws ether from the staking vault to a recipient')
   .argument('<address>', 'dashboard address')
   .argument('<recipient>', 'address of the recipient')
-  .argument('<wei>', 'amount of ether to withdraw (in WEI)')
+  .argument('<eth>', 'amount of ether to withdraw (in ETH)')
   .action(async (address: Address, recipient: Address, ether: string) => {
     const contract = getDashboardContract(address);
 
     await callWriteMethodWithReceipt(contract, 'withdraw', [
       recipient,
-      BigInt(ether),
+      parseEther(ether),
     ]);
   });
 
@@ -127,20 +130,12 @@ dashboard
       const contract = getDashboardContract(address);
 
       const vault = await callReadMethod(contract, 'stakingVault');
-      if (!vault) {
-        printError(null, 'Error when getting staking vault address');
-        return;
-      }
       const vaultContract = getStakingVaultContract(vault);
       const fee = await callReadMethod(
         vaultContract,
         'calculateValidatorWithdrawalFee',
         [BigInt(amounts.length)],
       );
-      if (!fee) {
-        printError(null, 'Error when getting withdrawal fee');
-        return;
-      }
 
       await callWriteMethodWithReceipt(
         contract,

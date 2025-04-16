@@ -1,6 +1,6 @@
 import { program } from 'command';
 import { Option } from 'commander';
-import { getCommandsJson } from 'utils';
+import { getCommandsJson, logInfo } from 'utils';
 
 export const delegation = program
   .command('delegation')
@@ -8,6 +8,6 @@ export const delegation = program
 
 delegation.addOption(new Option('-cmd2json'));
 delegation.on('option:-cmd2json', function () {
-  console.info(getCommandsJson(delegation));
+  logInfo(getCommandsJson(delegation));
   process.exit();
 });

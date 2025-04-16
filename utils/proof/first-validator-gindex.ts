@@ -1,5 +1,7 @@
 import { ssz } from '@lodestar/types';
 
+import { logResult } from 'utils';
+
 const SupportedFork = {
   deneb: 'deneb',
   electra: 'electra',
@@ -19,7 +21,7 @@ export const getFirstValidatorGIndex = (forks: string[]) => {
     );
     gIndexes[fork] = toBytes32String(gI);
   }
-  console.table(gIndexes);
+  logResult(gIndexes);
 };
 
 const pack = (gI: bigint, limit: number) => {

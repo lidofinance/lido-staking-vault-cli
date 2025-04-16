@@ -1,6 +1,6 @@
 import { program } from 'command';
 import { Option } from 'commander';
-import { getCommandsJson } from 'utils';
+import { getCommandsJson, logInfo } from 'utils';
 
 export const pdg = program
   .command('pdg')
@@ -8,6 +8,6 @@ export const pdg = program
 
 pdg.addOption(new Option('-cmd2json'));
 pdg.on('option:-cmd2json', function () {
-  console.info(getCommandsJson(pdg));
+  logInfo(getCommandsJson(pdg));
   process.exit();
 });

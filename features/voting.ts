@@ -5,7 +5,7 @@ import {
   sleep,
   callReadMethod,
   callWriteMethodWithReceipt,
-  printError,
+  logInfo,
 } from 'utils';
 import { Vote } from 'types';
 
@@ -48,10 +48,6 @@ const voteAbi = [
 export const voteLastVoting = async () => {
   const { contract } = getVotingContract();
   const votesLength = await callReadMethod(contract, 'votesLength');
-  if (!votesLength) {
-    printError(null, 'Error when getting votes length');
-    return;
-  }
   const lastVoteId = votesLength - 1n;
 
   if (lastVoteId === -1n) {
@@ -61,8 +57,8 @@ export const voteLastVoting = async () => {
 
   const lastVote = await contract.read.getVote([lastVoteId]);
   const voteMap = createVoteMap(lastVote);
-  console.info('voteLastVoting');
-  console.info('voteMap', voteMap);
+  logInfo('voteLastVoting');
+  logInfo('voteMap', voteMap);
 
   if (!voteMap.open) {
     console.warn('Vote is not open');
@@ -83,13 +79,13 @@ export const voteFor = async (voteId: bigint) => {
   const { contract } = getVotingContract();
 
   await callWriteMethodWithReceipt(contract, 'vote', [voteId, true, false]);
-  console.info('Vote voted', voteId);
+  logInfo('Vote voted', voteId);
 };
 
 export const executeVote = async (voteId: bigint) => {
   const { contract } = getVotingContract();
   await callWriteMethodWithReceipt(contract, 'executeVote', [voteId]);
-  console.info('Vote executed', voteId);
+  logInfo('Vote executed', voteId);
 };
 
 export const waitForEnd = async (voteId: bigint, progressBar?: SingleBar) => {

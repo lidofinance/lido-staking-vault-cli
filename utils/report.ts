@@ -1,5 +1,7 @@
 import { Address } from 'viem';
 
+import { logInfo } from 'utils';
+
 export type LeafDataFields = {
   vault_address: string;
   valuation_wei: string;
@@ -58,7 +60,7 @@ export const getReport = async (
 ): Promise<Report> => {
   const ipfsUrl = `${url}/${CID}`;
 
-  console.info('Fetching report from', ipfsUrl);
+  logInfo('Fetching report from', ipfsUrl);
 
   const response = await fetch(ipfsUrl);
   if (!response.ok) {
@@ -123,7 +125,7 @@ export const getReportProof = async (vault: string, cid: string) => {
   const proof = report.proofsCID;
   const url = `${IPFS_GATEWAY}/${proof}`;
 
-  console.info('Fetching proof from', url);
+  logInfo('Fetching proof from', url);
 
   const response = await fetch(url);
   if (!response.ok) {

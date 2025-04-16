@@ -1,4 +1,4 @@
-import { Address } from 'viem';
+import { Address, parseEther } from 'viem';
 
 import { getDelegationContract } from 'contracts';
 import { Permit, RoleAssignment } from 'types';
@@ -70,11 +70,11 @@ delegation
   .command('fund')
   .description('funds the StakingVault with ether')
   .argument('<address>', 'delegation contract address')
-  .argument('<wei>', 'ether to fund (in WEI)')
+  .argument('<eth>', 'ether to fund (in ETH)')
   .action(async (address: Address, ether: string) => {
     const contract = getDelegationContract(address);
 
-    await callWriteMethodWithReceipt(contract, 'fund', [], BigInt(ether));
+    await callWriteMethodWithReceipt(contract, 'fund', [], parseEther(ether));
   });
 
 delegation
@@ -82,12 +82,12 @@ delegation
   .description('withdraws ether from the StakingVault')
   .argument('<address>', 'delegation contract address')
   .argument('<recipient>', 'address to which the ether will be sent')
-  .argument('<wei>', 'ether to found (in WEI)')
+  .argument('<eth>', 'ether to found (in ETH)')
   .action(async (address: Address, recipient: Address, ether: string) => {
     const contract = getDelegationContract(address);
     await callWriteMethodWithReceipt(contract, 'withdraw', [
       recipient,
-      BigInt(ether),
+      parseEther(ether),
     ]);
   });
 

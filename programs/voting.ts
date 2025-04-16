@@ -1,12 +1,8 @@
 import { Address } from 'viem';
 import { program } from 'command';
-import {
-  // getTokenManagerContract,
-  getVaultHubContract,
-  getVotingContract,
-} from 'contracts';
+import { getVaultHubContract, getVotingContract } from 'contracts';
 import { voteLastVoting } from 'features';
-import { callWriteMethodWithReceipt, callReadMethod } from 'utils';
+import { callWriteMethodWithReceipt, callReadMethod, logInfo } from 'utils';
 
 const voting = program.command('vote').description('voting contract');
 
@@ -50,7 +46,7 @@ voting.command('get-lv').action(async () => {
 
   const tx = await callReadMethod(contract, 'votesLength');
 
-  console.info({ 'Votes length': tx });
+  logInfo({ 'Votes length': tx });
 });
 
 voting.command('connect-and-vote').action(async () => await voteLastVoting());
