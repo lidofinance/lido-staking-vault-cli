@@ -67,7 +67,7 @@ lsv-cli dashboard -h
 | disconnect \<address>                                                      | disconnects the staking vault from the vault hub                                                                        |
 | fund                                                                       | funds the staking vault with ether                                                                                      |
 | fund-weth \<address> \<wethAmount>                                         | funds the staking vault with wrapped ether                                                                              |
-| withdraw \<address> \<recipient> \<wei>                                    | withdraws ether from the staking vault to a recipient                                                                   |
+| withdraw \<address> \<recipient> \<eth>                                    | withdraws ether from the staking vault to a recipient                                                                   |
 | withdraw-weth \<address> \<recipient> \<ether>                             | withdraws stETH tokens from the staking vault to wrapped ether                                                          |
 | exit \<address> \<validatorPubKey>                                         | requests the exit of a validator from the staking vault                                                                 |
 | trigger-validator-withdrawal \<address> \<pubkeys> \<amounts> \<recipient> | triggers the withdrawal of a validator from the staking vault                                                           |

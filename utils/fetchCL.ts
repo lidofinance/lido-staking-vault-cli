@@ -28,11 +28,11 @@ export const SupportedFork = {
 };
 
 export const fetchBeaconHeader = async (stateId: StateId) => {
-  const { clLink } = getConfig();
+  const { CL_URL } = getConfig();
 
   try {
     const beaconHeaderResp = await fetch(
-      `${clLink}${endpoints.beaconHeader(stateId)}`,
+      `${CL_URL}${endpoints.beaconHeader(stateId)}`,
     );
 
     return beaconHeaderResp.json();
@@ -48,11 +48,11 @@ export const fetchBeaconState = async (
   stateBodyBytes: ArrayBuffer;
   forkName: keyof typeof SupportedFork;
 }> => {
-  const { clLink } = getConfig();
+  const { CL_URL } = getConfig();
 
   try {
     const beaconStateResp = await fetch(
-      `${clLink}${endpoints.state(stateId)}`,
+      `${CL_URL}${endpoints.state(stateId)}`,
       {
         headers: { accept: 'application/octet-stream' },
       },
@@ -79,11 +79,11 @@ export const fetchBeaconState = async (
 };
 
 export const fetchBeaconHeaderByParentRoot = async (parentRoot: RootHex) => {
-  const { clLink } = getConfig();
+  const { CL_URL } = getConfig();
 
   try {
     const beaconHeaderResp = await fetch(
-      `${clLink}${endpoints.beaconHeadersByParentRoot(parentRoot)}`,
+      `${CL_URL}${endpoints.beaconHeadersByParentRoot(parentRoot)}`,
     );
 
     return beaconHeaderResp.json();

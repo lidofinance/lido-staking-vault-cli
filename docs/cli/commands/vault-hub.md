@@ -41,8 +41,8 @@ lsv-cli hub -h
 | is-v-h \<\_vault>                                                                                        | get is vault healthy boolean                                                                    |
 | supportsInterface \<interfaceId>                                                                         | Calls the read-only function "supportsInterface" on the contract.                               |
 | vault \<\_index>                                                                                         | Calls the read-only function "vault" on the contract.                                           |
-| vaultSocket \<\_index>                                                                                   | Calls the read-only function "vaultSocket" on the contract.                                     |
-| vaultSocket_vault \<\_vault>                                                                             | Calls the read-only function "vaultSocket" on the contract.                                     |
+| vault-socket-i \<index>                                                                                  | get vault socket by index                                                                       |
+| vaultSocket_vault \<\_vault>                                                                             | get vault socket by index                                                                       |
 | v-count                                                                                                  | get connected vaults count                                                                      |
 | vi \<index>                                                                                              | get vault and vault socket by index                                                             |
 | add-codehash \<codehash>                                                                                 | add vault proxy codehash to allowed list                                                        |

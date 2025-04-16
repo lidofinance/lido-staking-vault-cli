@@ -1,10 +1,10 @@
 import { getContract, createPublicClient, http } from 'viem';
 import { VaultHubAbi } from 'abi/index.js';
-import { getChain, getRpcUrl } from 'configs';
+import { getChain, getElUrl } from 'configs';
 import { getLocatorContract } from 'contracts';
 
 export const getVaultHubContract = async () => {
-  const rpcUrl = getRpcUrl();
+  const elUrl = getElUrl();
   const locator = getLocatorContract();
   const address = await locator.read.vaultHub();
 
@@ -13,7 +13,7 @@ export const getVaultHubContract = async () => {
     abi: VaultHubAbi,
     client: createPublicClient({
       chain: getChain(),
-      transport: http(rpcUrl),
+      transport: http(elUrl),
     }),
   });
 };

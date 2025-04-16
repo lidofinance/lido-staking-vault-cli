@@ -1,7 +1,7 @@
 import { getContract, createPublicClient, http, Address } from 'viem';
 import { mainnet, sepolia, holesky } from 'viem/chains';
 import { CLProofVerifierAbi } from 'abi/index.js';
-import { getChain, getRpcUrl } from 'configs';
+import { getChain, getElUrl } from 'configs';
 
 const HOLESKY_CONTRACTS: Record<string, Address> = {
   CL_BEFORE_PECTRA: '0x16d7e6D314Cd378Cf2b0B3316A91995491B6A1f4',
@@ -27,7 +27,7 @@ export const getCLProofVerifierContract = () => {
     abi: CLProofVerifierAbi,
     client: createPublicClient({
       chain: getChain(),
-      transport: http(getRpcUrl()),
+      transport: http(getElUrl()),
     }),
   });
 };

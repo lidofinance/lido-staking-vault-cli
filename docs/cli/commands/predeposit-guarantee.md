@@ -10,7 +10,7 @@ sidebar_position: 7
 lsv-cli pdg [arguments] [-options]
 ```
 
-## Delegation commands list
+## PredepositGuarantee commands list
 
 ```bash
 lsv-cli pdg -h
@@ -51,7 +51,7 @@ lsv-cli pdg -h
 | ub-bal \<address>                                                   | get unlocked balance                                                      |
 | v-status \<pubkey>                                                  | get validator status                                                      |
 | predeposit \<vault> \<deposits>                                     | predeposit                                                                |
-| verify-predeposit \<deposits>                                       | Verifies BLS signature of the deposit                                     |
+| verify-predeposit verify\<deposits>                                 | Verifies BLS signature of the deposit                                     |
 | create-proof-and-prove \<index>                                     | create proof and prove                                                    |
 | prove-and-deposit \<indexes> \<vault> \<deposits>                   | prove and deposit                                                         |
 | deposit-to-beacon-chain \<vault> \<deposits>                        | deposit to beacon chain                                                   |

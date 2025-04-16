@@ -1,4 +1,7 @@
 import { program } from 'command';
+import { Address } from 'viem';
+import { Option } from 'commander';
+
 import {
   getVaultReport,
   getReportProof,
@@ -7,11 +10,18 @@ import {
   getReportLeaf,
   getAllVaultsReports,
   logInfo,
+  getReport,
+  fetchAndVerifyFile,
+  getCommandsJson,
 } from 'utils';
 import { getReportCheckerContract } from 'contracts';
-import { Address } from 'viem';
 
 const report = program.command('report').description('report utilities');
+report.addOption(new Option('-cmd2json'));
+report.on('option:-cmd2json', function () {
+  logInfo(getCommandsJson(report));
+  process.exit();
+});
 
 report
   .command('by-vault')
@@ -88,6 +98,18 @@ report
     logInfo('leaf', report.leaf);
     logInfo('leafLocal', reportLeafLocal);
     logInfo('vaultProof', vaultProof);
+  });
+
+report
+  .command('check-cid')
+  .description('check ipfs CID')
+  .argument('<cid>', 'cid')
+  .option('-u, --url', 'ipfs gateway url')
+  .action(async (cid, { url }) => {
+    const report = await getReport(cid, url);
+    logInfo(report);
+    const fileContent = await fetchAndVerifyFile(cid, url);
+    logInfo(fileContent);
   });
 
 report

@@ -1,10 +1,10 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
-import { JSONConfig } from 'types';
+import { Config } from 'types';
 
 import { logInfo } from 'utils';
 
 const advancedConfigStore = new AsyncLocalStorage<{
-  config: JSONConfig | null;
+  config: Config | null;
 }>();
 advancedConfigStore.enterWith({ config: null });
 
@@ -14,7 +14,7 @@ export const getAdvancedConfig = () => {
   return store;
 };
 
-export const setAdvancedConfig = async (payload: JSONConfig) => {
+export const setAdvancedConfig = async (payload: Config) => {
   const store = getAdvancedConfig();
   if (store) {
     store.config = payload;

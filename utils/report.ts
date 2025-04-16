@@ -1,6 +1,6 @@
 import { Address } from 'viem';
 
-import { logInfo } from 'utils';
+import { logInfo, fetchIPFS, IPFS_GATEWAY } from 'utils';
 
 export type LeafDataFields = {
   vault_address: string;
@@ -50,24 +50,12 @@ export type ReportProofData = {
   block_number: number;
 };
 
-// TODO: change to the general IPFS gateway
-const IPFS_GATEWAY =
-  'https://emerald-characteristic-yak-701.mypinata.cloud/ipfs';
-
 export const getReport = async (
   CID: string,
   url = IPFS_GATEWAY,
 ): Promise<Report> => {
-  const ipfsUrl = `${url}/${CID}`;
+  const data: Report = await fetchIPFS(CID, url);
 
-  logInfo('Fetching report from', ipfsUrl);
-
-  const response = await fetch(ipfsUrl);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch IPFS report: ${response.statusText}`);
-  }
-
-  const data: Report = await response.json();
   return data;
 };
 

@@ -3,8 +3,8 @@ import * as process from 'node:process';
 import path from 'path';
 import { zeroAddress, Address, Chain } from 'viem';
 
-import { getValueByPath, resolvePath, validateConfig, logError } from 'utils';
-import { JSONConfig } from 'types';
+import { getValueByPath, validateConfig } from 'utils';
+import { Config } from 'types';
 
 import { envs } from './envs.js';
 import { SUPPORTED_CHAINS_LIST } from './constants.js';
@@ -26,38 +26,24 @@ export const importDeployFile = () => {
   return json;
 };
 
-export const importConfigFile = (pathToConfig?: string) => {
-  const path = pathToConfig ?? (envs?.CONFIG as string);
-  const fullPath = resolvePath(path);
+export const importConfigFromEnv = () => {
+  const config = envs as unknown as Config;
+  config.CHAIN_ID = Number(config.CHAIN_ID);
 
-  let json = {} as JSONConfig;
-
-  if (lstatSync(fullPath).isFile()) {
-    try {
-      const fileContent = readFileSync(fullPath, 'utf-8');
-      const config = JSON.parse(fileContent);
-      json = structuredClone(config);
-    } catch (error) {
-      logError(error);
-    }
-  }
-
-  return json;
+  return config;
 };
 
 export const getConfig = (() => {
-  const configJSON = importConfigFile();
+  const config = importConfigFromEnv();
 
-  const errors = validateConfig(configJSON as unknown as JSONConfig);
+  const errors = validateConfig(config as unknown as Config);
   const errorKeys = Object.keys(errors);
   if (errorKeys.length > 0) {
-    errorKeys.forEach((key) =>
-      console.error(`${errors[key as keyof JSONConfig]}`),
-    );
+    errorKeys.forEach((key) => console.error(`${errors[key as keyof Config]}`));
     process.exit(1);
   }
 
-  return () => configJSON;
+  return () => config;
 })();
 
 export const getDeployed = (() => {
@@ -67,49 +53,37 @@ export const getDeployed = (() => {
 })();
 
 export const getChainId = (() => {
-  let chainId: number;
   const config = getConfig();
   const deployed = getDeployed();
+  const chainId = config.CHAIN_ID;
 
-  if (config) {
-    chainId = config.chainId as number;
-  } else if (deployed.chainId) {
-    chainId = deployed.chainId;
-  } else {
-    chainId = Number(process.env.CHAIN_ID);
+  if (chainId !== deployed.chainId) {
+    throw new Error('ChainId in env and deployed file mismatch');
   }
 
   return () => chainId;
 })();
 
 export const getChain = (): Chain => {
-  const id = getChainId();
-  const chain = SUPPORTED_CHAINS_LIST.find((chain) => chain.id === id);
-  return chain ?? (SUPPORTED_CHAINS_LIST[0] as Chain);
-};
+  const chainId = getChainId();
+  const chain = SUPPORTED_CHAINS_LIST.find((chain) => chain.id === chainId);
 
-export const getRpcUrl = (() => {
-  let rpcUrls: string;
-  const id = getChainId();
-  const config = getConfig();
-
-  if (config) {
-    rpcUrls = config.rpcLink as string;
-  } else {
-    rpcUrls = envs?.[`RPC_URL_${id}`] as string;
+  if (!chain) {
+    throw new Error(`Chain ${chainId} is not supported`);
   }
 
-  return () => rpcUrls.split(',')[0] as string;
+  return chain;
+};
+
+export const getElUrl = (() => {
+  const config = getConfig();
+  const elUrls = config.EL_URL as string;
+
+  return () => elUrls.split(',')[0] as string;
 })();
 
 export const getContracts = () => {
-  const config = getConfig();
   const deployedJSON = getDeployed();
-
-  if (config) {
-    const { lidoLocator, accounting } = config;
-    return { ...deployedJSON, lidoLocator, accounting };
-  }
 
   return { ...deployedJSON };
 };
