@@ -100,7 +100,7 @@ predepositGuaranteeHelpers
   .argument('<pubkey>', 'pubkey')
   .argument('<withdrawal-credentials>', 'withdrawal credentials')
   .argument('<signature>', 'signature')
-  .argument('<amount>', 'amount in wei')
+  .argument('<amount>', 'amount in ETH')
   .action(
     async (
       pubkey: string,

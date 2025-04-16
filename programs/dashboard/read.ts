@@ -50,7 +50,7 @@ dashboard
         contract.read.sharesMinted(), // BigInt, in shares
         contract.read.rebalanceThresholdBP(), // number (in basis points)
       ]);
-      if (minted === BigInt(0)) {
+      if (minted === 0n) {
         logInfo('Minted is 0');
         return;
       }

@@ -9,25 +9,25 @@ export const enterContractAddress = async (name = 'contract') => {
 
 export const confirmContractAndAmount = async (
   contract: Address,
-  amountWei: string,
+  amountETH: string,
 ) => {
   return await confirmPrompt(
-    `Do you want to fund the contract ${contract} with ${amountWei} wei?`,
+    `Do you want to fund the contract ${contract} with ${amountETH} ETH?`,
     'confirm',
   );
 };
 
-export const enterAmountWei = async () => {
-  return await textPrompt('Enter amount in wei', 'amountWei');
+export const enterAmountETH = async () => {
+  return await textPrompt('Enter amount in ETH', 'amountETH');
 };
 
 export const confirmFund = async (
   address: Address,
-  amountWei: string,
+  amountETH: string,
   name: string,
 ) => {
   let contractAddress: Address | null = address;
-  let amount: string | null = amountWei;
+  let amount: string | null = amountETH;
 
   if (!contractAddress) {
     const answerAddress = await enterContractAddress(name);
@@ -37,8 +37,8 @@ export const confirmFund = async (
   }
 
   if (!amount) {
-    const answerAmount = await enterAmountWei();
-    amount = answerAmount.amountWei as string;
+    const answerAmount = await enterAmountETH();
+    amount = answerAmount.amountETH as string;
 
     if (!amount) program.error('Command cancelled', { exitCode: 1 });
   }

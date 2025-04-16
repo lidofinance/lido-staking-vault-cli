@@ -6,6 +6,10 @@ export const stringToBigIntArray = (value: string) => {
   return value.split(',').map(BigInt);
 };
 
+export const stringToBigIntArrayWei = (value: string) => {
+  return value.split(',').map(etherToWei);
+};
+
 export const jsonToPermit = (value: string) => {
   return JSON.parse(value) as Permit;
 };
