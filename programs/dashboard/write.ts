@@ -1,5 +1,5 @@
 import { getDashboardContract, getStakingVaultContract } from 'contracts';
-import { Address, Hex } from 'viem';
+import { Address, Hex, parseEther } from 'viem';
 import { Permit, RoleAssignment } from 'types';
 import {
   callReadMethod,
@@ -42,7 +42,7 @@ dashboard
   .command('fund')
   .description('funds the staking vault with ether')
   .option('-a, --address <address>', 'dashboard address')
-  .option('-e, --ether <ether>', 'amount of ether to be funded (in WEI)')
+  .option('-e, --ether <ether>', 'amount of ether to be funded (in ETH)')
   .action(async ({ address, ether }: { address: Address; ether: string }) => {
     const { address: dashboard, amount } = await confirmFund(
       address,
@@ -54,7 +54,7 @@ dashboard
 
     const contract = getDashboardContract(dashboard);
 
-    await callWriteMethodWithReceipt(contract, 'fund', [], BigInt(amount));
+    await callWriteMethodWithReceipt(contract, 'fund', [], parseEther(amount));
   });
 
 dashboard
@@ -75,13 +75,13 @@ dashboard
   .description('withdraws ether from the staking vault to a recipient')
   .argument('<address>', 'dashboard address')
   .argument('<recipient>', 'address of the recipient')
-  .argument('<wei>', 'amount of ether to withdraw (in WEI)')
+  .argument('<eth>', 'amount of ether to withdraw (in ETH)')
   .action(async (address: Address, recipient: Address, ether: string) => {
     const contract = getDashboardContract(address);
 
     await callWriteMethodWithReceipt(contract, 'withdraw', [
       recipient,
-      BigInt(ether),
+      parseEther(ether),
     ]);
   });
 

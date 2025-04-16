@@ -390,7 +390,7 @@ pdg
   .command('withdraw-no-balance')
   .description('withdraw node operator balance')
   .argument('<nodeOperator>', 'node operator address')
-  .argument('<amount>', 'amount in wei', stringToBigInt)
+  .argument('<amount>', 'amount in ETH', etherToWei)
   .argument('<recipient>', 'recipient address')
   .action(async (nodeOperator: Address, amount: bigint, recipient: Address) => {
     const pdgContract = await getPredepositGuaranteeContract();
