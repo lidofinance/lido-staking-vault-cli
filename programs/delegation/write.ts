@@ -275,6 +275,7 @@ delegation
 
 delegation
   .command('mint-shares')
+  .alias('mint')
   .description('mints stETH tokens backed by the vault to a recipient')
   .argument('<address>', 'delegation address')
   .argument('<recipient>', 'address of the recipient')
@@ -327,6 +328,7 @@ delegation
 
 delegation
   .command('burn-shares')
+  .alias('burn')
   .description(
     'Burns stETH shares from the sender backed by the vault. Expects corresponding amount of stETH approved to this contract',
   )
