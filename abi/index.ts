@@ -9,7 +9,7 @@ export * from './TokenManager.js';
 export * from './Voting.js';
 export * from './VaultViewer.js';
 export * from './PredepositGuarantee.js';
-
+export * from './OperatorGrid.js';
 // testing ABIs
 export * from './BlsHarness.js';
 export * from './ReportChecker.js';

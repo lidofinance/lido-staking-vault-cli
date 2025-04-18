@@ -54,3 +54,10 @@ export interface RoleAssignment {
   account: Address;
   role: `0x${string}`;
 }
+
+export interface Tier {
+  shareLimit: bigint;
+  reserveRatioBP: bigint;
+  rebalanceThresholdBP: bigint;
+  treasuryFeeBP: bigint;
+}

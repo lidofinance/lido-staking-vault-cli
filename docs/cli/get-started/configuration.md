@@ -2,7 +2,7 @@
 sidebar_position: 1
 ---
 
-## Configuration
+# Configuration
 
 Before using the CLI, configure your environment variables. You can set them in a `.env` file in your project root.
 

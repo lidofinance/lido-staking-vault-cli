@@ -20,11 +20,6 @@ export const LidoLocatorAbi = [
           },
           {
             internalType: 'address',
-            name: 'legacyOracle',
-            type: 'address',
-          },
-          {
-            internalType: 'address',
             name: 'lido',
             type: 'address',
           },
@@ -91,6 +86,11 @@ export const LidoLocatorAbi = [
           {
             internalType: 'address',
             name: 'vaultHub',
+            type: 'address',
+          },
+          {
+            internalType: 'address',
+            name: 'operatorGrid',
             type: 'address',
           },
         ],
@@ -212,7 +212,7 @@ export const LidoLocatorAbi = [
   },
   {
     inputs: [],
-    name: 'legacyOracle',
+    name: 'lido',
     outputs: [
       {
         internalType: 'address',
@@ -225,7 +225,7 @@ export const LidoLocatorAbi = [
   },
   {
     inputs: [],
-    name: 'lido',
+    name: 'operatorGrid',
     outputs: [
       {
         internalType: 'address',
