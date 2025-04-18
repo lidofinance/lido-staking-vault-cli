@@ -1,6 +1,10 @@
 import { Address } from 'viem';
 import { getVaultHubContract } from 'contracts';
-import { callWriteMethodWithReceipt, stringToBigInt } from 'utils';
+import {
+  callWriteMethodWithReceipt,
+  confirmOperation,
+  stringToBigInt,
+} from 'utils';
 
 import { vaultHub } from './main.js';
 
@@ -10,6 +14,12 @@ vaultHub
   .argument('<codehash>', 'codehash vault proxy codehash')
   .action(async (codehash: Address) => {
     const contract = await getVaultHubContract();
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to add the vault proxy codehash to the allowed list?
+      ${codehash}`,
+    );
+    if (!confirm) return;
 
     await callWriteMethodWithReceipt(contract, 'addVaultProxyCodehash', [
       codehash,
@@ -41,6 +51,11 @@ vaultHub
     ) => {
       const contract = await getVaultHubContract();
 
+      const confirm = await confirmOperation(
+        `Are you sure you want to connect the vault ${address} with share limit ${shareLimit}, reserve ratio ${reserveRatio}, reserve ratio threshold ${reserveRatioThreshold}, treasury fee ${treasuryFeeBP}?`,
+      );
+      if (!confirm) return;
+
       await callWriteMethodWithReceipt(contract, 'connectVault', [
         address,
         shareLimit,
@@ -59,6 +74,11 @@ vaultHub
   .action(async (address: Address, shareLimit: bigint) => {
     const contract = await getVaultHubContract();
 
+    const confirm = await confirmOperation(
+      `Are you sure you want to update the share limit for the vault ${address} to ${shareLimit}?`,
+    );
+    if (!confirm) return;
+
     await callWriteMethodWithReceipt(contract, 'updateShareLimit', [
       address,
       shareLimit,
@@ -71,6 +91,12 @@ vaultHub
   .argument('<address>', 'vault address')
   .action(async (address: Address) => {
     const contract = await getVaultHubContract();
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to force disconnect the vault ${address}?`,
+    );
+    if (!confirm) return;
+
     await callWriteMethodWithReceipt(contract, 'disconnect', [address]);
   });
 
@@ -82,6 +108,12 @@ vaultHub
   .argument('<address>', 'vault address')
   .action(async (address: Address) => {
     const contract = await getVaultHubContract();
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to disconnect the vault ${address}?`,
+    );
+    if (!confirm) return;
+
     await callWriteMethodWithReceipt(contract, 'voluntaryDisconnect', [
       address,
     ]);
@@ -98,6 +130,12 @@ vaultHub
   .action(
     async (address: Address, recipient: Address, amountOfShares: string) => {
       const contract = await getVaultHubContract();
+
+      const confirm = await confirmOperation(
+        `Are you sure you want to mint ${amountOfShares} stETH shares to ${recipient}?`,
+      );
+      if (!confirm) return;
+
       await callWriteMethodWithReceipt(contract, 'mintShares', [
         address,
         recipient,
@@ -113,6 +151,12 @@ vaultHub
   .argument('<amountOfShares>', 'amount of stETH shares to mint')
   .action(async (address: Address, amountOfShares: string) => {
     const contract = await getVaultHubContract();
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to burn ${amountOfShares} stETH shares from vault ${address}?`,
+    );
+    if (!confirm) return;
+
     await callWriteMethodWithReceipt(contract, 'burnShares', [
       address,
       BigInt(amountOfShares),
@@ -128,6 +172,12 @@ vaultHub
   .argument('<amountOfShares>', 'amount of stETH shares to mint')
   .action(async (address: Address, amountOfShares: string) => {
     const contract = await getVaultHubContract();
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to transfer and burn ${amountOfShares} stETH shares from vault ${address}?`,
+    );
+    if (!confirm) return;
+
     await callWriteMethodWithReceipt(contract, 'transferAndBurnShares', [
       address,
       BigInt(amountOfShares),
@@ -140,5 +190,11 @@ vaultHub
   .argument('<address>', 'vault address')
   .action(async (address: Address) => {
     const contract = await getVaultHubContract();
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to force rebalance the vault ${address}?`,
+    );
+    if (!confirm) return;
+
     await callWriteMethodWithReceipt(contract, 'forceRebalance', [address]);
   });

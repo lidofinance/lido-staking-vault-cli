@@ -52,7 +52,7 @@ export const readCommandConfig: ReadProgramCommandConfig = {
     },
   },
   unlockedBalance: {
-    name: 'ub-bal',
+    name: 'un-bal',
     description: 'get unlocked balance',
     arguments: {
       _nodeOperator: {

@@ -274,6 +274,11 @@ pdg
   .action(async (vault: Address, deposits: Deposit[]) => {
     const pdgContract = await getPredepositGuaranteeContract();
 
+    const confirm = await confirmOperation(
+      `Are you sure you want to deposit ${deposits.length} deposits to the vault ${vault}?`,
+    );
+    if (!confirm) return;
+
     await callWriteMethodWithReceipt(pdgContract, 'depositToBeaconChain', [
       vault,
       deposits,
@@ -441,6 +446,12 @@ pdg
   .argument('<recipient>', 'recipient address')
   .action(async (recipient: Address) => {
     const pdgContract = await getPredepositGuaranteeContract();
+    const account = getAccount();
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to claim the guarantor ${account.address} refund for ${recipient}?`,
+    );
+    if (!confirm) return;
 
     await callWriteMethodWithReceipt(pdgContract, 'claimGuarantorRefund', [
       recipient,

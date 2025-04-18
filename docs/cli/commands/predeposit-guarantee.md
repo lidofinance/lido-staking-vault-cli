@@ -48,7 +48,7 @@ lsv-cli pdg -h
 | no-bal \<address>                                                   | get node operator balance by address                                      |
 | no-g \<address>                                                     | get node operator guarantor                                               |
 | supportsInterface \<interfaceId>                                    | Calls the read-only function "supportsInterface" on the contract.         |
-| ub-bal \<address>                                                   | get unlocked balance                                                      |
+| un-bal \<address>                                                   | get unlocked balance                                                      |
 | v-status \<pubkey>                                                  | get validator status                                                      |
 | predeposit \<vault> \<deposits>                                     | predeposit                                                                |
 | verify-predeposit-bls (verify-bls)\<deposits>                       | Verifies BLS signature of the deposit                                     |
