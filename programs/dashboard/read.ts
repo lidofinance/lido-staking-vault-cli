@@ -2,9 +2,9 @@ import { Address, formatEther } from 'viem';
 
 import { DashboardAbi } from 'abi';
 import { getBaseInfo } from 'features';
-import { getDashboardContract, getStethContract } from 'contracts';
+import { getDashboardContract } from 'contracts';
 import {
-  calculateHealthRatio,
+  fetchAndCalculateVaultHealth,
   generateReadCommands,
   textPrompt,
   logResult,
@@ -42,37 +42,25 @@ dashboard
   .argument('<address>', 'delegation address')
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
-    const stethContract = await getStethContract();
-
     try {
-      const [valuation, minted, rebalanceThresholdBP] = await Promise.all([
-        contract.read.valuation(), // BigInt, in wei
-        contract.read.sharesMinted(), // BigInt, in shares
-        contract.read.rebalanceThresholdBP(), // number (in basis points)
-      ]);
-      if (minted === 0n) {
-        logInfo('Minted is 0');
-        return;
-      }
-
-      const mintedInSteth = await stethContract.read.getPooledEthByShares([
-        minted,
-      ]); // BigInt
-
-      const { healthRatioNumber, isHealthy } = calculateHealthRatio(
+      const {
+        healthRatio,
+        isHealthy,
         valuation,
-        mintedInSteth,
+        mintedInStethWei,
         rebalanceThresholdBP,
-      );
+        minted,
+      } = await fetchAndCalculateVaultHealth(contract);
 
       logResult({
         'Vault Healthy': isHealthy,
         'Valuation, wei': valuation,
         'Valuation, ether': `${formatEther(valuation)} ETH`,
-        'Minted, stETH': `${mintedInSteth} stETH`,
+        'Minted, shares': `${minted} shares`,
+        'Minted, stETH': `${formatEther(mintedInStethWei)} stETH`,
         'Rebalance Threshold, BP': rebalanceThresholdBP,
         'Rebalance Threshold, %': `${rebalanceThresholdBP / 100}%`,
-        'Health Rate': `${healthRatioNumber}%`,
+        'Health Rate': `${healthRatio}%`,
       });
     } catch (err) {
       if (err instanceof Error) {

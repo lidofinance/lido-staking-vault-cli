@@ -9,6 +9,7 @@ import {
   stringToNumber,
   logResult,
   logInfo,
+  logError,
 } from 'utils';
 
 import { vaultFactory } from './main.js';
@@ -88,7 +89,8 @@ vaultFactory
       const qnt = parseInt(quantity);
 
       if (isNaN(qnt)) {
-        program.error('quantity must be a number', { exitCode: 1 });
+        logError('quantity must be a number');
+        return;
       }
 
       const extraKeys: (keyof CreateVaultPayload)[] = [
