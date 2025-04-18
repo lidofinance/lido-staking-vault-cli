@@ -4,7 +4,7 @@ import { DelegationAbi } from 'abi';
 import { getDelegationContract, getStethContract } from 'contracts';
 import {
   generateReadCommands,
-  calculateHealthRatio,
+  calculateVaultHealth,
   logResult,
   logInfo,
 } from 'utils';
@@ -113,7 +113,7 @@ delegation
         minted,
       ]); // BigInt
 
-      const { healthRatioNumber, isHealthy } = calculateHealthRatio(
+      const { healthRatio, isHealthy } = calculateVaultHealth(
         valuation,
         mintedInSteth,
         rebalanceThresholdBP,
@@ -126,7 +126,7 @@ delegation
         'Minted, stETH': `${mintedInSteth} stETH`,
         'Rebalance Threshold, BP': rebalanceThresholdBP,
         'Rebalance Threshold, %': `${rebalanceThresholdBP / 100}%`,
-        'Health Rate': `${healthRatioNumber}%`,
+        'Health Rate': `${healthRatio}%`,
       });
     } catch (err) {
       if (err instanceof Error) {

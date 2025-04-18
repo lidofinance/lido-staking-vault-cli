@@ -5,7 +5,7 @@ import { getCLProofVerifierContract } from 'contracts';
 import {
   createPDGProof,
   getFirstValidatorGIndex,
-  confirmCreateProof,
+  confirmMakeProof,
   showSpinner,
   printError,
   computeDepositDataRoot,
@@ -29,10 +29,10 @@ predepositGuaranteeHelpers
   .aliases(['proof-check'])
   .option('-i, --index <index>', 'validator index')
   .description(
-    'create predeposit proof by validator index and check by test contract',
+    'make predeposit proof by validator index and check by test contract',
   )
   .action(async ({ index }: { index: bigint }) => {
-    const validatorIndex = await confirmCreateProof(index);
+    const validatorIndex = await confirmMakeProof(index);
     if (!validatorIndex) return;
 
     const clProofVerifierContract = getCLProofVerifierContract();
@@ -63,34 +63,40 @@ predepositGuaranteeHelpers
       logInfo('-----------------------end-----------------------');
     } catch (err) {
       hideSpinner();
-      printError(err, 'Error when creating proof');
+      printError(err, 'Error when making proof');
     }
   });
 
 predepositGuaranteeHelpers
   .command('proof')
-  .description('create predeposit proof by validator index')
+  .description('make predeposit proof by validator index')
   .option('-i, --index <index>', 'validator index')
   .action(async ({ index }: { index: bigint }) => {
-    const validatorIndex = await confirmCreateProof(index);
+    const validatorIndex = await confirmMakeProof(index);
     if (!validatorIndex) return;
 
-    const packageProof = await createPDGProof(Number(validatorIndex));
-    const { proof, pubkey, childBlockTimestamp, withdrawalCredentials } =
-      packageProof;
+    const hideSpinner = showSpinner();
+    try {
+      const packageProof = await createPDGProof(Number(validatorIndex));
+      const { proof, pubkey, childBlockTimestamp, withdrawalCredentials } =
+        packageProof;
 
-    logInfo('-----------------proof verified-----------------');
-    logInfo('------------------------------------------------');
-    logInfo('----------------------proof----------------------');
-    logInfo(proof);
-    logInfo('---------------------pubkey---------------------');
-    logResult(pubkey);
-    logInfo('---------------childBlockTimestamp---------------');
-    logResult(childBlockTimestamp);
-    logInfo('--------------withdrawalCredentials--------------');
-    logResult(withdrawalCredentials);
-    logInfo('------------------------------------------------');
-    logInfo('-----------------------end-----------------------');
+      logInfo('-----------------proof verified-----------------');
+      logInfo('------------------------------------------------');
+      logInfo('----------------------proof----------------------');
+      logInfo(proof);
+      logInfo('---------------------pubkey---------------------');
+      logResult(pubkey);
+      logInfo('---------------childBlockTimestamp---------------');
+      logResult(childBlockTimestamp);
+      logInfo('--------------withdrawalCredentials--------------');
+      logResult(withdrawalCredentials);
+      logInfo('------------------------------------------------');
+      logInfo('-----------------------end-----------------------');
+    } catch (err) {
+      hideSpinner();
+      printError(err, 'Error when making proof');
+    }
   });
 
 predepositGuaranteeHelpers

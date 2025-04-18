@@ -1,6 +1,5 @@
-import { program } from 'commander';
-
 import { textPrompt, confirmPrompt } from './default.js';
+import { logCancel } from 'utils/logging/console.js';
 
 export const enterValidatorIndex = async () => {
   return await textPrompt('Enter validator index', 'validatorIndex');
@@ -8,23 +7,23 @@ export const enterValidatorIndex = async () => {
 
 export const confirmValidatorIndex = async (validatorIndex: bigint) => {
   return await confirmPrompt(
-    `Do you want to create proof for validator ${validatorIndex}?`,
+    `Do you want to make proof for validator ${validatorIndex}?`,
     'confirm',
   );
 };
 
-export const confirmCreateProof = async (index: bigint) => {
+export const confirmMakeProof = async (index: bigint) => {
   let validatorIndex: bigint = index;
 
-  if (!validatorIndex) {
+  if (validatorIndex === undefined) {
     const answerValidatorIndex = await enterValidatorIndex();
     validatorIndex = answerValidatorIndex.validatorIndex;
 
-    if (!validatorIndex) program.error('Command cancelled', { exitCode: 1 });
+    if (!validatorIndex) return logCancel('Command cancelled');
   }
 
   const { confirm } = await confirmValidatorIndex(validatorIndex);
-  if (!confirm) program.error('Command cancelled', { exitCode: 1 });
+  if (!confirm) return logCancel('Command cancelled');
 
   return validatorIndex;
 };

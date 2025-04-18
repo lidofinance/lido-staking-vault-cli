@@ -1,5 +1,4 @@
 import { Address, Hex } from 'viem';
-import { program } from 'commander';
 
 import {
   getPredepositGuaranteeContract,
@@ -7,7 +6,6 @@ import {
 } from 'contracts';
 import {
   callWriteMethodWithReceipt,
-  confirmCreateProof,
   createPDGProof,
   showSpinner,
   printError,
@@ -21,11 +19,14 @@ import {
   logResult,
   logInfo,
   logError,
+  confirmOperation,
+  confirmMakeProof,
 } from 'utils';
 
 import { pdg } from './main.js';
 import { getBLSHarnessContract } from 'contracts/blsHarness.js';
 import { isValidBLSDeposit, expandBLSSignature } from 'utils/bls.js';
+import { getAccount } from 'providers';
 
 pdg
   .command('predeposit')
@@ -35,6 +36,11 @@ pdg
   .action(async (vault: Address, deposits: Deposit[]) => {
     const pdgContract = await getPredepositGuaranteeContract();
 
+    const confirm = await confirmOperation(
+      `Are you sure you want to predeposit ${deposits.length} deposits to the vault ${vault}?`,
+    );
+    if (!confirm) return;
+
     await callWriteMethodWithReceipt(pdgContract, 'predeposit', [
       vault,
       deposits,
@@ -42,8 +48,8 @@ pdg
   });
 
 pdg
-  .command('verify-predeposit')
-  .aliases(['verify'])
+  .command('verify-predeposit-bls')
+  .aliases(['verify-bls'])
   .description('Verifies BLS signature of the deposit')
   .option('-vt, --vault <address>', 'vault address')
   .option('-wc, --withdrawalCredentials <hex>', 'withdrawal credentials')
@@ -57,15 +63,11 @@ pdg
       let withdrawalCredentials = options.withdrawalCredentials;
 
       if (!vault && !withdrawalCredentials) {
-        program.error(
-          'You must provide either vault or withdrawal credentials',
-          { exitCode: 1 },
-        );
+        logError('You must provide either vault or withdrawal credentials');
+        return;
       } else if (vault && withdrawalCredentials) {
-        program.error(
-          'You can only provide one of vault or withdrawal credentials',
-          { exitCode: 1 },
-        );
+        logError('You can only provide one of vault or withdrawal credentials');
+        return;
       }
       const bls = getBLSHarnessContract();
       const hideMetadataSpinner = showSpinner({
@@ -85,10 +87,10 @@ pdg
       for (const deposit of deposits) {
         // amount check
         if (deposit.amount !== PREDEPOSIT_AMOUNT) {
-          program.error(
+          logError(
             `❌ Deposit amount is not equal to PREDEPOSIT_AMOUNT for pubkey ${deposit.pubkey}`,
-            { exitCode: 1 },
           );
+          return;
         } else {
           logInfo(`✅ AMOUNT VALID for Pubkey ${deposit.pubkey}`);
         }
@@ -101,10 +103,10 @@ pdg
           deposit.amount,
         );
         if (depositDataRoot != deposit.depositDataRoot) {
-          program.error(
+          logError(
             `❌ depositDataRoot does not match ${deposit.pubkey}, actual root: ${depositDataRoot}`,
-            { exitCode: 1 },
           );
+          return;
         } else {
           logInfo(`✅ depositDataRoot VALID for Pubkey ${deposit.pubkey}`);
         }
@@ -112,10 +114,10 @@ pdg
         // local BLS check
         const isBLSValid = isValidBLSDeposit(deposit, withdrawalCredentials);
         if (!isBLSValid) {
-          program.error(
+          logError(
             `❌ Offchain - BLS signature is not valid for Pubkey ${deposit.pubkey}`,
-            { exitCode: 1 },
           );
+          return;
         } else {
           logInfo(`✅ SIGNATURE VALID for Pubkey ${deposit.pubkey}`);
         }
@@ -164,18 +166,19 @@ pdg
   );
 
 pdg
-  .command('create-proof-and-prove')
-  .description('create proof and prove')
+  .command('proof-and-prove')
+  .aliases(['prove'])
+  .description('make proof and prove')
   .argument('<index>', 'validator index', stringToBigInt)
   .action(async (index: bigint) => {
     const pdgContract = await getPredepositGuaranteeContract();
 
-    const validatorIndex = await confirmCreateProof(index);
+    const validatorIndex = await confirmMakeProof(index);
     if (!validatorIndex) return;
 
     const hideSpinner = showSpinner({
       type: 'bouncingBar',
-      message: 'Creating proof...',
+      message: 'Making proof...',
     });
     try {
       const packageProof = await createPDGProof(Number(validatorIndex));
@@ -199,7 +202,7 @@ pdg
       ]);
     } catch (err) {
       hideSpinner();
-      printError(err, 'Error when creating proof');
+      printError(err, 'Error when making proof');
     }
   });
 
@@ -220,12 +223,12 @@ pdg
     }[] = [];
 
     for (const index of indexes) {
-      const validatorIndex = await confirmCreateProof(index);
+      const validatorIndex = await confirmMakeProof(index);
       if (!validatorIndex) return;
 
       const hideSpinner = showSpinner({
         type: 'bouncingBar',
-        message: 'Creating proof...',
+        message: 'Making proof...',
       });
       try {
         const packageProof = await createPDGProof(Number(validatorIndex));
@@ -252,7 +255,7 @@ pdg
         logInfo('-----------------------end-----------------------');
       } catch (err) {
         hideSpinner();
-        printError(err, 'Error when creating proof');
+        printError(err, 'Error when making proof');
       }
     }
 
@@ -285,6 +288,11 @@ pdg
   .action(async (nodeOperator: Address, amount: bigint) => {
     const pdgContract = await getPredepositGuaranteeContract();
 
+    const confirm = await confirmOperation(
+      `Are you sure you want to top up the node operator ${nodeOperator} with ${amount} ETH?`,
+    );
+    if (!confirm) return;
+
     await callWriteMethodWithReceipt(
       pdgContract,
       'topUpNodeOperatorBalance',
@@ -301,12 +309,12 @@ pdg
   .action(async (index: bigint, vault: Address) => {
     const pdgContract = await getPredepositGuaranteeContract();
 
-    const validatorIndex = await confirmCreateProof(index);
+    const validatorIndex = await confirmMakeProof(index);
     if (!validatorIndex) return;
 
     const hideSpinner = showSpinner({
       type: 'bouncingBar',
-      message: 'Creating proof...',
+      message: 'Making proof...',
     });
     try {
       const packageProof = await createPDGProof(Number(validatorIndex));
@@ -344,12 +352,12 @@ pdg
   .action(async (index: bigint, invalidWithdrawalCredentials: Hex) => {
     const pdgContract = await getPredepositGuaranteeContract();
 
-    const validatorIndex = await confirmCreateProof(index);
+    const validatorIndex = await confirmMakeProof(index);
     if (!validatorIndex) return;
 
     const hideSpinner = showSpinner({
       type: 'bouncingBar',
-      message: 'Creating proof...',
+      message: 'Making proof...',
     });
 
     try {
@@ -382,7 +390,7 @@ pdg
       ]);
     } catch (err) {
       hideSpinner();
-      printError(err, 'Error when creating proof');
+      printError(err, 'Error when making proof');
     }
   });
 
@@ -395,6 +403,11 @@ pdg
   .action(async (nodeOperator: Address, amount: bigint, recipient: Address) => {
     const pdgContract = await getPredepositGuaranteeContract();
 
+    const confirm = await confirmOperation(
+      `Are you sure you want to withdraw the node operator ${nodeOperator} balance ${amount} ETH to ${recipient}?`,
+    );
+    if (!confirm) return;
+
     await callWriteMethodWithReceipt(
       pdgContract,
       'withdrawNodeOperatorBalance',
@@ -403,11 +416,18 @@ pdg
   });
 
 pdg
-  .command('set-no-g')
+  .command('set-no-guarantor')
+  .aliases(['set-no-g'])
   .description('set node operator guarantor')
   .argument('<guarantor>', 'new guarantor address')
   .action(async (guarantor: Address) => {
     const pdgContract = await getPredepositGuaranteeContract();
+    const account = getAccount();
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to set the node operator (${account.address}) guarantor to ${guarantor}?`,
+    );
+    if (!confirm) return;
 
     await callWriteMethodWithReceipt(pdgContract, 'setNodeOperatorGuarantor', [
       guarantor,
@@ -415,7 +435,8 @@ pdg
   });
 
 pdg
-  .command('claim-g-refund')
+  .command('claim-guarantor-refund')
+  .aliases(['claim-g-refund'])
   .description('claim guarantor refund')
   .argument('<recipient>', 'recipient address')
   .action(async (recipient: Address) => {
@@ -428,11 +449,17 @@ pdg
 
 pdg
   .command('compensate-disproven-predeposit')
+  .aliases(['compensate'])
   .description('compensate disproven predeposit')
   .argument('<pubkey>', 'validator pubkey')
   .argument('<recipient>', 'recipient address')
   .action(async (pubkey: Hex, recipient: Address) => {
     const pdgContract = await getPredepositGuaranteeContract();
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to compensate the disproven predeposit for validator ${pubkey} to ${recipient}?`,
+    );
+    if (!confirm) return;
 
     await callWriteMethodWithReceipt(
       pdgContract,

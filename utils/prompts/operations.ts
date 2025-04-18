@@ -1,6 +1,8 @@
 import { Address } from 'viem';
 import { program } from 'commander';
 
+import { logCancel } from 'utils';
+
 import { textPrompt, confirmPrompt } from './default.js';
 
 export const enterContractAddress = async (name = 'contract') => {
@@ -47,4 +49,15 @@ export const confirmFund = async (
   if (!confirm) program.error('Command cancelled', { exitCode: 1 });
 
   return { address: contractAddress, amount: amount };
+};
+
+export const confirmOperation = async (message: string) => {
+  const { confirm } = await confirmPrompt(message, 'confirm');
+
+  if (!confirm) {
+    logCancel('Command cancelled');
+    return false;
+  }
+
+  return true;
 };

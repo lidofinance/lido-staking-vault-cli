@@ -71,10 +71,10 @@ lsv-cli dashboard -h
 | withdraw-weth \<address> \<recipient> \<ether>                             | withdraws stETH tokens from the staking vault to wrapped ether                                                          |
 | exit \<address> \<validatorPubKey>                                         | requests the exit of a validator from the staking vault                                                                 |
 | trigger-validator-withdrawal \<address> \<pubkeys> \<amounts> \<recipient> | triggers the withdrawal of a validator from the staking vault                                                           |
-| mint-shares \<address> \<recipient> \<amountOfShares>                      | mints stETH tokens backed by the vault to a recipient                                                                   |
+| mint-shares (mint)\<address> \<recipient> \<amountOfShares>                | mints stETH tokens backed by the vault to a recipient                                                                   |
 | mint-steth \<address> \<recipient> \<amountOfShares>                       | mints stETH tokens backed by the vault to a recipient                                                                   |
 | mint-wsteth \<address> \<recipient> \<tokens>                              | mints wstETH tokens backed by the vault to a recipient                                                                  |
-| burn-shares \<address> \<amountOfShares>                                   | Burns stETH shares from the sender backed by the vault. Expects corresponding amount of stETH approved to this contract |
+| burn-shares (burn)\<address> \<amountOfShares>                             | Burns stETH shares from the sender backed by the vault. Expects corresponding amount of stETH approved to this contract |
 | burn-steth \<address> \<amountOfShares>                                    | Burns stETH shares from the sender backed by the vault. Expects stETH amount approved to this contract.                 |
 | burn-wsteth \<address> \<tokens>                                           | burn wstETH tokens from the sender backed by the vault                                                                  |
 | burn-shares-permit \<address> \<tokens> \<permitJSON>                      | Burns stETH tokens (in shares) backed by the vault from the sender using permit (with value in stETH).                  |

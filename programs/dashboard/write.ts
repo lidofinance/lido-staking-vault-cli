@@ -8,6 +8,10 @@ import {
   stringToBigIntArray,
   jsonToPermit,
   jsonToRoleAssignment,
+  confirmOperation,
+  stringToBigInt,
+  mintShares,
+  burnShares,
 } from 'utils';
 
 import { dashboard } from './main.js';
@@ -20,6 +24,12 @@ dashboard
   .argument('<newOwner>', 'address of the new owner')
   .action(async (address: Address, newOwner: Address) => {
     const contract = getDashboardContract(address);
+    const vault = await callReadMethod(contract, 'stakingVault');
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to transfer ownership of the staking vault ${vault} to ${newOwner}?`,
+    );
+    if (!confirm) return;
 
     await callWriteMethodWithReceipt(
       contract,
@@ -34,6 +44,12 @@ dashboard
   .argument('<address>', 'dashboard address')
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
+    const vault = await callReadMethod(contract, 'stakingVault');
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to disconnect the staking vault ${vault}?`,
+    );
+    if (!confirm) return;
 
     await callWriteMethodWithReceipt(contract, 'voluntaryDisconnect', []);
   });
@@ -78,6 +94,12 @@ dashboard
   .argument('<eth>', 'amount of ether to withdraw (in ETH)')
   .action(async (address: Address, recipient: Address, ether: string) => {
     const contract = getDashboardContract(address);
+    const vault = await callReadMethod(contract, 'stakingVault');
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to withdraw ${ether} from the staking vault ${vault} to ${recipient}?`,
+    );
+    if (!confirm) return;
 
     await callWriteMethodWithReceipt(contract, 'withdraw', [
       recipient,
@@ -107,6 +129,12 @@ dashboard
   .argument('<validatorPubKey>', 'public key of the validator to exit')
   .action(async (address: Address, validatorPubKey: Address) => {
     const contract = getDashboardContract(address);
+    const vault = await callReadMethod(contract, 'stakingVault');
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to exit the validator ${validatorPubKey} from the staking vault ${vault}?`,
+    );
+    if (!confirm) return;
 
     await callWriteMethodWithReceipt(contract, 'requestValidatorExit', [
       validatorPubKey,
@@ -137,6 +165,11 @@ dashboard
         [BigInt(amounts.length)],
       );
 
+      const confirm = await confirmOperation(
+        `Are you sure you want to trigger the withdrawal of the validators ${pubkeys} from the staking vault ${vault} to ${recipient} with amounts ${amounts}?`,
+      );
+      if (!confirm) return;
+
       await callWriteMethodWithReceipt(
         contract,
         'triggerValidatorWithdrawal',
@@ -148,18 +181,16 @@ dashboard
 
 dashboard
   .command('mint-shares')
+  .alias('mint')
   .description('mints stETH tokens backed by the vault to a recipient')
   .argument('<address>', 'dashboard address')
   .argument('<recipient>', 'address of the recipient')
-  .argument('<amountOfShares>', 'amount of shares to mint')
+  .argument('<amountOfShares>', 'amount of shares to mint', stringToBigInt)
   .action(
-    async (address: Address, recipient: Address, amountOfShares: string) => {
+    async (address: Address, recipient: Address, amountOfShares: bigint) => {
       const contract = getDashboardContract(address);
 
-      await callWriteMethodWithReceipt(contract, 'mintShares', [
-        recipient,
-        BigInt(amountOfShares),
-      ]);
+      await mintShares(contract, recipient, amountOfShares);
     },
   );
 
@@ -172,6 +203,11 @@ dashboard
   .action(
     async (address: Address, recipient: Address, amountOfShares: string) => {
       const contract = getDashboardContract(address);
+
+      const confirm = await confirmOperation(
+        `Are you sure you want to mint ${amountOfShares} stETH to ${recipient}?`,
+      );
+      if (!confirm) return;
 
       await callWriteMethodWithReceipt(contract, 'mintStETH', [
         recipient,
@@ -197,17 +233,16 @@ dashboard
 
 dashboard
   .command('burn-shares')
+  .alias('burn')
   .description(
     'Burns stETH shares from the sender backed by the vault. Expects corresponding amount of stETH approved to this contract',
   )
   .argument('<address>', 'dashboard address')
-  .argument('<amountOfShares>', 'amount of shares to burn')
-  .action(async (address: Address, amountOfShares: string) => {
+  .argument('<amountOfShares>', 'amount of shares to burn', stringToBigInt)
+  .action(async (address: Address, amountOfShares: bigint) => {
     const contract = getDashboardContract(address);
 
-    await callWriteMethodWithReceipt(contract, 'burnShares', [
-      BigInt(amountOfShares),
-    ]);
+    await burnShares(contract, amountOfShares);
   });
 
 dashboard
@@ -219,6 +254,11 @@ dashboard
   .argument('<amountOfShares>', 'amount of shares to burn')
   .action(async (address: Address, amountOfShares: string) => {
     const contract = getDashboardContract(address);
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to burn ${amountOfShares} stETH?`,
+    );
+    if (!confirm) return;
 
     await callWriteMethodWithReceipt(contract, 'burnStETH', [
       BigInt(amountOfShares),
@@ -306,6 +346,12 @@ dashboard
   .argument('<ether>', 'amount of ether to rebalance')
   .action(async (address: Address, ether: string) => {
     const contract = getDashboardContract(address);
+    const vault = await callReadMethod(contract, 'stakingVault');
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to rebalance the vault ${vault} with ${ether} ether?`,
+    );
+    if (!confirm) return;
 
     await callWriteMethodWithReceipt(contract, 'rebalanceVault', [
       BigInt(ether),
@@ -333,6 +379,11 @@ dashboard
     ) => {
       const contract = getDashboardContract(address);
 
+      const confirm = await confirmOperation(
+        `Are you sure you want to recover ${amount} ${token} from the dashboard contract ${address} to ${recipient}?`,
+      );
+      if (!confirm) return;
+
       await callWriteMethodWithReceipt(contract, 'recoverERC20', [
         token,
         recipient,
@@ -359,6 +410,11 @@ dashboard
     ) => {
       const contract = getDashboardContract(address);
 
+      const confirm = await confirmOperation(
+        `Are you sure you want to recover the token ${token} with id ${tokenId} from the dashboard contract ${address} to ${recipient}?`,
+      );
+      if (!confirm) return;
+
       await callWriteMethodWithReceipt(contract, 'recoverERC721', [
         token,
         BigInt(tokenId),
@@ -373,6 +429,12 @@ dashboard
   .argument('<address>', 'dashboard address')
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
+    const vault = await callReadMethod(contract, 'stakingVault');
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to pause beacon chain deposits on the staking vault ${vault}?`,
+    );
+    if (!confirm) return;
 
     await callWriteMethodWithReceipt(contract, 'pauseBeaconChainDeposits', []);
   });
@@ -383,6 +445,12 @@ dashboard
   .argument('<address>', 'dashboard address')
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
+    const vault = await callReadMethod(contract, 'stakingVault');
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to resume beacon chain deposits on the staking vault ${vault}?`,
+    );
+    if (!confirm) return;
 
     await callWriteMethodWithReceipt(contract, 'resumeBeaconChainDeposits', []);
   });
@@ -404,6 +472,12 @@ dashboard
       );
     }
 
+    const vault = await callReadMethod(contract, 'stakingVault');
+    const confirm = await confirmOperation(
+      `Are you sure you want to grant the roles ${roleAssignment} in the vault ${vault}?`,
+    );
+    if (!confirm) return;
+
     await callWriteMethodWithReceipt(contract, 'grantRoles', [roleAssignment]);
   });
 
@@ -424,6 +498,12 @@ dashboard
       );
     }
 
+    const vault = await callReadMethod(contract, 'stakingVault');
+    const confirm = await confirmOperation(
+      `Are you sure you want to revoke the roles ${roleAssignment} in the vault ${vault}?`,
+    );
+    if (!confirm) return;
+
     await callWriteMethodWithReceipt(contract, 'revokeRoles', [roleAssignment]);
   });
 
@@ -437,6 +517,11 @@ dashboard
   .argument('<recipient>', 'address of the recipient')
   .action(async (address: Address, pubkey: Address, recipient: Address) => {
     const contract = getDashboardContract(address);
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to compensate the disproven predeposit from the Predeposit Guarantee contract ${contract} with validator public key ${pubkey} to ${recipient}?`,
+    );
+    if (!confirm) return;
 
     await callWriteMethodWithReceipt(
       contract,

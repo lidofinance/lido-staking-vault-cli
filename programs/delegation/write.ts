@@ -6,6 +6,10 @@ import {
   callWriteMethodWithReceipt,
   jsonToPermit,
   jsonToRoleAssignment,
+  confirmOperation,
+  callReadMethod,
+  mintShares,
+  stringToBigInt,
 } from 'utils';
 
 import { delegation } from './main.js';
@@ -17,6 +21,13 @@ delegation
   .argument('<newCuratorFee>', 'curator fee in basis points')
   .action(async (address: Address, newCuratorFee: string) => {
     const contract = getDelegationContract(address);
+    const vault = await callReadMethod(contract, 'stakingVault');
+    const prevCuratorFee = await callReadMethod(contract, 'curatorFeeBP');
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to set the curator fee ${newCuratorFee} (prev: ${prevCuratorFee}) in the vault ${vault}?`,
+    );
+    if (!confirm) return;
 
     await callWriteMethodWithReceipt(contract, 'setCuratorFeeBP', [
       BigInt(newCuratorFee),
@@ -30,6 +41,12 @@ delegation
   .argument('<recipient>', 'address to which the curator fee will be sent')
   .action(async (address: Address, recipient: Address) => {
     const contract = getDelegationContract(address);
+    const vault = await callReadMethod(contract, 'stakingVault');
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to claim the curator fee in the vault ${vault} to ${recipient}?`,
+    );
+    if (!confirm) return;
 
     await callWriteMethodWithReceipt(contract, 'claimCuratorFee', [recipient]);
   });
@@ -44,6 +61,16 @@ delegation
   )
   .action(async (address: Address, newNodeOperatorFeeBP: string) => {
     const contract = getDelegationContract(address);
+    const vault = await callReadMethod(contract, 'stakingVault');
+    const prevNodeOperatorFee = await callReadMethod(
+      contract,
+      'nodeOperatorFeeBP',
+    );
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to set the node operator fee ${newNodeOperatorFeeBP} (prev: ${prevNodeOperatorFee}) in the vault ${vault}?`,
+    );
+    if (!confirm) return;
 
     await callWriteMethodWithReceipt(contract, 'setNodeOperatorFeeBP', [
       BigInt(newNodeOperatorFeeBP),
@@ -61,6 +88,12 @@ delegation
   .action(async (address: Address, recipient: Address) => {
     const contract = getDelegationContract(address);
 
+    const vault = await callReadMethod(contract, 'stakingVault');
+    const confirm = await confirmOperation(
+      `Are you sure you want to claim the node operator fee in the vault ${vault} to ${recipient}?`,
+    );
+    if (!confirm) return;
+
     await callWriteMethodWithReceipt(contract, 'claimNodeOperatorFee', [
       recipient,
     ]);
@@ -73,6 +106,12 @@ delegation
   .argument('<eth>', 'ether to fund (in ETH)')
   .action(async (address: Address, ether: string) => {
     const contract = getDelegationContract(address);
+    const vault = await callReadMethod(contract, 'stakingVault');
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to fund the vault ${vault} with ${ether} ETH?`,
+    );
+    if (!confirm) return;
 
     await callWriteMethodWithReceipt(contract, 'fund', [], parseEther(ether));
   });
@@ -85,6 +124,13 @@ delegation
   .argument('<eth>', 'ether to found (in ETH)')
   .action(async (address: Address, recipient: Address, ether: string) => {
     const contract = getDelegationContract(address);
+    const vault = await callReadMethod(contract, 'stakingVault');
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to withdraw ${ether} ETH from the vault ${vault} to ${recipient}?`,
+    );
+    if (!confirm) return;
+
     await callWriteMethodWithReceipt(contract, 'withdraw', [
       recipient,
       parseEther(ether),
@@ -98,6 +144,12 @@ delegation
   .argument('<ether>', 'amount of ether to rebalance with')
   .action(async (address: Address, ether: string) => {
     const contract = getDelegationContract(address);
+    const vault = await callReadMethod(contract, 'stakingVault');
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to rebalance the vault ${vault} with ${ether} ETH?`,
+    );
+    if (!confirm) return;
 
     await callWriteMethodWithReceipt(contract, 'rebalanceVault', [
       BigInt(ether),
@@ -112,6 +164,12 @@ delegation
   .argument('<newOwner>', 'address to which the ownership will be transferred')
   .action(async (address: Address, newOwner: Address) => {
     const contract = getDelegationContract(address);
+    const vault = await callReadMethod(contract, 'stakingVault');
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to transfer the ownership of the vault ${vault} to ${newOwner}?`,
+    );
+    if (!confirm) return;
 
     await callWriteMethodWithReceipt(
       contract,
@@ -126,6 +184,12 @@ delegation
   .argument('<address>', 'delegation contract address')
   .action(async (address: Address) => {
     const contract = getDelegationContract(address);
+    const vault = await callReadMethod(contract, 'stakingVault');
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to voluntarily disconnect the vault ${vault}?`,
+    );
+    if (!confirm) return;
 
     await callWriteMethodWithReceipt(contract, 'voluntaryDisconnect', []);
   });
@@ -136,6 +200,12 @@ delegation
   .argument('<address>', 'delegation contract address')
   .action(async (address: Address) => {
     const contract = getDelegationContract(address);
+    const vault = await callReadMethod(contract, 'stakingVault');
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to pause deposits to beacon chain from the vault ${vault}?`,
+    );
+    if (!confirm) return;
 
     await callWriteMethodWithReceipt(contract, 'pauseBeaconChainDeposits', []);
   });
@@ -146,6 +216,12 @@ delegation
   .argument('<address>', 'delegation contract address')
   .action(async (address: Address) => {
     const contract = getDelegationContract(address);
+    const vault = await callReadMethod(contract, 'stakingVault');
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to resume deposits to beacon chain from the vault ${vault}?`,
+    );
+    if (!confirm) return;
 
     await callWriteMethodWithReceipt(contract, 'resumeBeaconChainDeposits', []);
   });
@@ -185,6 +261,12 @@ delegation
   .argument('<validatorPubKey>', 'public key of the validator to exit')
   .action(async (address: Address, validatorPubKey: Address) => {
     const contract = getDelegationContract(address);
+    const vault = await callReadMethod(contract, 'stakingVault');
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to request the exit of the validator ${validatorPubKey} from the vault ${vault}?`,
+    );
+    if (!confirm) return;
 
     await callWriteMethodWithReceipt(contract, 'requestValidatorExit', [
       validatorPubKey,
@@ -193,18 +275,16 @@ delegation
 
 delegation
   .command('mint-shares')
+  .alias('mint')
   .description('mints stETH tokens backed by the vault to a recipient')
   .argument('<address>', 'delegation address')
   .argument('<recipient>', 'address of the recipient')
-  .argument('<amountOfShares>', 'amount of shares to mint')
+  .argument('<amountOfShares>', 'amount of shares to mint', stringToBigInt)
   .action(
-    async (address: Address, recipient: Address, amountOfShares: string) => {
+    async (address: Address, recipient: Address, amountOfShares: bigint) => {
       const contract = getDelegationContract(address);
 
-      await callWriteMethodWithReceipt(contract, 'mintShares', [
-        recipient,
-        BigInt(amountOfShares),
-      ]);
+      await mintShares(contract, recipient, amountOfShares);
     },
   );
 
@@ -217,6 +297,12 @@ delegation
   .action(
     async (address: Address, recipient: Address, amountOfShares: string) => {
       const contract = getDelegationContract(address);
+      const vault = await callReadMethod(contract, 'stakingVault');
+
+      const confirm = await confirmOperation(
+        `Are you sure you want to mint ${amountOfShares} stETH to ${recipient} in the vault ${vault}?`,
+      );
+      if (!confirm) return;
 
       await callWriteMethodWithReceipt(contract, 'mintStETH', [
         recipient,
@@ -242,6 +328,7 @@ delegation
 
 delegation
   .command('burn-shares')
+  .alias('burn')
   .description(
     'Burns stETH shares from the sender backed by the vault. Expects corresponding amount of stETH approved to this contract',
   )
@@ -249,6 +336,12 @@ delegation
   .argument('<amountOfShares>', 'amount of shares to burn')
   .action(async (address: Address, amountOfShares: string) => {
     const contract = getDelegationContract(address);
+    const vault = await callReadMethod(contract, 'stakingVault');
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to burn ${amountOfShares} shares from the vault ${vault}?`,
+    );
+    if (!confirm) return;
 
     await callWriteMethodWithReceipt(contract, 'burnShares', [
       BigInt(amountOfShares),
@@ -261,13 +354,17 @@ delegation
     'Burns stETH shares from the sender backed by the vault. Expects stETH amount approved to this contract.',
   )
   .argument('<address>', 'delegation address')
-  .argument('<amountOfShares>', 'amount of shares to burn')
-  .action(async (address: Address, amountOfShares: string) => {
+  .argument('<amountOfShares>', 'amount of shares to burn', stringToBigInt)
+  .action(async (address: Address, amountOfShares: bigint) => {
     const contract = getDelegationContract(address);
+    const vault = await callReadMethod(contract, 'stakingVault');
 
-    await callWriteMethodWithReceipt(contract, 'burnStETH', [
-      BigInt(amountOfShares),
-    ]);
+    const confirm = await confirmOperation(
+      `Are you sure you want to burn ${amountOfShares} stETH from the vault ${vault}?`,
+    );
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt(contract, 'burnStETH', [amountOfShares]);
   });
 
 delegation
@@ -364,6 +461,12 @@ delegation
       amount: string,
     ) => {
       const contract = getDelegationContract(address);
+      const vault = await callReadMethod(contract, 'stakingVault');
+
+      const confirm = await confirmOperation(
+        `Are you sure you want to recover ${amount} ${token} from the vault ${vault} to ${recipient}?`,
+      );
+      if (!confirm) return;
 
       await callWriteMethodWithReceipt(contract, 'recoverERC20', [
         token,
@@ -390,6 +493,12 @@ delegation
       recipient: Address,
     ) => {
       const contract = getDelegationContract(address);
+      const vault = await callReadMethod(contract, 'stakingVault');
+
+      const confirm = await confirmOperation(
+        `Are you sure you want to recover the token ${token} with id ${tokenId} from the vault ${vault} to ${recipient}?`,
+      );
+      if (!confirm) return;
 
       await callWriteMethodWithReceipt(contract, 'recoverERC721', [
         token,
@@ -417,6 +526,14 @@ delegation
       );
     }
 
+    const vault = await callReadMethod(contract, 'stakingVault');
+    const confirm = await confirmOperation(
+      `Are you sure you want to grant the roles ${JSON.stringify(
+        roleAssignment,
+      )} in the vault ${vault}?`,
+    );
+    if (!confirm) return;
+
     await callWriteMethodWithReceipt(contract, 'grantRoles', [roleAssignment]);
   });
 
@@ -424,18 +541,29 @@ delegation
   .command('role-revoke')
   .description('Resumes beacon chain deposits on the staking vault.')
   .argument('<address>', 'delegation address')
-  .argument('<roleAssignmentJSON>', 'JSON array of role assignments')
-  .action(async (address: Address, roleAssignmentJSON: string) => {
+  .argument(
+    '<roleAssignmentJSON>',
+    'JSON array of role assignments',
+    jsonToRoleAssignment,
+  )
+  .action(async (address: Address, roleAssignment: RoleAssignment[]) => {
     const contract = getDelegationContract(address);
 
-    const payload = JSON.parse(roleAssignmentJSON) as RoleAssignment[];
-    if (!Array.isArray(payload)) {
+    if (!Array.isArray(roleAssignment)) {
       throw new Error(
         'the 2nd argument should be an array of role assignments',
       );
     }
 
-    await callWriteMethodWithReceipt(contract, 'revokeRoles', [payload]);
+    const vault = await callReadMethod(contract, 'stakingVault');
+    const confirm = await confirmOperation(
+      `Are you sure you want to revoke the roles ${JSON.stringify(
+        roleAssignment,
+      )} in the vault ${vault}?`,
+    );
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt(contract, 'revokeRoles', [roleAssignment]);
   });
 
 delegation
@@ -445,6 +573,12 @@ delegation
   .argument('<newConfirmExpiry>', 'new confirmation expiry')
   .action(async (address: Address, newConfirmExpiry: string) => {
     const contract = getDelegationContract(address);
+
+    const vault = await callReadMethod(contract, 'stakingVault');
+    const confirm = await confirmOperation(
+      `Are you sure you want to set the confirmation expiry to ${newConfirmExpiry} in the vault ${vault}?`,
+    );
+    if (!confirm) return;
 
     await callWriteMethodWithReceipt(contract, 'setConfirmExpiry', [
       BigInt(newConfirmExpiry),
