@@ -79,7 +79,7 @@ export const fetchAndCalculateVaultHealth = async (
   };
 };
 
-export const fetchAndCalculateVaultHealthWitNewValue = async (
+export const fetchAndCalculateVaultHealthWithNewValue = async (
   contract: DashboardContract | DelegationContract,
   newMintedValue: bigint,
   type: 'mint' | 'burn',

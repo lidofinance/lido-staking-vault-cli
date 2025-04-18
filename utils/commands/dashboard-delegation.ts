@@ -5,7 +5,7 @@ import { Address } from 'viem';
 import { DashboardContract, DelegationContract } from 'contracts';
 import {
   callReadMethod,
-  fetchAndCalculateVaultHealthWitNewValue,
+  fetchAndCalculateVaultHealthWithNewValue,
   logError,
   showSpinner,
   confirmMint,
@@ -31,7 +31,7 @@ export const mintShares = async (
   const hideSpinner = showSpinner();
 
   const { currentVaultHealth, newVaultHealth, newMinted, minted } =
-    await fetchAndCalculateVaultHealthWitNewValue(
+    await fetchAndCalculateVaultHealthWithNewValue(
       contract,
       amountOfShares,
       'mint',
@@ -72,7 +72,7 @@ export const burnShares = async (
   const hideSpinner = showSpinner();
 
   const { currentVaultHealth, newVaultHealth, newMinted } =
-    await fetchAndCalculateVaultHealthWitNewValue(
+    await fetchAndCalculateVaultHealthWithNewValue(
       contract,
       amountOfShares,
       'burn',
