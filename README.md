@@ -114,8 +114,8 @@ lsv-cli hub v-count
 - [VaultFactory](https://lidofinance.github.io/lido-staking-vault-cli/commands/vault-factory)
 - [Vault](https://lidofinance.github.io/lido-staking-vault-cli/commands/vault)
 - [Dashboard](https://lidofinance.github.io/lido-staking-vault-cli/commands/dashboard)
-- [Delegation](https://lidofinance.github.io/lido-staking-vault-cli/commands/delgatio)
 - [PredepositGuarantee](https://lidofinance.github.io/lido-staking-vault-cli/commands/predeposit-guarantee)
+- [OperatorGrid](https://lidofinance.github.io/lido-staking-vault-cli/commands/operator-grid)
 - [VaultViewer](https://lidofinance.github.io/lido-staking-vault-cli/commands/vault-viewer)
 
 ## Documentation

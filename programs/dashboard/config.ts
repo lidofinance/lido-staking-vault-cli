@@ -100,15 +100,15 @@ export const readCommandConfig: ReadProgramCommandConfig = {
     description: 'get the confirmation expiry',
   },
   MANUAL_ACCRUED_REWARDS_ADJUSTMENT_LIMIT: {
-    name: 'manual-accrued-rewards-adjustment-limit',
+    name: 'MANUAL_ACCRUED_REWARDS_ADJUSTMENT_LIMIT',
     description: 'get the manual accrued rewards adjustment limit',
   },
   MAX_CONFIRM_EXPIRY: {
-    name: 'max-confirm-expiry',
+    name: 'MAX_CONFIRM_EXPIRY',
     description: 'get the max confirm expiry',
   },
   MIN_CONFIRM_EXPIRY: {
-    name: 'min-confirm-expiry',
+    name: 'MIN_CONFIRM_EXPIRY',
     description: 'get the min confirm expiry',
   },
 };

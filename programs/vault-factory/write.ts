@@ -32,7 +32,7 @@ vaultFactoryWrite.on('option:-cmd2json', function () {
 
 vaultFactoryWrite
   .command('create-vault')
-  .description('create vault contract')
+  .description('create vault contract with deposit 1 ETH')
   .argument('<defaultAdmin>', 'default admin address')
   .argument('<nodeOperator>', 'node operator address')
   .argument('<nodeOperatorManager>', 'node operator manager address')

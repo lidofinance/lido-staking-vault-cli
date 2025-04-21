@@ -27,7 +27,8 @@ lsv-cli dashboard -h
 
 | Command                                              | Description                                                                                               |
 | ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| info                                                 | get dashboard base info                                                                                   |
+| info \<address>                                      | get dashboard base info                                                                                   |
+| roles \<address>                                     | get dashboard roles                                                                                       |
 | health \<address>                                    | get vault health info                                                                                     |
 | BURN_ROLE \<address>                                 | Calls the read-only function "BURN_ROLE" on the contract.                                                 |
 | DEFAULT_ADMIN_ROLE \<address>                        | Calls the read-only function "DEFAULT_ADMIN_ROLE" on the contract.                                        |
@@ -36,10 +37,10 @@ lsv-cli dashboard -h
 | LIDO_VAULTHUB_AUTHORIZATION_ROLE \<address>          | Calls the read-only function "LIDO_VAULTHUB_AUTHORIZATION_ROLE" on the contract.                          |
 | LIDO_VAULTHUB_DEAUTHORIZATION_ROLE \<address>        | Calls the read-only function "LIDO_VAULTHUB_DEAUTHORIZATION_ROLE" on the contract.                        |
 | LOCK_ROLE \<address>                                 | Calls the read-only function "LOCK_ROLE" on the contract.                                                 |
-| MANUAL_ACCRUED_REWARDS_ADJUSTMENT_LIMIT \<address>   | Calls the read-only function "MANUAL_ACCRUED_REWARDS_ADJUSTMENT_LIMIT" on the contract.                   |
-| MAX_CONFIRM_EXPIRY \<address>                        | Calls the read-only function "MAX_CONFIRM_EXPIRY" on the contract.                                        |
+| MANUAL_ACCRUED_REWARDS_ADJUSTMENT_LIMIT \<address>   | get the manual accrued rewards adjustment limit                                                           |
+| MAX_CONFIRM_EXPIRY \<address>                        | get the max confirm expiry                                                                                |
 | MINT_ROLE \<address>                                 | Calls the read-only function "MINT_ROLE" on the contract.                                                 |
-| MIN_CONFIRM_EXPIRY \<address>                        | Calls the read-only function "MIN_CONFIRM_EXPIRY" on the contract.                                        |
+| MIN_CONFIRM_EXPIRY \<address>                        | get the min confirm expiry                                                                                |
 | NODE_OPERATOR_FEE_CLAIM_ROLE \<address>              | Calls the read-only function "NODE_OPERATOR_FEE_CLAIM_ROLE" on the contract.                              |
 | NODE_OPERATOR_MANAGER_ROLE \<address>                | Calls the read-only function "NODE_OPERATOR_MANAGER_ROLE" on the contract.                                |
 | NODE_OPERATOR_REWARDS_ADJUST_ROLE \<address>         | Calls the read-only function "NODE_OPERATOR_REWARDS_ADJUST_ROLE" on the contract.                         |
@@ -64,7 +65,7 @@ lsv-cli dashboard -h
 | accrued-rewards-adjustment \<address>                | get adjustment to allow fee correction during side deposits or consolidations.                            |
 | confirmations \<address> \<callData> \<role>         | get tracks confirmations                                                                                  |
 | confirming-roles \<address>                          | get confirming roles                                                                                      |
-| r-threshold \<address>                               | get the rebalance threshold of the vault in basis points                                                  |
+| force-rebalance-threshold \<address>                 | get the rebalance threshold of the vault in basis points                                                  |
 | get-confirm-expiry \<address>                        | get the confirmation expiry                                                                               |
 | getRoleAdmin \<address> \<role>                      | Calls the read-only function "getRoleAdmin" on the contract.                                              |
 | getRoleMember \<address> \<role> \<index>            | Calls the read-only function "getRoleMember" on the contract.                                             |
@@ -82,7 +83,7 @@ lsv-cli dashboard -h
 | vault \<address>                                     | get staking vault address                                                                                 |
 | supports-interface \<address> \<interfaceId>         | get supports interface by id                                                                              |
 | total-mintable-capacity \<address>                   | get the overall capacity for stETH shares that can be minted by the vault                                 |
-| valuation \<address>                                 | get the total value of the vault in ether                                                                 |
+| total-value \<address>                               | get the total value of the vault in ether                                                                 |
 | t-fee \<address>                                     | get treasury fee in basis points                                                                          |
 | unreserved \<address>                                | get the unreserved amount of ether                                                                        |
 | socket \<address>                                    | get vault socket                                                                                          |
