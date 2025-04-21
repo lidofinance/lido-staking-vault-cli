@@ -1,26 +1,6 @@
 import { ReadProgramCommandConfig } from 'utils';
 
 export const readCommandConfig: ReadProgramCommandConfig = {
-  DEFAULT_ADMIN_ROLE: {
-    name: 'default-admin-role',
-    description: 'get default admin role',
-  },
-  DEFAULT_TIER_ADDRESS: {
-    name: 'default-tier-address',
-    description: 'get default tier address',
-  },
-  DEFAULT_TIER_ID: {
-    name: 'default-tier-id',
-    description: 'get default tier id',
-  },
-  LIDO_LOCATOR: {
-    name: 'lido-locator',
-    description: 'get lido locator address',
-  },
-  REGISTRY_ROLE: {
-    name: 'registry-role',
-    description: 'get registry role',
-  },
   group: {
     name: 'group',
     description: 'get group by node operator address',

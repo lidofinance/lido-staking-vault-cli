@@ -1,5 +1,5 @@
 import { Address } from 'viem';
-
+import { Option } from 'commander';
 import { getOperatorGridContract } from 'contracts';
 import {
   callWriteMethodWithReceipt,
@@ -8,12 +8,25 @@ import {
   callReadMethod,
   parseTiers,
   parseTier,
+  logInfo,
+  getCommandsJson,
 } from 'utils';
 import { Tier } from 'types';
 
 import { operatorGrid } from './main.js';
 
-operatorGrid
+const operatorGridWrite = operatorGrid
+  .command('write')
+  .aliases(['w'])
+  .description('operator grid write commands');
+
+operatorGridWrite.addOption(new Option('-cmd2json'));
+operatorGridWrite.on('option:-cmd2json', function () {
+  logInfo(getCommandsJson(operatorGridWrite));
+  process.exit();
+});
+
+operatorGridWrite
   .command('register-group')
   .alias('rg')
   .description('register a group')
@@ -33,7 +46,7 @@ operatorGrid
     ]);
   });
 
-operatorGrid
+operatorGridWrite
   .command('update-group-share-limit')
   .alias('update-sl')
   .description('update group share limit')
@@ -57,7 +70,7 @@ operatorGrid
     );
   });
 
-operatorGrid
+operatorGridWrite
   .command('register-tiers')
   .alias('rt')
   .description('register new tiers')
@@ -78,7 +91,7 @@ operatorGrid
     ]);
   });
 
-operatorGrid
+operatorGridWrite
   .command('alter-tier')
   .alias('at')
   .description('alter tier')
@@ -100,7 +113,7 @@ operatorGrid
     ]);
   });
 
-operatorGrid
+operatorGridWrite
   .command('request-tier-change')
   .alias('rtc')
   .description('request tier change')
@@ -122,7 +135,7 @@ operatorGrid
     );
   });
 
-operatorGrid
+operatorGridWrite
   .command('confirm-tier-change')
   .alias('ctc')
   .description('confirm tier change')

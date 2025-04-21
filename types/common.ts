@@ -58,6 +58,6 @@ export interface RoleAssignment {
 export interface Tier {
   shareLimit: bigint;
   reserveRatioBP: bigint;
-  rebalanceThresholdBP: bigint;
+  forcedRebalanceThresholdBP: bigint;
   treasuryFeeBP: bigint;
 }
