@@ -1,12 +1,12 @@
 import { CID } from 'multiformats/cid';
-import { sha256 } from 'multiformats/hashes/sha2';
+import { MemoryBlockstore } from 'blockstore-core';
+import { importer } from 'ipfs-unixfs-importer';
 
-import { logInfo } from './logging/console.js';
+import { logInfo, logResult } from './logging/console.js';
 
-// TODO: change to the general IPFS gateway
-export const IPFS_GATEWAY =
-  'https://emerald-characteristic-yak-701.mypinata.cloud/ipfs';
+export const IPFS_GATEWAY = 'https://ipfs.io/ipfs';
 
+// Fetching content by CID through IPFS gateway
 export const fetchIPFS = async (CID: string, url = IPFS_GATEWAY) => {
   const ipfsUrl = `${url}/${CID}`;
 
@@ -20,7 +20,7 @@ export const fetchIPFS = async (CID: string, url = IPFS_GATEWAY) => {
   return response.json();
 };
 
-// Fetching content by CID through IPFS gateway
+// Fetching buffer content by CID through IPFS gateway
 export const fetchIPFSBuffer = async (
   cid: string,
   gateway = IPFS_GATEWAY,
@@ -33,27 +33,49 @@ export const fetchIPFSBuffer = async (
   return new Uint8Array(buffer);
 };
 
-// Recalculating CID based on downloaded content
-export const calculateCID = async (content: Uint8Array) => {
-  const hashDigest = await sha256.digest(content);
-  return CID.createV1(0x55, hashDigest);
+// Recalculate CID using full UnixFS logic (like `ipfs add`)
+export const calculateIPFSAddCID = async (
+  fileContent: Uint8Array,
+): Promise<CID> => {
+  const blockstore = new MemoryBlockstore();
+
+  const entries = importer([{ content: fileContent }], blockstore, {
+    cidVersion: 0,
+    rawLeaves: false, // important! otherwise CID will be v1
+  });
+
+  let lastCid: CID | null = null;
+  for await (const entry of entries) {
+    lastCid = entry.cid;
+  }
+
+  if (!lastCid) {
+    throw new Error('CID calculation failed — no entries found');
+  }
+
+  return lastCid;
 };
 
 // Downloading file from IPFS and checking its integrity
 export const fetchAndVerifyFile = async (
-  cidStr: string,
+  cid: string,
   gateway = IPFS_GATEWAY,
 ): Promise<Uint8Array> => {
-  const originalCID = CID.parse(cidStr);
-  const fileContent = await fetchIPFSBuffer(cidStr, gateway);
-  const computedCID = await calculateCID(fileContent);
+  const originalCID = CID.parse(cid);
+  logInfo('Fetching file from IPFS...', cid);
 
-  if (!computedCID.equals(originalCID)) {
+  const fileContent = await fetchIPFSBuffer(cid, gateway);
+  const calculatedCID = await calculateIPFSAddCID(fileContent);
+
+  logInfo('Original CID:  ', originalCID.toString());
+  logInfo('Calculated CID:', calculatedCID.toString());
+
+  if (!calculatedCID.equals(originalCID)) {
     throw new Error(
-      `CID mismatch! Expected ${originalCID}, but got ${computedCID}`,
+      `❌ CID mismatch! Expected ${originalCID}, but got ${calculatedCID}`,
     );
   }
 
-  logInfo(`✅ CID verified successfully: ${computedCID}`);
+  logResult('✅ CID verified, file matches IPFS hash');
   return fileContent;
 };

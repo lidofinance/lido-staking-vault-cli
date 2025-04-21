@@ -4,10 +4,10 @@ import { logInfo, fetchIPFS, IPFS_GATEWAY } from 'utils';
 
 export type LeafDataFields = {
   vault_address: string;
-  valuation_wei: string;
+  total_value_wei: string;
   in_out_delta: string;
   fee: string;
-  shares_minted: string;
+  liability_shares: string;
 };
 
 export type Report = {
@@ -16,9 +16,11 @@ export type Report = {
   tree: string[];
   values: { value: string[]; treeIndex: number }[];
   merkleTreeRoot: string;
-  refSlof: number;
+  refSlot: number;
+  timestamp: number;
   blockNumber: number;
   proofsCID: string;
+  prevTreeCID: string;
   leafIndexToData: {
     [key: string]: keyof LeafDataFields;
   };
@@ -29,7 +31,9 @@ export type VaultReport = {
   leaf: string;
   refSlof: number;
   blockNumber: number;
+  timestamp: number;
   proofsCID: string;
+  prevTreeCID: string;
   merkleTreeRoot: string;
 };
 
@@ -39,15 +43,17 @@ export type ReportProofData = {
   proofs: {
     [key: string]: {
       id: number;
-      valuationWei: bigint;
+      totalValueWei: bigint;
       inOutDelta: bigint;
       fee: bigint;
-      sharesMinted: bigint;
+      liabilityShares: bigint;
       leaf: string;
       proof: string[];
     };
   };
   block_number: number;
+  timestamp: number;
+  prevTreeCID: string;
 };
 
 export const getReport = async (
@@ -82,10 +88,10 @@ const getVaultData = (report: Report, vault: Address) => {
 
   const data: LeafDataFields = {
     vault_address: '',
-    valuation_wei: '',
     in_out_delta: '',
     fee: '',
-    shares_minted: '',
+    total_value_wei: '',
+    liability_shares: '',
   };
 
   for (const [index, fieldName] of Object.entries(report.leafIndexToData)) {
@@ -101,10 +107,12 @@ const getVaultData = (report: Report, vault: Address) => {
   return {
     data,
     leaf,
-    refSlof: report.refSlof,
+    refSlof: report.refSlot,
     blockNumber: report.blockNumber,
+    timestamp: report.timestamp,
     proofsCID: report.proofsCID,
     merkleTreeRoot: report.merkleTreeRoot,
+    prevTreeCID: report.prevTreeCID,
   };
 };
 
