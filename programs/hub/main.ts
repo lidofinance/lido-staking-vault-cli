@@ -1,6 +1,6 @@
 import { program } from 'command';
 import { Option } from 'commander';
-import { getCommandsJson } from 'utils';
+import { getCommandsJson, logInfo } from 'utils';
 
 export const vaultHub = program
   .command('hub')
@@ -8,6 +8,6 @@ export const vaultHub = program
 
 vaultHub.addOption(new Option('-cmd2json'));
 vaultHub.on('option:-cmd2json', function () {
-  console.info(getCommandsJson(vaultHub));
+  logInfo(getCommandsJson(vaultHub));
   process.exit();
 });

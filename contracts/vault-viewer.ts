@@ -2,7 +2,7 @@ import { getContract, createPublicClient, http, Address } from 'viem';
 import { mainnet, sepolia, holesky } from 'viem/chains';
 
 import { VaultViewerAbi } from 'abi';
-import { getChain, getRpcUrl } from 'configs';
+import { getChain, getElUrl } from 'configs';
 
 const VaultViewerAddresses: Record<number, Address> = {
   [mainnet.id]: '0x',
@@ -23,7 +23,7 @@ export const getVaultViewerContract = () => {
     abi: VaultViewerAbi,
     client: createPublicClient({
       chain: getChain(),
-      transport: http(getRpcUrl()),
+      transport: http(getElUrl()),
     }),
   });
 };

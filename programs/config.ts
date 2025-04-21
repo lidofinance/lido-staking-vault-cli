@@ -2,8 +2,8 @@ import { readFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 import { program } from 'command';
-import { validateConfig } from 'utils';
-import { JSONConfig } from 'types';
+import { validateConfig, logInfo } from 'utils';
+import { Config } from 'types';
 
 program
   .command('conf <path>')
@@ -22,12 +22,12 @@ program
       const errorKeys = Object.keys(errors);
       if (errorKeys.length > 0) {
         errorKeys.forEach((key) =>
-          program.error(`${key} - ${errors[key as keyof JSONConfig]}`),
+          program.error(`${key} - ${errors[key as keyof Config]}`),
         );
         process.exit(1);
       }
 
-      console.info('Configuration is valid!');
+      logInfo('Configuration is valid!');
     } catch (error) {
       if (error instanceof Error) {
         console.error('Error loading or validating JSON file:', error.message);

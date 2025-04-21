@@ -1,11 +1,25 @@
 import { formatEther } from 'viem';
 import { program } from 'command';
-import { getWalletWithAccount, getPublicClient } from 'providers/index.js';
-import { printError, showSpinner } from 'utils/index.js';
+import { Option } from 'commander';
+
+import { getWalletWithAccount, getPublicClient } from 'providers';
+import {
+  printError,
+  showSpinner,
+  logResult,
+  getCommandsJson,
+  logInfo,
+} from 'utils';
 
 const account = program
   .command('account')
   .description('connected account info');
+
+account.addOption(new Option('-cmd2json'));
+account.on('option:-cmd2json', function () {
+  logInfo(getCommandsJson(account));
+  process.exit();
+});
 
 account
   .command('info')
@@ -20,7 +34,7 @@ account
       const balance = await publicClient.getBalance({ address });
       hideSpinner();
 
-      console.table({
+      logResult({
         address,
         balanceWEI: balance,
         balanceETH: formatEther(balance),

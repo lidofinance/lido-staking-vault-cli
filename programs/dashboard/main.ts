@@ -1,6 +1,6 @@
 import { program } from 'command';
 import { Option } from 'commander';
-import { getCommandsJson } from 'utils';
+import { getCommandsJson, logInfo } from 'utils';
 
 export const dashboard = program
   .command('dashboard')
@@ -8,6 +8,6 @@ export const dashboard = program
 
 dashboard.addOption(new Option('-cmd2json'));
 dashboard.on('option:-cmd2json', function () {
-  console.info(getCommandsJson(dashboard));
+  logInfo(getCommandsJson(dashboard));
   process.exit();
 });

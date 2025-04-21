@@ -1,14 +1,13 @@
 import { Address } from 'viem';
 
-export interface JSONConfig {
-  rpcLink: string | undefined;
-  privateKey: string | undefined;
-  chainId: number | undefined;
-  lidoLocator: Address | undefined;
-  accounting: Address | undefined;
-  tokenManager: Address | undefined;
-  voting: Address | undefined;
-  clLink: string | undefined;
+export interface Config {
+  DEPLOYED: string;
+  EL_URL?: string;
+  CL_URL?: string;
+  PRIVATE_KEY?: string;
+  CHAIN_ID: number;
+  TOKEN_MANAGER?: Address;
+  VOTING?: Address;
 }
 
 export type Vote = readonly [

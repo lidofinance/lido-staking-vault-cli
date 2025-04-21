@@ -21,8 +21,8 @@ lsv-cli factory -h
 | Command                                                                                                                                 | Description                                                     |
 | --------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
 | constants                                                                                                                               | get vault factory constants info                                |
-| BEACON \<address>                                                                                                                       | Calls the read-only function "BEACON" on the contract.          |
-| DELEGATION_IMPL \<address>                                                                                                              | Calls the read-only function "DELEGATION_IMPL" on the contract. |
+| BEACON                                                                                                                                  | Calls the read-only function "BEACON" on the contract.          |
+| DELEGATION_IMPL                                                                                                                         | Calls the read-only function "DELEGATION_IMPL" on the contract. |
 | create-vault \<defaultAdmin> \<nodeOperatorManager> \<assetRecoverer> \<confirmExpiry> \<curatorFeeBP> \<nodeOperatorFeeBP> \<quantity> | create vault contract                                           |
 
 Note: \[quantity] is optional argument, default 1

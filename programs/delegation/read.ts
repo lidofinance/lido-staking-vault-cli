@@ -2,7 +2,12 @@ import { Address, formatEther } from 'viem';
 
 import { DelegationAbi } from 'abi';
 import { getDelegationContract, getStethContract } from 'contracts';
-import { generateReadCommands, calculateHealthRatio } from 'utils';
+import {
+  generateReadCommands,
+  calculateVaultHealth,
+  logResult,
+  logInfo,
+} from 'utils';
 import { getBaseInfo } from 'features';
 
 import { delegation } from './main.js';
@@ -68,10 +73,10 @@ delegation
         ASSET_RECOVERY_ROLE,
       };
 
-      console.table(Object.entries(payload));
+      logResult(Object.entries(payload));
     } catch (err) {
       if (err instanceof Error) {
-        console.info('Error when getting roles:\n', err.message);
+        logInfo('Error when getting roles:\n', err.message);
       }
     }
   });
@@ -99,8 +104,8 @@ delegation
         contract.read.sharesMinted(), // BigInt, in shares
         contract.read.rebalanceThresholdBP(), // number (in basis points)
       ]);
-      if (minted === BigInt(0)) {
-        console.info('Minted is 0');
+      if (minted === 0n) {
+        logInfo('Minted is 0');
         return;
       }
 
@@ -108,24 +113,24 @@ delegation
         minted,
       ]); // BigInt
 
-      const { healthRatioNumber, isHealthy } = calculateHealthRatio(
+      const { healthRatio, isHealthy } = calculateVaultHealth(
         valuation,
         mintedInSteth,
         rebalanceThresholdBP,
       );
 
-      console.table({
+      logResult({
         'Vault Healthy': isHealthy,
         'Valuation, wei': valuation,
         'Valuation, ether': `${formatEther(valuation)} ETH`,
         'Minted, stETH': `${mintedInSteth} stETH`,
         'Rebalance Threshold, BP': rebalanceThresholdBP,
         'Rebalance Threshold, %': `${rebalanceThresholdBP / 100}%`,
-        'Health Rate': `${healthRatioNumber}%`,
+        'Health Rate': `${healthRatio}%`,
       });
     } catch (err) {
       if (err instanceof Error) {
-        console.info('Error when getting info:\n', err.message);
+        logInfo('Error when getting info:\n', err.message);
       }
     }
   });

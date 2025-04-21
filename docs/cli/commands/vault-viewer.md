@@ -1,5 +1,5 @@
 ---
-sidebar_position: 8
+sidebar_position: 9
 ---
 
 # VaultViewer
@@ -10,7 +10,7 @@ sidebar_position: 8
 lsv-cli vv [arguments] [-options]
 ```
 
-## Delegation commands list
+## VaultViewer commands list
 
 ```bash
 lsv-cli vv -h

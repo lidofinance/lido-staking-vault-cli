@@ -1,6 +1,6 @@
 import { getVaultFactoryContract } from 'contracts';
 import { VaultFactoryAbi } from 'abi';
-import { generateReadCommands } from 'utils';
+import { generateReadCommands, logResult, logError } from 'utils';
 
 import { vaultFactory } from './main.js';
 import { readCommandConfig } from './config.js';
@@ -14,13 +14,13 @@ vaultFactory
       const beaconAddress = await contract.read.BEACON();
       const delegationImplAddress = await contract.read.DELEGATION_IMPL();
 
-      console.table({
+      logResult({
         beaconAddress,
         delegationImplAddress,
       });
     } catch (err) {
       if (err instanceof Error) {
-        console.info('Error when getting constants:\n', err.message);
+        logError('Error when getting constants:\n', err.message);
       }
     }
   });

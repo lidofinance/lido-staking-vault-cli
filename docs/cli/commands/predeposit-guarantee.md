@@ -10,7 +10,7 @@ sidebar_position: 7
 lsv-cli pdg [arguments] [-options]
 ```
 
-## Delegation commands list
+## PredepositGuarantee commands list
 
 ```bash
 lsv-cli pdg -h
@@ -51,14 +51,14 @@ lsv-cli pdg -h
 | ub-bal \<address>                                                   | get unlocked balance                                                      |
 | v-status \<pubkey>                                                  | get validator status                                                      |
 | predeposit \<vault> \<deposits>                                     | predeposit                                                                |
-| verify-predeposit \<deposits>                                       | Verifies BLS signature of the deposit                                     |
-| create-proof-and-prove \<index>                                     | create proof and prove                                                    |
+| verify-predeposit-bls (verify-bls)\<deposits>                       | Verifies BLS signature of the deposit                                     |
+| proof-and-prove prove\<index>                                       | make proof and prove                                                      |
 | prove-and-deposit \<indexes> \<vault> \<deposits>                   | prove and deposit                                                         |
 | deposit-to-beacon-chain \<vault> \<deposits>                        | deposit to beacon chain                                                   |
 | top-up \<nodeOperator> \<amount>                                    | top up no balance                                                         |
 | prove-unknown-validator \<index> \<vault>                           | prove unknown validator                                                   |
 | prove-invalid-validator-wc \<index> \<invalidWithdrawalCredentials> | prove invalid validator withdrawal credentials                            |
 | withdraw-no-balance \<nodeOperator> \<amount> \<recipient>          | withdraw node operator balance                                            |
-| set-no-g \<guarantor>                                               | set node operator guarantor                                               |
-| claim-g-refund \<recipient>                                         | claim guarantor refund                                                    |
-| compensate-disproven-predeposit \<pubkey> \<recipient>              | compensate disproven predeposit                                           |
+| set-no-guarantor (set-no-g)\<guarantor>                             | set node operator guarantor                                               |
+| claim-guarantor-refund (claim-g-refund)\<recipient>                 | claim guarantor refund                                                    |
+| compensate-disproven-predeposit (compensate)\<pubkey> \<recipient>  | compensate disproven predeposit                                           |

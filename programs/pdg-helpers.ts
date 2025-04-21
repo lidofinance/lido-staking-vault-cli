@@ -1,27 +1,38 @@
 import { program } from 'command';
-import { getCLProofVerifierContract } from 'contracts';
+import { Option } from 'commander';
 
+import { getCLProofVerifierContract } from 'contracts';
 import {
   createPDGProof,
   getFirstValidatorGIndex,
-  confirmCreateProof,
+  confirmMakeProof,
   showSpinner,
   printError,
   computeDepositDataRoot,
+  logResult,
+  logInfo,
+  getCommandsJson,
 } from 'utils';
 
 const predepositGuaranteeHelpers = program
   .command('pdg-helpers')
   .description('predeposit guarantee helpers');
 
+predepositGuaranteeHelpers.addOption(new Option('-cmd2json'));
+predepositGuaranteeHelpers.on('option:-cmd2json', function () {
+  logInfo(getCommandsJson(predepositGuaranteeHelpers));
+  process.exit();
+});
+
 predepositGuaranteeHelpers
-  .command('create-proof-and-check')
+  .command('proof-and-check')
+  .aliases(['proof-check'])
   .option('-i, --index <index>', 'validator index')
   .description(
-    'create predeposit proof by validator index and check by test contract',
+    'make predeposit proof by validator index and check by test contract',
   )
   .action(async ({ index }: { index: bigint }) => {
-    const validatorIndex = await confirmCreateProof(index);
+    const validatorIndex = await confirmMakeProof(index);
     if (!validatorIndex) return;
 
     const clProofVerifierContract = getCLProofVerifierContract();
@@ -38,48 +49,54 @@ predepositGuaranteeHelpers
         withdrawalCredentials,
       ]);
 
-      console.info('-----------------proof verified-----------------');
-      console.info('------------------------------------------------');
-      console.info('----------------------proof----------------------');
-      console.info(proof);
-      console.info('---------------------pubkey---------------------');
-      console.table(pubkey);
-      console.info('---------------childBlockTimestamp---------------');
-      console.table(childBlockTimestamp);
-      console.info('--------------withdrawalCredentials--------------');
-      console.table(withdrawalCredentials);
-      console.info('------------------------------------------------');
-      console.info('-----------------------end-----------------------');
+      logInfo('-----------------proof verified-----------------');
+      logInfo('------------------------------------------------');
+      logInfo('----------------------proof----------------------');
+      logInfo(proof);
+      logInfo('---------------------pubkey---------------------');
+      logResult(pubkey);
+      logInfo('---------------childBlockTimestamp---------------');
+      logResult(childBlockTimestamp);
+      logInfo('--------------withdrawalCredentials--------------');
+      logResult(withdrawalCredentials);
+      logInfo('------------------------------------------------');
+      logInfo('-----------------------end-----------------------');
     } catch (err) {
       hideSpinner();
-      printError(err, 'Error when creating proof');
+      printError(err, 'Error when making proof');
     }
   });
 
 predepositGuaranteeHelpers
-  .command('create-proof')
-  .description('create predeposit proof by validator index')
+  .command('proof')
+  .description('make predeposit proof by validator index')
   .option('-i, --index <index>', 'validator index')
   .action(async ({ index }: { index: bigint }) => {
-    const validatorIndex = await confirmCreateProof(index);
+    const validatorIndex = await confirmMakeProof(index);
     if (!validatorIndex) return;
 
-    const packageProof = await createPDGProof(Number(validatorIndex));
-    const { proof, pubkey, childBlockTimestamp, withdrawalCredentials } =
-      packageProof;
+    const hideSpinner = showSpinner();
+    try {
+      const packageProof = await createPDGProof(Number(validatorIndex));
+      const { proof, pubkey, childBlockTimestamp, withdrawalCredentials } =
+        packageProof;
 
-    console.info('-----------------proof verified-----------------');
-    console.info('------------------------------------------------');
-    console.info('----------------------proof----------------------');
-    console.info(proof);
-    console.info('---------------------pubkey---------------------');
-    console.table(pubkey);
-    console.info('---------------childBlockTimestamp---------------');
-    console.table(childBlockTimestamp);
-    console.info('--------------withdrawalCredentials--------------');
-    console.table(withdrawalCredentials);
-    console.info('------------------------------------------------');
-    console.info('-----------------------end-----------------------');
+      logInfo('-----------------proof verified-----------------');
+      logInfo('------------------------------------------------');
+      logInfo('----------------------proof----------------------');
+      logInfo(proof);
+      logInfo('---------------------pubkey---------------------');
+      logResult(pubkey);
+      logInfo('---------------childBlockTimestamp---------------');
+      logResult(childBlockTimestamp);
+      logInfo('--------------withdrawalCredentials--------------');
+      logResult(withdrawalCredentials);
+      logInfo('------------------------------------------------');
+      logInfo('-----------------------end-----------------------');
+    } catch (err) {
+      hideSpinner();
+      printError(err, 'Error when making proof');
+    }
   });
 
 predepositGuaranteeHelpers
@@ -91,12 +108,13 @@ predepositGuaranteeHelpers
   });
 
 predepositGuaranteeHelpers
-  .command('compute-dd-root')
+  .command('compute-deposit-data-root')
+  .aliases(['compute-dd-root'])
   .description('compute deposit data root')
   .argument('<pubkey>', 'pubkey')
   .argument('<withdrawal-credentials>', 'withdrawal credentials')
   .argument('<signature>', 'signature')
-  .argument('<amount>', 'amount in wei')
+  .argument('<amount>', 'amount in ETH')
   .action(
     async (
       pubkey: string,
@@ -111,7 +129,7 @@ predepositGuaranteeHelpers
         amount,
       );
 
-      console.table({
+      logResult({
         pubkey,
         withdrawalCredentials,
         signature,

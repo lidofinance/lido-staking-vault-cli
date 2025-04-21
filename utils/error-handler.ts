@@ -1,9 +1,13 @@
 import { program } from 'command';
 
+import { logError } from 'utils';
+
 export const printError = (err: unknown, message: string) => {
   if (err instanceof Error) {
-    program.error(`${message}:\n ${err.message}`, { exitCode: 1 });
+    logError(message);
+    program.error(`${err.message}`, { exitCode: 1 });
   } else {
-    program.error(`${message}`, { exitCode: 1 });
+    logError(message);
+    program.error(`${err}`, { exitCode: 1 });
   }
 };

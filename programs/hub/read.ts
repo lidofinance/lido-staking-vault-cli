@@ -1,5 +1,10 @@
 import { getVaultHubContract } from 'contracts';
-import { callReadMethod, generateReadCommands, printError } from 'utils';
+import {
+  generateReadCommands,
+  printError,
+  callReadMethod,
+  logResult,
+} from 'utils';
 import { VaultHubAbi } from 'abi';
 
 import { vaultHub } from './main.js';
@@ -35,7 +40,7 @@ vaultHub
         CONTRACT_ADDRESS,
       };
 
-      console.table(Object.entries(payload));
+      logResult(Object.entries(payload));
     } catch (err) {
       printError(err, 'Error when calling read method "constants"');
     }
@@ -64,7 +69,7 @@ vaultHub
         biIndex,
       ]);
 
-      console.table({
+      logResult({
         Vault: vault,
         'Vault Socket': vaultSocket,
       });

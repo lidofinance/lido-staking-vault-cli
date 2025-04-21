@@ -1,35 +1,29 @@
 import { textPrompt, confirmPrompt } from './default.js';
+import { logCancel } from 'utils/logging/console.js';
 
-export const validatorIndexPrompt = async () => {
+export const enterValidatorIndex = async () => {
   return await textPrompt('Enter validator index', 'validatorIndex');
 };
 
 export const confirmValidatorIndex = async (validatorIndex: bigint) => {
   return await confirmPrompt(
-    `Do you want to create proof for validator ${validatorIndex}?`,
+    `Do you want to make proof for validator ${validatorIndex}?`,
     'confirm',
   );
 };
 
-export const confirmCreateProof = async (index: bigint) => {
+export const confirmMakeProof = async (index: bigint) => {
   let validatorIndex: bigint = index;
 
-  if (!validatorIndex) {
-    const answerValidatorIndex = await validatorIndexPrompt();
+  if (validatorIndex === undefined) {
+    const answerValidatorIndex = await enterValidatorIndex();
     validatorIndex = answerValidatorIndex.validatorIndex;
 
-    if (!validatorIndex) {
-      console.info('Command cancelled');
-      return null;
-    }
+    if (!validatorIndex) return logCancel('Command cancelled');
   }
 
   const { confirm } = await confirmValidatorIndex(validatorIndex);
-
-  if (!confirm) {
-    console.info('Command cancelled');
-    return null;
-  }
+  if (!confirm) return logCancel('Command cancelled');
 
   return validatorIndex;
 };

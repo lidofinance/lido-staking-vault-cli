@@ -1,10 +1,10 @@
-import { printError } from 'utils';
+import { Address, SimulateContractReturnType, TransactionReceipt } from 'viem';
+import { waitForTransactionReceipt } from 'viem/actions';
+
 import { getAccount, getPublicClient } from 'providers';
 import { getChain } from 'configs';
-import { Address, SimulateContractReturnType, TransactionReceipt } from 'viem';
 
-import { showSpinner } from 'utils/index.js';
-import { waitForTransactionReceipt } from 'viem/actions';
+import { showSpinner, printError, logResult } from 'utils';
 
 export type ReadContract = {
   address: Address;
@@ -31,7 +31,7 @@ export const callSimulateWriteMethod = async <
   methodName: M,
   payload: Writeable<GetFirst<Parameters<T['simulate'][M]>>> | never[],
   value?: bigint,
-): Promise<SimulateContractReturnType | null> => {
+): Promise<SimulateContractReturnType> => {
   const hideSpinner = showSpinner({
     type: 'bouncingBall',
     message: 'Simulating...',
@@ -51,7 +51,7 @@ export const callSimulateWriteMethod = async <
     hideSpinner();
     printError(err, `Error when simulating write method "${methodName}"`);
 
-    return null;
+    throw err;
   }
 };
 
@@ -63,7 +63,7 @@ export const callWriteMethod = async <
   methodName: M,
   payload: Writeable<GetFirst<Parameters<T['write'][M]>>> | never[],
   value?: bigint,
-): Promise<Address | undefined> => {
+): Promise<Address> => {
   const simulateResult = await callSimulateWriteMethod(
     contract,
     methodName,
@@ -76,7 +76,7 @@ export const callWriteMethod = async <
       `Error when simulating write method "${methodName}"`,
     );
 
-    return;
+    throw new Error('Simulation failed');
   }
 
   const hideSpinner = showSpinner();
@@ -89,14 +89,18 @@ export const callWriteMethod = async <
     });
     hideSpinner();
 
-    console.table({ Transaction: tx });
+    logResult({
+      'Method name': methodName,
+      Contract: contract.address,
+      Transaction: tx,
+    });
 
     return tx;
   } catch (err) {
     hideSpinner();
     printError(err, `Error when calling write method "${methodName}"`);
 
-    return;
+    throw err;
   }
 };
 
@@ -115,8 +119,9 @@ export const callReadMethod = async <
     const result = await method?.(...payload);
     hideSpinner();
     // TODO: do message better or show in called place
-    console.table({
+    logResult({
       'Method name': methodName,
+      Contract: contract.address,
       Result: result,
     });
 
@@ -149,11 +154,10 @@ export const callWriteMethodWithReceipt = async <
   methodName: M,
   payload: Writeable<GetFirst<Parameters<T['write'][M]>>> | never[],
   value?: bigint,
-): Promise<{ receipt: TransactionReceipt; tx: Address } | undefined> => {
+): Promise<{ receipt: TransactionReceipt; tx: Address }> => {
   const publicClient = getPublicClient();
 
   const tx = await callWriteMethod(contract, methodName, payload, value);
-  if (!tx) return;
 
   const hideSpinner = showSpinner({
     type: 'bouncingBar',
@@ -164,7 +168,9 @@ export const callWriteMethodWithReceipt = async <
     const receipt = await waitForTransactionReceipt(publicClient, { hash: tx });
     hideSpinner();
 
-    console.table({
+    logResult({
+      'Method name': methodName,
+      Contract: contract.address,
       'Transaction status': receipt.status,
       'Transaction block number': Number(receipt.blockNumber),
       'Transaction gas used': Number(receipt.gasUsed),
@@ -175,6 +181,6 @@ export const callWriteMethodWithReceipt = async <
     hideSpinner();
     printError(err, 'Error when waiting for transaction receipt');
 
-    return;
+    throw err;
   }
 };

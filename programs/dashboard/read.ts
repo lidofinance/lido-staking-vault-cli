@@ -1,8 +1,15 @@
-import { getDashboardContract, getStethContract } from 'contracts';
 import { Address, formatEther } from 'viem';
+
 import { DashboardAbi } from 'abi';
-import { calculateHealthRatio, generateReadCommands, textPrompt } from 'utils';
 import { getBaseInfo } from 'features';
+import { getDashboardContract } from 'contracts';
+import {
+  fetchAndCalculateVaultHealth,
+  generateReadCommands,
+  textPrompt,
+  logResult,
+  logInfo,
+} from 'utils';
 
 import { dashboard } from './main.js';
 import { readCommandConfig } from './config.js';
@@ -19,7 +26,7 @@ dashboard
       dashboardAddress = answer.address;
 
       if (!dashboardAddress) {
-        console.info('Command cancelled');
+        logInfo('Command cancelled');
         return;
       }
     }
@@ -35,41 +42,29 @@ dashboard
   .argument('<address>', 'delegation address')
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
-    const stethContract = await getStethContract();
-
     try {
-      const [valuation, minted, rebalanceThresholdBP] = await Promise.all([
-        contract.read.valuation(), // BigInt, in wei
-        contract.read.sharesMinted(), // BigInt, in shares
-        contract.read.rebalanceThresholdBP(), // number (in basis points)
-      ]);
-      if (minted === BigInt(0)) {
-        console.info('Minted is 0');
-        return;
-      }
-
-      const mintedInSteth = await stethContract.read.getPooledEthByShares([
-        minted,
-      ]); // BigInt
-
-      const { healthRatioNumber, isHealthy } = calculateHealthRatio(
+      const {
+        healthRatio,
+        isHealthy,
         valuation,
-        mintedInSteth,
+        mintedInStethWei,
         rebalanceThresholdBP,
-      );
+        minted,
+      } = await fetchAndCalculateVaultHealth(contract);
 
-      console.table({
+      logResult({
         'Vault Healthy': isHealthy,
         'Valuation, wei': valuation,
         'Valuation, ether': `${formatEther(valuation)} ETH`,
-        'Minted, stETH': `${mintedInSteth} stETH`,
+        'Minted, shares': `${minted} shares`,
+        'Minted, stETH': `${formatEther(mintedInStethWei)} stETH`,
         'Rebalance Threshold, BP': rebalanceThresholdBP,
         'Rebalance Threshold, %': `${rebalanceThresholdBP / 100}%`,
-        'Health Rate': `${healthRatioNumber}%`,
+        'Health Rate': `${healthRatio}%`,
       });
     } catch (err) {
       if (err instanceof Error) {
-        console.info('Error when getting info:\n', err.message);
+        logInfo('Error when getting info:\n', err.message);
       }
     }
   });

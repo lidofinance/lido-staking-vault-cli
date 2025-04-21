@@ -1,11 +1,12 @@
-import { Address, Hex } from 'viem';
+import { Address, Hex, parseEther } from 'viem';
 
 import { getStakingVaultContract } from 'contracts';
 import {
   callWriteMethodWithReceipt,
   confirmFund,
+  etherToWei,
   stringToBigInt,
-  stringToBigIntArray,
+  stringToBigIntArrayWei,
 } from 'utils';
 
 import { vault } from './main.js';
@@ -14,14 +15,18 @@ vault
   .command('fund')
   .description('fund vault')
   .option('-a, --address <address>', 'vault address')
-  .option('-e, --ether <ether>', 'amount of ether to be funded (in WEI)')
+  .option('-e, --ether <ether>', 'amount of ether to be funded (in ETH)')
   .action(async ({ address, ether }: { address: Address; ether: string }) => {
-    const { address: vault, amount } = await confirmFund(address, ether);
+    const { address: vault, amount } = await confirmFund(
+      address,
+      ether,
+      'vault',
+    );
     if (!vault || !amount) return;
 
     const contract = getStakingVaultContract(address);
 
-    await callWriteMethodWithReceipt(contract, 'fund', [], BigInt(amount));
+    await callWriteMethodWithReceipt(contract, 'fund', [], parseEther(amount));
   });
 
 // TODO: investigate why only owner can fund vault
@@ -30,14 +35,13 @@ vault
   .description('withdraw from vault')
   .argument('<address>', 'vault address')
   .argument('<recipient>', 'recipient address')
-  .argument('<wei>', 'amount to withdraw (in WEI)', stringToBigInt)
+  .argument('<eth>', 'amount to withdraw (in ETH)', etherToWei)
   .action(async (address: Address, recipient: Address, amount: bigint) => {
     const contract = getStakingVaultContract(address);
 
     await callWriteMethodWithReceipt(contract, 'withdraw', [recipient, amount]);
   });
 
-// NOs
 // TODO: get more details
 vault
   .command('no-deposit-beacon')
@@ -144,7 +148,7 @@ vault
   .command('rebalance')
   .description('Rebalances the vault')
   .argument('<address>', 'vault address')
-  .argument('<amount>', 'amount to rebalance (in WEI)', stringToBigInt)
+  .argument('<amount>', 'amount to rebalance (in ETH)', etherToWei)
   .action(async (address: Address, amount: bigint) => {
     const contract = getStakingVaultContract(address);
 
@@ -156,7 +160,7 @@ vault
   .description('Trigger validator withdrawal')
   .argument('<address>', 'vault address')
   .argument('<pubkeys>', 'validator public keys')
-  .argument('<amounts>', 'amounts to withdraw (in WEI)', stringToBigIntArray)
+  .argument('<amounts>', 'amounts to withdraw (in ETH)', stringToBigIntArrayWei)
   .argument('<refundRecipient>', 'refund recipient address')
   .action(
     async (

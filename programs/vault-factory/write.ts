@@ -7,6 +7,9 @@ import {
   transformAddressesToArray,
   confirmCreateVaultParams,
   stringToNumber,
+  logResult,
+  logInfo,
+  logError,
 } from 'utils';
 
 import { vaultFactory } from './main.js';
@@ -86,7 +89,8 @@ vaultFactory
       const qnt = parseInt(quantity);
 
       if (isNaN(qnt)) {
-        program.error('quantity must be a number', { exitCode: 1 });
+        logError('quantity must be a number');
+        return;
       }
 
       const extraKeys: (keyof CreateVaultPayload)[] = [
@@ -145,10 +149,10 @@ vaultFactory
           transactions.push(tx);
         }
 
-        console.table(transactions);
+        logResult(transactions);
       } catch (err) {
         if (err instanceof Error) {
-          console.info('Error occurred while creating vaults', err.message);
+          logInfo('Error occurred while creating vaults', err.message);
         }
       }
     },
