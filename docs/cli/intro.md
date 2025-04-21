@@ -53,14 +53,14 @@ CL_URL=url
 EL_URL=url
 
 # Contract addresses
-DEPLOYED=deployed-holesky-vaults-devnet-0.json // required
+DEPLOYED=deployed-hoodi-vaults-testnet.json // required
 
 # Wallet
 PRIVATE_KEY=0x
 ```
 
-If you plan to manage contracts the **privateKey** is required property for this type of operations.
-For using elLink in a right way be attentive to match rpc resolver link and its chain ID.
+If you plan to manage contracts the **PRIVATE_KEY** is required property for this type of operations.
+For using **EL_URL** in a right way be attentive to match rpc resolver link and its chain ID.
 
 ## Usage
 

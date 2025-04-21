@@ -1,62 +1,55 @@
+import { Address } from 'viem';
+import { Option } from 'commander';
+
 import { getVaultHubContract } from 'contracts';
+import { getVaultHubBaseInfo, getVaultHubRoles } from 'features';
 import {
   generateReadCommands,
   printError,
   callReadMethod,
   logResult,
+  getCommandsJson,
+  logInfo,
 } from 'utils';
 import { VaultHubAbi } from 'abi';
 
 import { vaultHub } from './main.js';
 import { readCommandConfig } from './config.js';
 
+const VaultHubRead = vaultHub
+  .command('read')
+  .aliases(['r'])
+  .description('vault hub read commands');
+
+VaultHubRead.addOption(new Option('-cmd2json'));
+VaultHubRead.on('option:-cmd2json', function () {
+  logInfo(getCommandsJson(VaultHubRead));
+  process.exit();
+});
+
 // Works fine
-vaultHub
-  .command('constants')
-  .description('get vault hub constants')
+VaultHubRead.command('info')
+  .description('get vault hub info')
   .action(async () => {
-    const contract = await getVaultHubContract();
+    await getVaultHubBaseInfo();
+  });
 
-    try {
-      const VAULT_MASTER_ROLE = await contract.read.VAULT_MASTER_ROLE();
-      const VAULT_REGISTRY_ROLE = await contract.read.VAULT_REGISTRY_ROLE();
-      const LIDO = await contract.read.LIDO();
-      const LIDO_LOCATOR = await contract.read.LIDO_LOCATOR();
-      const DEFAULT_ADMIN_ROLE = await contract.read.DEFAULT_ADMIN_ROLE();
-      const PAUSE_INFINITELY = await contract.read.PAUSE_INFINITELY();
-      const PAUSE_ROLE = await contract.read.PAUSE_ROLE();
-      const RESUME_ROLE = await contract.read.RESUME_ROLE();
-      const CONTRACT_ADDRESS = contract.address;
-
-      const payload = {
-        VAULT_MASTER_ROLE,
-        DEFAULT_ADMIN_ROLE,
-        VAULT_REGISTRY_ROLE,
-        LIDO,
-        LIDO_LOCATOR,
-        PAUSE_INFINITELY,
-        PAUSE_ROLE,
-        RESUME_ROLE,
-        CONTRACT_ADDRESS,
-      };
-
-      logResult(Object.entries(payload));
-    } catch (err) {
-      printError(err, 'Error when calling read method "constants"');
-    }
+VaultHubRead.command('roles')
+  .description('get vault hub roles')
+  .action(async () => {
+    await getVaultHubRoles();
   });
 
 generateReadCommands(
   VaultHubAbi,
   getVaultHubContract,
-  vaultHub,
+  VaultHubRead,
   readCommandConfig,
 );
 
 // // Works fine
 
-vaultHub
-  .command('vi')
+VaultHubRead.command('vi')
   .description('get vault and vault socket by index')
   .argument('<index>', 'index')
   .action(async (index: string) => {
@@ -76,4 +69,15 @@ vaultHub
     } catch (err) {
       printError(err, 'Error when getting vault and vault socket');
     }
+  });
+
+VaultHubRead.command('rebalance-shortfall')
+  .description(
+    'estimate ether amount to make the vault healthy using rebalance',
+  )
+  .argument('<address>', 'vault address')
+  .action(async (address: Address) => {
+    const contract = await getVaultHubContract();
+
+    await callReadMethod(contract, 'rebalanceShortfall', [address]);
   });

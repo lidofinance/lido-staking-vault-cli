@@ -1,492 +1,492 @@
 export const StEthAbi = [
   {
-    "constant": true,
-    "inputs": [
+    constant: true,
+    inputs: [
       {
-        "name": "_sharesAmount",
-        "type": "uint256"
-      }
+        name: '_sharesAmount',
+        type: 'uint256',
+      },
     ],
-    "name": "getPooledEthBySharesRoundUp",
-    "outputs": [
+    name: 'getPooledEthBySharesRoundUp',
+    outputs: [
       {
-        "name": "etherAmount",
-        "type": "uint256"
-      }
+        name: 'etherAmount',
+        type: 'uint256',
+      },
     ],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
+    payable: false,
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "constant": true,
-    "inputs": [],
-    "name": "name",
-    "outputs": [
+    constant: true,
+    inputs: [],
+    name: 'name',
+    outputs: [
       {
-        "name": "",
-        "type": "string"
-      }
+        name: '',
+        type: 'string',
+      },
     ],
-    "payable": false,
-    "stateMutability": "pure",
-    "type": "function"
+    payable: false,
+    stateMutability: 'pure',
+    type: 'function',
   },
   {
-    "constant": false,
-    "inputs": [
+    constant: false,
+    inputs: [
       {
-        "name": "_spender",
-        "type": "address"
+        name: '_spender',
+        type: 'address',
       },
       {
-        "name": "_amount",
-        "type": "uint256"
-      }
+        name: '_amount',
+        type: 'uint256',
+      },
     ],
-    "name": "approve",
-    "outputs": [
+    name: 'approve',
+    outputs: [
       {
-        "name": "",
-        "type": "bool"
-      }
+        name: '',
+        type: 'bool',
+      },
     ],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function"
+    payable: false,
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "constant": true,
-    "inputs": [],
-    "name": "totalSupply",
-    "outputs": [
+    constant: true,
+    inputs: [],
+    name: 'totalSupply',
+    outputs: [
       {
-        "name": "",
-        "type": "uint256"
-      }
+        name: '',
+        type: 'uint256',
+      },
     ],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
+    payable: false,
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "constant": true,
-    "inputs": [
+    constant: true,
+    inputs: [
       {
-        "name": "_ethAmount",
-        "type": "uint256"
-      }
+        name: '_ethAmount',
+        type: 'uint256',
+      },
     ],
-    "name": "getSharesByPooledEth",
-    "outputs": [
+    name: 'getSharesByPooledEth',
+    outputs: [
       {
-        "name": "",
-        "type": "uint256"
-      }
+        name: '',
+        type: 'uint256',
+      },
     ],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
+    payable: false,
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "constant": false,
-    "inputs": [
+    constant: false,
+    inputs: [
       {
-        "name": "_sender",
-        "type": "address"
+        name: '_sender',
+        type: 'address',
       },
       {
-        "name": "_recipient",
-        "type": "address"
+        name: '_recipient',
+        type: 'address',
       },
       {
-        "name": "_amount",
-        "type": "uint256"
-      }
+        name: '_amount',
+        type: 'uint256',
+      },
     ],
-    "name": "transferFrom",
-    "outputs": [
+    name: 'transferFrom',
+    outputs: [
       {
-        "name": "",
-        "type": "bool"
-      }
+        name: '',
+        type: 'bool',
+      },
     ],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function"
+    payable: false,
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "constant": true,
-    "inputs": [],
-    "name": "decimals",
-    "outputs": [
+    constant: true,
+    inputs: [],
+    name: 'decimals',
+    outputs: [
       {
-        "name": "",
-        "type": "uint8"
-      }
+        name: '',
+        type: 'uint8',
+      },
     ],
-    "payable": false,
-    "stateMutability": "pure",
-    "type": "function"
+    payable: false,
+    stateMutability: 'pure',
+    type: 'function',
   },
   {
-    "constant": true,
-    "inputs": [],
-    "name": "getTotalPooledEther",
-    "outputs": [
+    constant: true,
+    inputs: [],
+    name: 'getTotalPooledEther',
+    outputs: [
       {
-        "name": "",
-        "type": "uint256"
-      }
+        name: '',
+        type: 'uint256',
+      },
     ],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
+    payable: false,
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "constant": false,
-    "inputs": [
+    constant: false,
+    inputs: [
       {
-        "name": "_spender",
-        "type": "address"
+        name: '_spender',
+        type: 'address',
       },
       {
-        "name": "_addedValue",
-        "type": "uint256"
-      }
+        name: '_addedValue',
+        type: 'uint256',
+      },
     ],
-    "name": "increaseAllowance",
-    "outputs": [
+    name: 'increaseAllowance',
+    outputs: [
       {
-        "name": "",
-        "type": "bool"
-      }
+        name: '',
+        type: 'bool',
+      },
     ],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function"
+    payable: false,
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "constant": true,
-    "inputs": [],
-    "name": "isStopped",
-    "outputs": [
+    constant: true,
+    inputs: [],
+    name: 'isStopped',
+    outputs: [
       {
-        "name": "",
-        "type": "bool"
-      }
+        name: '',
+        type: 'bool',
+      },
     ],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
+    payable: false,
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "constant": false,
-    "inputs": [
+    constant: false,
+    inputs: [
       {
-        "name": "_sender",
-        "type": "address"
+        name: '_sender',
+        type: 'address',
       },
       {
-        "name": "_recipient",
-        "type": "address"
+        name: '_recipient',
+        type: 'address',
       },
       {
-        "name": "_sharesAmount",
-        "type": "uint256"
-      }
+        name: '_sharesAmount',
+        type: 'uint256',
+      },
     ],
-    "name": "transferSharesFrom",
-    "outputs": [
+    name: 'transferSharesFrom',
+    outputs: [
       {
-        "name": "",
-        "type": "uint256"
-      }
+        name: '',
+        type: 'uint256',
+      },
     ],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function"
+    payable: false,
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "constant": true,
-    "inputs": [
+    constant: true,
+    inputs: [
       {
-        "name": "_account",
-        "type": "address"
-      }
+        name: '_account',
+        type: 'address',
+      },
     ],
-    "name": "balanceOf",
-    "outputs": [
+    name: 'balanceOf',
+    outputs: [
       {
-        "name": "",
-        "type": "uint256"
-      }
+        name: '',
+        type: 'uint256',
+      },
     ],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
+    payable: false,
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "constant": true,
-    "inputs": [
+    constant: true,
+    inputs: [
       {
-        "name": "_sharesAmount",
-        "type": "uint256"
-      }
+        name: '_sharesAmount',
+        type: 'uint256',
+      },
     ],
-    "name": "getPooledEthByShares",
-    "outputs": [
+    name: 'getPooledEthByShares',
+    outputs: [
       {
-        "name": "",
-        "type": "uint256"
-      }
+        name: '',
+        type: 'uint256',
+      },
     ],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
+    payable: false,
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "constant": false,
-    "inputs": [
+    constant: false,
+    inputs: [
       {
-        "name": "_recipient",
-        "type": "address"
+        name: '_recipient',
+        type: 'address',
       },
       {
-        "name": "_sharesAmount",
-        "type": "uint256"
-      }
+        name: '_sharesAmount',
+        type: 'uint256',
+      },
     ],
-    "name": "transferShares",
-    "outputs": [
+    name: 'transferShares',
+    outputs: [
       {
-        "name": "",
-        "type": "uint256"
-      }
+        name: '',
+        type: 'uint256',
+      },
     ],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function"
+    payable: false,
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "constant": true,
-    "inputs": [],
-    "name": "symbol",
-    "outputs": [
+    constant: true,
+    inputs: [],
+    name: 'symbol',
+    outputs: [
       {
-        "name": "",
-        "type": "string"
-      }
+        name: '',
+        type: 'string',
+      },
     ],
-    "payable": false,
-    "stateMutability": "pure",
-    "type": "function"
+    payable: false,
+    stateMutability: 'pure',
+    type: 'function',
   },
   {
-    "constant": false,
-    "inputs": [
+    constant: false,
+    inputs: [
       {
-        "name": "_spender",
-        "type": "address"
+        name: '_spender',
+        type: 'address',
       },
       {
-        "name": "_subtractedValue",
-        "type": "uint256"
-      }
+        name: '_subtractedValue',
+        type: 'uint256',
+      },
     ],
-    "name": "decreaseAllowance",
-    "outputs": [
+    name: 'decreaseAllowance',
+    outputs: [
       {
-        "name": "",
-        "type": "bool"
-      }
+        name: '',
+        type: 'bool',
+      },
     ],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function"
+    payable: false,
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "constant": false,
-    "inputs": [
+    constant: false,
+    inputs: [
       {
-        "name": "_recipient",
-        "type": "address"
+        name: '_recipient',
+        type: 'address',
       },
       {
-        "name": "_amount",
-        "type": "uint256"
-      }
+        name: '_amount',
+        type: 'uint256',
+      },
     ],
-    "name": "transfer",
-    "outputs": [
+    name: 'transfer',
+    outputs: [
       {
-        "name": "",
-        "type": "bool"
-      }
+        name: '',
+        type: 'bool',
+      },
     ],
-    "payable": false,
-    "stateMutability": "nonpayable",
-    "type": "function"
+    payable: false,
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "constant": true,
-    "inputs": [],
-    "name": "getTotalShares",
-    "outputs": [
+    constant: true,
+    inputs: [],
+    name: 'getTotalShares',
+    outputs: [
       {
-        "name": "",
-        "type": "uint256"
-      }
+        name: '',
+        type: 'uint256',
+      },
     ],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
+    payable: false,
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "constant": true,
-    "inputs": [
+    constant: true,
+    inputs: [
       {
-        "name": "_owner",
-        "type": "address"
+        name: '_owner',
+        type: 'address',
       },
       {
-        "name": "_spender",
-        "type": "address"
-      }
+        name: '_spender',
+        type: 'address',
+      },
     ],
-    "name": "allowance",
-    "outputs": [
+    name: 'allowance',
+    outputs: [
       {
-        "name": "",
-        "type": "uint256"
-      }
+        name: '',
+        type: 'uint256',
+      },
     ],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
+    payable: false,
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "constant": true,
-    "inputs": [
+    constant: true,
+    inputs: [
       {
-        "name": "_account",
-        "type": "address"
-      }
+        name: '_account',
+        type: 'address',
+      },
     ],
-    "name": "sharesOf",
-    "outputs": [
+    name: 'sharesOf',
+    outputs: [
       {
-        "name": "",
-        "type": "uint256"
-      }
+        name: '',
+        type: 'uint256',
+      },
     ],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
+    payable: false,
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "anonymous": false,
-    "inputs": [
+    anonymous: false,
+    inputs: [
       {
-        "indexed": true,
-        "name": "from",
-        "type": "address"
+        indexed: true,
+        name: 'from',
+        type: 'address',
       },
       {
-        "indexed": true,
-        "name": "to",
-        "type": "address"
+        indexed: true,
+        name: 'to',
+        type: 'address',
       },
       {
-        "indexed": false,
-        "name": "sharesValue",
-        "type": "uint256"
-      }
+        indexed: false,
+        name: 'sharesValue',
+        type: 'uint256',
+      },
     ],
-    "name": "TransferShares",
-    "type": "event"
+    name: 'TransferShares',
+    type: 'event',
   },
   {
-    "anonymous": false,
-    "inputs": [
+    anonymous: false,
+    inputs: [
       {
-        "indexed": true,
-        "name": "account",
-        "type": "address"
+        indexed: true,
+        name: 'account',
+        type: 'address',
       },
       {
-        "indexed": false,
-        "name": "preRebaseTokenAmount",
-        "type": "uint256"
+        indexed: false,
+        name: 'preRebaseTokenAmount',
+        type: 'uint256',
       },
       {
-        "indexed": false,
-        "name": "postRebaseTokenAmount",
-        "type": "uint256"
+        indexed: false,
+        name: 'postRebaseTokenAmount',
+        type: 'uint256',
       },
       {
-        "indexed": false,
-        "name": "sharesAmount",
-        "type": "uint256"
-      }
+        indexed: false,
+        name: 'sharesAmount',
+        type: 'uint256',
+      },
     ],
-    "name": "SharesBurnt",
-    "type": "event"
+    name: 'SharesBurnt',
+    type: 'event',
   },
   {
-    "anonymous": false,
-    "inputs": [],
-    "name": "Stopped",
-    "type": "event"
+    anonymous: false,
+    inputs: [],
+    name: 'Stopped',
+    type: 'event',
   },
   {
-    "anonymous": false,
-    "inputs": [],
-    "name": "Resumed",
-    "type": "event"
+    anonymous: false,
+    inputs: [],
+    name: 'Resumed',
+    type: 'event',
   },
   {
-    "anonymous": false,
-    "inputs": [
+    anonymous: false,
+    inputs: [
       {
-        "indexed": true,
-        "name": "from",
-        "type": "address"
+        indexed: true,
+        name: 'from',
+        type: 'address',
       },
       {
-        "indexed": true,
-        "name": "to",
-        "type": "address"
+        indexed: true,
+        name: 'to',
+        type: 'address',
       },
       {
-        "indexed": false,
-        "name": "value",
-        "type": "uint256"
-      }
+        indexed: false,
+        name: 'value',
+        type: 'uint256',
+      },
     ],
-    "name": "Transfer",
-    "type": "event"
+    name: 'Transfer',
+    type: 'event',
   },
   {
-    "anonymous": false,
-    "inputs": [
+    anonymous: false,
+    inputs: [
       {
-        "indexed": true,
-        "name": "owner",
-        "type": "address"
+        indexed: true,
+        name: 'owner',
+        type: 'address',
       },
       {
-        "indexed": true,
-        "name": "spender",
-        "type": "address"
+        indexed: true,
+        name: 'spender',
+        type: 'address',
       },
       {
-        "indexed": false,
-        "name": "value",
-        "type": "uint256"
-      }
+        indexed: false,
+        name: 'value',
+        type: 'uint256',
+      },
     ],
-    "name": "Approval",
-    "type": "event"
-  }
+    name: 'Approval',
+    type: 'event',
+  },
 ] as const;

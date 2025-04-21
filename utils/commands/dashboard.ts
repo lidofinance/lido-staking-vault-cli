@@ -2,7 +2,7 @@ import { callWriteMethodWithReceipt, confirmBurn } from 'utils';
 
 import { Address } from 'viem';
 
-import { DashboardContract, DelegationContract } from 'contracts';
+import { DashboardContract } from 'contracts';
 import {
   callReadMethod,
   fetchAndCalculateVaultHealthWithNewValue,
@@ -12,30 +12,34 @@ import {
 } from 'utils';
 
 export const mintShares = async (
-  contract: DashboardContract | DelegationContract,
+  contract: DashboardContract,
   recipient: Address,
   amountOfShares: bigint,
 ) => {
-  const projectedNewMintableShares = await callReadMethod(
+  const remainingMintingCapacity = await callReadMethod(
     contract,
-    'projectedNewMintableShares',
+    'remainingMintingCapacity',
     [0n],
   );
-  if (projectedNewMintableShares < amountOfShares) {
+  if (remainingMintingCapacity < amountOfShares) {
     logError(
-      `Cannot mint more shares than the vault can mint. Mintable: ${projectedNewMintableShares}`,
+      `Cannot mint more shares than the vault can mint. Mintable: ${remainingMintingCapacity}`,
     );
     return;
   }
 
   const hideSpinner = showSpinner();
 
-  const { currentVaultHealth, newVaultHealth, newMinted, minted } =
-    await fetchAndCalculateVaultHealthWithNewValue(
-      contract,
-      amountOfShares,
-      'mint',
-    );
+  const {
+    currentVaultHealth,
+    newVaultHealth,
+    newLiabilityShares,
+    liabilityShares,
+  } = await fetchAndCalculateVaultHealthWithNewValue(
+    contract,
+    amountOfShares,
+    'mint',
+  );
   const vault = await callReadMethod(contract, 'stakingVault');
   hideSpinner();
 
@@ -43,8 +47,8 @@ export const mintShares = async (
     vaultAddress: vault,
     recipient,
     amountOfMint: amountOfShares,
-    newMintedShares: newMinted,
-    currentMintedShares: minted,
+    newLiabilityShares: newLiabilityShares,
+    currentLiabilityShares: liabilityShares,
     newHealthRatio: newVaultHealth.healthRatio,
     currentHealthRatio: currentVaultHealth.healthRatio,
     newIsHealthy: newVaultHealth.isHealthy,
@@ -59,19 +63,19 @@ export const mintShares = async (
 };
 
 export const burnShares = async (
-  contract: DashboardContract | DelegationContract,
+  contract: DashboardContract,
   amountOfShares: bigint,
 ) => {
-  const minted = await callReadMethod(contract, 'sharesMinted');
+  const liabilityShares = await callReadMethod(contract, 'liabilityShares');
 
-  if (amountOfShares > minted) {
+  if (amountOfShares > liabilityShares) {
     logError('Cannot burn more shares than the vault has');
     return;
   }
 
   const hideSpinner = showSpinner();
 
-  const { currentVaultHealth, newVaultHealth, newMinted } =
+  const { currentVaultHealth, newVaultHealth, newLiabilityShares } =
     await fetchAndCalculateVaultHealthWithNewValue(
       contract,
       amountOfShares,
@@ -83,8 +87,8 @@ export const burnShares = async (
   const confirm = await confirmBurn({
     vaultAddress: vault,
     amountOfBurn: amountOfShares,
-    newMintedShares: newMinted,
-    currentMintedShares: minted,
+    newLiabilityShares: newLiabilityShares,
+    currentLiabilityShares: liabilityShares,
     newHealthRatio: newVaultHealth.healthRatio,
     currentHealthRatio: currentVaultHealth.healthRatio,
     newIsHealthy: newVaultHealth.isHealthy,

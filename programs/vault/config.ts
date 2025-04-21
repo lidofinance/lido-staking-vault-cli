@@ -21,7 +21,7 @@ export const readCommandConfig: ReadProgramCommandConfig = {
     description: 'get the net difference between deposits and withdrawals',
   },
   beaconChainDepositsPaused: {
-    name: 'is-paused',
+    name: 'is-paused-deposits',
     description: 'get whether deposits are paused by the vault owner',
   },
   valuation: {
@@ -45,7 +45,7 @@ export const readCommandConfig: ReadProgramCommandConfig = {
     description: 'get vault node operator',
   },
   DEPOSIT_CONTRACT: {
-    name: 'deposit-contract',
+    name: 'DEPOSIT_CONTRACT',
     description: 'get vault deposit contract',
   },
   owner: {
@@ -63,5 +63,9 @@ export const readCommandConfig: ReadProgramCommandConfig = {
   initializedVersion: {
     name: 'i-version',
     description: 'get vault initialized version',
+  },
+  depositor: {
+    name: 'depositor',
+    description: 'get the address of the depositor',
   },
 };

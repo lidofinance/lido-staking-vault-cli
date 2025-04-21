@@ -3,12 +3,17 @@ export const VaultFactoryAbi = [
     inputs: [
       {
         internalType: 'address',
+        name: '_lidoLocator',
+        type: 'address',
+      },
+      {
+        internalType: 'address',
         name: '_beacon',
         type: 'address',
       },
       {
         internalType: 'address',
-        name: '_delegationImpl',
+        name: '_dashboardImpl',
         type: 'address',
       },
     ],
@@ -42,6 +47,11 @@ export const VaultFactoryAbi = [
     type: 'error',
   },
   {
+    inputs: [],
+    name: 'InsufficientFunds',
+    type: 'error',
+  },
+  {
     inputs: [
       {
         internalType: 'string',
@@ -58,17 +68,17 @@ export const VaultFactoryAbi = [
       {
         indexed: true,
         internalType: 'address',
-        name: 'admin',
+        name: 'dashboard',
         type: 'address',
       },
       {
         indexed: true,
         internalType: 'address',
-        name: 'delegation',
+        name: 'admin',
         type: 'address',
       },
     ],
-    name: 'DelegationCreated',
+    name: 'DashboardCreated',
     type: 'event',
   },
   {
@@ -77,13 +87,13 @@ export const VaultFactoryAbi = [
       {
         indexed: true,
         internalType: 'address',
-        name: 'owner',
+        name: 'vault',
         type: 'address',
       },
       {
         indexed: true,
         internalType: 'address',
-        name: 'vault',
+        name: 'owner',
         type: 'address',
       },
     ],
@@ -105,7 +115,20 @@ export const VaultFactoryAbi = [
   },
   {
     inputs: [],
-    name: 'DELEGATION_IMPL',
+    name: 'DASHBOARD_IMPL',
+    outputs: [
+      {
+        internalType: 'address',
+        name: '',
+        type: 'address',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'LIDO_LOCATOR',
     outputs: [
       {
         internalType: 'address',
@@ -119,114 +142,54 @@ export const VaultFactoryAbi = [
   {
     inputs: [
       {
+        internalType: 'address',
+        name: '_defaultAdmin',
+        type: 'address',
+      },
+      {
+        internalType: 'address',
+        name: '_nodeOperator',
+        type: 'address',
+      },
+      {
+        internalType: 'address',
+        name: '_nodeOperatorManager',
+        type: 'address',
+      },
+      {
+        internalType: 'uint256',
+        name: '_nodeOperatorFeeBP',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: '_confirmExpiry',
+        type: 'uint256',
+      },
+      {
         components: [
           {
             internalType: 'address',
-            name: 'defaultAdmin',
+            name: 'account',
             type: 'address',
           },
           {
-            internalType: 'address',
-            name: 'nodeOperatorManager',
-            type: 'address',
-          },
-          {
-            internalType: 'address',
-            name: 'assetRecoverer',
-            type: 'address',
-          },
-          {
-            internalType: 'uint256',
-            name: 'confirmExpiry',
-            type: 'uint256',
-          },
-          {
-            internalType: 'uint16',
-            name: 'curatorFeeBP',
-            type: 'uint16',
-          },
-          {
-            internalType: 'uint16',
-            name: 'nodeOperatorFeeBP',
-            type: 'uint16',
-          },
-          {
-            internalType: 'address[]',
-            name: 'funders',
-            type: 'address[]',
-          },
-          {
-            internalType: 'address[]',
-            name: 'withdrawers',
-            type: 'address[]',
-          },
-          {
-            internalType: 'address[]',
-            name: 'minters',
-            type: 'address[]',
-          },
-          {
-            internalType: 'address[]',
-            name: 'burners',
-            type: 'address[]',
-          },
-          {
-            internalType: 'address[]',
-            name: 'rebalancers',
-            type: 'address[]',
-          },
-          {
-            internalType: 'address[]',
-            name: 'depositPausers',
-            type: 'address[]',
-          },
-          {
-            internalType: 'address[]',
-            name: 'depositResumers',
-            type: 'address[]',
-          },
-          {
-            internalType: 'address[]',
-            name: 'validatorExitRequesters',
-            type: 'address[]',
-          },
-          {
-            internalType: 'address[]',
-            name: 'validatorWithdrawalTriggerers',
-            type: 'address[]',
-          },
-          {
-            internalType: 'address[]',
-            name: 'disconnecters',
-            type: 'address[]',
-          },
-          {
-            internalType: 'address[]',
-            name: 'curatorFeeSetters',
-            type: 'address[]',
-          },
-          {
-            internalType: 'address[]',
-            name: 'curatorFeeClaimers',
-            type: 'address[]',
-          },
-          {
-            internalType: 'address[]',
-            name: 'nodeOperatorFeeClaimers',
-            type: 'address[]',
+            internalType: 'bytes32',
+            name: 'role',
+            type: 'bytes32',
           },
         ],
-        internalType: 'struct DelegationConfig',
-        name: '_delegationConfig',
-        type: 'tuple',
+        internalType: 'struct Permissions.RoleAssignment[]',
+        name: '_roleAssignments',
+        type: 'tuple[]',
       },
       {
         internalType: 'bytes',
-        name: '_stakingVaultInitializerExtraParams',
+        name: '_extraParams',
         type: 'bytes',
       },
     ],
-    name: 'createVaultWithDelegation',
+    name: 'createVaultWithDashboard',
     outputs: [
       {
         internalType: 'contract IStakingVault',
@@ -234,12 +197,12 @@ export const VaultFactoryAbi = [
         type: 'address',
       },
       {
-        internalType: 'contract Delegation',
-        name: 'delegation',
+        internalType: 'contract Dashboard',
+        name: 'dashboard',
         type: 'address',
       },
     ],
-    stateMutability: 'nonpayable',
+    stateMutability: 'payable',
     type: 'function',
   },
 ] as const;

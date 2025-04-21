@@ -1,5 +1,5 @@
 import { program } from 'commander';
-import { Permit, RoleAssignment } from 'types';
+import { Permit, RoleAssignment, Tier } from 'types';
 import { parseEther } from 'viem';
 
 export const stringToBigIntArray = (value: string) => {
@@ -31,4 +31,12 @@ export const stringToNumber = (value: string) => {
     program.error('value must be a positive number', { exitCode: 1 });
   }
   return parseInt(value);
+};
+
+export const parseTiers = (value: string) => {
+  return JSON.parse(value) as Tier[];
+};
+
+export const parseTier = (value: string) => {
+  return JSON.parse(value) as Tier;
 };

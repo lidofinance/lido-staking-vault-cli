@@ -6,8 +6,8 @@ type ConfirmMintProps = {
   vaultAddress: Address;
   recipient: Address;
   amountOfMint: bigint;
-  newMintedShares: bigint;
-  currentMintedShares: bigint;
+  newLiabilityShares: bigint;
+  currentLiabilityShares: bigint;
   newHealthRatio: number;
   currentHealthRatio: number;
   newIsHealthy: boolean;
@@ -17,8 +17,8 @@ type ConfirmMintProps = {
 type ConfirmBurnProps = {
   vaultAddress: Address;
   amountOfBurn: bigint;
-  newMintedShares: bigint;
-  currentMintedShares: bigint;
+  newLiabilityShares: bigint;
+  currentLiabilityShares: bigint;
   newHealthRatio: number;
   currentHealthRatio: number;
   newIsHealthy: boolean;
@@ -30,8 +30,8 @@ export const confirmMint = async (props: ConfirmMintProps) => {
     vaultAddress,
     recipient,
     amountOfMint,
-    newMintedShares,
-    currentMintedShares,
+    newLiabilityShares,
+    currentLiabilityShares,
     newHealthRatio,
     currentHealthRatio,
     newIsHealthy,
@@ -42,7 +42,7 @@ export const confirmMint = async (props: ConfirmMintProps) => {
   console.table([
     {
       'Vault Address': vaultAddress,
-      'Current Minted Shares': currentMintedShares,
+      'Current Liability Shares': currentLiabilityShares,
       'Current Health Ratio': `${currentHealthRatio}%`,
       'Current Is Healthy': currentIsHealthy,
     },
@@ -52,7 +52,7 @@ export const confirmMint = async (props: ConfirmMintProps) => {
   console.table([
     {
       'Vault Address': vaultAddress,
-      'New Minted Shares': newMintedShares,
+      'New Liability Shares': newLiabilityShares,
       'New Health Ratio': `${newHealthRatio}%`,
       'New Is Healthy': newIsHealthy,
     },
@@ -69,8 +69,8 @@ export const confirmBurn = async (props: ConfirmBurnProps) => {
   const {
     vaultAddress,
     amountOfBurn,
-    newMintedShares,
-    currentMintedShares,
+    newLiabilityShares,
+    currentLiabilityShares,
     newHealthRatio,
     currentHealthRatio,
     newIsHealthy,
@@ -81,7 +81,7 @@ export const confirmBurn = async (props: ConfirmBurnProps) => {
   console.table([
     {
       'Vault Address': vaultAddress,
-      'Current Minted Shares': currentMintedShares,
+      'Current Liability Shares': currentLiabilityShares,
       'Current Health Ratio': `${currentHealthRatio}%`,
       'Current Is Healthy': currentIsHealthy,
     },
@@ -91,7 +91,7 @@ export const confirmBurn = async (props: ConfirmBurnProps) => {
   console.table([
     {
       'Vault Address': vaultAddress,
-      'New Minted Shares': newMintedShares,
+      'New Liability Shares': newLiabilityShares,
       'New Health Ratio': `${newHealthRatio}%`,
       'New Is Healthy': newIsHealthy,
     },

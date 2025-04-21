@@ -1,1 +1,1 @@
-export * from './dashboard-delegation.js';
+export * from './dashboard.js';

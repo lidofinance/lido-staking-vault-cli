@@ -1,38 +1,6 @@
 import { ReadProgramCommandConfig } from 'utils';
 
 export const readCommandConfig: ReadProgramCommandConfig = {
-  VAULT_MASTER_ROLE: {
-    name: 'vm-role',
-    description: 'get vault master role',
-  },
-  VAULT_REGISTRY_ROLE: {
-    name: 'vr-role',
-    description: 'get vault registry role',
-  },
-  LIDO: {
-    name: 'lido',
-    description: 'get lido address',
-  },
-  LIDO_LOCATOR: {
-    name: 'll',
-    description: 'get lido locator address',
-  },
-  DEFAULT_ADMIN_ROLE: {
-    name: 'dar',
-    description: 'get default admin role',
-  },
-  PAUSE_INFINITELY: {
-    name: 'pi',
-    description: 'get pause infinitely',
-  },
-  PAUSE_ROLE: {
-    name: 'pr',
-    description: 'get pause role',
-  },
-  RESUME_ROLE: {
-    name: 'rr',
-    description: 'get resume role',
-  },
   calculateVaultTreasuryFees: {
     name: 'calc-t-fee',
     description: 'get calculated vault treasury fees',
@@ -124,5 +92,34 @@ export const readCommandConfig: ReadProgramCommandConfig = {
         description: 'vault address',
       },
     },
+  },
+  batchVaultsInfo: {
+    name: 'batch-v-info',
+    description: 'get batch of vaults info',
+    arguments: {
+      _offset: {
+        name: 'offset',
+        description: 'offset of the vault in the batch (indexes start from 0)',
+      },
+      _limit: {
+        name: 'limit',
+        description: 'limit of the batch',
+      },
+    },
+  },
+  isVaultHealthyAsOfLatestReport: {
+    name: 'is-v-healthy-latest-report',
+    description:
+      'get checks if the vault is healthy by comparing its total value after applying rebalance threshold against current liability shares',
+    arguments: {
+      _vault: {
+        name: 'vault',
+        description: 'vault address',
+      },
+    },
+  },
+  latestReportData: {
+    name: 'latest-report-data',
+    description: 'get latest report data',
   },
 };

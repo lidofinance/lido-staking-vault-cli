@@ -60,7 +60,7 @@ CL_URL=url
 EL_URL=url
 
 # Contract addresses
-DEPLOYED=deployed-holesky-vaults-devnet-0.json // required
+DEPLOYED=deployed-hoodi-vaults-testnet.json // required
 
 # Wallet
 PRIVATE_KEY=0x

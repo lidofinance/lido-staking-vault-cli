@@ -59,7 +59,7 @@ export const PredepositGuaranteeAbi = [
         type: 'bytes',
       },
       {
-        internalType: 'enum PredepositGuarantee.validatorStage',
+        internalType: 'enum PredepositGuarantee.ValidatorStage',
         name: 'stage',
         type: 'uint8',
       },
@@ -95,6 +95,11 @@ export const PredepositGuaranteeAbi = [
   },
   {
     inputs: [],
+    name: 'InputHasInfinityPoints',
+    type: 'error',
+  },
+  {
+    inputs: [],
     name: 'InvalidInitialization',
     type: 'error',
   },
@@ -105,7 +110,7 @@ export const PredepositGuaranteeAbi = [
   },
   {
     inputs: [],
-    name: 'InvalidTimestamp',
+    name: 'InvalidSignature',
     type: 'error',
   },
   {
@@ -209,7 +214,7 @@ export const PredepositGuaranteeAbi = [
   {
     inputs: [
       {
-        internalType: 'enum PredepositGuarantee.validatorStage',
+        internalType: 'enum PredepositGuarantee.ValidatorStage',
         name: 'stage',
         type: 'uint8',
       },
@@ -225,7 +230,7 @@ export const PredepositGuaranteeAbi = [
         type: 'bytes',
       },
       {
-        internalType: 'enum PredepositGuarantee.validatorStage',
+        internalType: 'enum PredepositGuarantee.ValidatorStage',
         name: 'stage',
         type: 'uint8',
       },
@@ -241,7 +246,7 @@ export const PredepositGuaranteeAbi = [
         type: 'bytes',
       },
       {
-        internalType: 'enum PredepositGuarantee.validatorStage',
+        internalType: 'enum PredepositGuarantee.ValidatorStage',
         name: 'stage',
         type: 'uint8',
       },
@@ -1093,7 +1098,7 @@ export const PredepositGuaranteeAbi = [
             type: 'bytes32',
           },
         ],
-        internalType: 'struct IStakingVault.Deposit[]',
+        internalType: 'struct StakingVaultDeposit[]',
         name: '_deposits',
         type: 'tuple[]',
       },
@@ -1371,8 +1376,59 @@ export const PredepositGuaranteeAbi = [
             type: 'bytes32',
           },
         ],
-        internalType: 'struct IStakingVault.Deposit[]',
+        internalType: 'struct StakingVaultDeposit[]',
         name: '_deposits',
+        type: 'tuple[]',
+      },
+      {
+        components: [
+          {
+            components: [
+              {
+                internalType: 'bytes32',
+                name: 'a',
+                type: 'bytes32',
+              },
+              {
+                internalType: 'bytes32',
+                name: 'b',
+                type: 'bytes32',
+              },
+            ],
+            internalType: 'struct BLS12_381.Fp',
+            name: 'pubkeyY',
+            type: 'tuple',
+          },
+          {
+            components: [
+              {
+                internalType: 'bytes32',
+                name: 'c0_a',
+                type: 'bytes32',
+              },
+              {
+                internalType: 'bytes32',
+                name: 'c0_b',
+                type: 'bytes32',
+              },
+              {
+                internalType: 'bytes32',
+                name: 'c1_a',
+                type: 'bytes32',
+              },
+              {
+                internalType: 'bytes32',
+                name: 'c1_b',
+                type: 'bytes32',
+              },
+            ],
+            internalType: 'struct BLS12_381.Fp2',
+            name: 'signatureY',
+            type: 'tuple',
+          },
+        ],
+        internalType: 'struct BLS12_381.DepositY[]',
+        name: '_depositsY',
         type: 'tuple[]',
       },
     ],
@@ -1406,7 +1462,7 @@ export const PredepositGuaranteeAbi = [
             type: 'uint64',
           },
         ],
-        internalType: 'struct CLProofVerifier.ValidatorWitness[]',
+        internalType: 'struct IPredepositGuarantee.ValidatorWitness[]',
         name: '_witnesses',
         type: 'tuple[]',
       },
@@ -1433,7 +1489,7 @@ export const PredepositGuaranteeAbi = [
             type: 'bytes32',
           },
         ],
-        internalType: 'struct IStakingVault.Deposit[]',
+        internalType: 'struct StakingVaultDeposit[]',
         name: '_deposits',
         type: 'tuple[]',
       },
@@ -1473,7 +1529,7 @@ export const PredepositGuaranteeAbi = [
             type: 'uint64',
           },
         ],
-        internalType: 'struct CLProofVerifier.ValidatorWitness',
+        internalType: 'struct IPredepositGuarantee.ValidatorWitness',
         name: '_witness',
         type: 'tuple',
       },
@@ -1513,7 +1569,7 @@ export const PredepositGuaranteeAbi = [
             type: 'uint64',
           },
         ],
-        internalType: 'struct CLProofVerifier.ValidatorWitness',
+        internalType: 'struct IPredepositGuarantee.ValidatorWitness',
         name: '_witness',
         type: 'tuple',
       },
@@ -1553,7 +1609,7 @@ export const PredepositGuaranteeAbi = [
             type: 'uint64',
           },
         ],
-        internalType: 'struct CLProofVerifier.ValidatorWitness',
+        internalType: 'struct IPredepositGuarantee.ValidatorWitness',
         name: '_witness',
         type: 'tuple',
       },
@@ -1683,7 +1739,7 @@ export const PredepositGuaranteeAbi = [
       {
         components: [
           {
-            internalType: 'enum PredepositGuarantee.validatorStage',
+            internalType: 'enum PredepositGuarantee.ValidatorStage',
             name: 'stage',
             type: 'uint8',
           },

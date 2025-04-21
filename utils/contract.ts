@@ -116,7 +116,7 @@ export const callReadMethod = async <
 
   try {
     const method = contract.read[methodName];
-    const result = await method?.(payload[0]);
+    const result = await method?.(...payload);
     hideSpinner();
     // TODO: do message better or show in called place
     logResult({
@@ -128,7 +128,10 @@ export const callReadMethod = async <
     return result;
   } catch (err) {
     hideSpinner();
-    printError(err, `Error when calling read method "${methodName}"`);
+    printError(
+      err,
+      `Error when calling read method ${methodName}@${contract.address}`,
+    );
 
     throw err;
   }
