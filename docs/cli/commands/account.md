@@ -18,6 +18,7 @@ lsv-cli account -h
 
 ## API
 
-| Command | Description          |
-| ------- | -------------------- |
-| info    | general account info |
+| Command      | Description                                                                         |
+| ------------ | ----------------------------------------------------------------------------------- |
+| info         | general account info.                                                               |
+| generate-key | generate a new key. Disclaimer: this command is not recommended for production use. |

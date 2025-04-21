@@ -48,7 +48,7 @@ dashboardRead
 dashboardRead
   .command('health')
   .description('get vault health info')
-  .argument('<address>', 'delegation address')
+  .argument('<address>', 'dashboard address')
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
     try {

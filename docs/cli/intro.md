@@ -48,7 +48,7 @@ git clone git@github.com:lidofinance/lido-staking-vault-cli.git
 Before using the CLI, configure your environment variables. You can set them in a `.env` file in your project root.
 
 ```.env
-CHAIN_ID=11155111 // required
+CHAIN_ID=560048 // required
 CL_URL=url
 EL_URL=url
 

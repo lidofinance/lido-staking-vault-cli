@@ -1,4 +1,4 @@
-import { parseEventLogs } from 'viem';
+import { parseEventLogs, parseEther } from 'viem';
 import { RoleAssignment, VaultWithDashboard } from 'types';
 import { getVaultFactoryContract } from 'contracts';
 import { VaultFactoryAbi } from 'abi/index.js';
@@ -35,6 +35,7 @@ export const createVault = async (
       otherRoles,
       '0x',
     ],
+    parseEther('1'),
   );
   if (!result) return;
   const { receipt, tx } = result;
@@ -46,11 +47,11 @@ export const createVault = async (
 
   const vaultEvent = events.find((event) => event.eventName === 'VaultCreated');
   const vault = vaultEvent?.args.vault;
-  const delegation = vaultEvent?.args.owner;
+  const dashboard = vaultEvent?.args.owner;
 
   return {
     vault,
-    delegation,
+    dashboard,
     tx,
     blockNumber: receipt.blockNumber,
   };

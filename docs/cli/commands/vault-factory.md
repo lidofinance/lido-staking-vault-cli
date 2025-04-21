@@ -34,9 +34,9 @@ lsv-cli factory -h
 
 ### Write
 
-| Command                                                                                                               | Description           |
-| --------------------------------------------------------------------------------------------------------------------- | --------------------- |
-| create-vault \<defaultAdmin> \<nodeOperator> \<nodeOperatorManager> \<confirmExpiry> \<nodeOperatorFeeBP> \<quantity> | create vault contract |
+| Command                                                                                                               | Description                              |
+| --------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| create-vault \<defaultAdmin> \<nodeOperator> \<nodeOperatorManager> \<confirmExpiry> \<nodeOperatorFeeBP> \<quantity> | create vault contract with deposit 1 ETH |
 
 Note: \[quantity] is optional argument, default 1
 **[options]**

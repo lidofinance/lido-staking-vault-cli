@@ -55,7 +55,7 @@ git clone git@github.com:lidofinance/lido-staking-vault-cli.git
 Before using the CLI, configure your environment variables. You can set them in a `.env` file in your project root.
 
 ```.env
-CHAIN_ID=11155111 // required
+CHAIN_ID=560048 // required
 CL_URL=url
 EL_URL=url
 
@@ -114,8 +114,8 @@ lsv-cli hub v-count
 - [VaultFactory](https://lidofinance.github.io/lido-staking-vault-cli/commands/vault-factory)
 - [Vault](https://lidofinance.github.io/lido-staking-vault-cli/commands/vault)
 - [Dashboard](https://lidofinance.github.io/lido-staking-vault-cli/commands/dashboard)
-- [Delegation](https://lidofinance.github.io/lido-staking-vault-cli/commands/delgatio)
 - [PredepositGuarantee](https://lidofinance.github.io/lido-staking-vault-cli/commands/predeposit-guarantee)
+- [OperatorGrid](https://lidofinance.github.io/lido-staking-vault-cli/commands/operator-grid)
 - [VaultViewer](https://lidofinance.github.io/lido-staking-vault-cli/commands/vault-viewer)
 
 ## Documentation
