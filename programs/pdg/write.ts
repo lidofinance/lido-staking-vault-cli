@@ -1,8 +1,11 @@
 import { Address, Hex } from 'viem';
+import { Option } from 'commander';
+import { getAccount } from 'providers';
 
 import {
   getPredepositGuaranteeContract,
   getStakingVaultContract,
+  getBLSHarnessContract,
 } from 'contracts';
 import {
   callWriteMethodWithReceipt,
@@ -21,14 +24,25 @@ import {
   logError,
   confirmOperation,
   confirmMakeProof,
+  getCommandsJson,
+  isValidBLSDeposit,
+  expandBLSSignature,
 } from 'utils';
 
 import { pdg } from './main.js';
-import { getBLSHarnessContract } from 'contracts/blsHarness.js';
-import { isValidBLSDeposit, expandBLSSignature } from 'utils/bls.js';
-import { getAccount } from 'providers';
 
-pdg
+const pdgWrite = pdg
+  .command('write')
+  .aliases(['w'])
+  .description('pdg write commands');
+
+pdgWrite.addOption(new Option('-cmd2json'));
+pdgWrite.on('option:-cmd2json', function () {
+  logInfo(getCommandsJson(pdgWrite));
+  process.exit();
+});
+
+pdgWrite
   .command('predeposit')
   .description('predeposit')
   .argument('<vault>', 'vault address')
@@ -95,7 +109,7 @@ pdg
     },
   );
 
-pdg
+pdgWrite
   .command('verify-predeposit-bls')
   .aliases(['verify-bls'])
   .description('Verifies BLS signature of the deposit')
@@ -213,7 +227,7 @@ pdg
     },
   );
 
-pdg
+pdgWrite
   .command('proof-and-prove')
   .aliases(['prove'])
   .description('make proof and prove')
@@ -254,7 +268,7 @@ pdg
     }
   });
 
-pdg
+pdgWrite
   .command('prove-and-deposit')
   .description('prove and deposit')
   .argument('<indexes>', 'validator indexes', stringToBigIntArray)
@@ -314,7 +328,7 @@ pdg
     ]);
   });
 
-pdg
+pdgWrite
   .command('deposit-to-beacon-chain')
   .description('deposit to beacon chain')
   .argument('<vault>', 'vault address')
@@ -333,7 +347,7 @@ pdg
     ]);
   });
 
-pdg
+pdgWrite
   .command('top-up')
   .description('top up no balance')
   .argument('<nodeOperator>', 'node operator address')
@@ -354,7 +368,7 @@ pdg
     );
   });
 
-pdg
+pdgWrite
   .command('prove-unknown-validator')
   .description('prove unknown validator')
   .argument('<index>', 'validator index', stringToBigInt)
@@ -397,7 +411,7 @@ pdg
     }
   });
 
-pdg
+pdgWrite
   .command('prove-invalid-validator-wc')
   .description('prove invalid validator withdrawal credentials')
   .argument('<index>', 'validator index', stringToBigInt)
@@ -447,7 +461,7 @@ pdg
     }
   });
 
-pdg
+pdgWrite
   .command('withdraw-no-balance')
   .description('withdraw node operator balance')
   .argument('<nodeOperator>', 'node operator address')
@@ -468,7 +482,7 @@ pdg
     );
   });
 
-pdg
+pdgWrite
   .command('set-no-guarantor')
   .aliases(['set-no-g'])
   .description('set node operator guarantor')
@@ -487,7 +501,7 @@ pdg
     ]);
   });
 
-pdg
+pdgWrite
   .command('claim-guarantor-refund')
   .aliases(['claim-g-refund'])
   .description('claim guarantor refund')
@@ -506,7 +520,7 @@ pdg
     ]);
   });
 
-pdg
+pdgWrite
   .command('compensate-disproven-predeposit')
   .aliases(['compensate'])
   .description('compensate disproven predeposit')

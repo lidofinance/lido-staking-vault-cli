@@ -27,7 +27,7 @@ lsv-cli operator-grid -h
 
 | Command                                   | Description                                                           |
 | ----------------------------------------- | --------------------------------------------------------------------- |
-| base-info                                 |                                                                       |
+| info                                      |                                                                       |
 | roles                                     |                                                                       |
 | DEFAULT_ADMIN_ROLE                        | Calls the read-only function "DEFAULT_ADMIN_ROLE" on the contract.    |
 | DEFAULT_TIER_ID                           | Calls the read-only function "DEFAULT_TIER_ID" on the contract.       |

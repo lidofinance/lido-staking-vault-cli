@@ -18,3 +18,4 @@ export * from './logging/index.js';
 export * from './fetchCL.js';
 export * from './ipfs.js';
 export * from './commands/index.js';
+export * from './bls.js';

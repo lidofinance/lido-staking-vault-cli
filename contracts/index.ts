@@ -11,3 +11,4 @@ export * from './clProofVerifier.js';
 export * from './pdg.js';
 export * from './reportChecker.js';
 export * from './operator-grid.js';
+export * from './blsHarness.js';

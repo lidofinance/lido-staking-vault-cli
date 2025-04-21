@@ -47,13 +47,18 @@ export const getOperatorGridRoles = async () => {
       DEFAULT_ADMIN_ROLE,
       REGISTRY_ROLE,
     };
-
-    for (const [key, value] of Object.entries(roles)) {
-      const accounts = await contract.read.getRoleMembers([value]);
-      logResult(`${key}-${value}: ${accounts.join(', ')}`);
-    }
-
+    const result = await Promise.all(
+      Object.entries(roles).map(async ([key, value]) => {
+        const accounts = await contract.read.getRoleMembers([value]);
+        const roleName = `${key} (${value})`;
+        return {
+          Role: roleName,
+          Members: accounts.length > 0 ? accounts.join(', ') : 'None',
+        };
+      }),
+    );
     hideSpinner();
+    logResult(result);
   } catch (err) {
     hideSpinner();
     printError(err, 'Error when getting roles');

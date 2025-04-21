@@ -19,7 +19,7 @@ operatorGridRead.on('option:-cmd2json', function () {
   process.exit();
 });
 
-operatorGridRead.command('base-info').action(async () => {
+operatorGridRead.command('info').action(async () => {
   await getOperatorGridBaseInfo();
 });
 

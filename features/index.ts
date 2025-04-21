@@ -4,3 +4,4 @@ export * from './voting.js';
 export * from './dashboard.js';
 export * from './vault-hub.js';
 export * from './operator-grid.js';
+export * from './pdg.js';
