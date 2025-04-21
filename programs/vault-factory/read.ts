@@ -1,33 +1,34 @@
+import { Option } from 'commander';
+
 import { getVaultFactoryContract } from 'contracts';
 import { VaultFactoryAbi } from 'abi';
-import { generateReadCommands, logResult, logError } from 'utils';
+import { generateReadCommands, getCommandsJson, logInfo } from 'utils';
+import { getVaultFactoryInfo } from 'features';
 
 import { vaultFactory } from './main.js';
 import { readCommandConfig } from './config.js';
 
-vaultFactory
-  .command('constants')
-  .description('get vault factory constants info')
-  .action(async () => {
-    const contract = getVaultFactoryContract();
-    try {
-      const beaconAddress = await contract.read.BEACON();
-      const delegationImplAddress = await contract.read.DELEGATION_IMPL();
+const vaultFactoryRead = vaultFactory
+  .command('read')
+  .aliases(['r'])
+  .description('vault factory read commands');
 
-      logResult({
-        beaconAddress,
-        delegationImplAddress,
-      });
-    } catch (err) {
-      if (err instanceof Error) {
-        logError('Error when getting constants:\n', err.message);
-      }
-    }
+vaultFactoryRead.addOption(new Option('-cmd2json'));
+vaultFactoryRead.on('option:-cmd2json', function () {
+  logInfo(getCommandsJson(vaultFactoryRead));
+  process.exit();
+});
+
+vaultFactoryRead
+  .command('info')
+  .description('get vault factory info')
+  .action(async () => {
+    await getVaultFactoryInfo();
   });
 
 generateReadCommands(
   VaultFactoryAbi,
   getVaultFactoryContract,
-  vaultFactory,
+  vaultFactoryRead,
   readCommandConfig,
 );

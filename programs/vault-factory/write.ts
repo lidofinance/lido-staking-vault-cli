@@ -1,120 +1,78 @@
 import { program } from 'command';
+import { Option } from 'commander';
+
 import { createVault } from 'features';
-import { CreateVaultPayload, VaultWithDelegation } from 'types';
+import { RoleAssignment, VaultWithDashboard } from 'types';
 import {
   validateAddressesMap,
   validateAddressMap,
   transformAddressesToArray,
   confirmCreateVaultParams,
-  stringToNumber,
   logResult,
   logInfo,
   logError,
+  stringToBigInt,
+  jsonToRoleAssignment,
+  logCancel,
+  getCommandsJson,
 } from 'utils';
 
 import { vaultFactory } from './main.js';
 
-vaultFactory
+const vaultFactoryWrite = vaultFactory
+  .command('write')
+  .aliases(['w'])
+  .description('vault factory write commands');
+
+vaultFactoryWrite.addOption(new Option('-cmd2json'));
+vaultFactoryWrite.on('option:-cmd2json', function () {
+  logInfo(getCommandsJson(vaultFactoryWrite));
+  process.exit();
+});
+
+vaultFactoryWrite
   .command('create-vault')
   .description('create vault contract')
-  .option('-f, --funders <funders>', 'funders role address')
-  .option('-w, --withdrawers <withdrawers>', 'withdrawers role address')
-  .option('-m, --minters <minters>', 'minters role address')
-  .option('-b, --burners <burners>', 'burners role address')
-  .option('-r, --rebalancers <rebalancers>', 'rebalancers role address')
-  .option(
-    '-p, --depositPausers <depositPausers>',
-    'depositPausers role address',
-  )
-  .option(
-    '-d, --depositResumers <depositResumers>',
-    'depositResumers role address',
-  )
-  .option(
-    '-e, --exitRequesters <exitRequesters>',
-    'exitRequesters role address',
-  )
-  .option('-u, --disconnecters <disconnecters>', 'disconnecters role address')
-  .option('-c, --curators <curators>', 'curators role address')
-  .option(
-    '-ve, --validatorExitRequesters <validatorExitRequesters>',
-    'validator exit requesters role addresses',
-  )
-  .option(
-    '-vt, --validatorWithdrawalTriggerers <validatorWithdrawalTriggerers>',
-    'validator withdrawal triggerers role address',
-  )
-  .option(
-    '-o, --nodeOperatorFeeClaimer <nodeOperatorFeeClaimer>',
-    'node operator fee claimer address',
-  )
-  .option(
-    '-cfs, --curatorFeeSetters <curatorFeeSetters>',
-    'curator fee setters role addresses',
-  )
-  .option(
-    '-cfc, --curatorFeeClaimers <curatorFeeClaimers>',
-    'curator fee claimers role addresses',
-  )
-  .option(
-    '-nofc, --nodeOperatorFeeClaimers <nodeOperatorFeeClaimers>',
-    'node operator fee claimers role addresses',
-  )
   .argument('<defaultAdmin>', 'default admin address')
+  .argument('<nodeOperator>', 'node operator address')
   .argument('<nodeOperatorManager>', 'node operator manager address')
-  .argument('<assetRecoverer>', 'asset recoverer address')
-  .argument('<confirmExpiry>', 'confirm expiry')
-  .argument(
-    '<curatorFeeBP>',
-    'Vault curator fee, for e.g. 100 == 1%',
-    stringToNumber,
-  )
+  .argument('<confirmExpiry>', 'confirm expiry', stringToBigInt)
   .argument(
     '<nodeOperatorFeeBP>',
     'Node operator fee, for e.g. 100 == 1%',
-    stringToNumber,
+    stringToBigInt,
   )
   .argument('[quantity]', 'quantity of vaults to create, default 1', '1')
+  .option(
+    '-r, --roles <roles>',
+    'other roles to assign to the vault',
+    jsonToRoleAssignment,
+  )
   .action(
     async (
       defaultAdmin: string,
+      nodeOperator: string,
       nodeOperatorManager: string,
-      assetRecoverer: string,
-      confirmExpiry: string,
-      curatorFeeBP: number,
-      nodeOperatorFeeBP: number,
+      confirmExpiry: bigint,
+      nodeOperatorFeeBP: bigint,
       quantity: string,
-      options: CreateVaultPayload,
+      options: { roles: RoleAssignment[] },
     ) => {
       const qnt = parseInt(quantity);
+      const otherRoles = options.roles;
 
       if (isNaN(qnt)) {
         logError('quantity must be a number');
         return;
       }
 
-      const extraKeys: (keyof CreateVaultPayload)[] = [
-        'funders',
-        'withdrawers',
-        'minters',
-        'burners',
-        'rebalancers',
-        'depositPausers',
-        'depositResumers',
-        'validatorExitRequesters',
-        'validatorWithdrawalTriggerers',
-        'disconnecters',
-        'curatorFeeSetters',
-        'curatorFeeClaimers',
-        'nodeOperatorFeeClaimers',
-      ];
+      const addresses = transformAddressesToArray(otherRoles);
 
-      const addresses = transformAddressesToArray(options, extraKeys);
       const errorsAddressesList = validateAddressesMap(addresses);
       const errorsList = [
         ...errorsAddressesList,
         ...validateAddressMap([
-          assetRecoverer,
+          nodeOperator,
           defaultAdmin,
           nodeOperatorManager,
         ]),
@@ -127,25 +85,21 @@ vaultFactory
       // eslint-disable-next-line unicorn/new-for-builtins
       const list: number[] = Array.from(Array(qnt));
       const payload = {
-        ...options,
-        ...addresses,
         defaultAdmin,
+        nodeOperator,
         nodeOperatorManager,
-        assetRecoverer,
-        confirmExpiry: BigInt(confirmExpiry),
-        curatorFeeBP,
+        confirmExpiry,
         nodeOperatorFeeBP,
-      } as VaultWithDelegation;
+      } as VaultWithDashboard;
 
       const transactions = [];
 
-      const { confirm } = await confirmCreateVaultParams(payload);
-
-      if (!confirm) program.error('Vault creation cancelled', { exitCode: 1 });
+      const { confirm } = await confirmCreateVaultParams(payload, otherRoles);
+      if (!confirm) return logCancel('Vault creation cancelled');
 
       try {
         for (const _ of list) {
-          const tx = await createVault(payload);
+          const tx = await createVault(payload, otherRoles);
           transactions.push(tx);
         }
 

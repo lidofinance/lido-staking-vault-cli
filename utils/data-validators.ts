@@ -1,6 +1,6 @@
 import { isAddress } from 'viem';
 
-import { Config } from 'types';
+import { Config, RoleAssignment } from 'types';
 
 export const validateConfig = (config: Config) => {
   const errors = {} as Record<keyof Config, string>;
@@ -30,19 +30,15 @@ export const isValidUrl = (value: string | undefined): boolean => {
   }
 };
 
-export const transformAddressesToArray = (
-  payload: Record<any, any>,
-  extraKeys: string[] = [],
-) => {
-  return [...Object.keys(payload), ...extraKeys].reduce(
-    (acc, key) => {
-      if (!payload[key]) {
-        acc[key] = [];
+export const transformAddressesToArray = (payload: RoleAssignment[]) => {
+  return payload.reduce(
+    (acc, role) => {
+      if (!acc[role.role]) {
+        acc[role.role] = [role.account];
         return acc;
       }
-      const value = payload[key].split(',');
 
-      acc[key] = value.map((item: string) => item.trim());
+      acc[role.role]?.push(role.account);
       return acc;
     },
     {} as Record<string, string[]>,
