@@ -53,7 +53,6 @@ export const getDashboardBaseInfo = async (contract: DashboardContract) => {
       manualAccruedRewardsAdjustmentLimit,
       maxConfirmExpiry,
       minConfirmExpiry,
-      health,
     };
 
     logResult(Object.entries(payload));
