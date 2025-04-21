@@ -59,7 +59,7 @@ vaultFactoryWrite
       options: { roles: RoleAssignment[] },
     ) => {
       const qnt = parseInt(quantity);
-      const otherRoles = options.roles;
+      const otherRoles = options.roles || [];
 
       if (isNaN(qnt)) {
         logError('quantity must be a number');
