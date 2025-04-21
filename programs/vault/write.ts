@@ -1,17 +1,31 @@
 import { Address, Hex, parseEther } from 'viem';
-
+import { Option } from 'commander';
 import { getStakingVaultContract } from 'contracts';
 import {
   callWriteMethodWithReceipt,
   confirmFund,
+  confirmOperation,
   etherToWei,
+  getCommandsJson,
+  logInfo,
   stringToBigInt,
   stringToBigIntArrayWei,
 } from 'utils';
 
 import { vault } from './main.js';
 
-vault
+const vaultWrite = vault
+  .command('write')
+  .aliases(['w'])
+  .description('vault write commands');
+
+vaultWrite.addOption(new Option('-cmd2json'));
+vaultWrite.on('option:-cmd2json', function () {
+  logInfo(getCommandsJson(vaultWrite));
+  process.exit();
+});
+
+vaultWrite
   .command('fund')
   .description('fund vault')
   .option('-a, --address <address>', 'vault address')
@@ -29,8 +43,7 @@ vault
     await callWriteMethodWithReceipt(contract, 'fund', [], parseEther(amount));
   });
 
-// TODO: investigate why only owner can fund vault
-vault
+vaultWrite
   .command('withdraw')
   .description('withdraw from vault')
   .argument('<address>', 'vault address')
@@ -43,7 +56,7 @@ vault
   });
 
 // TODO: get more details
-vault
+vaultWrite
   .command('no-deposit-beacon')
   .description('deposit to beacon chain')
   .argument('<address>', 'vault address')
@@ -70,6 +83,11 @@ vault
         },
       ];
 
+      const confirm = await confirmOperation(
+        `Are you sure you want to deposit ${amountOfDeposit} to beacon chain for the staking vault ${vault}?`,
+      );
+      if (!confirm) return;
+
       await callWriteMethodWithReceipt(contract, 'depositToBeaconChain', [
         payload,
       ]);
@@ -77,7 +95,7 @@ vault
   );
 
 // TODO: get more details
-vault
+vaultWrite
   .command('no-val-exit')
   .description('request to exit validator')
   .argument('<address>', 'vault address')
@@ -85,66 +103,84 @@ vault
   .action(async (address: Address, validatorPublicKey: Address) => {
     const contract = getStakingVaultContract(address);
 
+    const confirm = await confirmOperation(
+      `Are you sure you want to request to exit validator ${validatorPublicKey} for the staking vault ${vault}?`,
+    );
+    if (!confirm) return;
+
     await callWriteMethodWithReceipt(contract, 'requestValidatorExit', [
       validatorPublicKey,
     ]);
   });
 
-vault
+vaultWrite
   .command('bc-resume')
   .description('Resumes deposits to beacon chain')
   .argument('<address>', 'vault address')
   .action(async (address: Address) => {
     const contract = getStakingVaultContract(address);
 
+    const confirm = await confirmOperation(
+      `Are you sure you want to resume deposits to beacon chain for the staking vault ${vault}?`,
+    );
+    if (!confirm) return;
+
     await callWriteMethodWithReceipt(contract, 'resumeBeaconChainDeposits', []);
   });
 
-vault
+vaultWrite
   .command('bc-pause')
   .description('Pauses deposits to beacon chain')
   .argument('<address>', 'vault address')
   .action(async (address: Address) => {
     const contract = getStakingVaultContract(address);
 
+    const confirm = await confirmOperation(
+      `Are you sure you want to pause deposits to beacon chain for the staking vault ${vault}?`,
+    );
+    if (!confirm) return;
+
     await callWriteMethodWithReceipt(contract, 'pauseBeaconChainDeposits', []);
   });
 
-vault
+vaultWrite
   .command('report')
   .description(
     'Submits a report containing valuation, inOutDelta, and locked amount',
   )
   .argument('<address>', 'vault address')
+  .argument('<timestamp>', 'timestamp of the report', stringToBigInt)
   .argument(
-    '<valuation>',
-    'New total valuation: validator balances + StakingVault balance',
+    '<totalValue>',
+    'new total value: validator balances + StakingVault balance',
     stringToBigInt,
   )
   .argument(
     '<inOutDelta>',
-    'New net difference between funded and withdrawn ether',
+    'new net difference between funded and withdrawn ether',
     stringToBigInt,
   )
-  .argument('<locked>', 'New amount of locked ether', stringToBigInt)
+  .argument('<locked>', 'new amount of locked ether', stringToBigInt)
   .action(
     async (
       address: Address,
-      valuation: bigint,
+      timestamp: bigint,
+      totalValue: bigint,
       inOutDelta: bigint,
       locked: bigint,
     ) => {
       const contract = getStakingVaultContract(address);
 
       await callWriteMethodWithReceipt(contract, 'report', [
-        valuation,
+        timestamp,
+        totalValue,
         inOutDelta,
         locked,
       ]);
     },
   );
 
-vault
+vaultWrite
   .command('rebalance')
   .description('Rebalances the vault')
   .argument('<address>', 'vault address')
@@ -152,10 +188,15 @@ vault
   .action(async (address: Address, amount: bigint) => {
     const contract = getStakingVaultContract(address);
 
+    const confirm = await confirmOperation(
+      `Are you sure you want to rebalance the vault ${vault}?`,
+    );
+    if (!confirm) return;
+
     await callWriteMethodWithReceipt(contract, 'rebalance', [amount]);
   });
 
-vault
+vaultWrite
   .command('trigger-v-w')
   .description('Trigger validator withdrawal')
   .argument('<address>', 'vault address')
@@ -179,3 +220,83 @@ vault
       ]);
     },
   );
+
+vaultWrite
+  .command('authorize-lido-vault-hub')
+  .alias('authorize-hub')
+  .description('Authorizes the Lido Vault Hub to manage the staking vault.')
+  .argument('<address>', 'vault address')
+  .action(async (address: Address) => {
+    const contract = getStakingVaultContract(address);
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to authorize the Lido Vault Hub to manage the staking vault ${vault}?`,
+    );
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt(contract, 'authorizeLidoVaultHub', []);
+  });
+
+vaultWrite
+  .command('deauthorize-lido-vault-hub')
+  .alias('deauthorize-hub')
+  .description(
+    'Deauthorizes the Lido Vault Hub from managing the staking vault.',
+  )
+  .argument('<address>', 'dashboard address')
+  .action(async (address: Address) => {
+    const contract = getStakingVaultContract(address);
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to deauthorize the Lido Vault Hub from managing the staking vault ${vault}?`,
+    );
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt(contract, 'deauthorizeLidoVaultHub', []);
+  });
+
+vaultWrite
+  .command('ossify')
+  .description('Ossifies the staking vault.')
+  .argument('<address>', 'vault address')
+  .action(async (address: Address) => {
+    const contract = getStakingVaultContract(address);
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to ossify the staking vault ${vault}?`,
+    );
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt(contract, 'ossifyStakingVault', []);
+  });
+
+vaultWrite
+  .command('reset-l ocked')
+  .description('Resets the locked amount')
+  .argument('<address>', 'vault address')
+  .action(async (address: Address) => {
+    const contract = getStakingVaultContract(address);
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to reset the locked amount for the staking vault ${vault}?`,
+    );
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt(contract, 'resetLocked', []);
+  });
+
+vaultWrite
+  .command('set-depositor')
+  .description('Sets the depositor')
+  .argument('<address>', 'vault address')
+  .argument('<depositor>', 'depositor address')
+  .action(async (address: Address, depositor: Address) => {
+    const contract = getStakingVaultContract(address);
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to set the depositor for the staking vault ${vault} to ${depositor}?`,
+    );
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt(contract, 'setDepositor', [depositor]);
+  });
