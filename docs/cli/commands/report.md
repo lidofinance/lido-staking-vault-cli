@@ -2,29 +2,26 @@
 sidebar_position: 10
 ---
 
-# VaultFactory
+# Report
 
 ## Command
 
 ```bash
-lsv-cli factory [arguments] [-options]
+lsv-cli report [arguments] [-options]
 ```
 
-## VaultFactory commands list
+## Report commands list
 
 ```bash
-lsv-cli factory -h
+lsv-cli report -h
 ```
 
 ## API
 
-| Command                                                            | Description              |
-| ------------------------------------------------------------------ | ------------------------ |
-| by-vault \<vault> \<cid>                                           | get report by vault      |
-| by-vault-check \<vault> \<cid>                                     | check report by vault    |
-| by-root-check \<vault> \<cid>                                      | check report by root     |
-| check-cid \<cid>                                                   | check ipfs CID           |
-| all \<cid>                                                         | get report by all vaults |
-| create-leaf \<vault> \<cid>                                        | create leaf              |
-| set-report-checker-data \<vaultsDataTreeRoot> \<vaultsDataTreeCid> | set report checker data  |
-| get-report-checker-data                                            | get report checker data  |
+| Command                  | Description              |
+| ------------------------ | ------------------------ |
+| by-vault \<vault>        | get report by vault      |
+| all                      | get report by all vaults |
+| by-vault-submit \<vault> | submit report by vault   |
+| check-cid                | check ipfs CID           |
+| make-leaf \<vault>       | make leaf                |

@@ -4,17 +4,17 @@ import { Option } from 'commander';
 
 import {
   getVaultReport,
-  getReportProof,
-  callWriteMethod,
+  getReportProofByCid,
   callReadMethod,
   getReportLeaf,
   getAllVaultsReports,
   logInfo,
-  getReport,
   fetchAndVerifyFile,
   getCommandsJson,
+  callWriteMethodWithReceipt,
+  confirmPrompt,
 } from 'utils';
-import { getReportCheckerContract } from 'contracts';
+import { getVaultHubContract } from 'contracts';
 
 const report = program.command('report').description('report utilities');
 report.addOption(new Option('-cmd2json'));
@@ -27,141 +27,106 @@ report
   .command('by-vault')
   .description('get report by vault')
   .argument('<vault>', 'vault address')
-  .argument('<cid>', 'cid')
   .option('-u, --url', 'ipfs url')
-  .action(async (vault, cid, { url }) => {
-    const report = await getVaultReport(vault, cid, url);
+  .action(async (vault, { url }) => {
+    const vaultHubContract = await getVaultHubContract();
+    const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
+      await callReadMethod(vaultHubContract, 'latestReportData');
+
+    await fetchAndVerifyFile(vaultsDataReportCid, url);
+
+    const report = await getVaultReport(vault, vaultsDataReportCid, url);
 
     logInfo(report);
-  });
-
-report
-  .command('by-vault-check')
-  .description('check report by vault')
-  .argument('<vault>', 'vault address')
-  .argument('<cid>', 'cid')
-  .option('-u, --url', 'ipfs gateway url')
-  .action(async (vault, cid, { url }) => {
-    const report = await getVaultReport(vault, cid, url);
-    const reportChecker = getReportCheckerContract();
-    const vaultProof = await getReportProof(vault, cid);
-    const reportLeafLocal = getReportLeaf(report.data);
-
-    const txData = {
-      vault_address: report.data.vault_address as Address,
-      valuation_wei: BigInt(report.data.valuation_wei),
-      in_out_delta: BigInt(report.data.in_out_delta),
-      fee: BigInt(report.data.fee),
-      shares_minted: BigInt(report.data.shares_minted),
-      proof: vaultProof.proof as Address[],
-    };
-    logInfo('txData', txData);
-    logInfo('root', report.merkleTreeRoot);
-    logInfo('leaf', report.leaf);
-    logInfo('leafLocal', reportLeafLocal);
-
-    if (reportLeafLocal !== vaultProof.leaf) {
-      throw new Error(
-        `Local leaf is not equal to the leaf in the IPFS: ${reportLeafLocal} !== ${report.leaf}`,
-      );
-    }
-
-    await reportChecker.read.checkReport([
-      txData.vault_address,
-      txData.valuation_wei,
-      txData.in_out_delta,
-      txData.fee,
-      txData.shares_minted,
-      txData.proof,
-    ]);
-
-    logInfo('--------------------------------');
-    logInfo('Report checked');
-    logInfo('--------------------------------');
-  });
-
-report
-  .command('by-root-check')
-  .description('check report by root')
-  .argument('<vault>', 'vault address')
-  .argument('<cid>', 'cid')
-  .option('-u, --url', 'ipfs gateway url')
-  .action(async (vault, cid, { url }) => {
-    const report = await getVaultReport(vault, cid, url);
-
-    const root = report.merkleTreeRoot;
-
-    const vaultProof = await getReportProof(root, cid);
-    const reportLeafLocal = getReportLeaf(report.data);
-
-    logInfo('root', root);
-    logInfo('leaf', report.leaf);
-    logInfo('leafLocal', reportLeafLocal);
-    logInfo('vaultProof', vaultProof);
-  });
-
-report
-  .command('check-cid')
-  .description('check ipfs CID')
-  .argument('<cid>', 'cid')
-  .option('-u, --url', 'ipfs gateway url')
-  .action(async (cid, { url }) => {
-    const report = await getReport(cid, url);
-    logInfo(report);
-    const fileContent = await fetchAndVerifyFile(cid, url);
-    logInfo(fileContent);
   });
 
 report
   .command('all')
   .description('get report by all vaults')
-  .argument('<cid>', 'cid')
   .option('-u, --url', 'ipfs gateway url')
-  .action(async (cid: string, { url }) => {
-    const allVaultsReports = await getAllVaultsReports(cid, url);
+  .action(async ({ url }) => {
+    const vaultHubContract = await getVaultHubContract();
+    const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
+      await callReadMethod(vaultHubContract, 'latestReportData');
+
+    await fetchAndVerifyFile(vaultsDataReportCid, url);
+
+    const allVaultsReports = await getAllVaultsReports(
+      vaultsDataReportCid,
+      url,
+    );
 
     logInfo(allVaultsReports);
   });
 
 report
-  .command('create-leaf')
-  .description('create leaf')
+  .command('by-vault-submit')
+  .description('submit report by vault')
   .argument('<vault>', 'vault address')
-  .argument('<cid>', 'cid')
   .option('-u, --url', 'ipfs gateway url')
-  .action(async (vault, cid, { url }) => {
-    const report = await getVaultReport(vault, cid, url);
+  .action(async (vault, { url }) => {
+    const vaultHubContract = await getVaultHubContract();
+    const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
+      await callReadMethod(vaultHubContract, 'latestReportData');
+
+    await fetchAndVerifyFile(vaultsDataReportCid, url);
+
+    const report = await getVaultReport(vault, vaultsDataReportCid, url);
+    const reportProof = await getReportProofByCid(vault, report.proofsCID);
+
+    await fetchAndVerifyFile(report.proofsCID, url);
+
+    const { confirm } = await confirmPrompt(
+      `Are you sure you want to submit report for vault ${vault}?
+      Total value wei: ${report.data.total_value_wei}
+      In out delta: ${report.data.in_out_delta}
+      Fee: ${report.data.fee}
+      Liability shares: ${report.data.liability_shares}
+      `,
+      'confirm',
+    );
+    if (!confirm) {
+      logInfo('Report not submitted');
+      return;
+    }
+
+    await callWriteMethodWithReceipt(vaultHubContract, 'updateVaultData', [
+      vault,
+      BigInt(report.data.total_value_wei),
+      BigInt(report.data.in_out_delta),
+      BigInt(report.data.fee),
+      BigInt(report.data.liability_shares),
+      reportProof.proof as Address[],
+    ]);
+  });
+
+report
+  .command('check-cid')
+  .description('check ipfs CID')
+  .option('-u, --url', 'ipfs gateway url')
+  .action(async ({ url }) => {
+    const vaultHubContract = await getVaultHubContract();
+    const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
+      await callReadMethod(vaultHubContract, 'latestReportData');
+
+    await fetchAndVerifyFile(vaultsDataReportCid, url);
+  });
+
+report
+  .command('make-leaf')
+  .description('make leaf')
+  .argument('<vault>', 'vault address')
+  .option('-u, --url', 'ipfs gateway url')
+  .action(async (vault, { url }) => {
+    const vaultHubContract = await getVaultHubContract();
+    const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
+      await callReadMethod(vaultHubContract, 'latestReportData');
+
+    await fetchAndVerifyFile(vaultsDataReportCid, url);
+    const report = await getVaultReport(vault, vaultsDataReportCid, url);
 
     const reportLeaf = getReportLeaf(report.data);
     logInfo('local leaf', reportLeaf);
     logInfo('ipfs leaf', report.leaf);
     logInfo('ipfs merkle tree root', report.merkleTreeRoot);
-  });
-
-report
-  .command('set-report-checker-data')
-  .description('set report checker data')
-  .argument('<vaultsDataTreeRoot>', 'vaults data tree root')
-  .argument('<vaultsDataTreeCid>', 'vaults data tree cid')
-  .action(async (vaultsDataTreeRoot: Address, vaultsDataTreeCid: Address) => {
-    const reportChecker = getReportCheckerContract();
-
-    await callWriteMethod(reportChecker, 'updateReportCheckerData', [
-      vaultsDataTreeRoot,
-      vaultsDataTreeCid,
-    ]);
-  });
-
-report
-  .command('get-report-checker-data')
-  .description('get report checker data')
-  .action(async () => {
-    const reportChecker = getReportCheckerContract();
-
-    const data = await callReadMethod(reportChecker, 'getReportCheckerData');
-
-    logInfo({
-      vaultsDataTreeRoot: data[0],
-      vaultsDataTreeCid: data[1],
-    });
   });

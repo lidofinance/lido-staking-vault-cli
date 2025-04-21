@@ -119,11 +119,19 @@ export const callReadMethod = async <
     const result = await method?.(...payload);
     hideSpinner();
     // TODO: do message better or show in called place
-    logResult({
-      'Method name': methodName,
-      Contract: contract.address,
-      Result: result,
-    });
+    if (Array.isArray(result)) {
+      logResult({
+        'Method name': methodName,
+        Contract: contract.address,
+        Result: Object.values(result).join(', '),
+      });
+    } else {
+      logResult({
+        'Method name': methodName,
+        Contract: contract.address,
+        Result: result,
+      });
+    }
 
     return result;
   } catch (err) {

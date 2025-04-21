@@ -1,25 +1,31 @@
-import { encodeAbiParameters, Hex, keccak256 } from 'viem';
+import { encodeAbiParameters, Hex, keccak256, concatHex } from 'viem';
 import { LeafDataFields } from 'utils';
+
+export const DOUBLE_HASH = (data: Hex): Hex => keccak256(keccak256(data));
+export const hashNode = (a: Hex, b: Hex): Hex => {
+  const [left, right] = a < b ? [a, b] : [b, a];
+  return keccak256(concatHex([left, right]));
+};
 
 const encoding = [
   { type: 'address', name: 'vault_address' },
-  { type: 'uint256', name: 'valuation_wei' },
+  { type: 'uint256', name: 'total_value_wei' },
   { type: 'uint256', name: 'in_out_delta' },
   { type: 'uint256', name: 'fee' },
-  { type: 'uint256', name: 'shares_minted' },
+  { type: 'uint256', name: 'liability_shares' },
 ];
 
 const getLeafInput = (vault: LeafDataFields) => [
   vault.vault_address,
-  BigInt(vault.valuation_wei),
+  BigInt(vault.total_value_wei),
   BigInt(vault.in_out_delta),
   BigInt(vault.fee),
-  BigInt(vault.shares_minted),
+  BigInt(vault.liability_shares),
 ];
 
 export const getReportLeaf = (input: LeafDataFields): Hex => {
   const encoded = encodeAbiParameters(encoding, getLeafInput(input));
 
-  const leaf = keccak256(keccak256(encoded));
+  const leaf = DOUBLE_HASH(encoded);
   return leaf;
 };
