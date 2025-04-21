@@ -29,7 +29,7 @@ export type Report = {
 export type VaultReport = {
   data: LeafDataFields;
   leaf: string;
-  refSlof: number;
+  refSlot: number;
   blockNumber: number;
   timestamp: number;
   proofsCID: string;
@@ -107,7 +107,7 @@ const getVaultData = (report: Report, vault: Address) => {
   return {
     data,
     leaf,
-    refSlof: report.refSlot,
+    refSlot: report.refSlot,
     blockNumber: report.blockNumber,
     timestamp: report.timestamp,
     proofsCID: report.proofsCID,
