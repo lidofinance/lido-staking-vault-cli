@@ -57,6 +57,7 @@ export const getDashboardBaseInfo = async (contract: DashboardContract) => {
     };
 
     logResult(Object.entries(payload));
+    logResult(Object.entries(health));
   } catch (err) {
     hideSpinner();
     printError(err, 'Error when getting base info');
