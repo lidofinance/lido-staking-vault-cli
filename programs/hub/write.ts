@@ -1,15 +1,30 @@
-import { Address } from 'viem';
-import { getVaultHubContract } from 'contracts';
+import { Address, Hex } from 'viem';
+import { Option } from 'commander';
+
+import { getOperatorGridContract, getVaultHubContract } from 'contracts';
 import {
+  callReadMethod,
   callWriteMethodWithReceipt,
   confirmOperation,
+  getCommandsJson,
+  logInfo,
   stringToBigInt,
 } from 'utils';
 
 import { vaultHub } from './main.js';
 
-vaultHub
-  .command('add-codehash')
+const VaultHubWrite = vaultHub
+  .command('write')
+  .aliases(['w'])
+  .description('vault hub write commands');
+
+VaultHubWrite.addOption(new Option('-cmd2json'));
+VaultHubWrite.on('option:-cmd2json', function () {
+  logInfo(getCommandsJson(VaultHubWrite));
+  process.exit();
+});
+
+VaultHubWrite.command('add-codehash')
   .description('add vault proxy codehash to allowed list')
   .argument('<codehash>', 'codehash vault proxy codehash')
   .action(async (codehash: Address) => {
@@ -27,47 +42,25 @@ vaultHub
   });
 
 // TODO: replace by voting
-vaultHub
-  .command('v-connect')
+VaultHubWrite.command('v-connect')
   .description('connects a vault to the hub (vault master role needed)')
   .argument('<address>', 'vault address')
-  .argument(
-    '<shareLimit>',
-    'maximum number of stETH shares that can be minted by the vault',
-  )
-  .argument('<reserveRatio>', 'minimum Reserve ratio in basis points')
-  .argument(
-    '<reserveRatioThreshold>',
-    'reserve ratio that makes possible to force rebalance on the vault (in basis points)',
-  )
-  .argument('<treasuryFeeBP>', 'treasury fee in basis points')
-  .action(
-    async (
-      address: Address,
-      shareLimit: bigint,
-      reserveRatio: bigint,
-      reserveRatioThreshold: bigint,
-      treasuryFeeBP: bigint,
-    ) => {
-      const contract = await getVaultHubContract();
+  .action(async (address: Address) => {
+    const contract = await getVaultHubContract();
+    const operatorGridContract = await getOperatorGridContract();
 
-      const confirm = await confirmOperation(
-        `Are you sure you want to connect the vault ${address} with share limit ${shareLimit}, reserve ratio ${reserveRatio}, reserve ratio threshold ${reserveRatioThreshold}, treasury fee ${treasuryFeeBP}?`,
-      );
-      if (!confirm) return;
+    const [shareLimit, reserveRatio, reserveRatioThreshold, treasuryFeeBP] =
+      await callReadMethod(operatorGridContract, 'vaultInfo', [address]);
 
-      await callWriteMethodWithReceipt(contract, 'connectVault', [
-        address,
-        shareLimit,
-        reserveRatio,
-        reserveRatioThreshold,
-        treasuryFeeBP,
-      ]);
-    },
-  );
+    const confirm = await confirmOperation(
+      `Are you sure you want to connect the vault ${address} with share limit ${shareLimit}, reserve ratio ${reserveRatio}, reserve ratio threshold ${reserveRatioThreshold}, treasury fee ${treasuryFeeBP}?`,
+    );
+    if (!confirm) return;
 
-vaultHub
-  .command('v-update-share-limit')
+    await callWriteMethodWithReceipt(contract, 'connectVault', [address]);
+  });
+
+VaultHubWrite.command('v-update-share-limit')
   .description('updates share limit for the vault')
   .argument('<address>', 'vault address')
   .argument('<shareLimit>', 'share limit', stringToBigInt)
@@ -85,8 +78,7 @@ vaultHub
     ]);
   });
 
-vaultHub
-  .command('v-disconnect')
+VaultHubWrite.command('v-disconnect')
   .description('force disconnects a vault from the hub')
   .argument('<address>', 'vault address')
   .action(async (address: Address) => {
@@ -100,8 +92,7 @@ vaultHub
     await callWriteMethodWithReceipt(contract, 'disconnect', [address]);
   });
 
-vaultHub
-  .command('v-owner-disconnect')
+VaultHubWrite.command('v-owner-disconnect')
   .description(
     "disconnects a vault from the hub, msg.sender should be vault's owner",
   )
@@ -119,8 +110,7 @@ vaultHub
     ]);
   });
 
-vaultHub
-  .command('v-mint')
+VaultHubWrite.command('v-mint')
   .description(
     ' mint StETH shares backed by vault external balance to the receiver address',
   )
@@ -144,8 +134,7 @@ vaultHub
     },
   );
 
-vaultHub
-  .command('v-burn')
+VaultHubWrite.command('v-burn')
   .description('burn steth shares from the balance of the VaultHub contract')
   .argument('<address>', 'vault address')
   .argument('<amountOfShares>', 'amount of stETH shares to mint')
@@ -163,8 +152,7 @@ vaultHub
     ]);
   });
 
-vaultHub
-  .command('v-transfer-and-burn')
+VaultHubWrite.command('v-transfer-and-burn')
   .description(
     'separate burn function for EOA vault owners; requires vaultHub to be approved to transfer stETH',
   )
@@ -184,8 +172,7 @@ vaultHub
     ]);
   });
 
-vaultHub
-  .command('v-force-rebalance')
+VaultHubWrite.command('v-force-rebalance')
   .description('force rebalance of the vault to have sufficient reserve ratio')
   .argument('<address>', 'vault address')
   .action(async (address: Address) => {
@@ -197,4 +184,143 @@ vaultHub
     if (!confirm) return;
 
     await callWriteMethodWithReceipt(contract, 'forceRebalance', [address]);
+  });
+
+VaultHubWrite.command('v-update-connection')
+  .description('updates the vault`s connection parameters')
+  .argument('<address>', 'vault address')
+  .argument('<shareLimit>', 'share limit', stringToBigInt)
+  .argument('<reserveRatio>', 'reserve ratio', stringToBigInt)
+  .argument(
+    '<reserveRatioThreshold>',
+    'reserve ratio threshold',
+    stringToBigInt,
+  )
+  .argument('<treasuryFeeBP>', 'treasury fee', stringToBigInt)
+  .action(
+    async (
+      address: Address,
+      shareLimit: bigint,
+      reserveRatio: bigint,
+      reserveRatioThreshold: bigint,
+      treasuryFeeBP: bigint,
+    ) => {
+      const contract = await getVaultHubContract();
+
+      const confirm = await confirmOperation(
+        `Are you sure you want to update the vault ${address} connection parameters to share limit ${shareLimit}, reserve ratio ${reserveRatio}, reserve ratio threshold ${reserveRatioThreshold}, treasury fee ${treasuryFeeBP}?`,
+      );
+      if (!confirm) return;
+
+      await callWriteMethodWithReceipt(contract, 'updateConnection', [
+        address,
+        shareLimit,
+        reserveRatio,
+        reserveRatioThreshold,
+        treasuryFeeBP,
+      ]);
+    },
+  );
+
+VaultHubWrite.command('update-report-data')
+  .description('updates the report data for the vault')
+  .argument('<vaultsDataTimestamp>', 'vaults data timestamp', stringToBigInt)
+  .argument('<vaultsDataTreeRoot>', 'vaults data tree root')
+  .argument('<vaultsDataReportCid>', 'vaults data report cid')
+  .action(
+    async (
+      vaultsDataTimestamp: bigint,
+      vaultsDataTreeRoot: Hex,
+      vaultsDataReportCid: Hex,
+    ) => {
+      const contract = await getVaultHubContract();
+
+      const confirm = await confirmOperation(
+        `Are you sure you want to update the report data for the vaults data timestamp ${vaultsDataTimestamp}?`,
+      );
+      if (!confirm) return;
+
+      await callWriteMethodWithReceipt(contract, 'updateReportData', [
+        vaultsDataTimestamp,
+        vaultsDataTreeRoot,
+        vaultsDataReportCid,
+      ]);
+    },
+  );
+
+VaultHubWrite.command('v-force-validator-exit')
+  .description('force validator exit')
+  .argument('<vaultAddress>', 'vault address')
+  .argument('<validatorPubkey>', 'validator pubkey')
+  .argument('<refundRecipient>', 'refund recipient')
+  .action(
+    async (
+      vaultAddress: Address,
+      validatorPubkey: Hex,
+      refundRecipient: Address,
+    ) => {
+      const contract = await getVaultHubContract();
+
+      const confirm = await confirmOperation(
+        `Are you sure you want to force validator exit for validator pubkey ${validatorPubkey} and refund recipient ${refundRecipient} in vault ${vaultAddress}?`,
+      );
+      if (!confirm) return;
+
+      await callWriteMethodWithReceipt(contract, 'forceValidatorExit', [
+        vaultAddress,
+        validatorPubkey,
+        refundRecipient,
+      ]);
+    },
+  );
+
+VaultHubWrite.command('v-update-vault-data')
+  .description('permissionless update of the vault data')
+  .argument('<vaultAddress>', 'vault address')
+  .argument('<totalValue>', 'total value', stringToBigInt)
+  .argument('<inOutDelta>', 'in/out delta', stringToBigInt)
+  .argument('<feeSharesCharged>', 'fee shares charged', stringToBigInt)
+  .argument('<liabilityShares>', 'liability shares', stringToBigInt)
+  .argument('<proof>', 'proof')
+  .action(
+    async (
+      vaultAddress: Address,
+      totalValue: bigint,
+      inOutDelta: bigint,
+      feeSharesCharged: bigint,
+      liabilityShares: bigint,
+      proof: Hex[],
+    ) => {
+      const contract = await getVaultHubContract();
+
+      const confirm = await confirmOperation(
+        `Are you sure you want to update the vault data for the vault ${vaultAddress}?`,
+      );
+      if (!confirm) return;
+
+      await callWriteMethodWithReceipt(contract, 'updateVaultData', [
+        vaultAddress,
+        totalValue,
+        inOutDelta,
+        feeSharesCharged,
+        liabilityShares,
+        proof,
+      ]);
+    },
+  );
+
+VaultHubWrite.command('mint-vaults-treasury-fee-shares')
+  .description('mint vaults treasury fee shares')
+  .argument('<amountOfShares>', 'amount of shares', stringToBigInt)
+  .action(async (amountOfShares: bigint) => {
+    const contract = await getVaultHubContract();
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to mint ${amountOfShares} treasury fee shares?`,
+    );
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt(contract, 'mintVaultsTreasuryFeeShares', [
+      amountOfShares,
+    ]);
   });

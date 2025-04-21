@@ -6,7 +6,7 @@ import {
 } from 'utils';
 import { DashboardContract } from 'contracts';
 
-export const getBaseInfo = async (contract: DashboardContract) => {
+export const getDashboardBaseInfo = async (contract: DashboardContract) => {
   const hideSpinner = showSpinner();
   try {
     const steth = await contract.read.STETH();
@@ -63,7 +63,7 @@ export const getBaseInfo = async (contract: DashboardContract) => {
   }
 };
 
-export const getRoles = async (contract: DashboardContract) => {
+export const getDashboardRoles = async (contract: DashboardContract) => {
   const hideSpinner = showSpinner();
 
   try {

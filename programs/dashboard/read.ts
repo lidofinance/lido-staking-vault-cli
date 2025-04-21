@@ -2,7 +2,7 @@ import { Address, formatEther } from 'viem';
 import { Option } from 'commander';
 
 import { DashboardAbi } from 'abi';
-import { getBaseInfo, getRoles } from 'features';
+import { getDashboardBaseInfo, getDashboardRoles } from 'features';
 import { getDashboardContract } from 'contracts';
 import {
   fetchAndCalculateVaultHealth,
@@ -33,7 +33,7 @@ dashboardRead
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
 
-    await getBaseInfo(contract);
+    await getDashboardBaseInfo(contract);
   });
 
 dashboardRead
@@ -42,7 +42,7 @@ dashboardRead
   .argument('<address>', 'dashboard address')
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
-    await getRoles(contract);
+    await getDashboardRoles(contract);
   });
 
 dashboardRead
