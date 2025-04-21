@@ -37,6 +37,27 @@ export const OperatorGridAbi = [
     type: 'error',
   },
   {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: 'tierId',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: 'forcedRebalanceThresholdBP',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: 'reserveRatioBP',
+        type: 'uint256',
+      },
+    ],
+    name: 'ForcedRebalanceThresholdTooHigh',
+    type: 'error',
+  },
+  {
     inputs: [],
     name: 'GroupExists',
     type: 'error',
@@ -78,6 +99,11 @@ export const OperatorGridAbi = [
     type: 'error',
   },
   {
+    inputs: [],
+    name: 'NodeOperatorNotExists',
+    type: 'error',
+  },
+  {
     inputs: [
       {
         internalType: 'string',
@@ -96,27 +122,6 @@ export const OperatorGridAbi = [
   {
     inputs: [],
     name: 'NotInitializing',
-    type: 'error',
-  },
-  {
-    inputs: [
-      {
-        internalType: 'uint256',
-        name: 'tierId',
-        type: 'uint256',
-      },
-      {
-        internalType: 'uint256',
-        name: 'rebalanceThresholdBP',
-        type: 'uint256',
-      },
-      {
-        internalType: 'uint256',
-        name: 'reserveRatioBP',
-        type: 'uint256',
-      },
-    ],
-    name: 'RebalanceThresholdTooHigh',
     type: 'error',
   },
   {
@@ -368,7 +373,7 @@ export const OperatorGridAbi = [
       {
         indexed: false,
         internalType: 'uint256',
-        name: 'rebalanceThresholdBP',
+        name: 'forcedRebalanceThresholdBP',
         type: 'uint256',
       },
       {
@@ -449,7 +454,7 @@ export const OperatorGridAbi = [
       {
         indexed: false,
         internalType: 'uint256',
-        name: 'rebalanceThresholdBP',
+        name: 'forcedRebalanceThresholdBP',
         type: 'uint256',
       },
       {
@@ -490,12 +495,12 @@ export const OperatorGridAbi = [
   },
   {
     inputs: [],
-    name: 'DEFAULT_TIER_ADDRESS',
+    name: 'DEFAULT_TIER_ID',
     outputs: [
       {
-        internalType: 'address',
+        internalType: 'uint256',
         name: '',
-        type: 'address',
+        type: 'uint256',
       },
     ],
     stateMutability: 'view',
@@ -503,12 +508,12 @@ export const OperatorGridAbi = [
   },
   {
     inputs: [],
-    name: 'DEFAULT_TIER_ID',
+    name: 'DEFAULT_TIER_OPERATOR',
     outputs: [
       {
-        internalType: 'uint256',
+        internalType: 'address',
         name: '',
-        type: 'uint256',
+        type: 'address',
       },
     ],
     stateMutability: 'view',
@@ -561,7 +566,7 @@ export const OperatorGridAbi = [
           },
           {
             internalType: 'uint256',
-            name: 'rebalanceThresholdBP',
+            name: 'forcedRebalanceThresholdBP',
             type: 'uint256',
           },
           {
@@ -721,7 +726,7 @@ export const OperatorGridAbi = [
           },
           {
             internalType: 'uint96',
-            name: 'mintedShares',
+            name: 'liabilityShares',
             type: 'uint96',
           },
           {
@@ -783,7 +788,7 @@ export const OperatorGridAbi = [
           },
           {
             internalType: 'uint256',
-            name: 'rebalanceThresholdBP',
+            name: 'forcedRebalanceThresholdBP',
             type: 'uint256',
           },
           {
@@ -971,7 +976,7 @@ export const OperatorGridAbi = [
           },
           {
             internalType: 'uint256',
-            name: 'rebalanceThresholdBP',
+            name: 'forcedRebalanceThresholdBP',
             type: 'uint256',
           },
           {
@@ -1087,7 +1092,7 @@ export const OperatorGridAbi = [
           },
           {
             internalType: 'uint96',
-            name: 'mintedShares',
+            name: 'liabilityShares',
             type: 'uint96',
           },
           {
@@ -1097,7 +1102,7 @@ export const OperatorGridAbi = [
           },
           {
             internalType: 'uint16',
-            name: 'rebalanceThresholdBP',
+            name: 'forcedRebalanceThresholdBP',
             type: 'uint16',
           },
           {
@@ -1164,7 +1169,7 @@ export const OperatorGridAbi = [
       },
       {
         internalType: 'uint256',
-        name: 'rebalanceThresholdBP',
+        name: 'forcedRebalanceThresholdBP',
         type: 'uint256',
       },
       {

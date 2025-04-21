@@ -1,8 +1,24 @@
 export const BLSHarnessAbi = [
-  { inputs: [], stateMutability: 'nonpayable', type: 'constructor' },
-  { inputs: [], name: 'InputHasInfinityPoints', type: 'error' },
-  { inputs: [], name: 'InvalidPubkeyLength', type: 'error' },
-  { inputs: [], name: 'InvalidSignature', type: 'error' },
+  {
+    inputs: [],
+    stateMutability: 'nonpayable',
+    type: 'constructor',
+  },
+  {
+    inputs: [],
+    name: 'InputHasInfinityPoints',
+    type: 'error',
+  },
+  {
+    inputs: [],
+    name: 'InvalidPubkeyLength',
+    type: 'error',
+  },
+  {
+    inputs: [],
+    name: 'InvalidSignature',
+    type: 'error',
+  },
   {
     inputs: [],
     name: 'LOCAL_MESSAGE_1',
@@ -11,9 +27,21 @@ export const BLSHarnessAbi = [
         components: [
           {
             components: [
-              { internalType: 'bytes', name: 'pubkey', type: 'bytes' },
-              { internalType: 'bytes', name: 'signature', type: 'bytes' },
-              { internalType: 'uint256', name: 'amount', type: 'uint256' },
+              {
+                internalType: 'bytes',
+                name: 'pubkey',
+                type: 'bytes',
+              },
+              {
+                internalType: 'bytes',
+                name: 'signature',
+                type: 'bytes',
+              },
+              {
+                internalType: 'uint256',
+                name: 'amount',
+                type: 'uint256',
+              },
               {
                 internalType: 'bytes32',
                 name: 'depositDataRoot',
@@ -28,8 +56,16 @@ export const BLSHarnessAbi = [
             components: [
               {
                 components: [
-                  { internalType: 'bytes32', name: 'a', type: 'bytes32' },
-                  { internalType: 'bytes32', name: 'b', type: 'bytes32' },
+                  {
+                    internalType: 'bytes32',
+                    name: 'a',
+                    type: 'bytes32',
+                  },
+                  {
+                    internalType: 'bytes32',
+                    name: 'b',
+                    type: 'bytes32',
+                  },
                 ],
                 internalType: 'struct BLS12_381.Fp',
                 name: 'pubkeyY',
@@ -37,10 +73,26 @@ export const BLSHarnessAbi = [
               },
               {
                 components: [
-                  { internalType: 'bytes32', name: 'c0_a', type: 'bytes32' },
-                  { internalType: 'bytes32', name: 'c0_b', type: 'bytes32' },
-                  { internalType: 'bytes32', name: 'c1_a', type: 'bytes32' },
-                  { internalType: 'bytes32', name: 'c1_b', type: 'bytes32' },
+                  {
+                    internalType: 'bytes32',
+                    name: 'c0_a',
+                    type: 'bytes32',
+                  },
+                  {
+                    internalType: 'bytes32',
+                    name: 'c0_b',
+                    type: 'bytes32',
+                  },
+                  {
+                    internalType: 'bytes32',
+                    name: 'c1_a',
+                    type: 'bytes32',
+                  },
+                  {
+                    internalType: 'bytes32',
+                    name: 'c1_b',
+                    type: 'bytes32',
+                  },
                 ],
                 internalType: 'struct BLS12_381.Fp2',
                 name: 'signatureY',
@@ -89,10 +141,26 @@ export const BLSHarnessAbi = [
     inputs: [
       {
         components: [
-          { internalType: 'bytes', name: 'pubkey', type: 'bytes' },
-          { internalType: 'bytes', name: 'signature', type: 'bytes' },
-          { internalType: 'uint256', name: 'amount', type: 'uint256' },
-          { internalType: 'bytes32', name: 'depositDataRoot', type: 'bytes32' },
+          {
+            internalType: 'bytes',
+            name: 'pubkey',
+            type: 'bytes',
+          },
+          {
+            internalType: 'bytes',
+            name: 'signature',
+            type: 'bytes',
+          },
+          {
+            internalType: 'uint256',
+            name: 'amount',
+            type: 'uint256',
+          },
+          {
+            internalType: 'bytes32',
+            name: 'depositDataRoot',
+            type: 'bytes32',
+          },
         ],
         internalType: 'struct StakingVaultDeposit',
         name: 'deposit',
@@ -102,8 +170,16 @@ export const BLSHarnessAbi = [
         components: [
           {
             components: [
-              { internalType: 'bytes32', name: 'a', type: 'bytes32' },
-              { internalType: 'bytes32', name: 'b', type: 'bytes32' },
+              {
+                internalType: 'bytes32',
+                name: 'a',
+                type: 'bytes32',
+              },
+              {
+                internalType: 'bytes32',
+                name: 'b',
+                type: 'bytes32',
+              },
             ],
             internalType: 'struct BLS12_381.Fp',
             name: 'pubkeyY',
@@ -111,10 +187,26 @@ export const BLSHarnessAbi = [
           },
           {
             components: [
-              { internalType: 'bytes32', name: 'c0_a', type: 'bytes32' },
-              { internalType: 'bytes32', name: 'c0_b', type: 'bytes32' },
-              { internalType: 'bytes32', name: 'c1_a', type: 'bytes32' },
-              { internalType: 'bytes32', name: 'c1_b', type: 'bytes32' },
+              {
+                internalType: 'bytes32',
+                name: 'c0_a',
+                type: 'bytes32',
+              },
+              {
+                internalType: 'bytes32',
+                name: 'c0_b',
+                type: 'bytes32',
+              },
+              {
+                internalType: 'bytes32',
+                name: 'c1_a',
+                type: 'bytes32',
+              },
+              {
+                internalType: 'bytes32',
+                name: 'c1_b',
+                type: 'bytes32',
+              },
             ],
             internalType: 'struct BLS12_381.Fp2',
             name: 'signatureY',

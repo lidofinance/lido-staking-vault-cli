@@ -4,7 +4,6 @@ export * from './pdg-helpers.js';
 export * from './vault/index.js';
 export * from './dashboard/index.js';
 export * from './vault-factory/index.js';
-export * from './delegation/index.js';
 export * from './pdg/index.js';
 export * from './hub/index.js';
 export * from './vault-viewer/index.js';

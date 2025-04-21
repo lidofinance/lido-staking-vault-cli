@@ -2,7 +2,6 @@ export * from './vault-hub.js';
 export * from './vault-factory.js';
 export * from './vault.js';
 export * from './dashboard.js';
-export * from './delegation.js';
 export * from './steth.js';
 export * from './locator.js';
 export * from './token-manager.js';

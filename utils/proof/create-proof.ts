@@ -14,11 +14,14 @@ import {
 
 const SECONDS_PER_SLOT = 12;
 
-interface ValidatorWitness {
+export interface ValidatorWitness {
   proof: Hex[];
   pubkey: Hex;
   validatorIndex: bigint;
   childBlockTimestamp: bigint;
+}
+
+interface ValidatorWitnessWithWC extends ValidatorWitness {
   withdrawalCredentials: Hex;
 }
 
@@ -28,7 +31,7 @@ const slotToTimestamp = (slot: number, genesisTimestamp: number): number => {
 
 export const createPDGProof = async (
   validatorIndex: number,
-): Promise<ValidatorWitness> => {
+): Promise<ValidatorWitnessWithWC> => {
   const beaconHeaderJson = await fetchBeaconHeader('finalized');
   const beaconHeader = beaconHeaderJson.data.header.message;
 

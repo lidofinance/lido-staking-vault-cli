@@ -27,52 +27,13 @@ export const CLProofVerifierAbi = [
   },
   {
     inputs: [],
-    name: 'InvalidProof',
-    type: 'error',
-  },
-  {
-    inputs: [],
     name: 'InvalidPubkeyLength',
-    type: 'error',
-  },
-  {
-    inputs: [],
-    name: 'InvalidTimestamp',
     type: 'error',
   },
   {
     inputs: [],
     name: 'RootNotFound',
     type: 'error',
-  },
-  {
-    inputs: [],
-    name: 'SlotAlreadyProven',
-    type: 'error',
-  },
-  {
-    inputs: [],
-    name: 'SlotUpdateHasNoEffect',
-    type: 'error',
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: 'uint64',
-        name: 'provenSlot',
-        type: 'uint64',
-      },
-      {
-        indexed: false,
-        internalType: 'uint64',
-        name: 'provenSlotTimestamp',
-        type: 'uint64',
-      },
-    ],
-    name: 'SlotProven',
-    type: 'event',
   },
   {
     inputs: [],
@@ -128,7 +89,7 @@ export const CLProofVerifierAbi = [
   },
   {
     inputs: [],
-    name: 'GI_STATE_VIEW',
+    name: 'GI_STATE_ROOT',
     outputs: [
       {
         internalType: 'GIndex',
@@ -141,12 +102,38 @@ export const CLProofVerifierAbi = [
   },
   {
     inputs: [],
-    name: 'SLOT_CHANGE_GI',
+    name: 'SLOT_CHANGE_GI_FIRST_VALIDATOR',
     outputs: [
       {
         internalType: 'uint64',
         name: '',
         type: 'uint64',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'STATE_ROOT_DEPTH',
+    outputs: [
+      {
+        internalType: 'uint8',
+        name: '',
+        type: 'uint8',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'STATE_ROOT_POSITION',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
       },
     ],
     stateMutability: 'view',
@@ -215,7 +202,7 @@ export const CLProofVerifierAbi = [
             type: 'uint64',
           },
         ],
-        internalType: 'struct CLProofVerifier.ValidatorWitness',
+        internalType: 'struct IPredepositGuarantee.ValidatorWitness',
         name: '_witness',
         type: 'tuple',
       },
@@ -231,48 +218,29 @@ export const CLProofVerifierAbi = [
     type: 'function',
   },
   {
-    inputs: [
+    inputs: [],
+    name: 'WC_PUBKEY_PARENT_DEPTH',
+    outputs: [
       {
-        components: [
-          {
-            internalType: 'uint64',
-            name: 'slot',
-            type: 'uint64',
-          },
-          {
-            internalType: 'uint64',
-            name: 'proposerIndex',
-            type: 'uint64',
-          },
-          {
-            internalType: 'bytes32',
-            name: 'parentRoot',
-            type: 'bytes32',
-          },
-          {
-            internalType: 'bytes32',
-            name: 'stateRoot',
-            type: 'bytes32',
-          },
-          {
-            internalType: 'bytes32',
-            name: 'bodyRoot',
-            type: 'bytes32',
-          },
-        ],
-        internalType: 'struct BeaconBlockHeader',
-        name: '_beaconBlockHeader',
-        type: 'tuple',
-      },
-      {
-        internalType: 'uint64',
-        name: '_childBlockTimestamp',
-        type: 'uint64',
+        internalType: 'uint8',
+        name: '',
+        type: 'uint8',
       },
     ],
-    name: 'proveSlotChange',
-    outputs: [],
-    stateMutability: 'nonpayable',
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'WC_PUBKEY_PARENT_POSITION',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
     type: 'function',
   },
 ] as const;

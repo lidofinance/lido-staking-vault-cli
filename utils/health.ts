@@ -1,50 +1,45 @@
-import {
-  DelegationContract,
-  DashboardContract,
-  getStethContract,
-} from 'contracts';
+import { DashboardContract, getStethContract } from 'contracts';
 
-export const fetchVaultMetrics = async (
-  contract: DashboardContract | DelegationContract,
-) => {
+export const fetchVaultMetrics = async (contract: DashboardContract) => {
   const stethContract = await getStethContract();
 
-  const [valuation, minted, rebalanceThresholdBP] = await Promise.all([
-    contract.read.valuation(), // BigInt, in wei
-    contract.read.sharesMinted(), // BigInt, in shares
-    contract.read.rebalanceThresholdBP(), // number (in basis points)
-  ]);
+  const [totalValue, liabilityShares, forceRebalanceThresholdBP] =
+    await Promise.all([
+      contract.read.totalValue(), // BigInt, in wei
+      contract.read.liabilityShares(), // BigInt, in shares
+      contract.read.forcedRebalanceThresholdBP(), // number (in basis points)
+    ]);
 
-  const mintedInStethWei = await stethContract.read.getPooledEthByShares([
-    minted,
-  ]); // BigInt
+  const liabilitySharesInStethWei =
+    await stethContract.read.getPooledEthByShares([liabilityShares]); // BigInt
 
   return {
-    valuation,
-    minted,
-    rebalanceThresholdBP,
-    mintedInStethWei,
+    totalValue,
+    liabilityShares,
+    forceRebalanceThresholdBP,
+    liabilitySharesInStethWei,
     stethContract,
   };
 };
 
 export const calculateVaultHealth = (
-  valuation: bigint,
-  mintedInStethWei: bigint,
-  rebalanceThresholdBP: number,
+  totalValue: bigint,
+  liabilitySharesInStethWei: bigint,
+  forceRebalanceThresholdBP: number,
 ) => {
   // Convert everything to BigInt and perform calculations with 1e18 precision
   const BASIS_POINTS_DENOMINATOR = 10_000n;
   const PRECISION = 10n ** 18n;
 
   const thresholdMultiplier =
-    ((BASIS_POINTS_DENOMINATOR - BigInt(rebalanceThresholdBP)) * PRECISION) /
+    ((BASIS_POINTS_DENOMINATOR - BigInt(forceRebalanceThresholdBP)) *
+      PRECISION) /
     BASIS_POINTS_DENOMINATOR;
-  const adjustedValuation = (valuation * thresholdMultiplier) / PRECISION;
+  const adjustedValuation = (totalValue * thresholdMultiplier) / PRECISION;
 
   const healthRatio18 =
-    mintedInStethWei > 0n
-      ? (adjustedValuation * PRECISION * 100n) / mintedInStethWei
+    liabilitySharesInStethWei > 0n
+      ? (adjustedValuation * PRECISION * 100n) / liabilitySharesInStethWei
       : Infinity;
   const healthRatio = Number(healthRatio18) / 1e18;
 
@@ -59,66 +54,69 @@ export const calculateVaultHealth = (
 };
 
 export const fetchAndCalculateVaultHealth = async (
-  contract: DashboardContract | DelegationContract,
+  contract: DashboardContract,
 ) => {
-  const { valuation, rebalanceThresholdBP, mintedInStethWei, minted } =
-    await fetchVaultMetrics(contract);
+  const {
+    totalValue,
+    forceRebalanceThresholdBP,
+    liabilitySharesInStethWei,
+    liabilityShares,
+  } = await fetchVaultMetrics(contract);
   const { healthRatio, isHealthy } = calculateVaultHealth(
-    valuation,
-    mintedInStethWei,
-    rebalanceThresholdBP,
+    totalValue,
+    liabilitySharesInStethWei,
+    forceRebalanceThresholdBP,
   );
 
   return {
     healthRatio,
     isHealthy,
-    valuation,
-    mintedInStethWei,
-    rebalanceThresholdBP,
-    minted,
+    totalValue,
+    liabilitySharesInStethWei,
+    forceRebalanceThresholdBP,
+    liabilityShares,
   };
 };
 
 export const fetchAndCalculateVaultHealthWithNewValue = async (
-  contract: DashboardContract | DelegationContract,
+  contract: DashboardContract,
   newMintedValue: bigint,
   type: 'mint' | 'burn',
 ) => {
   const {
-    valuation,
-    rebalanceThresholdBP,
-    mintedInStethWei,
+    totalValue,
+    forceRebalanceThresholdBP,
+    liabilitySharesInStethWei,
     stethContract,
-    minted,
+    liabilityShares,
   } = await fetchVaultMetrics(contract);
   const isMinting = type === 'mint';
 
-  const newMinted = isMinting
-    ? minted + newMintedValue
-    : minted - newMintedValue;
-  const newMintedInStethWei = await stethContract.read.getPooledEthByShares([
-    newMinted,
-  ]); // BigInt
+  const newLiabilityShares = isMinting
+    ? liabilityShares + newMintedValue
+    : liabilityShares - newMintedValue;
+  const newLiabilitySharesInStethWei =
+    await stethContract.read.getPooledEthByShares([newLiabilityShares]); // BigInt
 
   const currentVaultHealth = calculateVaultHealth(
-    valuation,
-    mintedInStethWei,
-    rebalanceThresholdBP,
+    totalValue,
+    liabilitySharesInStethWei,
+    forceRebalanceThresholdBP,
   );
   const newVaultHealth = calculateVaultHealth(
-    valuation,
-    newMintedInStethWei,
-    rebalanceThresholdBP,
+    totalValue,
+    newLiabilitySharesInStethWei,
+    forceRebalanceThresholdBP,
   );
 
   return {
     currentVaultHealth,
     newVaultHealth,
-    valuation,
-    mintedInStethWei,
-    rebalanceThresholdBP,
-    minted,
-    newMinted,
-    newMintedInStethWei,
+    totalValue,
+    liabilitySharesInStethWei,
+    forceRebalanceThresholdBP,
+    liabilityShares,
+    newLiabilityShares,
+    newLiabilitySharesInStethWei,
   };
 };
