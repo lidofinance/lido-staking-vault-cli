@@ -1,6 +1,6 @@
 import { Address } from 'viem';
 
-import { logInfo, fetchIPFS, IPFS_GATEWAY } from 'utils';
+import { fetchIPFS, IPFS_GATEWAY } from 'utils';
 
 export type LeafDataFields = {
   vault_address: string;
@@ -116,20 +116,26 @@ const getVaultData = (report: Report, vault: Address) => {
   };
 };
 
-export const getReportProof = async (vault: string, cid: string) => {
+export const getReportProofByVault = async (vault: Address, cid: string) => {
   const report = await getReport(cid);
-  const proof = report.proofsCID;
-  const url = `${IPFS_GATEWAY}/${proof}`;
+  const proofCID = report.proofsCID;
 
-  logInfo('Fetching proof from', url);
-
-  const response = await fetch(url);
+  const response = await fetchIPFS(proofCID);
   if (!response.ok) {
     throw new Error(`Failed to fetch IPFS proof: ${response.statusText}`);
   }
 
   const data: ReportProofData = await response.json();
   const proofByVault = data.proofs[vault];
+  if (!proofByVault) throw new Error('Proof not found');
+
+  return proofByVault;
+};
+
+export const getReportProofByCid = async (vault: Address, proofCID: string) => {
+  const proof: ReportProofData = await fetchIPFS(proofCID);
+
+  const proofByVault = proof.proofs[vault];
   if (!proofByVault) throw new Error('Proof not found');
 
   return proofByVault;

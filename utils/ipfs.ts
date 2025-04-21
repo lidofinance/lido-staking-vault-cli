@@ -62,7 +62,6 @@ export const fetchAndVerifyFile = async (
   gateway = IPFS_GATEWAY,
 ): Promise<Uint8Array> => {
   const originalCID = CID.parse(cid);
-  logInfo('Fetching file from IPFS...', cid);
 
   const fileContent = await fetchIPFSBuffer(cid, gateway);
   const calculatedCID = await calculateIPFSAddCID(fileContent);
