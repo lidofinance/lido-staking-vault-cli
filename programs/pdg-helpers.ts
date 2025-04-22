@@ -63,6 +63,7 @@ predepositGuaranteeHelpers
       logResult(withdrawalCredentials);
       logInfo('------------------------------------------------');
       logInfo('-----------------------end-----------------------');
+      hideSpinner();
     } catch (err) {
       hideSpinner();
       printError(err, 'Error when making proof');
@@ -95,6 +96,7 @@ predepositGuaranteeHelpers
       logResult(withdrawalCredentials);
       logInfo('------------------------------------------------');
       logInfo('-----------------------end-----------------------');
+      hideSpinner();
     } catch (err) {
       hideSpinner();
       printError(err, 'Error when making proof');

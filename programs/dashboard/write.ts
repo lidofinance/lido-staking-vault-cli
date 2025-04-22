@@ -11,13 +11,12 @@ import {
   stringToBigInt,
   mintShares,
   burnShares,
-  Deposit,
   parseDepositArray,
   ValidatorWitness,
   logInfo,
   getCommandsJson,
 } from 'utils';
-import { RoleAssignment } from 'types';
+import { RoleAssignment, Deposit } from 'types';
 
 import { dashboard } from './main.js';
 
