@@ -12,6 +12,8 @@ import {
   logResult,
   logInfo,
   getCommandsJson,
+  computeDepositDomainByForkVersion,
+  toHex,
 } from 'utils';
 
 const predepositGuaranteeHelpers = program
@@ -138,3 +140,17 @@ predepositGuaranteeHelpers
       });
     },
   );
+
+predepositGuaranteeHelpers
+  .command('compute-deposit-domain')
+  .aliases(['compute-dd-domain'])
+  .description('compute deposit domain')
+  .argument('<forkVersion>', 'fork version')
+  .action(async (forkVersion: string) => {
+    const result = computeDepositDomainByForkVersion(forkVersion);
+
+    logResult({
+      forkVersion,
+      depositDomain: toHex(result),
+    });
+  });

@@ -118,18 +118,34 @@ export const callReadMethod = async <
     const method = contract.read[methodName];
     const result = await method?.(...payload);
     hideSpinner();
+
+    const base = {
+      'Method name': methodName,
+      Contract: contract.address,
+    };
+
     // TODO: do message better or show in called place
     if (Array.isArray(result)) {
       logResult({
-        'Method name': methodName,
-        Contract: contract.address,
-        Result: Object.values(result).join(', '),
+        ...base,
+        Result: result
+          .map((r) => (typeof r === 'bigint' ? r.toString() : String(r)))
+          .join(', '),
+      });
+    } else if (typeof result === 'object' && result !== null) {
+      // Expand result object into multiple rows
+      const expandedResult: Record<string, string> = {};
+      for (const [k, v] of Object.entries(result)) {
+        expandedResult[k] = typeof v === 'bigint' ? v.toString() : String(v);
+      }
+      logResult({
+        ...base,
+        ...expandedResult,
       });
     } else {
       logResult({
-        'Method name': methodName,
-        Contract: contract.address,
-        Result: result,
+        ...base,
+        Result: typeof result === 'bigint' ? result.toString() : result,
       });
     }
 

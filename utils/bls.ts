@@ -1,4 +1,5 @@
 import { pad, bytesToHex, type Hex } from 'viem';
+import { mainnet, sepolia, hoodi } from 'viem/chains';
 import {
   fromHexString,
   ByteVectorType,
@@ -8,6 +9,13 @@ import {
 import { PublicKey, Signature, verify } from '@chainsafe/blst';
 
 import { toHex } from './proof/merkle-utils.js';
+import { getChain } from 'configs';
+
+const FORK_VERSION_BY_CHAIN: Record<number, string> = {
+  [sepolia.id]: '0x90000069', // https://github.com/eth-clients/sepolia
+  [hoodi.id]: '0x10000910', // https://github.com/eth-clients/hoodi
+  [mainnet.id]: '0x00000000', // https://github.com/eth-clients/mainnet
+};
 
 type DepositStruct = {
   pubkey: Hex;
@@ -16,10 +24,11 @@ type DepositStruct = {
   depositDataRoot: Hex;
 };
 
-const computeDepositDomain = () => {
+export const computeDepositDomainByForkVersion = (forkVersion: string) => {
   const ZERO_HASH = Buffer.alloc(32, 0);
   const DOMAIN_DEPOSIT = Uint8Array.from([3, 0, 0, 0]);
 
+  const forkVersionUint8Array = fromHexString(forkVersion);
   type ByteArray = Uint8Array;
 
   const Root = new ByteVectorType(32);
@@ -53,7 +62,17 @@ const computeDepositDomain = () => {
     return ForkData.hashTreeRoot({ currentVersion, genesisValidatorsRoot });
   };
 
-  return computeDomain(DOMAIN_DEPOSIT, fromHexString('0x00000000'), ZERO_HASH);
+  return computeDomain(DOMAIN_DEPOSIT, forkVersionUint8Array, ZERO_HASH);
+};
+
+export const computeDepositDomain = () => {
+  const forkByChain = FORK_VERSION_BY_CHAIN[getChain().id];
+
+  if (!forkByChain) {
+    throw new Error(`Fork version not found for chain ${getChain().id}`);
+  }
+
+  return computeDepositDomainByForkVersion(forkByChain);
 };
 
 const computeDepositMessageRoot = (
