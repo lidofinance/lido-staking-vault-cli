@@ -1,7 +1,7 @@
 import { Address, formatEther, Hex } from 'viem';
 import { Option } from 'commander';
-import { getAccount } from 'providers';
 
+import { getAccount } from 'providers';
 import {
   getPredepositGuaranteeContract,
   getStakingVaultContract,
@@ -16,7 +16,6 @@ import {
   stringToBigInt,
   stringToBigIntArray,
   etherToWei,
-  Deposit,
   callReadMethod,
   computeDepositDataRoot,
   logResult,
@@ -28,6 +27,7 @@ import {
   isValidBLSDeposit,
   expandBLSSignature,
 } from 'utils';
+import { Deposit } from 'types';
 
 import { pdg } from './main.js';
 

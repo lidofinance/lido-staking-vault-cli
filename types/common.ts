@@ -1,4 +1,4 @@
-import { Address } from 'viem';
+import { Address, Hex } from 'viem';
 
 export interface VaultWithDashboard {
   defaultAdmin: Address;
@@ -48,3 +48,10 @@ export interface Tier {
   forcedRebalanceThresholdBP: bigint;
   treasuryFeeBP: bigint;
 }
+
+export type Deposit = {
+  pubkey: Hex;
+  signature: Hex;
+  amount: bigint;
+  depositDataRoot: Hex;
+};
