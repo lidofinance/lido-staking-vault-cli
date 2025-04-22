@@ -145,7 +145,7 @@ predepositGuaranteeHelpers
 
 predepositGuaranteeHelpers
   .command('compute-deposit-domain')
-  .aliases(['compute-dd-domain'])
+  .aliases(['compute-d-domain'])
   .description('compute deposit domain')
   .argument('<forkVersion>', 'fork version')
   .action(async (forkVersion: string) => {
