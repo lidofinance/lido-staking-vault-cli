@@ -113,8 +113,8 @@ pdgWrite
   .command('verify-predeposit-bls')
   .aliases(['verify-bls'])
   .description('Verifies BLS signature of the deposit')
-  .option('-vt, --vault <address>', 'vault address')
-  .option('-wc, --withdrawalCredentials <hex>', 'withdrawal credentials')
+  .option('-a, --vault <address>', 'vault address')
+  .option('-w, --withdrawalCredentials <hex>', 'withdrawal credentials')
   .argument('<deposits>', 'deposits', parseDepositArray)
   .action(
     async (
@@ -197,8 +197,8 @@ pdgWrite
           type: 'bouncingBar',
           message: 'Checking onchain againts BLSHarness contract',
         });
-        const isValid = await bls.read
-          .verifyDepositMessage([
+        try {
+          await bls.read.verifyDepositMessage([
             deposit,
             {
               pubkeyY: { a: pubkeyY_a, b: pubkeyY_b },
@@ -210,18 +210,16 @@ pdgWrite
               },
             },
             withdrawalCredentials,
-          ])
-          .then(
-            () => true,
-            () => false,
-          );
-        hideSpinner();
-        if (!isValid) {
+          ]);
+
+          hideSpinner();
+          logInfo(`✅ ONCHAIN 🔗 SIGNATURE VALID for Pubkey ${deposit.pubkey}`);
+        } catch (err) {
+          hideSpinner();
           logError(
             `❌ Onchain - BLS signature is not valid for Pubkey ${deposit.pubkey}`,
           );
-        } else {
-          logInfo(`✅ ONCHAIN 🔗 SIGNATURE VALID for Pubkey ${deposit.pubkey}`);
+          logError(err);
         }
       }
     },
