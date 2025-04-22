@@ -1,4 +1,4 @@
-import { Address, Hex } from 'viem';
+import { Address, formatEther, Hex } from 'viem';
 import { Option } from 'commander';
 import { getAccount } from 'providers';
 
@@ -97,7 +97,8 @@ pdgWrite
       });
 
       const confirm = await confirmOperation(
-        `Are you sure you want to predeposit ${deposits.length} deposits to the vault ${vault}?`,
+        `Are you sure you want to predeposit ${deposits.length} deposits to the vault ${vault}?
+        Pubkeys: ${deposits.map((i) => i.pubkey).join(', ')}`,
       );
       if (!confirm) return;
 
@@ -354,7 +355,7 @@ pdgWrite
     const pdgContract = await getPredepositGuaranteeContract();
 
     const confirm = await confirmOperation(
-      `Are you sure you want to top up the node operator ${nodeOperator} with ${amount} ETH?`,
+      `Are you sure you want to top up the node operator ${nodeOperator} with ${formatEther(amount)} ETH?`,
     );
     if (!confirm) return;
 
