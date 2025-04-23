@@ -1,11 +1,10 @@
-import { Address, Hex } from 'viem';
+import { Address, formatEther, Hex } from 'viem';
 import { Option } from 'commander';
-import { getAccount } from 'providers';
 
+import { getAccount } from 'providers';
 import {
   getPredepositGuaranteeContract,
   getStakingVaultContract,
-  getBLSHarnessContract,
 } from 'contracts';
 import {
   callWriteMethodWithReceipt,
@@ -16,18 +15,16 @@ import {
   stringToBigInt,
   stringToBigIntArray,
   etherToWei,
-  Deposit,
   callReadMethod,
-  computeDepositDataRoot,
   logResult,
   logInfo,
-  logError,
   confirmOperation,
   confirmMakeProof,
   getCommandsJson,
   isValidBLSDeposit,
   expandBLSSignature,
 } from 'utils';
+import { Deposit } from 'types';
 
 import { pdg } from './main.js';
 
@@ -97,7 +94,8 @@ pdgWrite
       });
 
       const confirm = await confirmOperation(
-        `Are you sure you want to predeposit ${deposits.length} deposits to the vault ${vault}?`,
+        `Are you sure you want to predeposit ${deposits.length} deposits to the vault ${vault}?
+        Pubkeys: ${deposits.map((i) => i.pubkey).join(', ')}`,
       );
       if (!confirm) return;
 
@@ -106,124 +104,6 @@ pdgWrite
         deposits,
         depositsY,
       ]);
-    },
-  );
-
-pdgWrite
-  .command('verify-predeposit-bls')
-  .aliases(['verify-bls'])
-  .description('Verifies BLS signature of the deposit')
-  .option('-vt, --vault <address>', 'vault address')
-  .option('-wc, --withdrawalCredentials <hex>', 'withdrawal credentials')
-  .argument('<deposits>', 'deposits', parseDepositArray)
-  .action(
-    async (
-      deposits: Deposit[],
-      options: { vault: Address; withdrawalCredentials: Hex },
-    ) => {
-      const vault = options.vault;
-      let withdrawalCredentials = options.withdrawalCredentials;
-
-      if (!vault && !withdrawalCredentials) {
-        logError('You must provide either vault or withdrawal credentials');
-        return;
-      } else if (vault && withdrawalCredentials) {
-        logError('You can only provide one of vault or withdrawal credentials');
-        return;
-      }
-      const bls = getBLSHarnessContract();
-      const hideMetadataSpinner = showSpinner({
-        type: 'bouncingBar',
-        message: 'Loading metadata...',
-      });
-      const pdg = await getPredepositGuaranteeContract();
-      const PREDEPOSIT_AMOUNT = await callReadMethod(pdg, 'PREDEPOSIT_AMOUNT');
-
-      if (vault) {
-        const vaultContract = getStakingVaultContract(vault);
-        const wc = await callReadMethod(vaultContract, 'withdrawalCredentials');
-        withdrawalCredentials = wc;
-      }
-      hideMetadataSpinner();
-
-      for (const deposit of deposits) {
-        // amount check
-        if (deposit.amount !== PREDEPOSIT_AMOUNT) {
-          logError(
-            `❌ Deposit amount is not equal to PREDEPOSIT_AMOUNT for pubkey ${deposit.pubkey}`,
-          );
-          return;
-        } else {
-          logInfo(`✅ AMOUNT VALID for Pubkey ${deposit.pubkey}`);
-        }
-
-        // depositDataRoot check
-        const depositDataRoot = computeDepositDataRoot(
-          deposit.pubkey,
-          withdrawalCredentials,
-          deposit.signature,
-          deposit.amount,
-        );
-        if (depositDataRoot != deposit.depositDataRoot) {
-          logError(
-            `❌ depositDataRoot does not match ${deposit.pubkey}, actual root: ${depositDataRoot}`,
-          );
-          return;
-        } else {
-          logInfo(`✅ depositDataRoot VALID for Pubkey ${deposit.pubkey}`);
-        }
-
-        // local BLS check
-        const isBLSValid = isValidBLSDeposit(deposit, withdrawalCredentials);
-        if (!isBLSValid) {
-          logError(
-            `❌ Offchain - BLS signature is not valid for Pubkey ${deposit.pubkey}`,
-          );
-          return;
-        } else {
-          logInfo(`✅ SIGNATURE VALID for Pubkey ${deposit.pubkey}`);
-        }
-
-        // onchain BLS check
-        const {
-          pubkeyY_a,
-          pubkeyY_b,
-          sigY_c0_a,
-          sigY_c0_b,
-          sigY_c1_a,
-          sigY_c1_b,
-        } = expandBLSSignature(deposit.signature, deposit.pubkey);
-        const hideSpinner = showSpinner({
-          type: 'bouncingBar',
-          message: 'Checking onchain againts BLSHarness contract',
-        });
-        const isValid = await bls.read
-          .verifyDepositMessage([
-            deposit,
-            {
-              pubkeyY: { a: pubkeyY_a, b: pubkeyY_b },
-              signatureY: {
-                c0_a: sigY_c0_a,
-                c0_b: sigY_c0_b,
-                c1_a: sigY_c1_a,
-                c1_b: sigY_c1_b,
-              },
-            },
-            withdrawalCredentials,
-          ])
-          .then(
-            () => true,
-            () => false,
-          );
-        hideSpinner();
-        if (!isValid) {
-          logError(
-            `❌ Onchain - BLS signature is not valid for Pubkey ${deposit.pubkey}`,
-          );
-        } else {
-          logInfo(`✅ ONCHAIN 🔗 SIGNATURE VALID for Pubkey ${deposit.pubkey}`);
-        }
-      }
     },
   );
 
@@ -356,7 +236,7 @@ pdgWrite
     const pdgContract = await getPredepositGuaranteeContract();
 
     const confirm = await confirmOperation(
-      `Are you sure you want to top up the node operator ${nodeOperator} with ${amount} ETH?`,
+      `Are you sure you want to top up the node operator ${nodeOperator} with ${formatEther(amount)} ETH?`,
     );
     if (!confirm) return;
 

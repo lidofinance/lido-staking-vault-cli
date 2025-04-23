@@ -65,7 +65,6 @@ lsv-cli pdg -h
 | Command                                                             | Description                                    |
 | ------------------------------------------------------------------- | ---------------------------------------------- |
 | predeposit \<vault> \<deposits>                                     | predeposit                                     |
-| verify-predeposit-bls verify-bls\<deposits>                         | Verifies BLS signature of the deposit          |
 | proof-and-prove prove\<index>                                       | make proof and prove                           |
 | prove-and-deposit \<indexes> \<vault> \<deposits>                   | prove and deposit                              |
 | deposit-to-beacon-chain \<vault> \<deposits>                        | deposit to beacon chain                        |

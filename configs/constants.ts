@@ -1,3 +1,3 @@
-import { holesky, mainnet, sepolia, hoodi } from 'viem/chains';
+import { hoodi } from 'viem/chains';
 
-export const SUPPORTED_CHAINS_LIST = [holesky, mainnet, sepolia, hoodi];
+export const SUPPORTED_CHAINS_LIST = [hoodi];
