@@ -1,4 +1,4 @@
-import { Address } from 'viem';
+import { Address, formatEther } from 'viem';
 
 import { confirmOperation, logInfo } from 'utils';
 
@@ -42,24 +42,26 @@ export const confirmMint = async (props: ConfirmMintProps) => {
   console.table([
     {
       'Vault Address': vaultAddress,
-      'Current Liability Shares': currentLiabilityShares,
+      'Current Liability Shares (wei)': currentLiabilityShares,
+      'Current Liability Shares (Shares)': formatEther(currentLiabilityShares),
       'Current Health Ratio': `${currentHealthRatio}%`,
       'Current Is Healthy': currentIsHealthy,
     },
   ]);
 
-  logInfo(`Minting ${amountOfMint} shares to ${recipient}:`);
+  logInfo(`Minting ${formatEther(amountOfMint)} shares to ${recipient}:`);
   console.table([
     {
       'Vault Address': vaultAddress,
-      'New Liability Shares': newLiabilityShares,
+      'New Liability Shares (wei)': newLiabilityShares,
+      'New Liability Shares (Shares)': formatEther(newLiabilityShares),
       'New Health Ratio': `${newHealthRatio}%`,
       'New Is Healthy': newIsHealthy,
     },
   ]);
 
   const confirm = await confirmOperation(
-    `Are you sure you want to mint ${amountOfMint} shares to ${recipient}?`,
+    `Are you sure you want to mint ${formatEther(amountOfMint)} shares to ${recipient}?`,
   );
 
   return confirm;
@@ -81,24 +83,26 @@ export const confirmBurn = async (props: ConfirmBurnProps) => {
   console.table([
     {
       'Vault Address': vaultAddress,
-      'Current Liability Shares': currentLiabilityShares,
+      'Current Liability Shares (wei)': currentLiabilityShares,
+      'Current Liability Shares (Shares)': formatEther(currentLiabilityShares),
       'Current Health Ratio': `${currentHealthRatio}%`,
       'Current Is Healthy': currentIsHealthy,
     },
   ]);
 
-  logInfo(`Burning ${amountOfBurn} shares for ${vaultAddress}:`);
+  logInfo(`Burning ${formatEther(amountOfBurn)} shares for ${vaultAddress}:`);
   console.table([
     {
       'Vault Address': vaultAddress,
-      'New Liability Shares': newLiabilityShares,
+      'New Liability Shares (wei)': newLiabilityShares,
+      'New Liability Shares (Shares)': formatEther(newLiabilityShares),
       'New Health Ratio': `${newHealthRatio}%`,
       'New Is Healthy': newIsHealthy,
     },
   ]);
 
   const confirm = await confirmOperation(
-    `Are you sure you want to burn ${amountOfBurn} shares for ${vaultAddress}?`,
+    `Are you sure you want to burn ${formatEther(amountOfBurn)} shares for ${vaultAddress}?`,
   );
 
   return confirm;

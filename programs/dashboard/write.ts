@@ -193,11 +193,6 @@ dashboardWrite
   .action(
     async (address: Address, recipient: Address, amountOfShares: string) => {
       const contract = getDashboardContract(address);
-      const vault = await callReadMethod(contract, 'stakingVault');
-      const confirm = await confirmOperation(
-        `Are you sure you want to mint ${amountOfShares} shares to ${recipient} in the staking vault ${vault}?`,
-      );
-      if (!confirm) return;
 
       await mintShares(contract, recipient, parseEther(amountOfShares));
     },
@@ -257,12 +252,6 @@ dashboardWrite
   .argument('<amountOfShares>', 'amount of shares to burn (in Shares)')
   .action(async (address: Address, amountOfShares: string) => {
     const contract = getDashboardContract(address);
-    const vault = await callReadMethod(contract, 'stakingVault');
-
-    const confirm = await confirmOperation(
-      `Are you sure you want to burn ${amountOfShares} stETH shares in the staking vault ${vault}?`,
-    );
-    if (!confirm) return;
 
     await burnShares(contract, parseEther(amountOfShares));
   });
