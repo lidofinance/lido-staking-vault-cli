@@ -1,15 +1,67 @@
-import { callWriteMethodWithReceipt, confirmBurn } from 'utils';
+import {
+  callWriteMethodWithReceipt,
+  confirmBurn,
+  confirmOperation,
+  getRequiredLockByShares,
+} from 'utils';
 
-import { Address } from 'viem';
+import { Address, formatEther } from 'viem';
 
-import { DashboardContract } from 'contracts';
+import { DashboardContract, getDashboardContract } from 'contracts';
 import {
   callReadMethod,
   fetchAndCalculateVaultHealthWithNewValue,
   logError,
   showSpinner,
   confirmMint,
+  logInfo,
 } from 'utils';
+import { getAccount } from 'providers';
+
+const confirmLock = async (
+  amountOfSharesWei: bigint,
+  dashboardAddress: Address,
+) => {
+  const { requiredLock, currentLock } = await getRequiredLockByShares(
+    dashboardAddress,
+    formatEther(amountOfSharesWei),
+  );
+
+  const currentWallet = getAccount();
+  const LOCK_ROLE = await callReadMethod(
+    getDashboardContract(dashboardAddress),
+    'LOCK_ROLE',
+    undefined,
+    { silent: true },
+  );
+  const currentLockRoles = await callReadMethod(
+    getDashboardContract(dashboardAddress),
+    'getRoleMembers',
+    [LOCK_ROLE],
+    undefined,
+    { silent: true },
+  );
+
+  const isLockRole = currentLockRoles.includes(currentWallet.address);
+  if (requiredLock > currentLock) {
+    logInfo(
+      `Required lock: ${formatEther(requiredLock)} shares, current lock: ${formatEther(currentLock)} shares.
+    Auto-lock will be applied to enable minting the required number of shares. LOCK_ROLE is required.`,
+    );
+
+    if (!isLockRole) {
+      logError(
+        "You don't have a LOCK_ROLE. Please add yourself to the LOCK_ROLE.",
+      );
+      return false;
+    }
+
+    const confirm = await confirmOperation('Do you want to continue?');
+    if (!confirm) return confirm;
+  }
+
+  return true;
+};
 
 export const mintShares = async (
   contract: DashboardContract,
@@ -20,6 +72,10 @@ export const mintShares = async (
     contract,
     'remainingMintingCapacity',
     [0n],
+    undefined,
+    {
+      silent: true,
+    },
   );
   if (remainingMintingCapacity < amountOfShares) {
     logError(
@@ -28,8 +84,10 @@ export const mintShares = async (
     return;
   }
 
-  const hideSpinner = showSpinner();
+  const isConfirmedLock = await confirmLock(amountOfShares, contract.address);
+  if (!isConfirmedLock) return;
 
+  const hideSpinner = showSpinner();
   const {
     currentVaultHealth,
     newVaultHealth,
@@ -40,8 +98,10 @@ export const mintShares = async (
     amountOfShares,
     'mint',
   );
-  const vault = await callReadMethod(contract, 'stakingVault');
   hideSpinner();
+  const vault = await callReadMethod(contract, 'stakingVault', undefined, {
+    silent: true,
+  });
 
   const confirm = await confirmMint({
     vaultAddress: vault,

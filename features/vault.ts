@@ -1,4 +1,4 @@
-import { Address } from 'viem';
+import { Address, formatEther } from 'viem';
 
 import { printError, showSpinner, logResult, isContractAddress } from 'utils';
 import { getStakingVaultContract } from 'contracts';
@@ -43,12 +43,12 @@ export const getVaultBaseInfo = async (address: Address) => {
       version,
       vaultHubAuthorized,
       vaultHub,
-      totalValue,
-      inOutDelta,
-      balance,
+      totalValue: `${formatEther(totalValue)} ETH`,
+      inOutDelta: `${formatEther(inOutDelta)} ETH`,
+      balance: `${formatEther(balance)} ETH`,
       nodeOperator,
-      locked,
-      unlocked,
+      locked: `${formatEther(locked)} ETH`,
+      unlocked: `${formatEther(unlocked)} ETH`,
       CONTRACT_ADDRESS,
       isOwnerContract,
     };

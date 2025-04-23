@@ -1,5 +1,6 @@
 import { DashboardContract, getStethContract } from 'contracts';
 import { formatEther } from 'viem';
+import { showSpinner } from './spinner/index.js';
 
 export const fetchVaultMetrics = async (contract: DashboardContract) => {
   const stethContract = await getStethContract();
@@ -57,6 +58,7 @@ export const calculateVaultHealth = (
 export const fetchAndCalculateVaultHealth = async (
   contract: DashboardContract,
 ) => {
+  const hideSpinner = showSpinner();
   const {
     totalValue,
     forceRebalanceThresholdBP,
@@ -68,6 +70,8 @@ export const fetchAndCalculateVaultHealth = async (
     liabilitySharesInStethWei,
     forceRebalanceThresholdBP,
   );
+
+  hideSpinner();
 
   return {
     healthRatio,

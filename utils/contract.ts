@@ -110,14 +110,17 @@ export const callReadMethod = async <
 >(
   contract: T,
   methodName: M,
-  ...payload: Parameters<T['read'][M]>
+  ...payload: [...Parameters<T['read'][M]>, { silent?: boolean }?]
 ): Promise<ReturnType<T['read'][M]>> => {
   const hideSpinner = showSpinner();
+  const isSilent = payload[payload.length - 1]?.silent ?? false;
 
   try {
     const method = contract.read[methodName];
     const result = await method?.(...payload);
     hideSpinner();
+
+    if (isSilent) return result;
 
     const base = {
       'Method name': methodName,
