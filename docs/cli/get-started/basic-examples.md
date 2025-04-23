@@ -7,11 +7,11 @@ sidebar_position: 3
 ## VaultHub constants
 
 ```bash
-lsv-cli hub constants
+yarn start hub r info
 ```
 
 **Count of all vaults**
 
 ```bash
-lsv-cli hub v-count
+yarn start hub r v-count
 ```

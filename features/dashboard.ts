@@ -3,42 +3,20 @@ import {
   showSpinner,
   logResult,
   fetchAndCalculateVaultHealth,
+  logInfo,
 } from 'utils';
 import { DashboardContract } from 'contracts';
+import { formatEther } from 'viem';
 
 export const getDashboardBaseInfo = async (contract: DashboardContract) => {
   const hideSpinner = showSpinner();
   try {
-    const steth = await contract.read.STETH();
-    const wsteth = await contract.read.WSTETH();
-    const isInit = await contract.read.initialized();
-    const vault = await contract.read.stakingVault();
-    const vaultHub = await contract.read.VAULT_HUB();
-    const accruedRewardsAdjustment =
-      await contract.read.accruedRewardsAdjustment();
-    const confirmExpiry = await contract.read.getConfirmExpiry();
-    const nodeOperatorFeeBP = await contract.read.nodeOperatorFeeBP();
-    const remainingMintingCapacity =
-      await contract.read.remainingMintingCapacity([0n]);
-    const reserveRatioBP = await contract.read.reserveRatioBP();
-    const shareLimit = await contract.read.shareLimit();
-    const totalMintingCapacity = await contract.read.totalMintingCapacity();
-    const treasuryFeeBP = await contract.read.treasuryFeeBP();
-    const unreserved = await contract.read.unreserved();
-    const withdrawableEther = await contract.read.withdrawableEther();
-    const manualAccruedRewardsAdjustmentLimit =
-      await contract.read.MANUAL_ACCRUED_REWARDS_ADJUSTMENT_LIMIT();
-    const maxConfirmExpiry = await contract.read.MAX_CONFIRM_EXPIRY();
-    const minConfirmExpiry = await contract.read.MIN_CONFIRM_EXPIRY();
     const health = await fetchAndCalculateVaultHealth(contract);
-
-    hideSpinner();
-
-    const payload = {
+    const [
       steth,
       wsteth,
-      vault,
       isInit,
+      vault,
       vaultHub,
       accruedRewardsAdjustment,
       confirmExpiry,
@@ -53,9 +31,57 @@ export const getDashboardBaseInfo = async (contract: DashboardContract) => {
       manualAccruedRewardsAdjustmentLimit,
       maxConfirmExpiry,
       minConfirmExpiry,
+    ] = await Promise.all([
+      contract.read.STETH(),
+      contract.read.WSTETH(),
+      contract.read.initialized(),
+      contract.read.stakingVault(),
+      contract.read.VAULT_HUB(),
+      contract.read.accruedRewardsAdjustment(),
+      contract.read.getConfirmExpiry(),
+      contract.read.nodeOperatorFeeBP(),
+      contract.read.remainingMintingCapacity([0n]),
+      contract.read.reserveRatioBP(),
+      contract.read.shareLimit(),
+      contract.read.totalMintingCapacity(),
+      contract.read.treasuryFeeBP(),
+      contract.read.unreserved(),
+      contract.read.withdrawableEther(),
+      contract.read.MANUAL_ACCRUED_REWARDS_ADJUSTMENT_LIMIT(),
+      contract.read.MAX_CONFIRM_EXPIRY(),
+      contract.read.MIN_CONFIRM_EXPIRY(),
+    ]);
+
+    hideSpinner();
+
+    const payload = {
+      steth,
+      wsteth,
+      vault,
+      isInit,
+      vaultHub,
+      accruedRewardsAdjustment,
+      confirmExpiry,
+      nodeOperatorFeeBP,
+      remainingMintingCapacity: `${formatEther(remainingMintingCapacity)} stETH`,
+      reserveRatioBP,
+      shareLimit,
+      totalMintingCapacity: `${formatEther(totalMintingCapacity)} stETH`,
+      treasuryFeeBP,
+      unreserved: `${formatEther(unreserved)} ETH`,
+      withdrawableEther: `${formatEther(withdrawableEther)} ETH`,
+      manualAccruedRewardsAdjustmentLimit: `${formatEther(
+        manualAccruedRewardsAdjustmentLimit,
+      )} ETH`,
+      maxConfirmExpiry,
+      maxConfirmExpiryInHours: `${Number(maxConfirmExpiry) / 3600} hours`,
+      minConfirmExpiry,
+      minConfirmExpiryInHours: `${Number(minConfirmExpiry) / 3600} hours`,
     };
 
+    logInfo('Dashboard Base Info');
     logResult(Object.entries(payload));
+    logInfo('Vault Health');
     logResult(Object.entries(health));
   } catch (err) {
     hideSpinner();

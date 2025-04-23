@@ -8,6 +8,7 @@ import {
   etherToWei,
   getCommandsJson,
   logInfo,
+  stringToAddress,
   stringToBigInt,
   stringToBigIntArrayWei,
 } from 'utils';
@@ -46,8 +47,8 @@ vaultWrite
 vaultWrite
   .command('withdraw')
   .description('withdraw from vault')
-  .argument('<address>', 'vault address')
-  .argument('<recipient>', 'recipient address')
+  .argument('<address>', 'vault address', stringToAddress)
+  .argument('<recipient>', 'recipient address', stringToAddress)
   .argument('<eth>', 'amount to withdraw (in ETH)', etherToWei)
   .action(async (address: Address, recipient: Address, amount: bigint) => {
     const contract = getStakingVaultContract(address);
@@ -59,7 +60,7 @@ vaultWrite
 vaultWrite
   .command('no-deposit-beacon')
   .description('deposit to beacon chain')
-  .argument('<address>', 'vault address')
+  .argument('<address>', 'vault address', stringToAddress)
   .argument('<amountOfDeposit>', 'amount of deposits', stringToBigInt)
   .argument('<pubkey>', 'pubkey')
   .argument('<signature>', 'signature')
@@ -98,7 +99,7 @@ vaultWrite
 vaultWrite
   .command('no-val-exit')
   .description('request to exit validator')
-  .argument('<address>', 'vault address')
+  .argument('<address>', 'vault address', stringToAddress)
   .argument('<validatorPublicKey>', 'validator public key')
   .action(async (address: Address, validatorPublicKey: Address) => {
     const contract = getStakingVaultContract(address);
@@ -116,7 +117,7 @@ vaultWrite
 vaultWrite
   .command('bc-resume')
   .description('Resumes deposits to beacon chain')
-  .argument('<address>', 'vault address')
+  .argument('<address>', 'vault address', stringToAddress)
   .action(async (address: Address) => {
     const contract = getStakingVaultContract(address);
 
@@ -131,7 +132,7 @@ vaultWrite
 vaultWrite
   .command('bc-pause')
   .description('Pauses deposits to beacon chain')
-  .argument('<address>', 'vault address')
+  .argument('<address>', 'vault address', stringToAddress)
   .action(async (address: Address) => {
     const contract = getStakingVaultContract(address);
 
@@ -148,7 +149,7 @@ vaultWrite
   .description(
     'Submits a report containing valuation, inOutDelta, and locked amount',
   )
-  .argument('<address>', 'vault address')
+  .argument('<address>', 'vault address', stringToAddress)
   .argument('<timestamp>', 'timestamp of the report', stringToBigInt)
   .argument(
     '<totalValue>',
@@ -183,7 +184,7 @@ vaultWrite
 vaultWrite
   .command('rebalance')
   .description('Rebalances the vault')
-  .argument('<address>', 'vault address')
+  .argument('<address>', 'vault address', stringToAddress)
   .argument('<amount>', 'amount to rebalance (in ETH)', etherToWei)
   .action(async (address: Address, amount: bigint) => {
     const contract = getStakingVaultContract(address);
@@ -199,10 +200,10 @@ vaultWrite
 vaultWrite
   .command('trigger-v-w')
   .description('Trigger validator withdrawal')
-  .argument('<address>', 'vault address')
+  .argument('<address>', 'vault address', stringToAddress)
   .argument('<pubkeys>', 'validator public keys')
   .argument('<amounts>', 'amounts to withdraw (in ETH)', stringToBigIntArrayWei)
-  .argument('<refundRecipient>', 'refund recipient address')
+  .argument('<refundRecipient>', 'refund recipient address', stringToAddress)
   .action(
     async (
       address: Address,
@@ -225,7 +226,7 @@ vaultWrite
   .command('authorize-lido-vault-hub')
   .alias('authorize-hub')
   .description('Authorizes the Lido Vault Hub to manage the staking vault.')
-  .argument('<address>', 'vault address')
+  .argument('<address>', 'vault address', stringToAddress)
   .action(async (address: Address) => {
     const contract = getStakingVaultContract(address);
 
@@ -243,7 +244,7 @@ vaultWrite
   .description(
     'Deauthorizes the Lido Vault Hub from managing the staking vault.',
   )
-  .argument('<address>', 'dashboard address')
+  .argument('<address>', 'dashboard address', stringToAddress)
   .action(async (address: Address) => {
     const contract = getStakingVaultContract(address);
 
@@ -258,7 +259,7 @@ vaultWrite
 vaultWrite
   .command('ossify')
   .description('Ossifies the staking vault.')
-  .argument('<address>', 'vault address')
+  .argument('<address>', 'vault address', stringToAddress)
   .action(async (address: Address) => {
     const contract = getStakingVaultContract(address);
 
@@ -273,7 +274,7 @@ vaultWrite
 vaultWrite
   .command('reset-l ocked')
   .description('Resets the locked amount')
-  .argument('<address>', 'vault address')
+  .argument('<address>', 'vault address', stringToAddress)
   .action(async (address: Address) => {
     const contract = getStakingVaultContract(address);
 
@@ -288,8 +289,8 @@ vaultWrite
 vaultWrite
   .command('set-depositor')
   .description('Sets the depositor')
-  .argument('<address>', 'vault address')
-  .argument('<depositor>', 'depositor address')
+  .argument('<address>', 'vault address', stringToAddress)
+  .argument('<depositor>', 'depositor address', stringToAddress)
   .action(async (address: Address, depositor: Address) => {
     const contract = getStakingVaultContract(address);
 

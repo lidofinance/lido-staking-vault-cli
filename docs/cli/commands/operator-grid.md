@@ -7,13 +7,13 @@ sidebar_position: 11
 ## Command
 
 ```bash
-lsv-cli operator-grid [arguments] [-options]
+yarn start operator-grid [arguments] [-options]
 ```
 
 ## OperatorGrid commands list
 
 ```bash
-lsv-cli operator-grid -h
+yarn start operator-grid -h
 ```
 
 ## API

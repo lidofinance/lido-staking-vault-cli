@@ -7,13 +7,13 @@ sidebar_position: 10
 ## Command
 
 ```bash
-lsv-cli report [arguments] [-options]
+yarn start report [arguments] [-options]
 ```
 
 ## Report commands list
 
 ```bash
-lsv-cli report -h
+yarn start report -h
 ```
 
 ## API

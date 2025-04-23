@@ -1,5 +1,6 @@
 import { printError, showSpinner, logResult } from 'utils';
 import { getVaultHubContract } from 'contracts';
+import { formatEther } from 'viem';
 
 export const getVaultHubBaseInfo = async () => {
   const hideSpinner = showSpinner();
@@ -26,13 +27,16 @@ export const getVaultHubBaseInfo = async () => {
     hideSpinner();
 
     const payload = {
-      CONNECT_DEPOSIT,
+      CONNECT_DEPOSIT: `${formatEther(CONNECT_DEPOSIT)} ETH`,
       DEFAULT_ADMIN_ROLE,
       LIDO,
       LIDO_LOCATOR,
       PAUSE_INFINITELY,
       PAUSE_ROLE,
       REPORT_FRESHNESS_DELTA,
+      reportFreshnessDeltaHours: `${
+        Number(REPORT_FRESHNESS_DELTA) / 60 / 60
+      } hours`,
       RESUME_ROLE,
       VAULT_MASTER_ROLE,
       VAULT_REGISTRY_ROLE,

@@ -10,6 +10,7 @@ import {
   logResult,
   getCommandsJson,
   logInfo,
+  stringToAddress,
 } from 'utils';
 import { VaultHubAbi } from 'abi';
 
@@ -75,7 +76,7 @@ VaultHubRead.command('rebalance-shortfall')
   .description(
     'estimate ether amount to make the vault healthy using rebalance',
   )
-  .argument('<address>', 'vault address')
+  .argument('<address>', 'vault address', stringToAddress)
   .action(async (address: Address) => {
     const contract = await getVaultHubContract();
 

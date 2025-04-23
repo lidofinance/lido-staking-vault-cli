@@ -7,13 +7,13 @@ sidebar_position: 2
 ## Command
 
 ```bash
-lsv-cli hub [arguments] [-options]
+yarn start hub [arguments] [-options]
 ```
 
 ## VaultHub commands list
 
 ```bash
-lsv-cli hub -h
+yarn start hub -h
 ```
 
 ## API

@@ -1,4 +1,5 @@
 import { ReadProgramCommandConfig } from 'utils';
+import { parseEther } from 'viem';
 
 export const readCommandConfig: ReadProgramCommandConfig = {
   withdrawableEther: {
@@ -41,7 +42,7 @@ export const readCommandConfig: ReadProgramCommandConfig = {
   },
   shareLimit: {
     name: 's-limit',
-    description: 'get share limit',
+    description: 'get the stETH share limit of the vault',
   },
   reserveRatioBP: {
     name: 'reserve-ratio',
@@ -59,6 +60,7 @@ export const readCommandConfig: ReadProgramCommandConfig = {
       _etherToFund: {
         name: 'etherToFund',
         description: 'the amount of ether to be funded, can be zero',
+        modifier: parseEther,
       },
     },
   },

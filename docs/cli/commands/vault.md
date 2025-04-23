@@ -7,13 +7,13 @@ sidebar_position: 4
 ## Command
 
 ```bash
-lsv-cli vault [arguments] [-options]
+yarn start vault [arguments] [-options]
 ```
 
 ## Vault commands list
 
 ```bash
-lsv-cli vault -h
+yarn start vault -h
 ```
 
 ## API

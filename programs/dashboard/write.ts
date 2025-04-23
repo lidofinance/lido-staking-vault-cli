@@ -15,6 +15,7 @@ import {
   ValidatorWitness,
   logInfo,
   getCommandsJson,
+  stringToAddress,
 } from 'utils';
 import { RoleAssignment, Deposit } from 'types';
 
@@ -34,8 +35,8 @@ dashboardWrite.on('option:-cmd2json', function () {
 dashboardWrite
   .command('ownership')
   .description('transfers ownership of the staking vault to a new owner')
-  .argument('<address>', 'dashboard address')
-  .argument('<newOwner>', 'address of the new owner')
+  .argument('<address>', 'dashboard address', stringToAddress)
+  .argument('<newOwner>', 'address of the new owner', stringToAddress)
   .action(async (address: Address, newOwner: Address) => {
     const contract = getDashboardContract(address);
     const vault = await callReadMethod(contract, 'stakingVault');
@@ -55,7 +56,7 @@ dashboardWrite
 dashboardWrite
   .command('disconnect')
   .description('disconnects the staking vault from the vault hub')
-  .argument('<address>', 'dashboard address')
+  .argument('<address>', 'dashboard address', stringToAddress)
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
     const vault = await callReadMethod(contract, 'stakingVault');
@@ -71,7 +72,7 @@ dashboardWrite
 dashboardWrite
   .command('fund')
   .description('funds the staking vault with ether')
-  .argument('<address>', 'dashboard address')
+  .argument('<address>', 'dashboard address', stringToAddress)
   .argument('<ether>', 'amount of ether to be funded (in ETH)')
   .action(async (address: Address, ether: string) => {
     const contract = getDashboardContract(address);
@@ -88,8 +89,8 @@ dashboardWrite
 dashboardWrite
   .command('withdraw')
   .description('withdraws ether from the staking vault to a recipient')
-  .argument('<address>', 'dashboard address')
-  .argument('<recipient>', 'address of the recipient')
+  .argument('<address>', 'dashboard address', stringToAddress)
+  .argument('<recipient>', 'address of the recipient', stringToAddress)
   .argument('<eth>', 'amount of ether to withdraw (in ETH)')
   .action(async (address: Address, recipient: Address, ether: string) => {
     const contract = getDashboardContract(address);
@@ -109,7 +110,7 @@ dashboardWrite
 dashboardWrite
   .command('lock')
   .description('updates the locked amount of the staking vault')
-  .argument('<address>', 'dashboard address')
+  .argument('<address>', 'dashboard address', stringToAddress)
   .argument('<lockedAmount>', 'amount of ether to lock')
   .action(async (address: Address, lockedAmount: string) => {
     const contract = getDashboardContract(address);
@@ -128,7 +129,7 @@ dashboardWrite
 dashboardWrite
   .command('exit')
   .description('requests the exit of a validator from the staking vault')
-  .argument('<address>', 'dashboard address')
+  .argument('<address>', 'dashboard address', stringToAddress)
   .argument('<validatorPubKey>', 'public key of the validator to exit')
   .action(async (address: Address, validatorPubKey: Address) => {
     const contract = getDashboardContract(address);
@@ -147,10 +148,10 @@ dashboardWrite
 dashboardWrite
   .command('trigger-validator-withdrawal')
   .description('triggers the withdrawal of a validator from the staking vault')
-  .argument('<address>', 'dashboard address')
+  .argument('<address>', 'dashboard address', stringToAddress)
   .argument('<pubkeys>', 'pubkeys of the validators to withdraw')
   .argument('<amounts>', 'amounts of ether to withdraw', stringToBigIntArray)
-  .argument('<recipient>', 'address of the recipient')
+  .argument('<recipient>', 'address of the recipient', stringToAddress)
   .action(
     async (
       address: Address,
@@ -186,23 +187,28 @@ dashboardWrite
   .command('mint-shares')
   .alias('mint')
   .description('mints stETH tokens backed by the vault to a recipient')
-  .argument('<address>', 'dashboard address')
-  .argument('<recipient>', 'address of the recipient')
-  .argument('<amountOfShares>', 'amount of shares to mint', stringToBigInt)
+  .argument('<address>', 'dashboard address', stringToAddress)
+  .argument('<recipient>', 'address of the recipient', stringToAddress)
+  .argument('<amountOfShares>', 'amount of shares to mint (in Shares)')
   .action(
-    async (address: Address, recipient: Address, amountOfShares: bigint) => {
+    async (address: Address, recipient: Address, amountOfShares: string) => {
       const contract = getDashboardContract(address);
+      const vault = await callReadMethod(contract, 'stakingVault');
+      const confirm = await confirmOperation(
+        `Are you sure you want to mint ${amountOfShares} shares to ${recipient} in the staking vault ${vault}?`,
+      );
+      if (!confirm) return;
 
-      await mintShares(contract, recipient, amountOfShares);
+      await mintShares(contract, recipient, parseEther(amountOfShares));
     },
   );
 
 dashboardWrite
   .command('mint-steth')
   .description('mints stETH tokens backed by the vault to a recipient')
-  .argument('<address>', 'dashboard address')
-  .argument('<recipient>', 'address of the recipient')
-  .argument('<amountOfShares>', 'amount of shares to mint')
+  .argument('<address>', 'dashboard address', stringToAddress)
+  .argument('<recipient>', 'address of the recipient', stringToAddress)
+  .argument('<amountOfShares>', 'amount of shares to mint (in stETH)')
   .action(
     async (address: Address, recipient: Address, amountOfShares: string) => {
       const contract = getDashboardContract(address);
@@ -215,7 +221,7 @@ dashboardWrite
 
       await callWriteMethodWithReceipt(contract, 'mintStETH', [
         recipient,
-        BigInt(amountOfShares),
+        parseEther(amountOfShares),
       ]);
     },
   );
@@ -223,9 +229,9 @@ dashboardWrite
 dashboardWrite
   .command('mint-wsteth')
   .description('mints wstETH tokens backed by the vault to a recipient')
-  .argument('<address>', 'dashboard address')
-  .argument('<recipient>', 'address of the recipient')
-  .argument('<tokens>', 'amount of tokens to mint')
+  .argument('<address>', 'dashboard address', stringToAddress)
+  .argument('<recipient>', 'address of the recipient', stringToAddress)
+  .argument('<tokens>', 'amount of tokens to mint (in wstETH)')
   .action(async (address: Address, recipient: Address, tokens: string) => {
     const contract = getDashboardContract(address);
     const vault = await callReadMethod(contract, 'stakingVault');
@@ -237,7 +243,7 @@ dashboardWrite
 
     await callWriteMethodWithReceipt(contract, 'mintWstETH', [
       recipient,
-      BigInt(tokens),
+      parseEther(tokens),
     ]);
   });
 
@@ -247,9 +253,9 @@ dashboardWrite
   .description(
     'Burns stETH shares from the sender backed by the vault. Expects corresponding amount of stETH approved to this contract',
   )
-  .argument('<address>', 'dashboard address')
-  .argument('<amountOfShares>', 'amount of shares to burn', stringToBigInt)
-  .action(async (address: Address, amountOfShares: bigint) => {
+  .argument('<address>', 'dashboard address', stringToAddress)
+  .argument('<amountOfShares>', 'amount of shares to burn (in Shares)')
+  .action(async (address: Address, amountOfShares: string) => {
     const contract = getDashboardContract(address);
     const vault = await callReadMethod(contract, 'stakingVault');
 
@@ -258,7 +264,7 @@ dashboardWrite
     );
     if (!confirm) return;
 
-    await burnShares(contract, amountOfShares);
+    await burnShares(contract, parseEther(amountOfShares));
   });
 
 dashboardWrite
@@ -266,8 +272,8 @@ dashboardWrite
   .description(
     'Burns stETH shares from the sender backed by the vault. Expects stETH amount approved to this contract.',
   )
-  .argument('<address>', 'dashboard address')
-  .argument('<amountOfShares>', 'amount of shares to burn')
+  .argument('<address>', 'dashboard address', stringToAddress)
+  .argument('<amountOfShares>', 'amount of shares to burn (in stETH)')
   .action(async (address: Address, amountOfShares: string) => {
     const contract = getDashboardContract(address);
     const vault = await callReadMethod(contract, 'stakingVault');
@@ -278,15 +284,15 @@ dashboardWrite
     if (!confirm) return;
 
     await callWriteMethodWithReceipt(contract, 'burnStETH', [
-      BigInt(amountOfShares),
+      parseEther(amountOfShares),
     ]);
   });
 
 dashboardWrite
   .command('burn-wsteth')
   .description('burn wstETH tokens from the sender backed by the vault')
-  .argument('<address>', 'dashboard address')
-  .argument('<tokens>', 'amount of wstETH tokens to burn')
+  .argument('<address>', 'dashboard address', stringToAddress)
+  .argument('<tokens>', 'amount of wstETH tokens to burn (in wstETH)')
   .action(async (address: Address, tokens: string) => {
     const contract = getDashboardContract(address);
     const vault = await callReadMethod(contract, 'stakingVault');
@@ -296,13 +302,15 @@ dashboardWrite
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(contract, 'burnWstETH', [BigInt(tokens)]);
+    await callWriteMethodWithReceipt(contract, 'burnWstETH', [
+      parseEther(tokens),
+    ]);
   });
 
 dashboardWrite
   .command('rebalance')
   .description('rebalance the vault by transferring ether')
-  .argument('<address>', 'dashboard address')
+  .argument('<address>', 'dashboard address', stringToAddress)
   .argument('<ether>', 'amount of ether to rebalance')
   .action(async (address: Address, ether: string) => {
     const contract = getDashboardContract(address);
@@ -323,12 +331,12 @@ dashboardWrite
   .description(
     'recovers ERC20 tokens or ether from the dashboard contract to sender',
   )
-  .argument('<address>', 'dashboard address')
+  .argument('<address>', 'dashboard address', stringToAddress)
   .argument(
     '<token>',
     'Address of the token to recover or 0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee for ether',
   )
-  .argument('<recipient>', 'Address of the recovery recipient')
+  .argument('<recipient>', 'Address of the recovery recipient', stringToAddress)
   .argument('<amount>', 'amount of ether to recover')
   .action(
     async (
@@ -357,10 +365,10 @@ dashboardWrite
   .description(
     'Transfers a given token_id of an ERC721-compatible NFT (defined by the token contract address)',
   )
-  .argument('<address>', 'dashboard address')
+  .argument('<address>', 'dashboard address', stringToAddress)
   .argument('<token>', 'an ERC721-compatible token')
   .argument('<tokenId>', 'token id to recover')
-  .argument('<recipient>', 'Address of the recovery recipient')
+  .argument('<recipient>', 'Address of the recovery recipient', stringToAddress)
   .action(
     async (
       address: Address,
@@ -386,7 +394,7 @@ dashboardWrite
 dashboardWrite
   .command('deposit-pause')
   .description('Pauses beacon chain deposits on the staking vault.')
-  .argument('<address>', 'dashboard address')
+  .argument('<address>', 'dashboard address', stringToAddress)
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
     const vault = await callReadMethod(contract, 'stakingVault');
@@ -402,7 +410,7 @@ dashboardWrite
 dashboardWrite
   .command('deposit-resume')
   .description('Mass-grants multiple roles to multiple accounts.')
-  .argument('<address>', 'dashboard address')
+  .argument('<address>', 'dashboard address', stringToAddress)
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
     const vault = await callReadMethod(contract, 'stakingVault');
@@ -418,7 +426,7 @@ dashboardWrite
 dashboardWrite
   .command('role-grant')
   .description('Mass-revokes multiple roles from multiple accounts.')
-  .argument('<address>', 'dashboard address')
+  .argument('<address>', 'dashboard address', stringToAddress)
   .argument(
     '<roleAssignmentJSON>',
     'JSON array of role assignments',
@@ -434,7 +442,9 @@ dashboardWrite
 
     const vault = await callReadMethod(contract, 'stakingVault');
     const confirm = await confirmOperation(
-      `Are you sure you want to grant the roles ${roleAssignment} in the vault ${vault}?`,
+      `Are you sure you want to grant the roles ${roleAssignment.map((i) =>
+        JSON.stringify(i),
+      )} in the vault ${vault}?`,
     );
     if (!confirm) return;
 
@@ -444,7 +454,7 @@ dashboardWrite
 dashboardWrite
   .command('role-revoke')
   .description('Resumes beacon chain deposits on the staking vault.')
-  .argument('<address>', 'dashboard address')
+  .argument('<address>', 'dashboard address', stringToAddress)
   .argument(
     '<roleAssignmentJSON>',
     'JSON array of role assignments',
@@ -460,7 +470,9 @@ dashboardWrite
 
     const vault = await callReadMethod(contract, 'stakingVault');
     const confirm = await confirmOperation(
-      `Are you sure you want to revoke the roles ${roleAssignment} in the vault ${vault}?`,
+      `Are you sure you want to revoke the roles ${roleAssignment.map((i) =>
+        JSON.stringify(i),
+      )} in the vault ${vault}?`,
     );
     if (!confirm) return;
 
@@ -473,9 +485,13 @@ dashboardWrite
   .description(
     'Compensates ether of disproven validator`s predeposit from PDG to the recipient',
   )
-  .argument('<address>', 'dashboard address')
+  .argument('<address>', 'dashboard address', stringToAddress)
   .argument('<pubkey>', 'validator that was proven invalid in PDG')
-  .argument('<recipient>', 'address to receive the `PDG.PREDEPOSIT_AMOUNT`')
+  .argument(
+    '<recipient>',
+    'address to receive the `PDG.PREDEPOSIT_AMOUNT`',
+    stringToAddress,
+  )
   .action(async (address: Address, pubkey: Address, recipient: Address) => {
     const contract = getDashboardContract(address);
 
@@ -497,7 +513,7 @@ dashboardWrite
   .description(
     'Withdraws ether from vault and deposits directly to provided validators bypassing the default PDG process',
   )
-  .argument('<address>', 'dashboard address')
+  .argument('<address>', 'dashboard address', stringToAddress)
   .argument(
     '<deposits>',
     'array of IStakingVault.Deposit structs containing deposit data',
@@ -526,7 +542,7 @@ dashboardWrite
   .description(
     'Proves validators with correct vault WC if they are unknown to PDG',
   )
-  .argument('<address>', 'dashboard address')
+  .argument('<address>', 'dashboard address', stringToAddress)
   .argument(
     '<witnesses>',
     'array of IPredepositGuarantee.ValidatorWitness structs containing proof data for validators',
@@ -553,7 +569,7 @@ dashboardWrite
   .command('authorize-lido-vault-hub')
   .alias('authorize-hub')
   .description('Authorizes the Lido Vault Hub to manage the staking vault.')
-  .argument('<address>', 'dashboard address')
+  .argument('<address>', 'dashboard address', stringToAddress)
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
     const vault = await callReadMethod(contract, 'stakingVault');
@@ -572,7 +588,7 @@ dashboardWrite
   .description(
     'Deauthorizes the Lido Vault Hub from managing the staking vault.',
   )
-  .argument('<address>', 'dashboard address')
+  .argument('<address>', 'dashboard address', stringToAddress)
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
     const vault = await callReadMethod(contract, 'stakingVault');
@@ -589,7 +605,7 @@ dashboardWrite
   .command('ossify-staking-vault')
   .alias('ossify')
   .description('Ossifies the staking vault.')
-  .argument('<address>', 'dashboard address')
+  .argument('<address>', 'dashboard address', stringToAddress)
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
     const vault = await callReadMethod(contract, 'stakingVault');
@@ -605,7 +621,7 @@ dashboardWrite
 dashboardWrite
   .command('set-depositor')
   .description('Updates the address of the depositor for the staking vault.')
-  .argument('<address>', 'dashboard address')
+  .argument('<address>', 'dashboard address', stringToAddress)
   .argument('<depositor>', 'address of the new depositor')
   .action(async (address: Address, depositor: Address) => {
     const contract = getDashboardContract(address);
@@ -622,7 +638,7 @@ dashboardWrite
 dashboardWrite
   .command('reset-locked')
   .description('Zeroes the locked amount of the staking vault.')
-  .argument('<address>', 'dashboard address')
+  .argument('<address>', 'dashboard address', stringToAddress)
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
     const vault = await callReadMethod(contract, 'stakingVault');
@@ -638,7 +654,7 @@ dashboardWrite
 dashboardWrite
   .command('request-tier-change')
   .description('Requests a change of tier on the OperatorGrid.')
-  .argument('<address>', 'dashboard address')
+  .argument('<address>', 'dashboard address', stringToAddress)
   .argument('<tier>', 'tier to change to', stringToBigInt)
   .action(async (address: Address, tier: bigint) => {
     const contract = getDashboardContract(address);

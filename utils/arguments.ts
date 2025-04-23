@@ -1,6 +1,6 @@
 import { program } from 'commander';
 import { Permit, RoleAssignment, Tier, Deposit } from 'types';
-import { parseEther } from 'viem';
+import { Address, isAddress, parseEther } from 'viem';
 
 import { toHex } from './proof/merkle-utils.js';
 
@@ -72,4 +72,11 @@ export const parseDepositArray = (str: string): Deposit[] => {
   });
 
   return camelCased;
+};
+
+export const stringToAddress = (value: string): Address => {
+  if (!isAddress(value)) {
+    program.error('Address value must be a valid address', { exitCode: 1 });
+  }
+  return value;
 };

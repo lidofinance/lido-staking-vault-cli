@@ -7,13 +7,13 @@ sidebar_position: 1
 ## Command
 
 ```bash
-lsv-cli account [arguments] [-options]
+yarn start account [arguments] [-options]
 ```
 
 ## Account commands list
 
 ```bash
-lsv-cli account -h
+yarn start account -h
 ```
 
 ## API

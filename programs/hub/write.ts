@@ -1,4 +1,4 @@
-import { Address, Hex } from 'viem';
+import { Address, Hex, parseEther } from 'viem';
 import { Option } from 'commander';
 
 import { getOperatorGridContract, getVaultHubContract } from 'contracts';
@@ -8,6 +8,7 @@ import {
   confirmOperation,
   getCommandsJson,
   logInfo,
+  stringToAddress,
   stringToBigInt,
 } from 'utils';
 
@@ -44,7 +45,7 @@ VaultHubWrite.command('add-codehash')
 // TODO: replace by voting
 VaultHubWrite.command('v-connect')
   .description('connects a vault to the hub (vault master role needed)')
-  .argument('<address>', 'vault address')
+  .argument('<address>', 'vault address', stringToAddress)
   .action(async (address: Address) => {
     const contract = await getVaultHubContract();
     const operatorGridContract = await getOperatorGridContract();
@@ -62,7 +63,7 @@ VaultHubWrite.command('v-connect')
 
 VaultHubWrite.command('v-update-share-limit')
   .description('updates share limit for the vault')
-  .argument('<address>', 'vault address')
+  .argument('<address>', 'vault address', stringToAddress)
   .argument('<shareLimit>', 'share limit', stringToBigInt)
   .action(async (address: Address, shareLimit: bigint) => {
     const contract = await getVaultHubContract();
@@ -80,7 +81,7 @@ VaultHubWrite.command('v-update-share-limit')
 
 VaultHubWrite.command('v-disconnect')
   .description('force disconnects a vault from the hub')
-  .argument('<address>', 'vault address')
+  .argument('<address>', 'vault address', stringToAddress)
   .action(async (address: Address) => {
     const contract = await getVaultHubContract();
 
@@ -96,7 +97,7 @@ VaultHubWrite.command('v-owner-disconnect')
   .description(
     "disconnects a vault from the hub, msg.sender should be vault's owner",
   )
-  .argument('<address>', 'vault address')
+  .argument('<address>', 'vault address', stringToAddress)
   .action(async (address: Address) => {
     const contract = await getVaultHubContract();
 
@@ -114,7 +115,7 @@ VaultHubWrite.command('v-mint')
   .description(
     ' mint StETH shares backed by vault external balance to the receiver address',
   )
-  .argument('<address>', 'vault address')
+  .argument('<address>', 'vault address', stringToAddress)
   .argument('<recipient>', 'address of the receiver')
   .argument('<amountOfShares>', 'amount of stETH shares to mint')
   .action(
@@ -136,7 +137,7 @@ VaultHubWrite.command('v-mint')
 
 VaultHubWrite.command('v-burn')
   .description('burn steth shares from the balance of the VaultHub contract')
-  .argument('<address>', 'vault address')
+  .argument('<address>', 'vault address', stringToAddress)
   .argument('<amountOfShares>', 'amount of stETH shares to mint')
   .action(async (address: Address, amountOfShares: string) => {
     const contract = await getVaultHubContract();
@@ -156,7 +157,7 @@ VaultHubWrite.command('v-transfer-and-burn')
   .description(
     'separate burn function for EOA vault owners; requires vaultHub to be approved to transfer stETH',
   )
-  .argument('<address>', 'vault address')
+  .argument('<address>', 'vault address', stringToAddress)
   .argument('<amountOfShares>', 'amount of stETH shares to mint')
   .action(async (address: Address, amountOfShares: string) => {
     const contract = await getVaultHubContract();
@@ -174,7 +175,7 @@ VaultHubWrite.command('v-transfer-and-burn')
 
 VaultHubWrite.command('v-force-rebalance')
   .description('force rebalance of the vault to have sufficient reserve ratio')
-  .argument('<address>', 'vault address')
+  .argument('<address>', 'vault address', stringToAddress)
   .action(async (address: Address) => {
     const contract = await getVaultHubContract();
 
@@ -188,7 +189,7 @@ VaultHubWrite.command('v-force-rebalance')
 
 VaultHubWrite.command('v-update-connection')
   .description('updates the vault`s connection parameters')
-  .argument('<address>', 'vault address')
+  .argument('<address>', 'vault address', stringToAddress)
   .argument('<shareLimit>', 'share limit', stringToBigInt)
   .argument('<reserveRatio>', 'reserve ratio', stringToBigInt)
   .argument(
@@ -250,9 +251,9 @@ VaultHubWrite.command('update-report-data')
 
 VaultHubWrite.command('v-force-validator-exit')
   .description('force validator exit')
-  .argument('<vaultAddress>', 'vault address')
+  .argument('<vaultAddress>', 'vault address', stringToAddress)
   .argument('<validatorPubkey>', 'validator pubkey')
-  .argument('<refundRecipient>', 'refund recipient')
+  .argument('<refundRecipient>', 'refund recipient', stringToAddress)
   .action(
     async (
       vaultAddress: Address,
@@ -276,7 +277,7 @@ VaultHubWrite.command('v-force-validator-exit')
 
 VaultHubWrite.command('v-update-vault-data')
   .description('permissionless update of the vault data')
-  .argument('<vaultAddress>', 'vault address')
+  .argument('<vaultAddress>', 'vault address', stringToAddress)
   .argument('<totalValue>', 'total value', stringToBigInt)
   .argument('<inOutDelta>', 'in/out delta', stringToBigInt)
   .argument('<feeSharesCharged>', 'fee shares charged', stringToBigInt)
@@ -311,8 +312,8 @@ VaultHubWrite.command('v-update-vault-data')
 
 VaultHubWrite.command('mint-vaults-treasury-fee-shares')
   .description('mint vaults treasury fee shares')
-  .argument('<amountOfShares>', 'amount of shares', stringToBigInt)
-  .action(async (amountOfShares: bigint) => {
+  .argument('<amountOfShares>', 'amount of shares (in Shares)')
+  .action(async (amountOfShares: string) => {
     const contract = await getVaultHubContract();
 
     const confirm = await confirmOperation(
@@ -321,6 +322,6 @@ VaultHubWrite.command('mint-vaults-treasury-fee-shares')
     if (!confirm) return;
 
     await callWriteMethodWithReceipt(contract, 'mintVaultsTreasuryFeeShares', [
-      amountOfShares,
+      parseEther(amountOfShares),
     ]);
   });

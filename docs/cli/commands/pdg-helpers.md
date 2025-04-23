@@ -7,13 +7,13 @@ sidebar_position: 8
 ## Command
 
 ```bash
-lsv-cli pdg-helpers [arguments] [-options]
+yarn start pdg-helpers [arguments] [-options]
 ```
 
 ## PDG helpers commands list
 
 ```bash
-lsv-cli pdg-helpers -h
+yarn start pdg-helpers -h
 ```
 
 ## API
@@ -26,3 +26,14 @@ lsv-cli pdg-helpers -h
 | fv-gindex \<forks>                                                                                  | get first validator gindex                                          |
 | compute-deposit-data-root compute-dd-root\<pubkey> \<withdrawal-credentials> \<signature> \<amount> | compute deposit data root                                           |
 | compute-deposit-domain compute-d-domain\<forkVersion>                                               | compute deposit domain                                              |
+
+**\<deposits>**
+
+```json
+{
+  "pubkey": "...",
+  "signature": "...",
+  "amount": number,
+  "deposit_data_root": "..."
+}
+```

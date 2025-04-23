@@ -7,13 +7,13 @@ sidebar_position: 3
 ## Command
 
 ```bash
-lsv-cli factory [arguments] [-options]
+yarn start factory [arguments] [-options]
 ```
 
 ## VaultFactory commands list
 
 ```bash
-lsv-cli factory -h
+yarn start factory -h
 ```
 
 ## API

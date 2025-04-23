@@ -1,4 +1,5 @@
 import { DashboardContract, getStethContract } from 'contracts';
+import { formatEther } from 'viem';
 
 export const fetchVaultMetrics = async (contract: DashboardContract) => {
   const stethContract = await getStethContract();
@@ -72,7 +73,9 @@ export const fetchAndCalculateVaultHealth = async (
     healthRatio,
     isHealthy,
     totalValue,
+    totalValueInEth: `${formatEther(totalValue)} ETH`,
     liabilitySharesInStethWei,
+    liabilitySharesInSteth: `${formatEther(liabilitySharesInStethWei)} stETH`,
     forceRebalanceThresholdBP,
     liabilityShares,
   };

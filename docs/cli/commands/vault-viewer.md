@@ -7,13 +7,13 @@ sidebar_position: 9
 ## Command
 
 ```bash
-lsv-cli vv [arguments] [-options]
+yarn start v-v [arguments] [-options]
 ```
 
 ## VaultViewer commands list
 
 ```bash
-lsv-cli vv -h
+yarn start v-v -h
 ```
 
 ## API

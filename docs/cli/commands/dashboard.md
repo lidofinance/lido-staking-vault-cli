@@ -7,13 +7,13 @@ sidebar_position: 5
 ## Command
 
 ```bash
-lsv-cli dashboard [arguments] [-options]
+yarn start dashboard [arguments] [-options]
 ```
 
 ## Dashboard commands list
 
 ```bash
-lsv-cli dashboard -h
+yarn start dashboard -h
 ```
 
 ## API
@@ -79,7 +79,7 @@ lsv-cli dashboard -h
 | no-unclaimed-fee \<address>                          | returns the accumulated unclaimed node operator fee in ether                                              |
 | remaining-minting-capacity \<address> \<etherToFund> | get the remaining capacity for stETH shares that can be minted by the vault if additional ether is funded |
 | reserve-ratio \<address>                             | get reserve ratio in basis points                                                                         |
-| s-limit \<address>                                   | get share limit                                                                                           |
+| s-limit \<address>                                   | get the stETH share limit of the vault                                                                    |
 | vault \<address>                                     | get staking vault address                                                                                 |
 | supports-interface \<address> \<interfaceId>         | get supports interface by id                                                                              |
 | total-mintable-capacity \<address>                   | get the overall capacity for stETH shares that can be minted by the vault                                 |
@@ -142,4 +142,15 @@ lsv-cli dashboard -h
   "account": string as Address;
   "role": string as `0x${string}`;
 }]
+```
+
+**\<deposits>**
+
+```json
+{
+  "pubkey": "...",
+  "signature": "...",
+  "amount": number,
+  "deposit_data_root": "..."
+}
 ```

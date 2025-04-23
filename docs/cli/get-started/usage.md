@@ -6,16 +6,6 @@ sidebar_position: 2
 
 After installation and configuration, you can start using the CLI to manage your staking vaults.
 
-### NPM
-
-```bash
-lsv-cli [command] [options]
-```
-
-```bash
-lsv-cli -h
-```
-
 ### Repository
 
 ```bash

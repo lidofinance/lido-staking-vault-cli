@@ -10,6 +10,7 @@ import {
   logResult,
   logInfo,
   getCommandsJson,
+  stringToAddress,
 } from 'utils';
 
 import { dashboard } from './main.js';
@@ -29,7 +30,7 @@ dashboardRead.on('option:-cmd2json', function () {
 dashboardRead
   .command('info')
   .description('get dashboard base info')
-  .argument('<address>', 'dashboard address')
+  .argument('<address>', 'dashboard address', stringToAddress)
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
 
@@ -39,7 +40,7 @@ dashboardRead
 dashboardRead
   .command('roles')
   .description('get dashboard roles')
-  .argument('<address>', 'dashboard address')
+  .argument('<address>', 'dashboard address', stringToAddress)
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
     await getDashboardRoles(contract);
@@ -48,7 +49,7 @@ dashboardRead
 dashboardRead
   .command('health')
   .description('get vault health info')
-  .argument('<address>', 'dashboard address')
+  .argument('<address>', 'dashboard address', stringToAddress)
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
     try {

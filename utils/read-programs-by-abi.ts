@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import { Abi } from 'viem';
-import { callReadMethod, ReadContract } from 'utils';
+import { callReadMethod, ReadContract, stringToAddress } from 'utils';
 
 export type ReadProgramCommandConfig = {
   [fnName: string]: {
@@ -85,7 +85,7 @@ export function generateReadCommands<T>(
 
     // If the contract needs an address, add the <address> argument
     if (isNeedsAddress) {
-      fnCommand.argument('<address>', 'Contract address');
+      fnCommand.argument('<address>', 'Contract address', stringToAddress);
     }
 
     // Add arguments for each function parameter

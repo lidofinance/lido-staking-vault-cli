@@ -4,7 +4,12 @@ import { Option } from 'commander';
 import { getStakingVaultContract } from 'contracts';
 import { StakingVaultAbi } from 'abi';
 import { getVaultBaseInfo } from 'features';
-import { generateReadCommands, logInfo, getCommandsJson } from 'utils';
+import {
+  generateReadCommands,
+  logInfo,
+  getCommandsJson,
+  stringToAddress,
+} from 'utils';
 
 import { vault } from './main.js';
 import { readCommandConfig } from './config.js';
@@ -23,7 +28,7 @@ vaultRead.on('option:-cmd2json', function () {
 vaultRead
   .command('info')
   .description('get vault base info')
-  .argument('<address>', 'vault address')
+  .argument('<address>', 'vault address', stringToAddress)
   .action(async (address: Address) => {
     await getVaultBaseInfo(address);
   });

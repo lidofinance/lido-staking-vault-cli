@@ -23,20 +23,6 @@ For changes between versions see [Changelog](./changelog.mdx)
 
 ## Installation
 
-### NPM
-
-Install the Lido Staking Vault CLI globally using npm:
-
-```bash
-npm install -g @lidofinance/lsv-cli
-```
-
-Alternatively, you can install it locally in your project:
-
-```bash
-npm install @lidofinance/lsv-cli
-```
-
 ### Clone from repository
 
 ```bash
@@ -66,16 +52,6 @@ For using **EL_URL** in a right way be attentive to match rpc resolver link and 
 
 After installation and configuration, you can start using the CLI to manage your staking vaults.
 
-### NPM
-
-```bash
-lsv-cli [command] [options]
-```
-
-```bash
-lsv-cli -h
-```
-
 ### Repository
 
 ```bash
@@ -91,13 +67,13 @@ yarn start -h
 **VaultHub constants**
 
 ```bash
-lsv-cli hub constants
+yarn start hub r info
 ```
 
 **Count of all vaults**
 
 ```bash
-lsv-cli hub v-count
+yarn start hub r v-count
 ```
 
 ## Documentation

@@ -7,13 +7,13 @@ sidebar_position: 7
 ## Command
 
 ```bash
-lsv-cli pdg [arguments] [-options]
+yarn start pdg [arguments] [-options]
 ```
 
 ## PredepositGuarantee commands list
 
 ```bash
-lsv-cli pdg -h
+yarn start pdg -h
 ```
 
 ## API
@@ -75,3 +75,14 @@ lsv-cli pdg -h
 | set-no-guarantor set-no-g\<guarantor>                               | set node operator guarantor                    |
 | claim-guarantor-refund claim-g-refund\<recipient>                   | claim guarantor refund                         |
 | compensate-disproven-predeposit compensate\<pubkey> \<recipient>    | compensate disproven predeposit                |
+
+**\<deposits>**
+
+```json
+{
+  "pubkey": "...",
+  "signature": "...",
+  "amount": number,
+  "deposit_data_root": "..."
+}
+```
