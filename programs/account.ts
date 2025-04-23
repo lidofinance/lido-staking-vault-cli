@@ -1,16 +1,20 @@
-import { formatEther } from 'viem';
+import { Address, encodeFunctionData, formatEther, parseEther } from 'viem';
 import { generatePrivateKey } from 'viem/accounts';
 import { program } from 'command';
 import { Option } from 'commander';
 
-import { getStethContract } from 'contracts';
-import { getWalletWithAccount, getPublicClient } from 'providers';
+import { getStethContract, getWstethContract } from 'contracts';
+import { getWalletWithAccount, getPublicClient, getAccount } from 'providers';
 import {
   printError,
   showSpinner,
   logResult,
   getCommandsJson,
   logInfo,
+  callWriteMethodWithReceipt,
+  stringToAddress,
+  confirmOperation,
+  callReadMethod,
 } from 'utils';
 
 const account = program
@@ -33,9 +37,11 @@ account
 
     try {
       const stETHContract = await getStethContract();
+      const wstETHContract = await getWstethContract();
       const hideSpinner = showSpinner();
       const balance = await publicClient.getBalance({ address });
       const stETHBalance = await stETHContract.read.balanceOf([address]);
+      const wstETHBalance = await wstETHContract.read.balanceOf([address]);
       hideSpinner();
 
       logResult({
@@ -43,6 +49,7 @@ account
         balanceWEI: balance,
         balanceETH: formatEther(balance),
         balanceSTETH: formatEther(stETHBalance),
+        balanceWSTETH: formatEther(wstETHBalance),
       });
     } catch (err) {
       printError(err, 'Error when getting account info');
@@ -57,4 +64,107 @@ account
   .action(async () => {
     const privateKey = generatePrivateKey();
     logInfo(`Private key: ${privateKey}`);
+  });
+
+account
+  .command('steth-allowance')
+  .description('set allowance for steth contract')
+  .argument('<address>', 'address to set allowance for', stringToAddress)
+  .argument('<amount>', 'amount of steth to allow')
+  .action(async (address: Address, amount: string) => {
+    const stethContract = await getStethContract();
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to set allowance ${formatEther(
+        parseEther(amount),
+      )} for ${address}?`,
+    );
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt(stethContract, 'approve', [
+      address,
+      parseEther(amount),
+    ]);
+  });
+
+account
+  .command('steth-allowance-populate-tx')
+  .alias('steth-allowance-tx')
+  .description('populate tx for steth allowance')
+  .argument('<address>', 'address to set allowance for', stringToAddress)
+  .argument('<amount>', 'amount of steth to allow')
+  .action(async (address: Address, amount: string) => {
+    const stethContract = await getStethContract();
+
+    const tx = encodeFunctionData({
+      abi: stethContract.abi,
+      functionName: 'approve',
+      args: [address, parseEther(amount)],
+    });
+
+    logInfo(tx);
+  });
+
+account
+  .command('get-steth-allowance')
+  .description('get steth allowance for an address')
+  .argument('<address>', 'address to get allowance for', stringToAddress)
+  .action(async (address: Address) => {
+    const accountAddress = getAccount().address;
+    const stethContract = await getStethContract();
+
+    await callReadMethod(stethContract, 'allowance', [accountAddress, address]);
+  });
+
+account
+  .command('wsteth-allowance')
+  .description('set allowance for wsteth contract')
+  .argument('<address>', 'address to set allowance for', stringToAddress)
+  .argument('<amount>', 'amount of wsteth to allow')
+  .action(async (address: Address, amount: string) => {
+    const wstethContract = await getWstethContract();
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to set allowance ${formatEther(
+        parseEther(amount),
+      )} for ${address}?`,
+    );
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt(wstethContract, 'approve', [
+      address,
+      parseEther(amount),
+    ]);
+  });
+
+account
+  .command('wsteth-allowance-populate-tx')
+  .alias('wsteth-allowance-tx')
+  .description('populate tx for wsteth allowance')
+  .argument('<address>', 'address to set allowance for', stringToAddress)
+  .argument('<amount>', 'amount of wsteth to allow')
+  .action(async (address: Address, amount: string) => {
+    const wstethContract = await getWstethContract();
+
+    const tx = encodeFunctionData({
+      abi: wstethContract.abi,
+      functionName: 'approve',
+      args: [address, parseEther(amount)],
+    });
+
+    logInfo(tx);
+  });
+
+account
+  .command('get-wsteth-allowance')
+  .description('get wsteth allowance for an address')
+  .argument('<address>', 'address to get allowance for', stringToAddress)
+  .action(async (address: Address) => {
+    const accountAddress = getAccount().address;
+    const wstethContract = await getWstethContract();
+
+    await callReadMethod(wstethContract, 'allowance', [
+      accountAddress,
+      address,
+    ]);
   });

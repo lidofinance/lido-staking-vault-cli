@@ -7,9 +7,13 @@ import {
 
 import { Address, formatEther } from 'viem';
 
-import { DashboardContract, getDashboardContract } from 'contracts';
 import {
-  callReadMethod,
+  DashboardContract,
+  getDashboardContract,
+  getStethContract,
+} from 'contracts';
+import {
+  callReadMethodSilent,
   fetchAndCalculateVaultHealthWithNewValue,
   logError,
   showSpinner,
@@ -22,24 +26,18 @@ const confirmLock = async (
   amountOfSharesWei: bigint,
   dashboardAddress: Address,
 ) => {
+  const contract = getDashboardContract(dashboardAddress);
   const { requiredLock, currentLock } = await getRequiredLockByShares(
     dashboardAddress,
     formatEther(amountOfSharesWei),
   );
-
   const currentWallet = getAccount();
-  const LOCK_ROLE = await callReadMethod(
-    getDashboardContract(dashboardAddress),
-    'LOCK_ROLE',
-    undefined,
-    { silent: true },
-  );
-  const currentLockRoles = await callReadMethod(
-    getDashboardContract(dashboardAddress),
+
+  const LOCK_ROLE = await callReadMethodSilent(contract, 'LOCK_ROLE');
+  const currentLockRoles = await callReadMethodSilent(
+    contract,
     'getRoleMembers',
     [LOCK_ROLE],
-    undefined,
-    { silent: true },
   );
 
   const isLockRole = currentLockRoles.includes(currentWallet.address);
@@ -63,19 +61,38 @@ const confirmLock = async (
   return true;
 };
 
+export const mintSteth = async (
+  contract: DashboardContract,
+  recipient: Address,
+  amountOfSteth: bigint,
+) => {
+  const stethContract = await getStethContract();
+  const amountOfShares = await callReadMethodSilent(
+    stethContract,
+    'getSharesByPooledEth',
+    [amountOfSteth],
+  );
+
+  await mintShares(contract, recipient, amountOfShares, 'mintStETH');
+};
+
 export const mintShares = async (
   contract: DashboardContract,
   recipient: Address,
   amountOfShares: bigint,
+  method: 'mintShares' | 'mintStETH' | 'mintWstETH',
 ) => {
-  const remainingMintingCapacity = await callReadMethod(
+  const type =
+    method === 'mintShares'
+      ? 'shares'
+      : method === 'mintStETH'
+        ? 'stETH'
+        : 'wstETH';
+
+  const remainingMintingCapacity = await callReadMethodSilent(
     contract,
     'remainingMintingCapacity',
     [0n],
-    undefined,
-    {
-      silent: true,
-    },
   );
   if (remainingMintingCapacity < amountOfShares) {
     logError(
@@ -93,68 +110,96 @@ export const mintShares = async (
     newVaultHealth,
     newLiabilityShares,
     liabilityShares,
+    valueInStethWei,
   } = await fetchAndCalculateVaultHealthWithNewValue(
     contract,
     amountOfShares,
     'mint',
   );
-  hideSpinner();
-  const vault = await callReadMethod(contract, 'stakingVault', undefined, {
-    silent: true,
-  });
+  const vault = await callReadMethodSilent(contract, 'stakingVault');
 
+  hideSpinner();
   const confirm = await confirmMint({
     vaultAddress: vault,
     recipient,
     amountOfMint: amountOfShares,
+    amountOfMintInStethWei: valueInStethWei,
     newLiabilityShares: newLiabilityShares,
     currentLiabilityShares: liabilityShares,
     newHealthRatio: newVaultHealth.healthRatio,
     currentHealthRatio: currentVaultHealth.healthRatio,
     newIsHealthy: newVaultHealth.isHealthy,
     currentIsHealthy: currentVaultHealth.isHealthy,
+    type,
   });
   if (!confirm) return;
 
-  await callWriteMethodWithReceipt(contract, 'mintShares', [
+  await callWriteMethodWithReceipt(contract, method, [
     recipient,
     amountOfShares,
   ]);
 };
 
+export const burnSteth = async (
+  contract: DashboardContract,
+  amountOfSteth: bigint,
+) => {
+  const stethContract = await getStethContract();
+  const amountOfShares = await callReadMethodSilent(
+    stethContract,
+    'getSharesByPooledEth',
+    [amountOfSteth],
+  );
+
+  await burnShares(contract, amountOfShares, 'burnStETH');
+};
+
 export const burnShares = async (
   contract: DashboardContract,
   amountOfShares: bigint,
+  method: 'burnShares' | 'burnStETH' | 'burnWstETH',
 ) => {
-  const liabilityShares = await callReadMethod(contract, 'liabilityShares');
+  const type =
+    method === 'burnShares'
+      ? 'shares'
+      : method === 'burnStETH'
+        ? 'stETH'
+        : 'wstETH';
+  const liabilityShares = await callReadMethodSilent(
+    contract,
+    'liabilityShares',
+  );
 
   if (amountOfShares > liabilityShares) {
     logError('Cannot burn more shares than the vault has');
     return;
   }
 
-  const hideSpinner = showSpinner();
-
-  const { currentVaultHealth, newVaultHealth, newLiabilityShares } =
-    await fetchAndCalculateVaultHealthWithNewValue(
-      contract,
-      amountOfShares,
-      'burn',
-    );
-  const vault = await callReadMethod(contract, 'stakingVault');
-  hideSpinner();
+  const {
+    currentVaultHealth,
+    newVaultHealth,
+    newLiabilityShares,
+    valueInStethWei,
+  } = await fetchAndCalculateVaultHealthWithNewValue(
+    contract,
+    amountOfShares,
+    'burn',
+  );
+  const vault = await callReadMethodSilent(contract, 'stakingVault');
 
   const confirm = await confirmBurn({
     vaultAddress: vault,
     amountOfBurn: amountOfShares,
+    amountOfBurnInStethWei: valueInStethWei,
     newLiabilityShares: newLiabilityShares,
     currentLiabilityShares: liabilityShares,
     newHealthRatio: newVaultHealth.healthRatio,
     currentHealthRatio: currentVaultHealth.healthRatio,
     newIsHealthy: newVaultHealth.isHealthy,
     currentIsHealthy: currentVaultHealth.isHealthy,
+    type,
   });
   if (!confirm) return;
 
-  await callWriteMethodWithReceipt(contract, 'burnShares', [amountOfShares]);
+  await callWriteMethodWithReceipt(contract, method, [amountOfShares]);
 };

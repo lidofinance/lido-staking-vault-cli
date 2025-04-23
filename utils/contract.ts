@@ -164,6 +164,19 @@ export const callReadMethod = async <
   }
 };
 
+export const callReadMethodSilent = async <
+  T extends ReadContract,
+  M extends keyof T['read'] & string,
+>(
+  contract: T,
+  methodName: M,
+  ...payload: Parameters<T['read'][M]>
+): Promise<ReturnType<T['read'][M]>> => {
+  return callReadMethod(contract, methodName, ...payload, {
+    silent: true,
+  });
+};
+
 export const isContractAddress = async (address: Address) => {
   const publicClient = getPublicClient();
   const bytecode = await publicClient.getCode({

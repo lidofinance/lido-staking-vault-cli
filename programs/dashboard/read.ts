@@ -59,7 +59,8 @@ dashboardRead
         healthRatio,
         isHealthy,
         totalValue,
-        liabilitySharesInStethWei,
+        totalValueInEth,
+        liabilitySharesInSteth,
         forceRebalanceThresholdBP,
         liabilityShares,
       } = await fetchAndCalculateVaultHealth(contract);
@@ -67,9 +68,9 @@ dashboardRead
       logResult({
         'Vault Healthy': isHealthy,
         'Total Value, wei': totalValue,
-        'Total Value, ether': `${formatEther(totalValue)} ETH`,
-        'Liability Shares': `${liabilityShares} shares`,
-        'Liability Shares in stETH': `${formatEther(liabilitySharesInStethWei)} stETH`,
+        'Total Value, ether': totalValueInEth,
+        'Liability Shares': `${formatEther(liabilityShares)} shares`,
+        'Liability Shares in stETH': liabilitySharesInSteth,
         'Rebalance Threshold, BP': forceRebalanceThresholdBP,
         'Rebalance Threshold, %': `${forceRebalanceThresholdBP / 100}%`,
         'Health Rate': `${healthRatio}%`,

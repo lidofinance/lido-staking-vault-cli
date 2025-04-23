@@ -9,6 +9,7 @@ export * from './Voting.js';
 export * from './VaultViewer.js';
 export * from './PredepositGuarantee.js';
 export * from './OperatorGrid.js';
+export * from './WstEth.js';
 // testing ABIs
 export * from './BlsHarness.js';
 export * from './ReportChecker.js';

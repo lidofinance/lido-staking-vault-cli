@@ -6,23 +6,27 @@ type ConfirmMintProps = {
   vaultAddress: Address;
   recipient: Address;
   amountOfMint: bigint;
+  amountOfMintInStethWei: bigint;
   newLiabilityShares: bigint;
   currentLiabilityShares: bigint;
   newHealthRatio: number;
   currentHealthRatio: number;
   newIsHealthy: boolean;
   currentIsHealthy: boolean;
+  type: 'shares' | 'stETH' | 'wstETH';
 };
 
 type ConfirmBurnProps = {
   vaultAddress: Address;
   amountOfBurn: bigint;
+  amountOfBurnInStethWei: bigint;
   newLiabilityShares: bigint;
   currentLiabilityShares: bigint;
   newHealthRatio: number;
   currentHealthRatio: number;
   newIsHealthy: boolean;
   currentIsHealthy: boolean;
+  type: 'shares' | 'stETH' | 'wstETH';
 };
 
 export const confirmMint = async (props: ConfirmMintProps) => {
@@ -30,13 +34,23 @@ export const confirmMint = async (props: ConfirmMintProps) => {
     vaultAddress,
     recipient,
     amountOfMint,
+    amountOfMintInStethWei,
     newLiabilityShares,
     currentLiabilityShares,
     newHealthRatio,
     currentHealthRatio,
     newIsHealthy,
     currentIsHealthy,
+    type,
   } = props;
+
+  const amountOfMintInShares = formatEther(amountOfMint);
+  const amountOfMintInSteth = formatEther(amountOfMintInStethWei);
+  const isShares = type === 'shares';
+  const isWsteth = type === 'wstETH';
+
+  const value =
+    isShares || isWsteth ? amountOfMintInShares : amountOfMintInSteth;
 
   logInfo(`Current vault ${vaultAddress} health:`);
   console.table([
@@ -49,7 +63,7 @@ export const confirmMint = async (props: ConfirmMintProps) => {
     },
   ]);
 
-  logInfo(`Minting ${formatEther(amountOfMint)} shares to ${recipient}:`);
+  logInfo(`Minting ${value} ${type} to ${recipient}:`);
   console.table([
     {
       'Vault Address': vaultAddress,
@@ -61,7 +75,7 @@ export const confirmMint = async (props: ConfirmMintProps) => {
   ]);
 
   const confirm = await confirmOperation(
-    `Are you sure you want to mint ${formatEther(amountOfMint)} shares to ${recipient}?`,
+    `Are you sure you want to mint ${value} ${type} to ${recipient}?`,
   );
 
   return confirm;
@@ -71,13 +85,23 @@ export const confirmBurn = async (props: ConfirmBurnProps) => {
   const {
     vaultAddress,
     amountOfBurn,
+    amountOfBurnInStethWei,
     newLiabilityShares,
     currentLiabilityShares,
     newHealthRatio,
     currentHealthRatio,
     newIsHealthy,
     currentIsHealthy,
+    type,
   } = props;
+
+  const amountOfBurnInShares = formatEther(amountOfBurn);
+  const amountOfBurnInSteth = formatEther(amountOfBurnInStethWei);
+  const isShares = type === 'shares';
+  const isWsteth = type === 'wstETH';
+
+  const value =
+    isShares || isWsteth ? amountOfBurnInShares : amountOfBurnInSteth;
 
   logInfo(`Current vault ${vaultAddress} health:`);
   console.table([
@@ -90,7 +114,7 @@ export const confirmBurn = async (props: ConfirmBurnProps) => {
     },
   ]);
 
-  logInfo(`Burning ${formatEther(amountOfBurn)} shares for ${vaultAddress}:`);
+  logInfo(`Burning ${value} ${type} for ${vaultAddress}:`);
   console.table([
     {
       'Vault Address': vaultAddress,
@@ -102,7 +126,7 @@ export const confirmBurn = async (props: ConfirmBurnProps) => {
   ]);
 
   const confirm = await confirmOperation(
-    `Are you sure you want to burn ${formatEther(amountOfBurn)} shares for ${vaultAddress}?`,
+    `Are you sure you want to burn ${value} ${type} for ${vaultAddress}?`,
   );
 
   return confirm;
