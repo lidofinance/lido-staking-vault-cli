@@ -25,69 +25,71 @@ yarn start dashboard -h
 
 ### Read
 
-| Command                                              | Description                                                                                               |
-| ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| info \<address>                                      | get dashboard base info                                                                                   |
-| roles \<address>                                     | get dashboard roles                                                                                       |
-| health \<address>                                    | get vault health info                                                                                     |
-| BURN_ROLE \<address>                                 | Calls the read-only function "BURN_ROLE" on the contract.                                                 |
-| DEFAULT_ADMIN_ROLE \<address>                        | Calls the read-only function "DEFAULT_ADMIN_ROLE" on the contract.                                        |
-| ETH \<address>                                       | Calls the read-only function "ETH" on the contract.                                                       |
-| FUND_ROLE \<address>                                 | Calls the read-only function "FUND_ROLE" on the contract.                                                 |
-| LIDO_VAULTHUB_AUTHORIZATION_ROLE \<address>          | Calls the read-only function "LIDO_VAULTHUB_AUTHORIZATION_ROLE" on the contract.                          |
-| LIDO_VAULTHUB_DEAUTHORIZATION_ROLE \<address>        | Calls the read-only function "LIDO_VAULTHUB_DEAUTHORIZATION_ROLE" on the contract.                        |
-| LOCK_ROLE \<address>                                 | Calls the read-only function "LOCK_ROLE" on the contract.                                                 |
-| MANUAL_ACCRUED_REWARDS_ADJUSTMENT_LIMIT \<address>   | get the manual accrued rewards adjustment limit                                                           |
-| MAX_CONFIRM_EXPIRY \<address>                        | get the max confirm expiry                                                                                |
-| MINT_ROLE \<address>                                 | Calls the read-only function "MINT_ROLE" on the contract.                                                 |
-| MIN_CONFIRM_EXPIRY \<address>                        | get the min confirm expiry                                                                                |
-| NODE_OPERATOR_FEE_CLAIM_ROLE \<address>              | Calls the read-only function "NODE_OPERATOR_FEE_CLAIM_ROLE" on the contract.                              |
-| NODE_OPERATOR_MANAGER_ROLE \<address>                | Calls the read-only function "NODE_OPERATOR_MANAGER_ROLE" on the contract.                                |
-| NODE_OPERATOR_REWARDS_ADJUST_ROLE \<address>         | Calls the read-only function "NODE_OPERATOR_REWARDS_ADJUST_ROLE" on the contract.                         |
-| OSSIFY_ROLE \<address>                               | Calls the read-only function "OSSIFY_ROLE" on the contract.                                               |
-| PAUSE_BEACON_CHAIN_DEPOSITS_ROLE \<address>          | Calls the read-only function "PAUSE_BEACON_CHAIN_DEPOSITS_ROLE" on the contract.                          |
-| PDG_COMPENSATE_PREDEPOSIT_ROLE \<address>            | Calls the read-only function "PDG_COMPENSATE_PREDEPOSIT_ROLE" on the contract.                            |
-| PDG_PROVE_VALIDATOR_ROLE \<address>                  | Calls the read-only function "PDG_PROVE_VALIDATOR_ROLE" on the contract.                                  |
-| REBALANCE_ROLE \<address>                            | Calls the read-only function "REBALANCE_ROLE" on the contract.                                            |
-| RECOVER_ASSETS_ROLE \<address>                       | Calls the read-only function "RECOVER_ASSETS_ROLE" on the contract.                                       |
-| REQUEST_TIER_CHANGE_ROLE \<address>                  | Calls the read-only function "REQUEST_TIER_CHANGE_ROLE" on the contract.                                  |
-| REQUEST_VALIDATOR_EXIT_ROLE \<address>               | Calls the read-only function "REQUEST_VALIDATOR_EXIT_ROLE" on the contract.                               |
-| RESET_LOCKED_ROLE \<address>                         | Calls the read-only function "RESET_LOCKED_ROLE" on the contract.                                         |
-| RESUME_BEACON_CHAIN_DEPOSITS_ROLE \<address>         | Calls the read-only function "RESUME_BEACON_CHAIN_DEPOSITS_ROLE" on the contract.                         |
-| SET_DEPOSITOR_ROLE \<address>                        | Calls the read-only function "SET_DEPOSITOR_ROLE" on the contract.                                        |
-| STETH \<address>                                     | Calls the read-only function "STETH" on the contract.                                                     |
-| TRIGGER_VALIDATOR_WITHDRAWAL_ROLE \<address>         | Calls the read-only function "TRIGGER_VALIDATOR_WITHDRAWAL_ROLE" on the contract.                         |
-| UNGUARANTEED_BEACON_CHAIN_DEPOSIT_ROLE \<address>    | Calls the read-only function "UNGUARANTEED_BEACON_CHAIN_DEPOSIT_ROLE" on the contract.                    |
-| VAULT_HUB \<address>                                 | Calls the read-only function "VAULT_HUB" on the contract.                                                 |
-| VOLUNTARY_DISCONNECT_ROLE \<address>                 | Calls the read-only function "VOLUNTARY_DISCONNECT_ROLE" on the contract.                                 |
-| WITHDRAW_ROLE \<address>                             | Calls the read-only function "WITHDRAW_ROLE" on the contract.                                             |
-| WSTETH \<address>                                    | Calls the read-only function "WSTETH" on the contract.                                                    |
-| accrued-rewards-adjustment \<address>                | get adjustment to allow fee correction during side deposits or consolidations.                            |
-| confirmations \<address> \<callData> \<role>         | get tracks confirmations                                                                                  |
-| confirming-roles \<address>                          | get confirming roles                                                                                      |
-| force-rebalance-threshold \<address>                 | get the rebalance threshold of the vault in basis points                                                  |
-| get-confirm-expiry \<address>                        | get the confirmation expiry                                                                               |
-| getRoleAdmin \<address> \<role>                      | Calls the read-only function "getRoleAdmin" on the contract.                                              |
-| getRoleMember \<address> \<role> \<index>            | Calls the read-only function "getRoleMember" on the contract.                                             |
-| getRoleMemberCount \<address> \<role>                | Calls the read-only function "getRoleMemberCount" on the contract.                                        |
-| getRoleMembers \<address> \<role>                    | Calls the read-only function "getRoleMembers" on the contract.                                            |
-| has-role \<address> \<role> \<account>               | get has role by role and account                                                                          |
-| initialized \<address>                               | Calls the read-only function "initialized" on the contract.                                               |
-| liability-shares \<address>                          | get the number of stETHshares minted                                                                      |
-| no-fee \<address>                                    | get node operator fee in basis points                                                                     |
-| no-fee-report \<address>                             | get node operator fee claimed report                                                                      |
-| no-unclaimed-fee \<address>                          | returns the accumulated unclaimed node operator fee in ether                                              |
-| remaining-minting-capacity \<address> \<etherToFund> | get the remaining capacity for stETH shares that can be minted by the vault if additional ether is funded |
-| reserve-ratio \<address>                             | get reserve ratio in basis points                                                                         |
-| s-limit \<address>                                   | get the stETH share limit of the vault                                                                    |
-| vault \<address>                                     | get staking vault address                                                                                 |
-| supports-interface \<address> \<interfaceId>         | get supports interface by id                                                                              |
-| total-mintable-capacity \<address>                   | get the overall capacity for stETH shares that can be minted by the vault                                 |
-| total-value \<address>                               | get the total value of the vault in ether                                                                 |
-| t-fee \<address>                                     | get treasury fee in basis points                                                                          |
-| unreserved \<address>                                | get the unreserved amount of ether                                                                        |
-| socket \<address>                                    | get vault socket                                                                                          |
-| w-ether \<address>                                   | get amount of ether that can be withdrawn from the staking vault                                          |
+| Command                                                 | Description                                                                                               |
+| ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| info \<address>                                         | get dashboard base info                                                                                   |
+| roles \<address>                                        | get dashboard roles                                                                                       |
+| health \<address>                                       | get vault health info                                                                                     |
+| locked \<address>                                       | get locked info                                                                                           |
+| required-lock-by-shares req-lock\<address> \<newShares> | get required lock by shares                                                                               |
+| BURN_ROLE \<address>                                    | Calls the read-only function "BURN_ROLE" on the contract.                                                 |
+| DEFAULT_ADMIN_ROLE \<address>                           | Calls the read-only function "DEFAULT_ADMIN_ROLE" on the contract.                                        |
+| ETH \<address>                                          | Calls the read-only function "ETH" on the contract.                                                       |
+| FUND_ROLE \<address>                                    | Calls the read-only function "FUND_ROLE" on the contract.                                                 |
+| LIDO_VAULTHUB_AUTHORIZATION_ROLE \<address>             | Calls the read-only function "LIDO_VAULTHUB_AUTHORIZATION_ROLE" on the contract.                          |
+| LIDO_VAULTHUB_DEAUTHORIZATION_ROLE \<address>           | Calls the read-only function "LIDO_VAULTHUB_DEAUTHORIZATION_ROLE" on the contract.                        |
+| LOCK_ROLE \<address>                                    | Calls the read-only function "LOCK_ROLE" on the contract.                                                 |
+| MANUAL_ACCRUED_REWARDS_ADJUSTMENT_LIMIT \<address>      | get the manual accrued rewards adjustment limit                                                           |
+| MAX_CONFIRM_EXPIRY \<address>                           | get the max confirm expiry                                                                                |
+| MINT_ROLE \<address>                                    | Calls the read-only function "MINT_ROLE" on the contract.                                                 |
+| MIN_CONFIRM_EXPIRY \<address>                           | get the min confirm expiry                                                                                |
+| NODE_OPERATOR_FEE_CLAIM_ROLE \<address>                 | Calls the read-only function "NODE_OPERATOR_FEE_CLAIM_ROLE" on the contract.                              |
+| NODE_OPERATOR_MANAGER_ROLE \<address>                   | Calls the read-only function "NODE_OPERATOR_MANAGER_ROLE" on the contract.                                |
+| NODE_OPERATOR_REWARDS_ADJUST_ROLE \<address>            | Calls the read-only function "NODE_OPERATOR_REWARDS_ADJUST_ROLE" on the contract.                         |
+| OSSIFY_ROLE \<address>                                  | Calls the read-only function "OSSIFY_ROLE" on the contract.                                               |
+| PAUSE_BEACON_CHAIN_DEPOSITS_ROLE \<address>             | Calls the read-only function "PAUSE_BEACON_CHAIN_DEPOSITS_ROLE" on the contract.                          |
+| PDG_COMPENSATE_PREDEPOSIT_ROLE \<address>               | Calls the read-only function "PDG_COMPENSATE_PREDEPOSIT_ROLE" on the contract.                            |
+| PDG_PROVE_VALIDATOR_ROLE \<address>                     | Calls the read-only function "PDG_PROVE_VALIDATOR_ROLE" on the contract.                                  |
+| REBALANCE_ROLE \<address>                               | Calls the read-only function "REBALANCE_ROLE" on the contract.                                            |
+| RECOVER_ASSETS_ROLE \<address>                          | Calls the read-only function "RECOVER_ASSETS_ROLE" on the contract.                                       |
+| REQUEST_TIER_CHANGE_ROLE \<address>                     | Calls the read-only function "REQUEST_TIER_CHANGE_ROLE" on the contract.                                  |
+| REQUEST_VALIDATOR_EXIT_ROLE \<address>                  | Calls the read-only function "REQUEST_VALIDATOR_EXIT_ROLE" on the contract.                               |
+| RESET_LOCKED_ROLE \<address>                            | Calls the read-only function "RESET_LOCKED_ROLE" on the contract.                                         |
+| RESUME_BEACON_CHAIN_DEPOSITS_ROLE \<address>            | Calls the read-only function "RESUME_BEACON_CHAIN_DEPOSITS_ROLE" on the contract.                         |
+| SET_DEPOSITOR_ROLE \<address>                           | Calls the read-only function "SET_DEPOSITOR_ROLE" on the contract.                                        |
+| STETH \<address>                                        | Calls the read-only function "STETH" on the contract.                                                     |
+| TRIGGER_VALIDATOR_WITHDRAWAL_ROLE \<address>            | Calls the read-only function "TRIGGER_VALIDATOR_WITHDRAWAL_ROLE" on the contract.                         |
+| UNGUARANTEED_BEACON_CHAIN_DEPOSIT_ROLE \<address>       | Calls the read-only function "UNGUARANTEED_BEACON_CHAIN_DEPOSIT_ROLE" on the contract.                    |
+| VAULT_HUB \<address>                                    | Calls the read-only function "VAULT_HUB" on the contract.                                                 |
+| VOLUNTARY_DISCONNECT_ROLE \<address>                    | Calls the read-only function "VOLUNTARY_DISCONNECT_ROLE" on the contract.                                 |
+| WITHDRAW_ROLE \<address>                                | Calls the read-only function "WITHDRAW_ROLE" on the contract.                                             |
+| WSTETH \<address>                                       | Calls the read-only function "WSTETH" on the contract.                                                    |
+| accrued-rewards-adjustment \<address>                   | get adjustment to allow fee correction during side deposits or consolidations.                            |
+| confirmations \<address> \<callData> \<role>            | get tracks confirmations                                                                                  |
+| confirming-roles \<address>                             | get confirming roles                                                                                      |
+| force-rebalance-threshold \<address>                    | get the rebalance threshold of the vault in basis points                                                  |
+| get-confirm-expiry \<address>                           | get the confirmation expiry                                                                               |
+| getRoleAdmin \<address> \<role>                         | Calls the read-only function "getRoleAdmin" on the contract.                                              |
+| getRoleMember \<address> \<role> \<index>               | Calls the read-only function "getRoleMember" on the contract.                                             |
+| getRoleMemberCount \<address> \<role>                   | Calls the read-only function "getRoleMemberCount" on the contract.                                        |
+| getRoleMembers \<address> \<role>                       | Calls the read-only function "getRoleMembers" on the contract.                                            |
+| has-role \<address> \<role> \<account>                  | get has role by role and account                                                                          |
+| initialized \<address>                                  | Calls the read-only function "initialized" on the contract.                                               |
+| liability-shares \<address>                             | get the number of stETHshares minted                                                                      |
+| no-fee \<address>                                       | get node operator fee in basis points                                                                     |
+| no-fee-report \<address>                                | get node operator fee claimed report                                                                      |
+| no-unclaimed-fee \<address>                             | returns the accumulated unclaimed node operator fee in ether                                              |
+| remaining-minting-capacity \<address> \<etherToFund>    | get the remaining capacity for stETH shares that can be minted by the vault if additional ether is funded |
+| reserve-ratio \<address>                                | get reserve ratio in basis points                                                                         |
+| s-limit \<address>                                      | get the stETH share limit of the vault                                                                    |
+| vault \<address>                                        | get staking vault address                                                                                 |
+| supports-interface \<address> \<interfaceId>            | get supports interface by id                                                                              |
+| total-mintable-capacity \<address>                      | get the overall capacity for stETH shares that can be minted by the vault                                 |
+| total-value \<address>                                  | get the total value of the vault in ether                                                                 |
+| t-fee \<address>                                        | get treasury fee in basis points                                                                          |
+| unreserved \<address>                                   | get the unreserved amount of ether                                                                        |
+| socket \<address>                                       | get vault socket                                                                                          |
+| w-ether \<address>                                      | get amount of ether that can be withdrawn from the staking vault                                          |
 
 ### Write
 
@@ -101,8 +103,8 @@ yarn start dashboard -h
 | exit \<address> \<validatorPubKey>                                              | requests the exit of a validator from the staking vault                                                                 |
 | trigger-validator-withdrawal \<address> \<pubkeys> \<amounts> \<recipient>      | triggers the withdrawal of a validator from the staking vault                                                           |
 | mint-shares mint\<address> \<recipient> \<amountOfShares>                       | mints stETH tokens backed by the vault to a recipient                                                                   |
-| mint-steth \<address> \<recipient> \<amountOfShares>                            | mints stETH tokens backed by the vault to a recipient                                                                   |
-| mint-wsteth \<address> \<recipient> \<tokens>                                   | mints wstETH tokens backed by the vault to a recipient                                                                  |
+| mint-steth \<address> \<recipient> \<amountOfSteth>                             | mints stETH tokens backed by the vault to a recipient                                                                   |
+| mint-wsteth \<address> \<recipient> \<amountOfWsteth>                           | mints wstETH tokens backed by the vault to a recipient                                                                  |
 | burn-shares burn\<address> \<amountOfShares>                                    | Burns stETH shares from the sender backed by the vault. Expects corresponding amount of stETH approved to this contract |
 | burn-steth \<address> \<amountOfShares>                                         | Burns stETH shares from the sender backed by the vault. Expects stETH amount approved to this contract.                 |
 | burn-wsteth \<address> \<tokens>                                                | burn wstETH tokens from the sender backed by the vault                                                                  |
