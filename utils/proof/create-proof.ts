@@ -31,11 +31,15 @@ const slotToTimestamp = (slot: number, genesisTimestamp: number): number => {
 
 export const createPDGProof = async (
   validatorIndex: number,
+  clURL?: string,
 ): Promise<ValidatorWitnessWithWC> => {
-  const beaconHeaderJson = await fetchBeaconHeader('finalized');
+  const beaconHeaderJson = await fetchBeaconHeader('finalized', clURL);
   const beaconHeader = beaconHeaderJson.data.header.message;
 
-  const { stateBodyBytes, forkName } = await fetchBeaconState('finalized');
+  const { stateBodyBytes, forkName } = await fetchBeaconState(
+    'finalized',
+    clURL,
+  );
 
   // Proofs
 
@@ -62,8 +66,10 @@ export const createPDGProof = async (
 
   const proofHex: Hex[] = proofConcat.map((w) => toHex(w));
 
-  const headerByParentJson =
-    await fetchBeaconHeaderByParentRoot(beaconHeaderRoot);
+  const headerByParentJson = await fetchBeaconHeaderByParentRoot(
+    beaconHeaderRoot,
+    clURL,
+  );
   const headerByParentSlot = headerByParentJson.data[0].header.message.slot;
   const headerByParentTimestamp = slotToTimestamp(
     headerByParentSlot,

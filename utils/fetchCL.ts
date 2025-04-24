@@ -27,12 +27,12 @@ export const SupportedFork = {
   electra: 'electra',
 };
 
-export const fetchBeaconHeader = async (stateId: StateId) => {
-  const { CL_URL } = getConfig();
+export const fetchBeaconHeader = async (stateId: StateId, clURL?: string) => {
+  const url = clURL || getConfig().CL_URL;
 
   try {
     const beaconHeaderResp = await fetch(
-      `${CL_URL}${endpoints.beaconHeader(stateId)}`,
+      `${url}${endpoints.beaconHeader(stateId)}`,
     );
 
     return beaconHeaderResp.json();
@@ -44,19 +44,17 @@ export const fetchBeaconHeader = async (stateId: StateId) => {
 
 export const fetchBeaconState = async (
   stateId: StateId,
+  clURL?: string,
 ): Promise<{
   stateBodyBytes: ArrayBuffer;
   forkName: keyof typeof SupportedFork;
 }> => {
-  const { CL_URL } = getConfig();
+  const url = clURL || getConfig().CL_URL;
 
   try {
-    const beaconStateResp = await fetch(
-      `${CL_URL}${endpoints.state(stateId)}`,
-      {
-        headers: { accept: 'application/octet-stream' },
-      },
-    );
+    const beaconStateResp = await fetch(`${url}${endpoints.state(stateId)}`, {
+      headers: { accept: 'application/octet-stream' },
+    });
 
     const { headers } = beaconStateResp;
     const forkName = headers.get(
@@ -78,12 +76,15 @@ export const fetchBeaconState = async (
   }
 };
 
-export const fetchBeaconHeaderByParentRoot = async (parentRoot: RootHex) => {
-  const { CL_URL } = getConfig();
+export const fetchBeaconHeaderByParentRoot = async (
+  parentRoot: RootHex,
+  clURL?: string,
+) => {
+  const url = clURL || getConfig().CL_URL;
 
   try {
     const beaconHeaderResp = await fetch(
-      `${CL_URL}${endpoints.beaconHeadersByParentRoot(parentRoot)}`,
+      `${url}${endpoints.beaconHeadersByParentRoot(parentRoot)}`,
     );
 
     return beaconHeaderResp.json();
