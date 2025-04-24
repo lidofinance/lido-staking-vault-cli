@@ -3,7 +3,7 @@ import { Option } from 'commander';
 
 import { DashboardAbi } from 'abi';
 import { getDashboardBaseInfo, getDashboardRoles } from 'features';
-import { getDashboardContract } from 'contracts';
+import { getDashboardContract, getStakingVaultContract } from 'contracts';
 import {
   fetchAndCalculateVaultHealth,
   generateReadCommands,
@@ -11,6 +11,8 @@ import {
   logInfo,
   getCommandsJson,
   stringToAddress,
+  callReadMethod,
+  getRequiredLockByShares,
 } from 'utils';
 
 import { dashboard } from './main.js';
@@ -57,7 +59,8 @@ dashboardRead
         healthRatio,
         isHealthy,
         totalValue,
-        liabilitySharesInStethWei,
+        totalValueInEth,
+        liabilitySharesInSteth,
         forceRebalanceThresholdBP,
         liabilityShares,
       } = await fetchAndCalculateVaultHealth(contract);
@@ -65,9 +68,9 @@ dashboardRead
       logResult({
         'Vault Healthy': isHealthy,
         'Total Value, wei': totalValue,
-        'Total Value, ether': `${formatEther(totalValue)} ETH`,
-        'Liability Shares': `${liabilityShares} shares`,
-        'Liability Shares in stETH': `${formatEther(liabilitySharesInStethWei)} stETH`,
+        'Total Value, ether': totalValueInEth,
+        'Liability Shares': `${formatEther(liabilityShares)} shares`,
+        'Liability Shares in stETH': liabilitySharesInSteth,
         'Rebalance Threshold, BP': forceRebalanceThresholdBP,
         'Rebalance Threshold, %': `${forceRebalanceThresholdBP / 100}%`,
         'Health Rate': `${healthRatio}%`,
@@ -77,6 +80,38 @@ dashboardRead
         logInfo('Error when getting info:\n', err.message);
       }
     }
+  });
+
+dashboardRead
+  .command('locked')
+  .description('get locked info')
+  .argument('<address>', 'dashboard address', stringToAddress)
+  .action(async (address: Address) => {
+    const contract = getDashboardContract(address);
+    const vault = await callReadMethod(contract, 'stakingVault');
+    const vaultContract = getStakingVaultContract(vault);
+
+    await callReadMethod(vaultContract, 'locked');
+  });
+
+dashboardRead
+  .command('required-lock-by-shares')
+  .alias('req-lock')
+  .description('get required lock by shares')
+  .argument('<address>', 'dashboard address', stringToAddress)
+  .argument('<newShares>', 'new shares')
+  .action(async (address: Address, newShares: string) => {
+    const { requiredLock, currentLock } = await getRequiredLockByShares(
+      address,
+      newShares,
+    );
+
+    logResult({
+      'Required Lock (wei)': requiredLock,
+      'Required Lock (shares)': formatEther(requiredLock),
+      'Current Lock (wei)': currentLock,
+      'Current Lock (shares)': formatEther(currentLock),
+    });
   });
 
 generateReadCommands(

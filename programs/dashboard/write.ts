@@ -16,6 +16,8 @@ import {
   logInfo,
   getCommandsJson,
   stringToAddress,
+  mintSteth,
+  burnSteth,
 } from 'utils';
 import { RoleAssignment, Deposit } from 'types';
 
@@ -194,7 +196,12 @@ dashboardWrite
     async (address: Address, recipient: Address, amountOfShares: string) => {
       const contract = getDashboardContract(address);
 
-      await mintShares(contract, recipient, parseEther(amountOfShares));
+      await mintShares(
+        contract,
+        recipient,
+        parseEther(amountOfShares),
+        'mintShares',
+      );
     },
   );
 
@@ -203,21 +210,12 @@ dashboardWrite
   .description('mints stETH tokens backed by the vault to a recipient')
   .argument('<address>', 'dashboard address', stringToAddress)
   .argument('<recipient>', 'address of the recipient', stringToAddress)
-  .argument('<amountOfShares>', 'amount of shares to mint (in stETH)')
+  .argument('<amountOfSteth>', 'amount of stETH to mint')
   .action(
-    async (address: Address, recipient: Address, amountOfShares: string) => {
+    async (address: Address, recipient: Address, amountOfSteth: string) => {
       const contract = getDashboardContract(address);
-      const vault = await callReadMethod(contract, 'stakingVault');
 
-      const confirm = await confirmOperation(
-        `Are you sure you want to mint ${amountOfShares} stETH to ${recipient} in the staking vault ${vault}?`,
-      );
-      if (!confirm) return;
-
-      await callWriteMethodWithReceipt(contract, 'mintStETH', [
-        recipient,
-        parseEther(amountOfShares),
-      ]);
+      await mintSteth(contract, recipient, parseEther(amountOfSteth));
     },
   );
 
@@ -226,21 +224,19 @@ dashboardWrite
   .description('mints wstETH tokens backed by the vault to a recipient')
   .argument('<address>', 'dashboard address', stringToAddress)
   .argument('<recipient>', 'address of the recipient', stringToAddress)
-  .argument('<tokens>', 'amount of tokens to mint (in wstETH)')
-  .action(async (address: Address, recipient: Address, tokens: string) => {
-    const contract = getDashboardContract(address);
-    const vault = await callReadMethod(contract, 'stakingVault');
+  .argument('<amountOfWsteth>', 'amount of wstETH to mint')
+  .action(
+    async (address: Address, recipient: Address, amountOfWsteth: string) => {
+      const contract = getDashboardContract(address);
 
-    const confirm = await confirmOperation(
-      `Are you sure you want to mint ${tokens} wstETH to ${recipient} in the staking vault ${vault}?`,
-    );
-    if (!confirm) return;
-
-    await callWriteMethodWithReceipt(contract, 'mintWstETH', [
-      recipient,
-      parseEther(tokens),
-    ]);
-  });
+      await mintShares(
+        contract,
+        recipient,
+        parseEther(amountOfWsteth),
+        'mintWstETH',
+      );
+    },
+  );
 
 dashboardWrite
   .command('burn-shares')
@@ -253,7 +249,7 @@ dashboardWrite
   .action(async (address: Address, amountOfShares: string) => {
     const contract = getDashboardContract(address);
 
-    await burnShares(contract, parseEther(amountOfShares));
+    await burnShares(contract, parseEther(amountOfShares), 'burnShares');
   });
 
 dashboardWrite
@@ -265,16 +261,8 @@ dashboardWrite
   .argument('<amountOfShares>', 'amount of shares to burn (in stETH)')
   .action(async (address: Address, amountOfShares: string) => {
     const contract = getDashboardContract(address);
-    const vault = await callReadMethod(contract, 'stakingVault');
 
-    const confirm = await confirmOperation(
-      `Are you sure you want to burn ${amountOfShares} stETH in the staking vault ${vault}?`,
-    );
-    if (!confirm) return;
-
-    await callWriteMethodWithReceipt(contract, 'burnStETH', [
-      parseEther(amountOfShares),
-    ]);
+    await burnSteth(contract, parseEther(amountOfShares));
   });
 
 dashboardWrite
@@ -284,16 +272,8 @@ dashboardWrite
   .argument('<tokens>', 'amount of wstETH tokens to burn (in wstETH)')
   .action(async (address: Address, tokens: string) => {
     const contract = getDashboardContract(address);
-    const vault = await callReadMethod(contract, 'stakingVault');
 
-    const confirm = await confirmOperation(
-      `Are you sure you want to burn ${tokens} wstETH in the staking vault ${vault}?`,
-    );
-    if (!confirm) return;
-
-    await callWriteMethodWithReceipt(contract, 'burnWstETH', [
-      parseEther(tokens),
-    ]);
+    await burnShares(contract, parseEther(tokens), 'burnWstETH');
   });
 
 dashboardWrite

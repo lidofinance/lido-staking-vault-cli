@@ -1,18 +1,22 @@
 import { DashboardContract, getStethContract } from 'contracts';
 import { formatEther } from 'viem';
+import { callReadMethodSilent } from './contract.js';
 
 export const fetchVaultMetrics = async (contract: DashboardContract) => {
   const stethContract = await getStethContract();
 
   const [totalValue, liabilityShares, forceRebalanceThresholdBP] =
     await Promise.all([
-      contract.read.totalValue(), // BigInt, in wei
-      contract.read.liabilityShares(), // BigInt, in shares
-      contract.read.forcedRebalanceThresholdBP(), // number (in basis points)
+      callReadMethodSilent(contract, 'totalValue'), // BigInt, in wei
+      callReadMethodSilent(contract, 'liabilityShares'), // BigInt, in shares
+      callReadMethodSilent(contract, 'forcedRebalanceThresholdBP'), // number (in basis points)
     ]);
 
-  const liabilitySharesInStethWei =
-    await stethContract.read.getPooledEthByShares([liabilityShares]); // BigInt
+  const liabilitySharesInStethWei = await callReadMethodSilent(
+    stethContract,
+    'getPooledEthByShares',
+    [liabilityShares],
+  ); // BigInt
 
   return {
     totalValue,
@@ -83,7 +87,7 @@ export const fetchAndCalculateVaultHealth = async (
 
 export const fetchAndCalculateVaultHealthWithNewValue = async (
   contract: DashboardContract,
-  newMintedValue: bigint,
+  value: bigint,
   type: 'mint' | 'burn',
 ) => {
   const {
@@ -96,10 +100,14 @@ export const fetchAndCalculateVaultHealthWithNewValue = async (
   const isMinting = type === 'mint';
 
   const newLiabilityShares = isMinting
-    ? liabilityShares + newMintedValue
-    : liabilityShares - newMintedValue;
-  const newLiabilitySharesInStethWei =
-    await stethContract.read.getPooledEthByShares([newLiabilityShares]); // BigInt
+    ? liabilityShares + value
+    : liabilityShares - value;
+  const [newLiabilitySharesInStethWei, valueInStethWei] = await Promise.all([
+    callReadMethodSilent(stethContract, 'getPooledEthByShares', [
+      newLiabilityShares,
+    ]),
+    callReadMethodSilent(stethContract, 'getPooledEthByShares', [value]),
+  ]);
 
   const currentVaultHealth = calculateVaultHealth(
     totalValue,
@@ -121,5 +129,6 @@ export const fetchAndCalculateVaultHealthWithNewValue = async (
     liabilityShares,
     newLiabilityShares,
     newLiabilitySharesInStethWei,
+    valueInStethWei,
   };
 };
