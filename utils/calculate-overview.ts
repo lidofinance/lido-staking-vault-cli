@@ -1,5 +1,5 @@
 import { parseEther } from 'viem';
-import { calculateVaultHealth } from './health.js';
+import { calculateHealth } from './health/calculate-health.js';
 
 export const BASIS_POINTS_DENOMINATOR = 10_000n;
 const DECIMALS = 18n;
@@ -24,7 +24,7 @@ export const calculateOverview = (
   nodeOperatorUnclaimedFee: bigint,
   totalMintingCapacity: bigint,
 ) => {
-  const { healthRatio, isHealthy } = calculateVaultHealth(
+  const { healthRatio, isHealthy } = calculateHealth(
     totalValue,
     liabilitySharesInStethWei,
     forceRebalanceThresholdBP,

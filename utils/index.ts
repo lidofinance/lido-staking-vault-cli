@@ -12,7 +12,7 @@ export * from './get-commands.js';
 export * from './get-deposit-data-root.js';
 export * from './arguments.js';
 export * from './report.js';
-export * from './health.js';
+export * from './health/index.js';
 export * from './logging/index.js';
 export * from './fetchCL.js';
 export * from './ipfs.js';

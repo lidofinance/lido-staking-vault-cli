@@ -1,10 +1,10 @@
-import { DashboardContract, getStethContract } from 'contracts';
 import { formatEther } from 'viem';
-import { callReadMethodSilent } from './contract.js';
 
-/*
-  Fetch vault metrics from the contract
-*/
+import { callReadMethodSilent } from 'utils';
+import { DashboardContract, getStethContract } from 'contracts';
+
+import { calculateHealth } from './calculate-health.js';
+
 export const fetchVaultMetrics = async (contract: DashboardContract) => {
   const stethContract = await getStethContract();
 
@@ -30,37 +30,6 @@ export const fetchVaultMetrics = async (contract: DashboardContract) => {
   };
 };
 
-export const calculateVaultHealth = (
-  totalValue: bigint,
-  liabilitySharesInStethWei: bigint,
-  forceRebalanceThresholdBP: number,
-) => {
-  // Convert everything to BigInt and perform calculations with 1e18 precision
-  const BASIS_POINTS_DENOMINATOR = 10_000n;
-  const PRECISION = 10n ** 18n;
-
-  const thresholdMultiplier =
-    ((BASIS_POINTS_DENOMINATOR - BigInt(forceRebalanceThresholdBP)) *
-      PRECISION) /
-    BASIS_POINTS_DENOMINATOR;
-  const adjustedValuation = (totalValue * thresholdMultiplier) / PRECISION;
-
-  const healthRatio18 =
-    liabilitySharesInStethWei > 0n
-      ? (adjustedValuation * PRECISION * 100n) / liabilitySharesInStethWei
-      : Infinity;
-  const healthRatio = Number(healthRatio18) / 1e18;
-
-  // Convert to readable format
-  const isHealthy = healthRatio >= 100;
-
-  return {
-    healthRatio,
-    healthRatio18,
-    isHealthy,
-  };
-};
-
 export const fetchAndCalculateVaultHealth = async (
   contract: DashboardContract,
 ) => {
@@ -70,7 +39,7 @@ export const fetchAndCalculateVaultHealth = async (
     liabilitySharesInStethWei,
     liabilityShares,
   } = await fetchVaultMetrics(contract);
-  const { healthRatio, isHealthy } = calculateVaultHealth(
+  const { healthRatio, isHealthy } = calculateHealth(
     totalValue,
     liabilitySharesInStethWei,
     forceRebalanceThresholdBP,
@@ -113,12 +82,12 @@ export const fetchAndCalculateVaultHealthWithNewValue = async (
     callReadMethodSilent(stethContract, 'getPooledEthByShares', [value]),
   ]);
 
-  const currentVaultHealth = calculateVaultHealth(
+  const currentVaultHealth = calculateHealth(
     totalValue,
     liabilitySharesInStethWei,
     forceRebalanceThresholdBP,
   );
-  const newVaultHealth = calculateVaultHealth(
+  const newVaultHealth = calculateHealth(
     totalValue,
     newLiabilitySharesInStethWei,
     forceRebalanceThresholdBP,
