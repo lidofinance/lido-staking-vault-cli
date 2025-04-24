@@ -1,8 +1,15 @@
-import { getContract, Address } from 'viem';
+import {
+  getContract,
+  Address,
+  GetContractReturnType,
+  WalletClient,
+} from 'viem';
 import { DashboardAbi } from 'abi';
 import { getPublicClient } from 'providers';
 
-export const getDashboardContract = (address: Address) => {
+export const getDashboardContract = (
+  address: Address,
+): GetContractReturnType<typeof DashboardAbi, WalletClient> => {
   return getContract({
     address: address,
     abi: DashboardAbi,

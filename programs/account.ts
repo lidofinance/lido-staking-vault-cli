@@ -33,7 +33,15 @@ account
   .action(async () => {
     const walletClient = getWalletWithAccount();
     const publicClient = getPublicClient();
-    const { address } = walletClient.account;
+    const address = walletClient.account?.address;
+
+    if (!address) {
+      printError(
+        new Error('No account address found'),
+        'No account address found',
+      );
+      return;
+    }
 
     try {
       const stETHContract = await getStethContract();

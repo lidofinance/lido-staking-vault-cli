@@ -1,14 +1,18 @@
-import { getContract, createPublicClient, http, Address } from 'viem';
+import {
+  getContract,
+  Address,
+  GetContractReturnType,
+  WalletClient,
+} from 'viem';
 import { StakingVaultAbi } from 'abi/index.js';
-import { getChain, getElUrl } from 'configs';
+import { getPublicClient } from 'providers';
 
-export const getStakingVaultContract = (address: Address) => {
+export const getStakingVaultContract = (
+  address: Address,
+): GetContractReturnType<typeof StakingVaultAbi, WalletClient> => {
   return getContract({
     address,
     abi: StakingVaultAbi,
-    client: createPublicClient({
-      chain: getChain(),
-      transport: http(getElUrl()),
-    }),
+    client: getPublicClient(),
   });
 };
