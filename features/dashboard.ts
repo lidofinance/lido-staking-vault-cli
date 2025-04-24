@@ -1,21 +1,129 @@
+import { formatEther } from 'viem';
+
+import { DashboardContract, getStakingVaultContract } from 'contracts';
+import { getPublicClient } from 'providers';
 import {
   printError,
   showSpinner,
   logResult,
   fetchAndCalculateVaultHealth,
   logInfo,
+  calculateOverview,
+  formatBP,
+  formatRatio,
+  BASIS_POINTS_DENOMINATOR,
 } from 'utils';
-import { DashboardContract } from 'contracts';
-import { formatEther } from 'viem';
 
-export const getDashboardBaseInfo = async (contract: DashboardContract) => {
+export const getDashboardHealth = async (contract: DashboardContract) => {
+  try {
+    const {
+      healthRatio,
+      isHealthy,
+      totalValue,
+      totalValueInEth,
+      liabilitySharesInSteth,
+      forceRebalanceThresholdBP,
+      liabilityShares,
+    } = await fetchAndCalculateVaultHealth(contract);
+
+    logInfo('Vault Health');
+    logResult({
+      'Vault Healthy': isHealthy,
+      'Health Rate': `${healthRatio}%`,
+      'Total Value, wei': totalValue,
+      'Total Value, ether': totalValueInEth,
+      'Liability Shares': liabilityShares,
+      'Liability Shares in stETH': liabilitySharesInSteth,
+      'Rebalance Threshold, BP': forceRebalanceThresholdBP,
+      'Rebalance Threshold, %': `${forceRebalanceThresholdBP / 100}%`,
+    });
+  } catch (err) {
+    if (err instanceof Error) {
+      logInfo('Error when getting info:\n', err.message);
+    }
+  }
+};
+
+export const getDashboardOverview = async (contract: DashboardContract) => {
   const hideSpinner = showSpinner();
+  const publicClient = getPublicClient();
+
   try {
     const health = await fetchAndCalculateVaultHealth(contract);
     const [
+      vault,
+      nodeOperatorFeeBP,
+      reserveRatioBP,
+      totalMintingCapacity,
+      withdrawableEther,
+      nodeOperatorUnclaimedFee,
+      totalValue,
+    ] = await Promise.all([
+      contract.read.stakingVault(),
+      contract.read.nodeOperatorFeeBP(),
+      contract.read.reserveRatioBP(),
+      contract.read.totalMintingCapacity(),
+      contract.read.withdrawableEther(),
+      contract.read.nodeOperatorUnclaimedFee(),
+      contract.read.totalValue(),
+    ]);
+    const vaultContract = getStakingVaultContract(vault);
+    const locked = await vaultContract.read.locked();
+    const balance = await publicClient.getBalance({
+      address: contract.address,
+    });
+    const overview = calculateOverview(
+      totalValue,
+      reserveRatioBP,
+      health.liabilitySharesInWei,
+      health.forceRebalanceThresholdBP,
+      withdrawableEther,
+      balance,
+      locked,
+      nodeOperatorUnclaimedFee,
+      totalMintingCapacity,
+    );
+    hideSpinner();
+
+    logInfo('Overview');
+
+    logResult({
+      'Total Value': `${formatEther(totalValue)} ETH`,
+      'Reserve Ratio': formatBP(reserveRatioBP),
+      'Health Factor': `${formatRatio(overview.healthRatio)}%`,
+      'stETH Liability': `${formatEther(health.liabilitySharesInStethWei)} stETH`,
+      'Force Rebalance Threshold': formatBP(health.forceRebalanceThresholdBP),
+      'Utilization Ratio': formatRatio(overview.utilizationRatio),
+      'Available To Withdrawal': `${formatEther(overview.AvailableToWithdrawal)} ETH`,
+      'Idle Capital': `${formatEther(overview.idleCapital)} ETH`,
+      'Deposited To Validators': `${formatEther(overview.depositedToValidators)} ETH`,
+      'Total Locked': `${formatEther(overview.totalLocked)} ETH`,
+      'Locked By Accumulated Fees': `${formatEther(overview.lockedByAccumulatedFees)} ETH`,
+      Collateral: `${formatEther(overview.collateral)} ETH`,
+      // 'Pending Unlock': `${formatEther(overview.PendingUnlock)} ETH`, // TODO: by report
+      'No Reward Share': formatBP(nodeOperatorFeeBP),
+      'No Rewards Accumulated': `${formatEther(nodeOperatorUnclaimedFee)} ETH`,
+      'Total Reservable': `${formatEther(overview.totalReservable)} ETH`,
+      Reserved: `${formatEther(overview.reserved)} ETH`,
+      'stETH Minting Capacity Used': `${overview.stethMintingCapacityUsed.toFixed(
+        2,
+      )}%`,
+      'Total Minting Capacity': `${formatEther(overview.totalMintingCapacity)} stETH`,
+    });
+  } catch (err) {
+    hideSpinner();
+    printError(err, 'Error when getting overview');
+  }
+};
+
+export const getDashboardBaseInfo = async (contract: DashboardContract) => {
+  const hideSpinner = showSpinner();
+  const publicClient = getPublicClient();
+
+  try {
+    const [
       steth,
       wsteth,
-      isInit,
       vault,
       vaultHub,
       accruedRewardsAdjustment,
@@ -31,10 +139,11 @@ export const getDashboardBaseInfo = async (contract: DashboardContract) => {
       manualAccruedRewardsAdjustmentLimit,
       maxConfirmExpiry,
       minConfirmExpiry,
+      nodeOperatorUnclaimedFee,
+      totalValue,
     ] = await Promise.all([
       contract.read.STETH(),
       contract.read.WSTETH(),
-      contract.read.initialized(),
       contract.read.stakingVault(),
       contract.read.VAULT_HUB(),
       contract.read.accruedRewardsAdjustment(),
@@ -50,39 +159,45 @@ export const getDashboardBaseInfo = async (contract: DashboardContract) => {
       contract.read.MANUAL_ACCRUED_REWARDS_ADJUSTMENT_LIMIT(),
       contract.read.MAX_CONFIRM_EXPIRY(),
       contract.read.MIN_CONFIRM_EXPIRY(),
+      contract.read.nodeOperatorUnclaimedFee(),
+      contract.read.totalValue(),
     ]);
+    const vaultContract = getStakingVaultContract(vault);
+    const locked = await vaultContract.read.locked();
+    const balance = await publicClient.getBalance({
+      address: contract.address,
+    });
 
     hideSpinner();
 
-    const payload = {
-      steth,
-      wsteth,
-      vault,
-      isInit,
-      vaultHub,
-      accruedRewardsAdjustment,
-      confirmExpiry,
-      nodeOperatorFeeBP,
-      remainingMintingCapacity: `${formatEther(remainingMintingCapacity)} stETH`,
-      reserveRatioBP,
-      shareLimit,
-      totalMintingCapacity: `${formatEther(totalMintingCapacity)} stETH`,
-      treasuryFeeBP,
-      unreserved: `${formatEther(unreserved)} ETH`,
-      withdrawableEther: `${formatEther(withdrawableEther)} ETH`,
-      manualAccruedRewardsAdjustmentLimit: `${formatEther(
+    logInfo('Dashboard Base Info');
+    logResult({
+      'stETH address': steth,
+      'wstETH address': wsteth,
+      'Vault address': vault,
+      'Vault Hub address': vaultHub,
+      'Total Value': `${formatEther(totalValue)} ETH`,
+      'Reserve Ratio': formatBP(reserveRatioBP),
+      Locked: `${formatEther(locked)} ETH`,
+      Balance: `${formatEther(balance)} ETH`,
+      'Share Limit': `${formatEther(shareLimit)} Shares`,
+      'Share Limit in Wei': shareLimit,
+      'Total Minting Capacity': `${formatEther(totalMintingCapacity)} stETH`,
+      'Node Operator Unclaimed Fee': `${formatEther(nodeOperatorUnclaimedFee)} ETH`,
+      'Accrued Rewards Adjustment': `${formatEther(accruedRewardsAdjustment)} ETH`,
+      'Node Operator Fee BP': formatBP(nodeOperatorFeeBP),
+      'Remaining Minting Capacity': `${formatEther(remainingMintingCapacity)} stETH`,
+      'Treasury Fee BP': treasuryFeeBP,
+      'Treasury Fee BP in Percent': `${(Number(treasuryFeeBP) / Number(BASIS_POINTS_DENOMINATOR)) * 100}%`,
+      Unreserved: `${formatEther(unreserved)} ETH`,
+      'Withdrawable Ether': `${formatEther(withdrawableEther)} ETH`,
+      'Manual Accrued Rewards Adjustment Limit': `${formatEther(
         manualAccruedRewardsAdjustmentLimit,
       )} ETH`,
-      maxConfirmExpiry,
-      maxConfirmExpiryInHours: `${Number(maxConfirmExpiry) / 3600} hours`,
-      minConfirmExpiry,
-      minConfirmExpiryInHours: `${Number(minConfirmExpiry) / 3600} hours`,
-    };
-
-    logInfo('Dashboard Base Info');
-    logResult(Object.entries(payload));
-    logInfo('Vault Health');
-    logResult(Object.entries(health));
+      'Confirm Expiry': `${confirmExpiry} (${Number(confirmExpiry) / 3600} hours)`,
+      'Max Confirm Expiry': `${maxConfirmExpiry} (${Number(maxConfirmExpiry) / 3600} hours)`,
+      'Min Confirm Expiry': `${minConfirmExpiry} (${Number(minConfirmExpiry) / 3600} hours)`,
+    });
   } catch (err) {
     hideSpinner();
     printError(err, 'Error when getting base info');
@@ -172,6 +287,7 @@ export const getDashboardRoles = async (contract: DashboardContract) => {
       }),
     );
     hideSpinner();
+    logInfo('Dashboard Roles');
     logResult(result);
   } catch (err) {
     hideSpinner();

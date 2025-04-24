@@ -2,10 +2,14 @@ import { Address, formatEther } from 'viem';
 import { Option } from 'commander';
 
 import { DashboardAbi } from 'abi';
-import { getDashboardBaseInfo, getDashboardRoles } from 'features';
+import {
+  getDashboardBaseInfo,
+  getDashboardRoles,
+  getDashboardHealth,
+  getDashboardOverview,
+} from 'features';
 import { getDashboardContract, getStakingVaultContract } from 'contracts';
 import {
-  fetchAndCalculateVaultHealth,
   generateReadCommands,
   logResult,
   logInfo,
@@ -40,6 +44,15 @@ dashboardRead
   });
 
 dashboardRead
+  .command('overview')
+  .description('get dashboard overview')
+  .argument('<address>', 'dashboard address', stringToAddress)
+  .action(async (address: Address) => {
+    const contract = getDashboardContract(address);
+    await getDashboardOverview(contract);
+  });
+
+dashboardRead
   .command('roles')
   .description('get dashboard roles')
   .argument('<address>', 'dashboard address', stringToAddress)
@@ -54,32 +67,7 @@ dashboardRead
   .argument('<address>', 'dashboard address', stringToAddress)
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
-    try {
-      const {
-        healthRatio,
-        isHealthy,
-        totalValue,
-        totalValueInEth,
-        liabilitySharesInSteth,
-        forceRebalanceThresholdBP,
-        liabilityShares,
-      } = await fetchAndCalculateVaultHealth(contract);
-
-      logResult({
-        'Vault Healthy': isHealthy,
-        'Total Value, wei': totalValue,
-        'Total Value, ether': totalValueInEth,
-        'Liability Shares': `${formatEther(liabilityShares)} shares`,
-        'Liability Shares in stETH': liabilitySharesInSteth,
-        'Rebalance Threshold, BP': forceRebalanceThresholdBP,
-        'Rebalance Threshold, %': `${forceRebalanceThresholdBP / 100}%`,
-        'Health Rate': `${healthRatio}%`,
-      });
-    } catch (err) {
-      if (err instanceof Error) {
-        logInfo('Error when getting info:\n', err.message);
-      }
-    }
+    await getDashboardHealth(contract);
   });
 
 dashboardRead

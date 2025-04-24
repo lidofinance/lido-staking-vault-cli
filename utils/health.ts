@@ -81,7 +81,8 @@ export const fetchAndCalculateVaultHealth = async (
     liabilitySharesInStethWei,
     liabilitySharesInSteth: `${formatEther(liabilitySharesInStethWei)} stETH`,
     forceRebalanceThresholdBP,
-    liabilityShares,
+    liabilitySharesInWei: liabilityShares,
+    liabilityShares: `${formatEther(liabilityShares)} Shares`,
   };
 };
 

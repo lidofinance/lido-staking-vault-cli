@@ -19,3 +19,4 @@ export * from './ipfs.js';
 export * from './commands/index.js';
 export * from './bls.js';
 export * from './required-lock.js';
+export * from './calculate-overview.js';
