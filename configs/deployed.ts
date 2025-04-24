@@ -10,6 +10,9 @@ import { envs } from './envs.js';
 import { SUPPORTED_CHAINS_LIST } from './constants.js';
 
 export const importDeployFile = () => {
+  // TODO: make better in the future
+  if (process.env.SKIP_LSV_CLI_CHECK_CONFIG) return {};
+
   const fullPath = path.resolve('configs', envs?.DEPLOYED ?? '');
   if (!fullPath) {
     throw new Error('Deployed contracts file is not set, check .env file');
@@ -53,6 +56,9 @@ export const getDeployed = (() => {
 })();
 
 export const getChainId = (() => {
+  // TODO: make better in the future
+  if (process.env.SKIP_LSV_CLI_CHECK_CONFIG) return () => 0;
+
   const config = getConfig();
   const deployed = getDeployed();
   const chainId = config.CHAIN_ID;
