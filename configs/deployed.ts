@@ -10,9 +10,6 @@ import { envs } from './envs.js';
 import { SUPPORTED_CHAINS_LIST } from './constants.js';
 
 export const importDeployFile = () => {
-  // TODO: make better in the future
-  if (process.env.SKIP_LSV_CLI_CHECK_CONFIG) return {};
-
   const fullPath = path.resolve('configs', envs?.DEPLOYED ?? '');
   if (!fullPath) {
     throw new Error('Deployed contracts file is not set, check .env file');
@@ -36,7 +33,7 @@ export const importConfigFromEnv = () => {
   return config;
 };
 
-export const getConfig = (() => {
+export const getConfig = () => {
   const config = importConfigFromEnv();
 
   const errors = validateConfig(config as unknown as Config);
@@ -46,19 +43,16 @@ export const getConfig = (() => {
     process.exit(1);
   }
 
-  return () => config;
-})();
+  return config;
+};
 
-export const getDeployed = (() => {
+export const getDeployed = () => {
   const deployedJSON = importDeployFile();
 
-  return () => deployedJSON;
-})();
+  return deployedJSON;
+};
 
-export const getChainId = (() => {
-  // TODO: make better in the future
-  if (process.env.SKIP_LSV_CLI_CHECK_CONFIG) return () => 0;
-
+export const getChainId = () => {
   const config = getConfig();
   const deployed = getDeployed();
   const chainId = config.CHAIN_ID;
@@ -67,8 +61,8 @@ export const getChainId = (() => {
     throw new Error('ChainId in env and deployed file mismatch');
   }
 
-  return () => chainId;
-})();
+  return chainId;
+};
 
 export const getChain = (): Chain => {
   const chainId = getChainId();
