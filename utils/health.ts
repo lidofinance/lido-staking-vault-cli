@@ -2,6 +2,9 @@ import { DashboardContract, getStethContract } from 'contracts';
 import { formatEther } from 'viem';
 import { callReadMethodSilent } from './contract.js';
 
+/*
+  Fetch vault metrics from the contract
+*/
 export const fetchVaultMetrics = async (contract: DashboardContract) => {
   const stethContract = await getStethContract();
 
