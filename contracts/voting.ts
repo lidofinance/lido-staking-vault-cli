@@ -9,6 +9,7 @@ import {
 import { votingAbi } from 'abi/index.js';
 import { getChain, getElUrl, getVotingAddress } from 'configs';
 
+// TODO: Delete
 export const getVotingContract = (): {
   contract: GetContractReturnType<typeof votingAbi, WalletClient>;
   client: PublicClient;
