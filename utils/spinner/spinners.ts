@@ -1,6 +1,6 @@
 import logUpdate from 'log-update';
 
-import spinners from './spinners.json' with { type: 'json' };
+import spinners from './spinners.json';
 
 type args = {
   type?: keyof typeof spinners;
