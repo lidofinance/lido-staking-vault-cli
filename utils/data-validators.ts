@@ -5,6 +5,7 @@ import { Config, RoleAssignment } from 'types';
 export const validateConfig = (config: Config) => {
   const errors = {} as Record<keyof Config, string>;
 
+  // TODO: make better in the future
   if (process.env.SKIP_LSV_CLI_CHECK_CONFIG) return errors;
 
   if (isNaN(config.CHAIN_ID)) {
