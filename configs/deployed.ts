@@ -75,12 +75,12 @@ export const getChain = (): Chain => {
   return chain;
 };
 
-export const getElUrl = (() => {
+export const getElUrl = () => {
   const config = getConfig();
   const elUrls = config.EL_URL as string;
 
-  return () => elUrls.split(',')[0] as string;
-})();
+  return elUrls.split(',')[0] as string;
+};
 
 export const getContracts = () => {
   const deployedJSON = getDeployed();

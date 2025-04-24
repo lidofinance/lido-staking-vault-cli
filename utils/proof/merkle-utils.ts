@@ -3,7 +3,7 @@
 */
 import { createHash } from 'crypto';
 
-type Validator = {
+export type Validator = {
   pubkey: Uint8Array<ArrayBufferLike>;
   withdrawalCredentials: Uint8Array<ArrayBufferLike>;
   effectiveBalance: number;
@@ -14,7 +14,7 @@ type Validator = {
   withdrawableEpoch: number | typeof Infinity;
 };
 
-type BeaconBlockHeader = {
+export type BeaconBlockHeader = {
   slot: number;
   proposer_index: number;
   parent_root: string;

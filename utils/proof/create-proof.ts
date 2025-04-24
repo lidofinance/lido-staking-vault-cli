@@ -21,7 +21,7 @@ export interface ValidatorWitness {
   childBlockTimestamp: bigint;
 }
 
-interface ValidatorWitnessWithWC extends ValidatorWitness {
+export interface ValidatorWitnessWithWC extends ValidatorWitness {
   withdrawalCredentials: Hex;
 }
 

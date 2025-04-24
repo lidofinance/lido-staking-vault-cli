@@ -16,7 +16,7 @@ const SupportedFork = {
   electra: 'electra',
 };
 
-type BeaconHeaderResponse = {
+export type BeaconHeaderResponse = {
   slot: number;
   proposer_index: number;
   parent_root: Hex;
