@@ -1,6 +1,7 @@
 import { CID } from 'multiformats/cid';
 import { MemoryBlockstore } from 'blockstore-core';
 import { importer } from 'ipfs-unixfs-importer';
+import { parse } from 'json-bigint';
 
 import { logInfo, logResult } from './logging/console.js';
 
@@ -17,7 +18,10 @@ export const fetchIPFS = async (CID: string, url = IPFS_GATEWAY) => {
     throw new Error(`Failed to fetch IPFS content: ${response.statusText}`);
   }
 
-  return response.json();
+  const raw = await response.text();
+  const parsed = parse(raw);
+
+  return parsed;
 };
 
 // Fetching buffer content by CID through IPFS gateway
