@@ -1,6 +1,7 @@
 import { printError, showSpinner, logResult } from 'utils';
 import { getPredepositGuaranteeContract } from 'contracts';
 
+// Get base info
 export const getPdgBaseInfo = async () => {
   const hideSpinner = showSpinner();
   try {
