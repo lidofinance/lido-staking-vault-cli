@@ -47,17 +47,20 @@ export const calculateOverview = (args: OverviewArgs) => {
   const idleCapital = balance;
   const depositedToValidators = totalValue - balance;
   const totalLocked = locked + nodeOperatorUnclaimedFee;
-  const lockedByAccumulatedFees = nodeOperatorUnclaimedFee;
 
   // ---------- Computed values ---------- //
   const totalReservable =
     (totalValue * BigInt(reserveRatioBP)) / BASIS_POINTS_DENOMINATOR;
 
   // Prevent division by 0
-  const stethMintingCapacityUsed =
+  const utilizationRatio =
     totalMintingCapacity === 0n
-      ? 0n
-      : (liabilitySharesInStethWei * SCALING_FACTOR) / totalMintingCapacity;
+      ? 0
+      : Number(
+          ((liabilitySharesInStethWei * SCALING_FACTOR) /
+            totalMintingCapacity) *
+            100n,
+        ) / Number(SCALING_FACTOR);
 
   const reservedRaw =
     totalMintingCapacity === 0n
@@ -72,21 +75,11 @@ export const calculateOverview = (args: OverviewArgs) => {
     0n,
   );
 
-  const collateral = bigIntMax(
-    liabilitySharesInStethWei + reserved,
-    parseEther('1'),
+  const collateral = bigIntMin(
+    bigIntMax(liabilitySharesInStethWei + reserved, parseEther('1')),
+    totalValue,
   );
-  const PendingUnlock = totalLocked - liabilitySharesInStethWei - reserved;
-  // Ratio helper
-  const utilizationRatio =
-    liabilitySharesInStethWei === 0n
-      ? Infinity
-      : (Number(
-          (liabilitySharesInStethWei * SCALING_FACTOR) /
-            (totalValue * (BASIS_POINTS_DENOMINATOR - BigInt(reserveRatioBP))),
-        ) /
-          Number(SCALING_FACTOR)) *
-        10_000;
+  const PendingUnlock = totalLocked - (liabilitySharesInStethWei + reserved);
 
   return {
     healthRatio,
@@ -95,14 +88,11 @@ export const calculateOverview = (args: OverviewArgs) => {
     idleCapital,
     depositedToValidators,
     totalLocked,
-    lockedByAccumulatedFees,
     collateral,
     PendingUnlock,
     utilizationRatio,
     totalReservable,
     reserved,
-    stethMintingCapacityUsed:
-      (Number(stethMintingCapacityUsed) / Number(SCALING_FACTOR)) * 100,
     totalMintingCapacity,
   };
 };

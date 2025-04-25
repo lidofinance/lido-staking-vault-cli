@@ -70,7 +70,7 @@ export const getDashboardOverview = async (contract: DashboardContract) => {
     const vaultContract = getStakingVaultContract(vault);
     const locked = await vaultContract.read.locked();
     const balance = await publicClient.getBalance({
-      address: contract.address,
+      address: vault,
     });
     const overview = calculateOverview({
       totalValue,
@@ -86,7 +86,6 @@ export const getDashboardOverview = async (contract: DashboardContract) => {
     hideSpinner();
 
     logInfo('Overview');
-
     logResult({
       'Total Value': `${formatEther(totalValue)} ETH`,
       'Reserve Ratio': formatBP(reserveRatioBP),
@@ -98,16 +97,12 @@ export const getDashboardOverview = async (contract: DashboardContract) => {
       'Idle Capital': `${formatEther(overview.idleCapital)} ETH`,
       'Deposited To Validators': `${formatEther(overview.depositedToValidators)} ETH`,
       'Total Locked': `${formatEther(overview.totalLocked)} ETH`,
-      'Locked By Accumulated Fees': `${formatEther(overview.lockedByAccumulatedFees)} ETH`,
       Collateral: `${formatEther(overview.collateral)} ETH`,
-      // 'Pending Unlock': `${formatEther(overview.PendingUnlock)} ETH`, // TODO: by report
+      'Pending Unlock': `${formatEther(overview.PendingUnlock)} ETH`,
       'No Reward Share': formatBP(nodeOperatorFeeBP),
       'No Rewards Accumulated': `${formatEther(nodeOperatorUnclaimedFee)} ETH`,
       'Total Reservable': `${formatEther(overview.totalReservable)} ETH`,
       Reserved: `${formatEther(overview.reserved)} ETH`,
-      'stETH Minting Capacity Used': `${overview.stethMintingCapacityUsed.toFixed(
-        2,
-      )}%`,
       'Total Minting Capacity': `${formatEther(overview.totalMintingCapacity)} stETH`,
     });
   } catch (err) {
