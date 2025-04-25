@@ -28,6 +28,7 @@ yarn start dashboard -h
 | Command                                                 | Description                                                                                               |
 | ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
 | info \<address>                                         | get dashboard base info                                                                                   |
+| overview \<address>                                     | get dashboard overview                                                                                    |
 | roles \<address>                                        | get dashboard roles                                                                                       |
 | health \<address>                                       | get vault health info                                                                                     |
 | locked \<address>                                       | get locked info                                                                                           |
@@ -124,6 +125,7 @@ yarn start dashboard -h
 | set-depositor \<address> \<depositor>                                           | Updates the address of the depositor for the staking vault.                                                             |
 | reset-locked \<address>                                                         | Zeroes the locked amount of the staking vault.                                                                          |
 | request-tier-change \<address> \<tier>                                          | Requests a change of tier on the OperatorGrid.                                                                          |
+| increase-accrued-rewards-adjustment \<address> \<amount>                        | Increases the accrued rewards adjustment.                                                                               |
 
 **\<permitJSON>**
 
