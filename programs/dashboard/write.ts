@@ -1,4 +1,4 @@
-import { Address, Hex, parseEther } from 'viem';
+import { Address, Hex, parseEther, formatEther } from 'viem';
 import { Option } from 'commander';
 
 import { getDashboardContract, getStakingVaultContract } from 'contracts';
@@ -658,4 +658,31 @@ dashboardWrite
       'increaseAccruedRewardsAdjustment',
       [parseEther(amount)],
     );
+  });
+
+dashboardWrite
+  .command('set-accrued-rewards-adjustment')
+  .description('Sets the accrued rewards adjustment.')
+  .argument('<address>', 'dashboard address', stringToAddress)
+  .argument(
+    '<amount>',
+    'amount to set the accrued rewards adjustment to (in ETH)',
+  )
+  .action(async (address: Address, amount: string) => {
+    const contract = getDashboardContract(address);
+    const currentAdjustment = await callReadMethod(
+      contract,
+      'accruedRewardsAdjustment',
+    );
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to set the accrued rewards adjustment to ${amount}?
+      Current adjustment: ${formatEther(currentAdjustment)} ETH`,
+    );
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt(contract, 'setAccruedRewardsAdjustment', [
+      parseEther(amount),
+      currentAdjustment,
+    ]);
   });
