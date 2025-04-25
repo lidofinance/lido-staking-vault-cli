@@ -79,7 +79,14 @@ export const calculateOverview = (args: OverviewArgs) => {
     bigIntMax(liabilitySharesInStethWei + reserved, parseEther('1')),
     totalValue,
   );
-  const PendingUnlock = totalLocked - (liabilitySharesInStethWei + reserved);
+  const PendingUnlock =
+    locked - nodeOperatorUnclaimedFee - liabilitySharesInStethWei - reserved <
+    parseEther('1')
+      ? 0n
+      : locked -
+        nodeOperatorUnclaimedFee -
+        liabilitySharesInStethWei -
+        reserved;
 
   return {
     healthRatio,

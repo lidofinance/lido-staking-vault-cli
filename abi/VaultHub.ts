@@ -434,8 +434,18 @@ export const VaultHubAbi = [
         name: 'beacon',
         type: 'address',
       },
+      {
+        internalType: 'bytes32',
+        name: 'codehash',
+        type: 'bytes32',
+      },
     ],
     name: 'VaultProxyNotAllowed',
+    type: 'error',
+  },
+  {
+    inputs: [],
+    name: 'VaultProxyZeroCodehash',
     type: 'error',
   },
   {
@@ -895,7 +905,7 @@ export const VaultHubAbi = [
     inputs: [
       {
         internalType: 'bytes32',
-        name: 'codehash',
+        name: '_codehash',
         type: 'bytes32',
       },
     ],

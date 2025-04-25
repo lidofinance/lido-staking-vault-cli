@@ -1,5 +1,5 @@
 import { program } from 'command';
-import { Address } from 'viem';
+import { Hex } from 'viem';
 import { Option } from 'commander';
 
 import {
@@ -13,6 +13,7 @@ import {
   getCommandsJson,
   callWriteMethodWithReceipt,
   confirmPrompt,
+  logCancel,
 } from 'utils';
 import { getVaultHubContract } from 'contracts';
 
@@ -61,6 +62,7 @@ report
 
 report
   .command('by-vault-submit')
+  .alias('submit')
   .description('submit report by vault')
   .argument('<vault>', 'vault address')
   .option('-u, --url', 'ipfs gateway url')
@@ -86,7 +88,7 @@ report
       'confirm',
     );
     if (!confirm) {
-      logInfo('Report not submitted');
+      logCancel('Report not submitted');
       return;
     }
 
@@ -96,7 +98,7 @@ report
       BigInt(report.data.in_out_delta),
       BigInt(report.data.fee),
       BigInt(report.data.liability_shares),
-      reportProof.proof as Address[],
+      reportProof.proof as Hex[],
     ]);
   });
 

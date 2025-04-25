@@ -636,3 +636,26 @@ dashboardWrite
 
     await callWriteMethodWithReceipt(contract, 'requestTierChange', [tier]);
   });
+
+dashboardWrite
+  .command('increase-accrued-rewards-adjustment')
+  .description('Increases the accrued rewards adjustment.')
+  .argument('<address>', 'dashboard address', stringToAddress)
+  .argument(
+    '<amount>',
+    'amount to increase the accrued rewards adjustment by (in ETH)',
+  )
+  .action(async (address: Address, amount: string) => {
+    const contract = getDashboardContract(address);
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to increase the accrued rewards adjustment by ${amount}?`,
+    );
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt(
+      contract,
+      'increaseAccruedRewardsAdjustment',
+      [parseEther(amount)],
+    );
+  });
