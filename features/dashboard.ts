@@ -72,17 +72,17 @@ export const getDashboardOverview = async (contract: DashboardContract) => {
     const balance = await publicClient.getBalance({
       address: contract.address,
     });
-    const overview = calculateOverview(
+    const overview = calculateOverview({
       totalValue,
       reserveRatioBP,
-      health.liabilitySharesInWei,
-      health.forceRebalanceThresholdBP,
+      liabilitySharesInStethWei: health.liabilitySharesInStethWei,
+      forceRebalanceThresholdBP: health.forceRebalanceThresholdBP,
       withdrawableEther,
       balance,
       locked,
       nodeOperatorUnclaimedFee,
       totalMintingCapacity,
-    );
+    });
     hideSpinner();
 
     logInfo('Overview');

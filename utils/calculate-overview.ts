@@ -1,6 +1,18 @@
 import { parseEther } from 'viem';
 import { calculateHealth } from './health/calculate-health.js';
 
+type OverviewArgs = {
+  totalValue: bigint;
+  reserveRatioBP: number;
+  liabilitySharesInStethWei: bigint;
+  forceRebalanceThresholdBP: number;
+  withdrawableEther: bigint;
+  balance: bigint;
+  locked: bigint;
+  nodeOperatorUnclaimedFee: bigint;
+  totalMintingCapacity: bigint;
+};
+
 export const BASIS_POINTS_DENOMINATOR = 10_000n;
 const DECIMALS = 18n;
 const SCALING_FACTOR = 10n ** DECIMALS;
@@ -13,22 +25,24 @@ export const formatBP = (bp: number | bigint) =>
 export const formatRatio = (r: number) =>
   isFinite(r) ? `${r.toFixed(4)}%` : '∞';
 
-export const calculateOverview = (
-  totalValue: bigint,
-  reserveRatioBP: number,
-  liabilitySharesInStethWei: bigint,
-  forceRebalanceThresholdBP: number,
-  withdrawableEther: bigint,
-  balance: bigint,
-  locked: bigint,
-  nodeOperatorUnclaimedFee: bigint,
-  totalMintingCapacity: bigint,
-) => {
-  const { healthRatio, isHealthy } = calculateHealth(
+export const calculateOverview = (args: OverviewArgs) => {
+  const {
+    totalValue,
+    reserveRatioBP,
+    liabilitySharesInStethWei,
+    forceRebalanceThresholdBP,
+    withdrawableEther,
+    balance,
+    locked,
+    nodeOperatorUnclaimedFee,
+    totalMintingCapacity,
+  } = args;
+
+  const { healthRatio, isHealthy } = calculateHealth({
     totalValue,
     liabilitySharesInStethWei,
     forceRebalanceThresholdBP,
-  );
+  });
   const AvailableToWithdrawal = withdrawableEther;
   const idleCapital = balance;
   const depositedToValidators = totalValue - balance;

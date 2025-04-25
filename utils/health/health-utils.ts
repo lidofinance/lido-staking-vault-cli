@@ -39,11 +39,11 @@ export const fetchAndCalculateVaultHealth = async (
     liabilitySharesInStethWei,
     liabilityShares,
   } = await fetchVaultMetrics(contract);
-  const { healthRatio, isHealthy } = calculateHealth(
+  const { healthRatio, isHealthy } = calculateHealth({
     totalValue,
     liabilitySharesInStethWei,
     forceRebalanceThresholdBP,
-  );
+  });
 
   return {
     healthRatio,
@@ -82,16 +82,16 @@ export const fetchAndCalculateVaultHealthWithNewValue = async (
     callReadMethodSilent(stethContract, 'getPooledEthByShares', [value]),
   ]);
 
-  const currentVaultHealth = calculateHealth(
+  const currentVaultHealth = calculateHealth({
     totalValue,
     liabilitySharesInStethWei,
     forceRebalanceThresholdBP,
-  );
-  const newVaultHealth = calculateHealth(
+  });
+  const newVaultHealth = calculateHealth({
     totalValue,
-    newLiabilitySharesInStethWei,
+    liabilitySharesInStethWei: newLiabilitySharesInStethWei,
     forceRebalanceThresholdBP,
-  );
+  });
 
   return {
     currentVaultHealth,
