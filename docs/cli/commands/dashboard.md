@@ -126,6 +126,7 @@ yarn start dashboard -h
 | reset-locked \<address>                                                         | Zeroes the locked amount of the staking vault.                                                                          |
 | request-tier-change \<address> \<tier>                                          | Requests a change of tier on the OperatorGrid.                                                                          |
 | increase-accrued-rewards-adjustment \<address> \<amount>                        | Increases the accrued rewards adjustment.                                                                               |
+| set-accrued-rewards-adjustment \<address> \<amount>                             | Sets the accrued rewards adjustment.                                                                                    |
 
 **\<permitJSON>**
 
