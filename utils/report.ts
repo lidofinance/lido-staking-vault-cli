@@ -132,8 +132,12 @@ export const getReportProofByVault = async (vault: Address, cid: string) => {
   return proofByVault;
 };
 
-export const getReportProofByCid = async (vault: Address, proofCID: string) => {
-  const proof: ReportProofData = await fetchIPFS(proofCID);
+export const getVaultReportProofByCid = async (
+  vault: Address,
+  proofCID: string,
+  url = IPFS_GATEWAY,
+) => {
+  const proof: ReportProofData = await fetchIPFS(proofCID, url);
 
   const proofByVault = proof.proofs[vault];
   if (!proofByVault) throw new Error('Proof not found');
@@ -141,15 +145,24 @@ export const getReportProofByCid = async (vault: Address, proofCID: string) => {
   return proofByVault;
 };
 
+export const getAllVaultsReportProofs = async (
+  proofCID: string,
+  url = IPFS_GATEWAY,
+) => {
+  const proof: ReportProofData = await fetchIPFS(proofCID, url);
+
+  return proof.proofs;
+};
+
 export const getAllVaultsReports = async (
   CID: string,
   url = IPFS_GATEWAY,
-): Promise<VaultReport['data'][]> => {
+): Promise<{ vaultReports: VaultReport['data'][]; proofsCID: string }> => {
   const report = await getReport(CID, url);
 
   const vaultReports = report.values.map(
     (value) => getVaultData(report, value.value[0] as Address).data,
   );
 
-  return vaultReports;
+  return { vaultReports, proofsCID: report.proofsCID };
 };

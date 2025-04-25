@@ -1,10 +1,11 @@
 import { program } from 'command';
-import { Hex } from 'viem';
+import { Address, Hex } from 'viem';
 import { Option } from 'commander';
 
 import {
   getVaultReport,
-  getReportProofByCid,
+  getVaultReportProofByCid,
+  getAllVaultsReportProofs,
   callReadMethod,
   getReportLeaf,
   getAllVaultsReports,
@@ -14,6 +15,7 @@ import {
   callWriteMethodWithReceipt,
   confirmPrompt,
   logCancel,
+  logError,
 } from 'utils';
 import { getVaultHubContract } from 'contracts';
 
@@ -74,7 +76,7 @@ report
     await fetchAndVerifyFile(vaultsDataReportCid, url);
 
     const report = await getVaultReport(vault, vaultsDataReportCid, url);
-    const reportProof = await getReportProofByCid(vault, report.proofsCID);
+    const reportProof = await getVaultReportProofByCid(vault, report.proofsCID);
 
     await fetchAndVerifyFile(report.proofsCID, url);
 
@@ -100,6 +102,42 @@ report
       BigInt(report.data.liability_shares),
       reportProof.proof as Hex[],
     ]);
+  });
+
+report
+  .command('by-vaults-submit')
+  .description('submit report for vaults')
+  .argument('<vaults...>', 'vaults addresses')
+  .option('-u, --url', 'ipfs gateway url')
+  .action(async (vaults: Address[], { url }) => {
+    const vaultHubContract = await getVaultHubContract();
+    const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
+      await callReadMethod(vaultHubContract, 'latestReportData');
+
+    await fetchAndVerifyFile(vaultsDataReportCid, url);
+    const { vaultReports, proofsCID } = await getAllVaultsReports(
+      vaultsDataReportCid,
+      url,
+    );
+
+    await fetchAndVerifyFile(proofsCID, url);
+    const allVaultsProofs = await getAllVaultsReportProofs(proofsCID, url);
+    for (const vault of vaults) {
+      const vaultReport = vaultReports.find((v) => v.vault_address === vault);
+      if (!vaultReport) {
+        logError(`Vault ${vault} not found`);
+        continue;
+      }
+      logInfo(`Updating vault report for ${vault}`);
+      await callWriteMethodWithReceipt(vaultHubContract, 'updateVaultData', [
+        vault,
+        BigInt(vaultReport.total_value_wei),
+        BigInt(vaultReport.in_out_delta),
+        BigInt(vaultReport.fee),
+        BigInt(vaultReport.liability_shares),
+        allVaultsProofs[vault]?.proof as Hex[],
+      ]);
+    }
   });
 
 report
@@ -131,4 +169,38 @@ report
     logInfo('local leaf', reportLeaf);
     logInfo('ipfs leaf', report.leaf);
     logInfo('ipfs merkle tree root', report.merkleTreeRoot);
+  });
+
+report
+  .command('submit-all')
+  .description('submit report for all vaults')
+  .option('-u, --url', 'ipfs gateway url')
+  .action(async ({ url }) => {
+    const vaultHubContract = await getVaultHubContract();
+    const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
+      await callReadMethod(vaultHubContract, 'latestReportData');
+
+    await fetchAndVerifyFile(vaultsDataReportCid, url);
+
+    const { vaultReports, proofsCID } = await getAllVaultsReports(
+      vaultsDataReportCid,
+      url,
+    );
+    await fetchAndVerifyFile(proofsCID, url);
+    const allVaultsProofs = await getAllVaultsReportProofs(proofsCID, url);
+
+    for (const [index, report] of vaultReports.entries()) {
+      await callWriteMethodWithReceipt(vaultHubContract, 'updateVaultData', [
+        report.vault_address as Address,
+        BigInt(report.total_value_wei),
+        BigInt(report.in_out_delta),
+        BigInt(report.fee),
+        BigInt(report.liability_shares),
+        allVaultsProofs[report.vault_address]?.proof as Hex[],
+      ]);
+
+      logInfo(
+        `Successfully updated vault: ${report.vault_address} (index ${index})`,
+      );
+    }
   });

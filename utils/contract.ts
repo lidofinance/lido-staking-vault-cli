@@ -4,7 +4,7 @@ import { waitForTransactionReceipt } from 'viem/actions';
 import { getAccount, getPublicClient } from 'providers';
 import { getChain } from 'configs';
 
-import { showSpinner, printError, logResult } from 'utils';
+import { showSpinner, printError, logResult, logError } from 'utils';
 
 export type ReadContract = {
   address: Address;
@@ -49,8 +49,14 @@ export const callSimulateWriteMethod = async <
     return result;
   } catch (err) {
     hideSpinner();
-    printError(err, `Error when simulating write method "${methodName}"`);
+    const cause = (err as any).cause;
+    const signature = cause?.signature;
 
+    if (signature === '0x3fb579ad') {
+      logError('Known error: ReportTooOld(uint64,uint64)');
+    }
+
+    printError(err, `Error when simulating write method "${methodName}"`);
     throw err;
   }
 };

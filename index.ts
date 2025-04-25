@@ -7,6 +7,6 @@ import './programs/index.js';
 export * from './utils/index.js';
 
 program.parseAsync(process.argv).catch((error) => {
-  logError('CLI Error:', error);
+  logError('CLI Error:', error.message);
   process.exit(1);
 });
