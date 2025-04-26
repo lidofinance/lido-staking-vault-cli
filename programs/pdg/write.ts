@@ -45,6 +45,18 @@ pdgWrite
   .argument('<vault>', 'vault address')
   .argument('<deposits>', 'deposits', parseDepositArray)
   .option('--no-bls-check', 'skip bls signature check')
+  .addHelpText(
+    'after',
+    `Deposit format:
+    '{
+      "pubkey": "...",
+      "signature": "...",
+      "amount": "...",
+      "deposit_data_root": "..."
+    }
+    {second deposit}
+    ...'`,
+  )
   .action(
     async (
       vault: Address,
@@ -154,6 +166,18 @@ pdgWrite
   .argument('<indexes>', 'validator indexes', stringToBigIntArray)
   .argument('<vault>', 'vault address')
   .argument('<deposits>', 'deposits', parseDepositArray)
+  .addHelpText(
+    'after',
+    `Deposit format:
+    '{
+      "pubkey": "...",
+      "signature": "...",
+      "amount": "...",
+      "deposit_data_root": "..."
+    }
+    {second deposit}
+    ...'`,
+  )
   .action(async (indexes: bigint[], vault: Address, deposits: Deposit[]) => {
     const pdgContract = await getPredepositGuaranteeContract();
 
@@ -213,6 +237,18 @@ pdgWrite
   .description('deposit to beacon chain')
   .argument('<vault>', 'vault address')
   .argument('<deposits>', 'deposits', parseDepositArray)
+  .addHelpText(
+    'after',
+    `Deposit format:
+    '{
+      "pubkey": "...",
+      "signature": "...",
+      "amount": "...",
+      "deposit_data_root": "..."
+    }
+    {second deposit}
+    ...'`,
+  )
   .action(async (vault: Address, deposits: Deposit[]) => {
     const pdgContract = await getPredepositGuaranteeContract();
 

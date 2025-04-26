@@ -401,6 +401,16 @@ dashboardWrite
     'JSON array of role assignments',
     jsonToRoleAssignment,
   )
+  .addHelpText(
+    'after',
+    `Role assignment format:
+    [{
+      "account": "...",
+      "role": "..."
+    }
+    {second role assignment}
+    ...]`,
+  )
   .action(async (address: Address, roleAssignment: RoleAssignment[]) => {
     const contract = getDashboardContract(address);
     if (!Array.isArray(roleAssignment)) {
@@ -428,6 +438,16 @@ dashboardWrite
     '<roleAssignmentJSON>',
     'JSON array of role assignments',
     jsonToRoleAssignment,
+  )
+  .addHelpText(
+    'after',
+    `Role assignment format:
+    [{
+      "account": "...",
+      "role": "..."
+    }
+    {second role assignment}
+    ...]`,
   )
   .action(async (address: Address, roleAssignment: RoleAssignment[]) => {
     const contract = getDashboardContract(address);
@@ -487,6 +507,18 @@ dashboardWrite
     '<deposits>',
     'array of IStakingVault.Deposit structs containing deposit data',
     parseDepositArray,
+  )
+  .addHelpText(
+    'after',
+    `Deposit format:
+    '{
+      "pubkey": "...",
+      "signature": "...",
+      "amount": "...",
+      "deposit_data_root": "..."
+    }
+    {second deposit}
+    ...'`,
   )
   .action(async (address: Address, deposits: Deposit[]) => {
     const contract = getDashboardContract(address);

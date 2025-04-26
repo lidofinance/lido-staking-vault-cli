@@ -95,7 +95,6 @@ export const getDashboardOverview = async (contract: DashboardContract) => {
       'Utilization Ratio': formatRatio(overview.utilizationRatio),
       'Available To Withdrawal': `${formatEther(overview.AvailableToWithdrawal)} ETH`,
       'Idle Capital': `${formatEther(overview.idleCapital)} ETH`,
-      'Deposited To Validators': `${formatEther(overview.depositedToValidators)} ETH`,
       'Total Locked': `${formatEther(overview.totalLocked)} ETH`,
       Collateral: `${formatEther(overview.collateral)} ETH`,
       'Pending Unlock': `${formatEther(overview.PendingUnlock)} ETH`,

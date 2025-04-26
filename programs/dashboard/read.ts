@@ -17,6 +17,7 @@ import {
   stringToAddress,
   callReadMethod,
   getRequiredLockByShares,
+  callReadMethodSilent,
 } from 'utils';
 
 import { dashboard } from './main.js';
@@ -99,6 +100,19 @@ dashboardRead
       'Required Lock (shares)': formatEther(requiredLock),
       'Current Lock (wei)': currentLock,
       'Current Lock (shares)': formatEther(currentLock),
+    });
+  });
+
+dashboardRead
+  .command('dashboard-address-by-vault')
+  .alias('dashboard-by-vault')
+  .description('get dashboard address by vault')
+  .argument('<vault>', 'vault address', stringToAddress)
+  .action(async (vault: Address) => {
+    const contract = getStakingVaultContract(vault);
+    const owner = await callReadMethodSilent(contract, 'owner');
+    logResult({
+      'Dashboard Address': owner,
     });
   });
 

@@ -45,7 +45,6 @@ export const calculateOverview = (args: OverviewArgs) => {
   });
   const AvailableToWithdrawal = withdrawableEther;
   const idleCapital = balance;
-  const depositedToValidators = totalValue - balance;
   const totalLocked = locked + nodeOperatorUnclaimedFee;
 
   // ---------- Computed values ---------- //
@@ -93,7 +92,6 @@ export const calculateOverview = (args: OverviewArgs) => {
     isHealthy,
     AvailableToWithdrawal,
     idleCapital,
-    depositedToValidators,
     totalLocked,
     collateral,
     PendingUnlock,

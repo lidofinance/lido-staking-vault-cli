@@ -122,6 +122,18 @@ predepositGuaranteeHelpers
   .option('-a, --vault <address>', 'vault address')
   .option('-w, --withdrawalCredentials <hex>', 'withdrawal credentials')
   .argument('<deposits>', 'deposits', parseDepositArray)
+  .addHelpText(
+    'after',
+    `Deposit format:
+    '{
+      "pubkey": "...",
+      "signature": "...",
+      "amount": "...",
+      "deposit_data_root": "..."
+    }
+    {second deposit}
+    ...'`,
+  )
   .action(
     async (
       deposits: Deposit[],
