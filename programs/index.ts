@@ -7,5 +7,5 @@ export * from './vault-factory/index.js';
 export * from './pdg/index.js';
 export * from './hub/index.js';
 export * from './vault-viewer/index.js';
-export * from './report.js';
+export * from './report/index.js';
 export * from './operator-grid/index.js';

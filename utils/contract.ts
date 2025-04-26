@@ -26,16 +26,20 @@ type GetFirst<T extends unknown[]> = T extends [infer First, infer _Second]
 export const callSimulateWriteMethod = async <
   T extends PartialContract,
   M extends keyof T['simulate'] & string,
->(
-  contract: T,
-  methodName: M,
-  payload: Writeable<GetFirst<Parameters<T['simulate'][M]>>> | never[],
-  value?: bigint,
-): Promise<SimulateContractReturnType> => {
-  const hideSpinner = showSpinner({
-    type: 'bouncingBall',
-    message: 'Simulating...',
-  });
+>(args: {
+  contract: T;
+  methodName: M;
+  payload: Writeable<GetFirst<Parameters<T['simulate'][M]>>> | never[];
+  value?: bigint;
+  withSpinner?: boolean;
+}): Promise<SimulateContractReturnType> => {
+  const { contract, methodName, payload, value, withSpinner = true } = args;
+  const hideSpinner = withSpinner
+    ? showSpinner({
+        type: 'bouncingBall',
+        message: 'Simulating...',
+      })
+    : () => {};
 
   try {
     const method = contract.simulate[methodName];
@@ -64,18 +68,22 @@ export const callSimulateWriteMethod = async <
 export const callWriteMethod = async <
   T extends PartialContract,
   M extends keyof T['write'] & string,
->(
-  contract: T,
-  methodName: M,
-  payload: Writeable<GetFirst<Parameters<T['write'][M]>>> | never[],
-  value?: bigint,
-): Promise<Address> => {
-  const simulateResult = await callSimulateWriteMethod(
+>(args: {
+  contract: T;
+  methodName: M;
+  payload: Writeable<GetFirst<Parameters<T['write'][M]>>> | never[];
+  value?: bigint;
+  withSpinner?: boolean;
+}): Promise<Address> => {
+  const { contract, methodName, payload, value, withSpinner = true } = args;
+
+  const simulateResult = await callSimulateWriteMethod({
     contract,
     methodName,
     payload,
     value,
-  );
+    withSpinner,
+  });
   if (!simulateResult) {
     printError(
       new Error('Simulation failed'),
@@ -85,7 +93,12 @@ export const callWriteMethod = async <
     throw new Error('Simulation failed');
   }
 
-  const hideSpinner = showSpinner();
+  const hideSpinner = withSpinner
+    ? showSpinner({
+        type: 'bouncingBar',
+        message: 'Waiting for transaction receipt...',
+      })
+    : () => {};
   try {
     const method = contract.write[methodName];
     const tx = await method?.(payload, {
@@ -195,20 +208,30 @@ export const isContractAddress = async (address: Address) => {
 export const callWriteMethodWithReceipt = async <
   T extends PartialContract,
   M extends keyof T['write'] & string,
->(
-  contract: T,
-  methodName: M,
-  payload: Writeable<GetFirst<Parameters<T['write'][M]>>> | never[],
-  value?: bigint,
-): Promise<{ receipt: TransactionReceipt; tx: Address }> => {
+>(args: {
+  contract: T;
+  methodName: M;
+  payload: Writeable<GetFirst<Parameters<T['write'][M]>>> | never[];
+  value?: bigint;
+  withSpinner?: boolean;
+}): Promise<{ receipt: TransactionReceipt; tx: Address }> => {
+  const { contract, methodName, payload, value, withSpinner = true } = args;
   const publicClient = getPublicClient();
 
-  const tx = await callWriteMethod(contract, methodName, payload, value);
-
-  const hideSpinner = showSpinner({
-    type: 'bouncingBar',
-    message: 'Waiting for transaction receipt...',
+  const tx = await callWriteMethod({
+    contract,
+    methodName,
+    payload,
+    value,
+    withSpinner,
   });
+
+  const hideSpinner = withSpinner
+    ? showSpinner({
+        type: 'bouncingBar',
+        message: 'Waiting for transaction receipt...',
+      })
+    : () => {};
 
   try {
     const receipt = await waitForTransactionReceipt(publicClient, { hash: tx });

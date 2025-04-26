@@ -7,7 +7,7 @@ export const createConsole = (
   return <T, U>(...args: T[] | U[]) => {
     switch (type) {
       case 'table':
-        console.info(`${getColoredLog(headMessage, headMessage + ':')}`);
+        console.info(`\n${getColoredLog(headMessage, headMessage + ':')}`);
         console.table(...args);
         break;
       case 'bold':
@@ -16,7 +16,7 @@ export const createConsole = (
       default:
         // eslint-disable-next-line no-console
         console[type](
-          `${getColoredLog(headMessage, headMessage + ':')}`,
+          `\n${getColoredLog(headMessage, headMessage + ':')}`,
           ...args,
         );
     }

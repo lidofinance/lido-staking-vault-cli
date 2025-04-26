@@ -37,9 +37,11 @@ VaultHubWrite.command('add-codehash')
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(contract, 'addVaultProxyCodehash', [
-      codehash,
-    ]);
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'addVaultProxyCodehash',
+      payload: [codehash],
+    });
   });
 
 // TODO: replace by voting
@@ -58,7 +60,11 @@ VaultHubWrite.command('v-connect')
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(contract, 'connectVault', [address]);
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'connectVault',
+      payload: [address],
+    });
   });
 
 VaultHubWrite.command('v-update-share-limit')
@@ -73,10 +79,11 @@ VaultHubWrite.command('v-update-share-limit')
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(contract, 'updateShareLimit', [
-      address,
-      shareLimit,
-    ]);
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'updateShareLimit',
+      payload: [address, shareLimit],
+    });
   });
 
 VaultHubWrite.command('v-disconnect')
@@ -90,7 +97,11 @@ VaultHubWrite.command('v-disconnect')
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(contract, 'disconnect', [address]);
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'disconnect',
+      payload: [address],
+    });
   });
 
 VaultHubWrite.command('v-owner-disconnect')
@@ -106,9 +117,11 @@ VaultHubWrite.command('v-owner-disconnect')
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(contract, 'voluntaryDisconnect', [
-      address,
-    ]);
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'voluntaryDisconnect',
+      payload: [address],
+    });
   });
 
 VaultHubWrite.command('v-mint')
@@ -117,7 +130,7 @@ VaultHubWrite.command('v-mint')
   )
   .argument('<address>', 'vault address', stringToAddress)
   .argument('<recipient>', 'address of the receiver')
-  .argument('<amountOfShares>', 'amount of stETH shares to mint')
+  .argument('<amountOfShares>', 'amount of stETH shares to mint (in Shares)')
   .action(
     async (address: Address, recipient: Address, amountOfShares: string) => {
       const contract = await getVaultHubContract();
@@ -127,18 +140,18 @@ VaultHubWrite.command('v-mint')
       );
       if (!confirm) return;
 
-      await callWriteMethodWithReceipt(contract, 'mintShares', [
-        address,
-        recipient,
-        BigInt(amountOfShares),
-      ]);
+      await callWriteMethodWithReceipt({
+        contract,
+        methodName: 'mintShares',
+        payload: [address, recipient, parseEther(amountOfShares)],
+      });
     },
   );
 
 VaultHubWrite.command('v-burn')
   .description('burn steth shares from the balance of the VaultHub contract')
   .argument('<address>', 'vault address', stringToAddress)
-  .argument('<amountOfShares>', 'amount of stETH shares to mint')
+  .argument('<amountOfShares>', 'amount of stETH shares to burn (in Shares)')
   .action(async (address: Address, amountOfShares: string) => {
     const contract = await getVaultHubContract();
 
@@ -147,10 +160,11 @@ VaultHubWrite.command('v-burn')
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(contract, 'burnShares', [
-      address,
-      BigInt(amountOfShares),
-    ]);
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'burnShares',
+      payload: [address, parseEther(amountOfShares)],
+    });
   });
 
 VaultHubWrite.command('v-transfer-and-burn')
@@ -158,7 +172,7 @@ VaultHubWrite.command('v-transfer-and-burn')
     'separate burn function for EOA vault owners; requires vaultHub to be approved to transfer stETH',
   )
   .argument('<address>', 'vault address', stringToAddress)
-  .argument('<amountOfShares>', 'amount of stETH shares to mint')
+  .argument('<amountOfShares>', 'amount of stETH shares to burn (in Shares)')
   .action(async (address: Address, amountOfShares: string) => {
     const contract = await getVaultHubContract();
 
@@ -167,10 +181,11 @@ VaultHubWrite.command('v-transfer-and-burn')
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(contract, 'transferAndBurnShares', [
-      address,
-      BigInt(amountOfShares),
-    ]);
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'transferAndBurnShares',
+      payload: [address, parseEther(amountOfShares)],
+    });
   });
 
 VaultHubWrite.command('v-force-rebalance')
@@ -184,7 +199,11 @@ VaultHubWrite.command('v-force-rebalance')
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(contract, 'forceRebalance', [address]);
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'forceRebalance',
+      payload: [address],
+    });
   });
 
 VaultHubWrite.command('v-update-connection')
@@ -213,13 +232,17 @@ VaultHubWrite.command('v-update-connection')
       );
       if (!confirm) return;
 
-      await callWriteMethodWithReceipt(contract, 'updateConnection', [
-        address,
-        shareLimit,
-        reserveRatio,
-        reserveRatioThreshold,
-        treasuryFeeBP,
-      ]);
+      await callWriteMethodWithReceipt({
+        contract,
+        methodName: 'updateConnection',
+        payload: [
+          address,
+          shareLimit,
+          reserveRatio,
+          reserveRatioThreshold,
+          treasuryFeeBP,
+        ],
+      });
     },
   );
 
@@ -241,11 +264,11 @@ VaultHubWrite.command('update-report-data')
       );
       if (!confirm) return;
 
-      await callWriteMethodWithReceipt(contract, 'updateReportData', [
-        vaultsDataTimestamp,
-        vaultsDataTreeRoot,
-        vaultsDataReportCid,
-      ]);
+      await callWriteMethodWithReceipt({
+        contract,
+        methodName: 'updateReportData',
+        payload: [vaultsDataTimestamp, vaultsDataTreeRoot, vaultsDataReportCid],
+      });
     },
   );
 
@@ -267,11 +290,11 @@ VaultHubWrite.command('v-force-validator-exit')
       );
       if (!confirm) return;
 
-      await callWriteMethodWithReceipt(contract, 'forceValidatorExit', [
-        vaultAddress,
-        validatorPubkey,
-        refundRecipient,
-      ]);
+      await callWriteMethodWithReceipt({
+        contract,
+        methodName: 'forceValidatorExit',
+        payload: [vaultAddress, validatorPubkey, refundRecipient],
+      });
     },
   );
 
@@ -299,14 +322,18 @@ VaultHubWrite.command('v-update-vault-data')
       );
       if (!confirm) return;
 
-      await callWriteMethodWithReceipt(contract, 'updateVaultData', [
-        vaultAddress,
-        totalValue,
-        inOutDelta,
-        feeSharesCharged,
-        liabilityShares,
-        proof,
-      ]);
+      await callWriteMethodWithReceipt({
+        contract,
+        methodName: 'updateVaultData',
+        payload: [
+          vaultAddress,
+          totalValue,
+          inOutDelta,
+          feeSharesCharged,
+          liabilityShares,
+          proof,
+        ],
+      });
     },
   );
 
@@ -321,7 +348,9 @@ VaultHubWrite.command('mint-vaults-treasury-fee-shares')
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(contract, 'mintVaultsTreasuryFeeShares', [
-      parseEther(amountOfShares),
-    ]);
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'mintVaultsTreasuryFeeShares',
+      payload: [parseEther(amountOfShares)],
+    });
   });

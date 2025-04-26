@@ -89,10 +89,11 @@ account
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(stethContract, 'approve', [
-      address,
-      parseEther(amount),
-    ]);
+    await callWriteMethodWithReceipt({
+      contract: stethContract,
+      methodName: 'approve',
+      payload: [address, parseEther(amount)],
+    });
   });
 
 account
@@ -139,10 +140,11 @@ account
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(wstethContract, 'approve', [
-      address,
-      parseEther(amount),
-    ]);
+    await callWriteMethodWithReceipt({
+      contract: wstethContract,
+      methodName: 'approve',
+      payload: [address, parseEther(amount)],
+    });
   });
 
 account

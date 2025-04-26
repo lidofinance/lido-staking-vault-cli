@@ -12,12 +12,12 @@ import {
   mintShares,
   burnShares,
   parseDepositArray,
-  ValidatorWitness,
   logInfo,
   getCommandsJson,
   stringToAddress,
   mintSteth,
   burnSteth,
+  createPDGProof,
 } from 'utils';
 import { RoleAssignment, Deposit } from 'types';
 
@@ -48,11 +48,11 @@ dashboardWrite
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(
+    await callWriteMethodWithReceipt({
       contract,
-      'transferStakingVaultOwnership',
-      [newOwner],
-    );
+      methodName: 'transferStakingVaultOwnership',
+      payload: [newOwner],
+    });
   });
 
 dashboardWrite
@@ -68,7 +68,11 @@ dashboardWrite
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(contract, 'voluntaryDisconnect', []);
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'voluntaryDisconnect',
+      payload: [],
+    });
   });
 
 dashboardWrite
@@ -85,7 +89,12 @@ dashboardWrite
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(contract, 'fund', [], parseEther(ether));
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'fund',
+      payload: [],
+      value: parseEther(ether),
+    });
   });
 
 dashboardWrite
@@ -103,10 +112,11 @@ dashboardWrite
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(contract, 'withdraw', [
-      recipient,
-      parseEther(ether),
-    ]);
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'withdraw',
+      payload: [recipient, parseEther(ether)],
+    });
   });
 
 dashboardWrite
@@ -123,9 +133,11 @@ dashboardWrite
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(contract, 'lock', [
-      parseEther(lockedAmount),
-    ]);
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'lock',
+      payload: [parseEther(lockedAmount)],
+    });
   });
 
 dashboardWrite
@@ -142,9 +154,11 @@ dashboardWrite
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(contract, 'requestValidatorExit', [
-      validatorPubKey,
-    ]);
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'requestValidatorExit',
+      payload: [validatorPubKey],
+    });
   });
 
 dashboardWrite
@@ -176,12 +190,12 @@ dashboardWrite
       );
       if (!confirm) return;
 
-      await callWriteMethodWithReceipt(
+      await callWriteMethodWithReceipt({
         contract,
-        'triggerValidatorWithdrawal',
-        [pubkeys, amounts, recipient],
-        fee,
-      );
+        methodName: 'triggerValidatorWithdrawal',
+        payload: [pubkeys, amounts, recipient],
+        value: fee,
+      });
     },
   );
 
@@ -280,7 +294,7 @@ dashboardWrite
   .command('rebalance')
   .description('rebalance the vault by transferring ether')
   .argument('<address>', 'dashboard address', stringToAddress)
-  .argument('<ether>', 'amount of ether to rebalance')
+  .argument('<ether>', 'amount of ether to rebalance (in ETH)')
   .action(async (address: Address, ether: string) => {
     const contract = getDashboardContract(address);
     const vault = await callReadMethod(contract, 'stakingVault');
@@ -290,9 +304,11 @@ dashboardWrite
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(contract, 'rebalanceVault', [
-      BigInt(ether),
-    ]);
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'rebalanceVault',
+      payload: [parseEther(ether)],
+    });
   });
 
 dashboardWrite
@@ -306,7 +322,7 @@ dashboardWrite
     'Address of the token to recover or 0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee for ether',
   )
   .argument('<recipient>', 'Address of the recovery recipient', stringToAddress)
-  .argument('<amount>', 'amount of ether to recover')
+  .argument('<amount>', 'amount of ether to recover (in ETH)')
   .action(
     async (
       address: Address,
@@ -321,11 +337,11 @@ dashboardWrite
       );
       if (!confirm) return;
 
-      await callWriteMethodWithReceipt(contract, 'recoverERC20', [
-        token,
-        recipient,
-        BigInt(amount),
-      ]);
+      await callWriteMethodWithReceipt({
+        contract,
+        methodName: 'recoverERC20',
+        payload: [token, recipient, parseEther(amount)],
+      });
     },
   );
 
@@ -352,11 +368,11 @@ dashboardWrite
       );
       if (!confirm) return;
 
-      await callWriteMethodWithReceipt(contract, 'recoverERC721', [
-        token,
-        BigInt(tokenId),
-        recipient,
-      ]);
+      await callWriteMethodWithReceipt({
+        contract,
+        methodName: 'recoverERC721',
+        payload: [token, BigInt(tokenId), recipient],
+      });
     },
   );
 
@@ -373,7 +389,11 @@ dashboardWrite
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(contract, 'pauseBeaconChainDeposits', []);
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'pauseBeaconChainDeposits',
+      payload: [],
+    });
   });
 
 dashboardWrite
@@ -389,7 +409,11 @@ dashboardWrite
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(contract, 'resumeBeaconChainDeposits', []);
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'resumeBeaconChainDeposits',
+      payload: [],
+    });
   });
 
 dashboardWrite
@@ -427,7 +451,11 @@ dashboardWrite
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(contract, 'grantRoles', [roleAssignment]);
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'grantRoles',
+      payload: [roleAssignment],
+    });
   });
 
 dashboardWrite
@@ -465,7 +493,11 @@ dashboardWrite
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(contract, 'revokeRoles', [roleAssignment]);
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'revokeRoles',
+      payload: [roleAssignment],
+    });
   });
 
 dashboardWrite
@@ -489,11 +521,11 @@ dashboardWrite
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(
+    await callWriteMethodWithReceipt({
       contract,
-      'compensateDisprovenPredepositFromPDG',
-      [pubkey, recipient],
-    );
+      methodName: 'compensateDisprovenPredepositFromPDG',
+      payload: [pubkey, recipient],
+    });
   });
 
 dashboardWrite
@@ -530,11 +562,11 @@ dashboardWrite
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(
+    await callWriteMethodWithReceipt({
       contract,
-      'unguaranteedDepositToBeaconChain',
-      [deposits],
-    );
+      methodName: 'unguaranteedDepositToBeaconChain',
+      payload: [deposits],
+    });
   });
 
 dashboardWrite
@@ -544,26 +576,38 @@ dashboardWrite
     'Proves validators with correct vault WC if they are unknown to PDG',
   )
   .argument('<address>', 'dashboard address', stringToAddress)
-  .argument(
-    '<witnesses>',
-    'array of IPredepositGuarantee.ValidatorWitness structs containing proof data for validators',
-    parseDepositArray,
-  )
-  .action(async (address: Address, witnesses: ValidatorWitness[]) => {
+  .argument('<validatorIndex...>', 'index of the validator to prove')
+  .action(async (address: Address, validatorIndexes: string[]) => {
     const contract = getDashboardContract(address);
     const vault = await callReadMethod(contract, 'stakingVault');
     const vaultContract = getStakingVaultContract(vault);
     const pdgContract = await callReadMethod(vaultContract, 'depositor');
 
-    const confirm = await confirmOperation(
-      `Are you sure you want to prove ${witnesses.length} validators to the Predeposit Guarantee contract ${pdgContract} in the staking vault ${vault}?
-      Witnesses: ${JSON.stringify(witnesses)}`,
-    );
-    if (!confirm) return;
+    for (const validatorIndex of validatorIndexes) {
+      const packageProof = await createPDGProof(Number(validatorIndex));
+      const { proof, pubkey, childBlockTimestamp } = packageProof;
 
-    await callWriteMethodWithReceipt(contract, 'proveUnknownValidatorsToPDG', [
-      witnesses,
-    ]);
+      const confirm = await confirmOperation(
+        `Are you sure you want to prove ${proof.length} validators to the Predeposit Guarantee contract ${pdgContract} in the staking vault ${vault}?
+      Witnesses: ${JSON.stringify(proof)}`,
+      );
+      if (!confirm) return;
+
+      await callWriteMethodWithReceipt({
+        contract,
+        methodName: 'proveUnknownValidatorsToPDG',
+        payload: [
+          [
+            {
+              proof,
+              pubkey,
+              validatorIndex: BigInt(validatorIndex),
+              childBlockTimestamp,
+            },
+          ],
+        ],
+      });
+    }
   });
 
 dashboardWrite
@@ -580,7 +624,11 @@ dashboardWrite
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(contract, 'authorizeLidoVaultHub', []);
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'authorizeLidoVaultHub',
+      payload: [],
+    });
   });
 
 dashboardWrite
@@ -599,7 +647,11 @@ dashboardWrite
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(contract, 'deauthorizeLidoVaultHub', []);
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'deauthorizeLidoVaultHub',
+      payload: [],
+    });
   });
 
 dashboardWrite
@@ -616,7 +668,11 @@ dashboardWrite
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(contract, 'ossifyStakingVault', []);
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'ossifyStakingVault',
+      payload: [],
+    });
   });
 
 dashboardWrite
@@ -633,7 +689,11 @@ dashboardWrite
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(contract, 'setDepositor', [depositor]);
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'setDepositor',
+      payload: [depositor],
+    });
   });
 
 dashboardWrite
@@ -649,7 +709,11 @@ dashboardWrite
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(contract, 'resetLocked', []);
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'resetLocked',
+      payload: [],
+    });
   });
 
 dashboardWrite
@@ -666,7 +730,11 @@ dashboardWrite
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(contract, 'requestTierChange', [tier]);
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'requestTierChange',
+      payload: [tier],
+    });
   });
 
 dashboardWrite
@@ -685,11 +753,11 @@ dashboardWrite
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(
+    await callWriteMethodWithReceipt({
       contract,
-      'increaseAccruedRewardsAdjustment',
-      [parseEther(amount)],
-    );
+      methodName: 'increaseAccruedRewardsAdjustment',
+      payload: [parseEther(amount)],
+    });
   });
 
 dashboardWrite
@@ -713,8 +781,9 @@ dashboardWrite
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(contract, 'setAccruedRewardsAdjustment', [
-      parseEther(amount),
-      currentAdjustment,
-    ]);
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'setAccruedRewardsAdjustment',
+      payload: [parseEther(amount), currentAdjustment],
+    });
   });

@@ -40,10 +40,11 @@ operatorGridWrite
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(operatorGridContract, 'registerGroup', [
-      nodeOperator,
-      shareLimit,
-    ]);
+    await callWriteMethodWithReceipt({
+      contract: operatorGridContract,
+      methodName: 'registerGroup',
+      payload: [nodeOperator, shareLimit],
+    });
   });
 
 operatorGridWrite
@@ -63,11 +64,11 @@ operatorGridWrite
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(
-      operatorGridContract,
-      'updateGroupShareLimit',
-      [nodeOperator, shareLimit],
-    );
+    await callWriteMethodWithReceipt({
+      contract: operatorGridContract,
+      methodName: 'updateGroupShareLimit',
+      payload: [nodeOperator, shareLimit],
+    });
   });
 
 operatorGridWrite
@@ -85,10 +86,11 @@ operatorGridWrite
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(operatorGridContract, 'registerTiers', [
-      nodeOperator,
-      tiers,
-    ]);
+    await callWriteMethodWithReceipt({
+      contract: operatorGridContract,
+      methodName: 'registerTiers',
+      payload: [nodeOperator, tiers],
+    });
   });
 
 operatorGridWrite
@@ -107,10 +109,11 @@ operatorGridWrite
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(operatorGridContract, 'alterTier', [
-      tierId,
-      tier,
-    ]);
+    await callWriteMethodWithReceipt({
+      contract: operatorGridContract,
+      methodName: 'alterTier',
+      payload: [tierId, tier],
+    });
   });
 
 operatorGridWrite
@@ -128,11 +131,11 @@ operatorGridWrite
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(
-      operatorGridContract,
-      'requestTierChange',
-      [vault, tierId],
-    );
+    await callWriteMethodWithReceipt({
+      contract: operatorGridContract,
+      methodName: 'requestTierChange',
+      payload: [vault, tierId],
+    });
   });
 
 operatorGridWrite
@@ -150,9 +153,9 @@ operatorGridWrite
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(
-      operatorGridContract,
-      'confirmTierChange',
-      [vault, tierId],
-    );
+    await callWriteMethodWithReceipt({
+      contract: operatorGridContract,
+      methodName: 'confirmTierChange',
+      payload: [vault, tierId],
+    });
   });

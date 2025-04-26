@@ -78,13 +78,21 @@ export const voteLastVoting = async () => {
 export const voteFor = async (voteId: bigint) => {
   const { contract } = getVotingContract();
 
-  await callWriteMethodWithReceipt(contract, 'vote', [voteId, true, false]);
+  await callWriteMethodWithReceipt({
+    contract,
+    methodName: 'vote',
+    payload: [voteId, true, false],
+  });
   logInfo('Vote voted', voteId);
 };
 
 export const executeVote = async (voteId: bigint) => {
   const { contract } = getVotingContract();
-  await callWriteMethodWithReceipt(contract, 'executeVote', [voteId]);
+  await callWriteMethodWithReceipt({
+    contract,
+    methodName: 'executeVote',
+    payload: [voteId],
+  });
   logInfo('Vote executed', voteId);
 };
 

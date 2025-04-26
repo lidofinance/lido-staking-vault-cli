@@ -41,7 +41,12 @@ vaultWrite
 
     const contract = getStakingVaultContract(address);
 
-    await callWriteMethodWithReceipt(contract, 'fund', [], parseEther(amount));
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'fund',
+      payload: [],
+      value: parseEther(amount),
+    });
   });
 
 vaultWrite
@@ -53,7 +58,11 @@ vaultWrite
   .action(async (address: Address, recipient: Address, amount: bigint) => {
     const contract = getStakingVaultContract(address);
 
-    await callWriteMethodWithReceipt(contract, 'withdraw', [recipient, amount]);
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'withdraw',
+      payload: [recipient, amount],
+    });
   });
 
 // TODO: get more details
@@ -89,9 +98,11 @@ vaultWrite
       );
       if (!confirm) return;
 
-      await callWriteMethodWithReceipt(contract, 'depositToBeaconChain', [
-        payload,
-      ]);
+      await callWriteMethodWithReceipt({
+        contract,
+        methodName: 'depositToBeaconChain',
+        payload: [payload],
+      });
     },
   );
 
@@ -109,9 +120,11 @@ vaultWrite
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(contract, 'requestValidatorExit', [
-      validatorPublicKey,
-    ]);
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'requestValidatorExit',
+      payload: [validatorPublicKey],
+    });
   });
 
 vaultWrite
@@ -126,7 +139,11 @@ vaultWrite
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(contract, 'resumeBeaconChainDeposits', []);
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'resumeBeaconChainDeposits',
+      payload: [],
+    });
   });
 
 vaultWrite
@@ -141,7 +158,11 @@ vaultWrite
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(contract, 'pauseBeaconChainDeposits', []);
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'pauseBeaconChainDeposits',
+      payload: [],
+    });
   });
 
 vaultWrite
@@ -172,12 +193,11 @@ vaultWrite
     ) => {
       const contract = getStakingVaultContract(address);
 
-      await callWriteMethodWithReceipt(contract, 'report', [
-        timestamp,
-        totalValue,
-        inOutDelta,
-        locked,
-      ]);
+      await callWriteMethodWithReceipt({
+        contract,
+        methodName: 'report',
+        payload: [timestamp, totalValue, inOutDelta, locked],
+      });
     },
   );
 
@@ -194,7 +214,11 @@ vaultWrite
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(contract, 'rebalance', [amount]);
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'rebalance',
+      payload: [amount],
+    });
   });
 
 vaultWrite
@@ -214,11 +238,11 @@ vaultWrite
       const contract = getStakingVaultContract(address);
       const concatenatedPubkeys = pubkeys.join('') as `0x${string}`;
 
-      await callWriteMethodWithReceipt(contract, 'triggerValidatorWithdrawal', [
-        concatenatedPubkeys,
-        amounts,
-        refundRecipient,
-      ]);
+      await callWriteMethodWithReceipt({
+        contract,
+        methodName: 'triggerValidatorWithdrawal',
+        payload: [concatenatedPubkeys, amounts, refundRecipient],
+      });
     },
   );
 
@@ -235,7 +259,11 @@ vaultWrite
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(contract, 'authorizeLidoVaultHub', []);
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'authorizeLidoVaultHub',
+      payload: [],
+    });
   });
 
 vaultWrite
@@ -253,7 +281,11 @@ vaultWrite
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(contract, 'deauthorizeLidoVaultHub', []);
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'deauthorizeLidoVaultHub',
+      payload: [],
+    });
   });
 
 vaultWrite
@@ -268,7 +300,11 @@ vaultWrite
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(contract, 'ossifyStakingVault', []);
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'ossifyStakingVault',
+      payload: [],
+    });
   });
 
 vaultWrite
@@ -283,7 +319,11 @@ vaultWrite
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(contract, 'resetLocked', []);
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'resetLocked',
+      payload: [],
+    });
   });
 
 vaultWrite
@@ -299,5 +339,9 @@ vaultWrite
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(contract, 'setDepositor', [depositor]);
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'setDepositor',
+      payload: [depositor],
+    });
   });

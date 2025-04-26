@@ -95,39 +95,39 @@ yarn start dashboard -h
 
 ### Write
 
-| Command                                                                         | Description                                                                                                             |
-| ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| ownership \<address> \<newOwner>                                                | transfers ownership of the staking vault to a new owner                                                                 |
-| disconnect \<address>                                                           | disconnects the staking vault from the vault hub                                                                        |
-| fund \<address> \<ether>                                                        | funds the staking vault with ether                                                                                      |
-| withdraw \<address> \<recipient> \<eth>                                         | withdraws ether from the staking vault to a recipient                                                                   |
-| lock \<address> \<lockedAmount>                                                 | updates the locked amount of the staking vault                                                                          |
-| exit \<address> \<validatorPubKey>                                              | requests the exit of a validator from the staking vault                                                                 |
-| trigger-validator-withdrawal \<address> \<pubkeys> \<amounts> \<recipient>      | triggers the withdrawal of a validator from the staking vault                                                           |
-| mint-shares mint\<address> \<recipient> \<amountOfShares>                       | mints stETH tokens backed by the vault to a recipient                                                                   |
-| mint-steth \<address> \<recipient> \<amountOfSteth>                             | mints stETH tokens backed by the vault to a recipient                                                                   |
-| mint-wsteth \<address> \<recipient> \<amountOfWsteth>                           | mints wstETH tokens backed by the vault to a recipient                                                                  |
-| burn-shares burn\<address> \<amountOfShares>                                    | Burns stETH shares from the sender backed by the vault. Expects corresponding amount of stETH approved to this contract |
-| burn-steth \<address> \<amountOfShares>                                         | Burns stETH shares from the sender backed by the vault. Expects stETH amount approved to this contract.                 |
-| burn-wsteth \<address> \<tokens>                                                | burn wstETH tokens from the sender backed by the vault                                                                  |
-| rebalance \<address> \<ether>                                                   | rebalance the vault by transferring ether                                                                               |
-| recover-erc20 \<address> \<token> \<recipient> \<amount>                        | recovers ERC20 tokens or ether from the dashboard contract to sender                                                    |
-| recover-erc721 \<address> \<token> \<tokenId> \<recipient>                      | Transfers a given token_id of an ERC721-compatible NFT (defined by the token contract address)                          |
-| deposit-pause \<address>                                                        | Pauses beacon chain deposits on the staking vault.                                                                      |
-| deposit-resume \<address>                                                       | Mass-grants multiple roles to multiple accounts.                                                                        |
-| role-grant \<address> \<roleAssignmentJSON>                                     | Mass-revokes multiple roles from multiple accounts.                                                                     |
-| role-revoke \<address> \<roleAssignmentJSON>                                    | Resumes beacon chain deposits on the staking vault.                                                                     |
-| compensate-disproven-predeposit compensate\<address> \<pubkey> \<recipient>     | Compensates ether of disproven validator`s predeposit from PDG to the recipient                                         |
-| unguaranteed-deposit-to-beacon-chain unguaranteed-deposit\<address> \<deposits> | Withdraws ether from vault and deposits directly to provided validators bypassing the default PDG process               |
-| prove-unknown-validators-to-pdg prove-unknown-validators\<address> \<witnesses> | Proves validators with correct vault WC if they are unknown to PDG                                                      |
-| authorize-lido-vault-hub authorize-hub\<address>                                | Authorizes the Lido Vault Hub to manage the staking vault.                                                              |
-| deauthorize-lido-vault-hub deauthorize-hub\<address>                            | Deauthorizes the Lido Vault Hub from managing the staking vault.                                                        |
-| ossify-staking-vault ossify\<address>                                           | Ossifies the staking vault.                                                                                             |
-| set-depositor \<address> \<depositor>                                           | Updates the address of the depositor for the staking vault.                                                             |
-| reset-locked \<address>                                                         | Zeroes the locked amount of the staking vault.                                                                          |
-| request-tier-change \<address> \<tier>                                          | Requests a change of tier on the OperatorGrid.                                                                          |
-| increase-accrued-rewards-adjustment \<address> \<amount>                        | Increases the accrued rewards adjustment.                                                                               |
-| set-accrued-rewards-adjustment \<address> \<amount>                             | Sets the accrued rewards adjustment.                                                                                    |
+| Command                                                                              | Description                                                                                                             |
+| ------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| ownership \<address> \<newOwner>                                                     | transfers ownership of the staking vault to a new owner                                                                 |
+| disconnect \<address>                                                                | disconnects the staking vault from the vault hub                                                                        |
+| fund \<address> \<ether>                                                             | funds the staking vault with ether                                                                                      |
+| withdraw \<address> \<recipient> \<eth>                                              | withdraws ether from the staking vault to a recipient                                                                   |
+| lock \<address> \<lockedAmount>                                                      | updates the locked amount of the staking vault                                                                          |
+| exit \<address> \<validatorPubKey>                                                   | requests the exit of a validator from the staking vault                                                                 |
+| trigger-validator-withdrawal \<address> \<pubkeys> \<amounts> \<recipient>           | triggers the withdrawal of a validator from the staking vault                                                           |
+| mint-shares mint\<address> \<recipient> \<amountOfShares>                            | mints stETH tokens backed by the vault to a recipient                                                                   |
+| mint-steth \<address> \<recipient> \<amountOfSteth>                                  | mints stETH tokens backed by the vault to a recipient                                                                   |
+| mint-wsteth \<address> \<recipient> \<amountOfWsteth>                                | mints wstETH tokens backed by the vault to a recipient                                                                  |
+| burn-shares burn\<address> \<amountOfShares>                                         | Burns stETH shares from the sender backed by the vault. Expects corresponding amount of stETH approved to this contract |
+| burn-steth \<address> \<amountOfShares>                                              | Burns stETH shares from the sender backed by the vault. Expects stETH amount approved to this contract.                 |
+| burn-wsteth \<address> \<tokens>                                                     | burn wstETH tokens from the sender backed by the vault                                                                  |
+| rebalance \<address> \<ether>                                                        | rebalance the vault by transferring ether                                                                               |
+| recover-erc20 \<address> \<token> \<recipient> \<amount>                             | recovers ERC20 tokens or ether from the dashboard contract to sender                                                    |
+| recover-erc721 \<address> \<token> \<tokenId> \<recipient>                           | Transfers a given token_id of an ERC721-compatible NFT (defined by the token contract address)                          |
+| deposit-pause \<address>                                                             | Pauses beacon chain deposits on the staking vault.                                                                      |
+| deposit-resume \<address>                                                            | Mass-grants multiple roles to multiple accounts.                                                                        |
+| role-grant \<address> \<roleAssignmentJSON>                                          | Mass-revokes multiple roles from multiple accounts.                                                                     |
+| role-revoke \<address> \<roleAssignmentJSON>                                         | Resumes beacon chain deposits on the staking vault.                                                                     |
+| compensate-disproven-predeposit compensate\<address> \<pubkey> \<recipient>          | Compensates ether of disproven validator`s predeposit from PDG to the recipient                                         |
+| unguaranteed-deposit-to-beacon-chain unguaranteed-deposit\<address> \<deposits>      | Withdraws ether from vault and deposits directly to provided validators bypassing the default PDG process               |
+| prove-unknown-validators-to-pdg prove-unknown-validators\<address> \<validatorIndex> | Proves validators with correct vault WC if they are unknown to PDG                                                      |
+| authorize-lido-vault-hub authorize-hub\<address>                                     | Authorizes the Lido Vault Hub to manage the staking vault.                                                              |
+| deauthorize-lido-vault-hub deauthorize-hub\<address>                                 | Deauthorizes the Lido Vault Hub from managing the staking vault.                                                        |
+| ossify-staking-vault ossify\<address>                                                | Ossifies the staking vault.                                                                                             |
+| set-depositor \<address> \<depositor>                                                | Updates the address of the depositor for the staking vault.                                                             |
+| reset-locked \<address>                                                              | Zeroes the locked amount of the staking vault.                                                                          |
+| request-tier-change \<address> \<tier>                                               | Requests a change of tier on the OperatorGrid.                                                                          |
+| increase-accrued-rewards-adjustment \<address> \<amount>                             | Increases the accrued rewards adjustment.                                                                               |
+| set-accrued-rewards-adjustment \<address> \<amount>                                  | Sets the accrued rewards adjustment.                                                                                    |
 
 **\<roleAssignmentJSON>**
 

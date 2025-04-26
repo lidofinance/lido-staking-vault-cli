@@ -111,11 +111,11 @@ pdgWrite
       );
       if (!confirm) return;
 
-      await callWriteMethodWithReceipt(pdgContract, 'predeposit', [
-        vault,
-        deposits,
-        depositsY,
-      ]);
+      await callWriteMethodWithReceipt({
+        contract: pdgContract,
+        methodName: 'predeposit',
+        payload: [vault, deposits, depositsY],
+      });
     },
   );
 
@@ -151,9 +151,11 @@ pdgWrite
       logInfo('------------------------------------------------');
       logInfo('-----------------------end-----------------------');
 
-      await callWriteMethodWithReceipt(pdgContract, 'proveValidatorWC', [
-        { proof, pubkey, validatorIndex, childBlockTimestamp },
-      ]);
+      await callWriteMethodWithReceipt({
+        contract: pdgContract,
+        methodName: 'proveValidatorWC',
+        payload: [{ proof, pubkey, validatorIndex, childBlockTimestamp }],
+      });
     } catch (err) {
       hideSpinner();
       printError(err, 'Error when making proof');
@@ -225,11 +227,11 @@ pdgWrite
       }
     }
 
-    await callWriteMethodWithReceipt(pdgContract, 'proveAndDeposit', [
-      witnesses,
-      deposits,
-      vault,
-    ]);
+    await callWriteMethodWithReceipt({
+      contract: pdgContract,
+      methodName: 'proveAndDeposit',
+      payload: [witnesses, deposits, vault],
+    });
   });
 
 pdgWrite
@@ -257,10 +259,11 @@ pdgWrite
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(pdgContract, 'depositToBeaconChain', [
-      vault,
-      deposits,
-    ]);
+    await callWriteMethodWithReceipt({
+      contract: pdgContract,
+      methodName: 'depositToBeaconChain',
+      payload: [vault, deposits],
+    });
   });
 
 pdgWrite
@@ -276,12 +279,12 @@ pdgWrite
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(
-      pdgContract,
-      'topUpNodeOperatorBalance',
-      [nodeOperator],
-      amount,
-    );
+    await callWriteMethodWithReceipt({
+      contract: pdgContract,
+      methodName: 'topUpNodeOperatorBalance',
+      payload: [nodeOperator],
+      value: amount,
+    });
   });
 
 pdgWrite
@@ -317,10 +320,14 @@ pdgWrite
       logInfo('------------------------------------------------');
       logInfo('-----------------------end-----------------------');
 
-      await callWriteMethodWithReceipt(pdgContract, 'proveUnknownValidator', [
-        { proof, pubkey, validatorIndex, childBlockTimestamp },
-        vault,
-      ]);
+      await callWriteMethodWithReceipt({
+        contract: pdgContract,
+        methodName: 'proveUnknownValidator',
+        payload: [
+          { proof, pubkey, validatorIndex, childBlockTimestamp },
+          vault,
+        ],
+      });
     } catch (err) {
       hideSpinner();
       printError(err, 'Error when proving unknown validator');
@@ -367,10 +374,14 @@ pdgWrite
         return;
       }
 
-      await callWriteMethodWithReceipt(pdgContract, 'proveInvalidValidatorWC', [
-        { proof, pubkey, validatorIndex, childBlockTimestamp },
-        invalidWithdrawalCredentials,
-      ]);
+      await callWriteMethodWithReceipt({
+        contract: pdgContract,
+        methodName: 'proveInvalidValidatorWC',
+        payload: [
+          { proof, pubkey, validatorIndex, childBlockTimestamp },
+          invalidWithdrawalCredentials,
+        ],
+      });
     } catch (err) {
       hideSpinner();
       printError(err, 'Error when making proof');
@@ -391,11 +402,11 @@ pdgWrite
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(
-      pdgContract,
-      'withdrawNodeOperatorBalance',
-      [nodeOperator, amount, recipient],
-    );
+    await callWriteMethodWithReceipt({
+      contract: pdgContract,
+      methodName: 'withdrawNodeOperatorBalance',
+      payload: [nodeOperator, amount, recipient],
+    });
   });
 
 pdgWrite
@@ -412,9 +423,11 @@ pdgWrite
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(pdgContract, 'setNodeOperatorGuarantor', [
-      guarantor,
-    ]);
+    await callWriteMethodWithReceipt({
+      contract: pdgContract,
+      methodName: 'setNodeOperatorGuarantor',
+      payload: [guarantor],
+    });
   });
 
 pdgWrite
@@ -431,9 +444,11 @@ pdgWrite
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(pdgContract, 'claimGuarantorRefund', [
-      recipient,
-    ]);
+    await callWriteMethodWithReceipt({
+      contract: pdgContract,
+      methodName: 'claimGuarantorRefund',
+      payload: [recipient],
+    });
   });
 
 pdgWrite
@@ -450,9 +465,9 @@ pdgWrite
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt(
-      pdgContract,
-      'compensateDisprovenPredeposit',
-      [pubkey, recipient],
-    );
+    await callWriteMethodWithReceipt({
+      contract: pdgContract,
+      methodName: 'compensateDisprovenPredeposit',
+      payload: [pubkey, recipient],
+    });
   });

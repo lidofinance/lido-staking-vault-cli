@@ -23,10 +23,10 @@ export const createVault = async (
     confirmExpiry,
   } = payload;
 
-  const result = await callWriteMethodWithReceipt(
+  const result = await callWriteMethodWithReceipt({
     contract,
-    'createVaultWithDashboard',
-    [
+    methodName: 'createVaultWithDashboard',
+    payload: [
       defaultAdmin,
       nodeOperator,
       nodeOperatorManager,
@@ -35,8 +35,8 @@ export const createVault = async (
       otherRoles,
       '0x',
     ],
-    parseEther('1'),
-  );
+    value: parseEther('1'),
+  });
   if (!result) return;
   const { receipt, tx } = result;
 

@@ -134,10 +134,11 @@ export const mintShares = async (
   });
   if (!confirm) return;
 
-  await callWriteMethodWithReceipt(contract, method, [
-    recipient,
-    amountOfShares,
-  ]);
+  await callWriteMethodWithReceipt({
+    contract,
+    methodName: method,
+    payload: [recipient, amountOfShares],
+  });
 };
 
 export const burnSteth = async (
@@ -201,5 +202,9 @@ export const burnShares = async (
   });
   if (!confirm) return;
 
-  await callWriteMethodWithReceipt(contract, method, [amountOfShares]);
+  await callWriteMethodWithReceipt({
+    contract,
+    methodName: method,
+    payload: [amountOfShares],
+  });
 };
