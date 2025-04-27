@@ -124,6 +124,8 @@ reportWrite
           BigInt(vaultReport.liability_shares),
           allVaultsProofs[vault]?.proof as Hex[],
         ],
+        withSpinner: false,
+        silent: true,
       });
 
       progressBar.increment();
@@ -175,6 +177,7 @@ reportWrite
           allVaultsProofs[report.vault_address]?.proof as Hex[],
         ],
         withSpinner: false,
+        silent: true,
       });
 
       progressBar.increment();
@@ -184,5 +187,7 @@ reportWrite
     }
 
     logResult('Done');
-    progressBar.stop();
+    setTimeout(() => {
+      progressBar.stop();
+    }, 1000);
   });

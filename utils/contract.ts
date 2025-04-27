@@ -74,8 +74,16 @@ export const callWriteMethod = async <
   payload: Writeable<GetFirst<Parameters<T['write'][M]>>> | never[];
   value?: bigint;
   withSpinner?: boolean;
+  silent?: boolean;
 }): Promise<Address> => {
-  const { contract, methodName, payload, value, withSpinner = true } = args;
+  const {
+    contract,
+    methodName,
+    payload,
+    value,
+    withSpinner = true,
+    silent = false,
+  } = args;
 
   const simulateResult = await callSimulateWriteMethod({
     contract,
@@ -108,11 +116,12 @@ export const callWriteMethod = async <
     });
     hideSpinner();
 
-    logResult({
-      'Method name': methodName,
-      Contract: contract.address,
-      Transaction: tx,
-    });
+    !silent &&
+      logResult({
+        'Method name': methodName,
+        Contract: contract.address,
+        Transaction: tx,
+      });
 
     return tx;
   } catch (err) {
@@ -214,8 +223,16 @@ export const callWriteMethodWithReceipt = async <
   payload: Writeable<GetFirst<Parameters<T['write'][M]>>> | never[];
   value?: bigint;
   withSpinner?: boolean;
+  silent?: boolean;
 }): Promise<{ receipt: TransactionReceipt; tx: Address }> => {
-  const { contract, methodName, payload, value, withSpinner = true } = args;
+  const {
+    contract,
+    methodName,
+    payload,
+    value,
+    withSpinner = true,
+    silent = false,
+  } = args;
   const publicClient = getPublicClient();
 
   const tx = await callWriteMethod({
@@ -224,6 +241,7 @@ export const callWriteMethodWithReceipt = async <
     payload,
     value,
     withSpinner,
+    silent,
   });
 
   const hideSpinner = withSpinner
@@ -237,13 +255,14 @@ export const callWriteMethodWithReceipt = async <
     const receipt = await waitForTransactionReceipt(publicClient, { hash: tx });
     hideSpinner();
 
-    logResult({
-      'Method name': methodName,
-      Contract: contract.address,
-      'Transaction status': receipt.status,
-      'Transaction block number': Number(receipt.blockNumber),
-      'Transaction gas used': Number(receipt.gasUsed),
-    });
+    !silent &&
+      logResult({
+        'Method name': methodName,
+        Contract: contract.address,
+        'Transaction status': receipt.status,
+        'Transaction block number': Number(receipt.blockNumber),
+        'Transaction gas used': Number(receipt.gasUsed),
+      });
 
     return { receipt, tx };
   } catch (err) {
