@@ -16,7 +16,6 @@ import {
   getAllVaultsReports,
   getAllVaultsReportProofs,
   fetchAndVerifyFile,
-  logResult,
 } from 'utils';
 
 import { report } from './main.js';
@@ -101,18 +100,18 @@ reportWrite
       {
         format:
           'Progress |{bar}| {percentage}% || {value}/{total} Vaults Updated',
+        stopOnComplete: true,
       },
       cliProgress.Presets.shades_classic,
     );
 
     progressBar.start(vaults.length, 0);
-    for (const [index, vault] of vaults.entries()) {
+    for (const [_index, vault] of vaults.entries()) {
       const vaultReport = vaultReports.find((v) => v.vault_address === vault);
       if (!vaultReport) {
         logError(`Vault ${vault} not found`);
         continue;
       }
-      logInfo(`Updating vault report for ${vault}`);
       await callWriteMethodWithReceipt({
         contract: vaultHubContract,
         methodName: 'updateVaultData',
@@ -129,10 +128,8 @@ reportWrite
       });
 
       progressBar.increment();
-      logInfo(`Successfully updated vault: ${vault} (index ${index})`);
     }
 
-    logResult('Done');
     progressBar.stop();
   });
 
@@ -164,7 +161,7 @@ reportWrite
 
     progressBar.start(vaultReports.length, 0);
 
-    for (const [index, report] of vaultReports.entries()) {
+    for (const [_index, report] of vaultReports.entries()) {
       await callWriteMethodWithReceipt({
         contract: vaultHubContract,
         methodName: 'updateVaultData',
@@ -181,13 +178,7 @@ reportWrite
       });
 
       progressBar.increment();
-      logInfo(
-        `Successfully updated vault: ${report.vault_address} (index ${index})`,
-      );
     }
 
-    logResult('Done');
-    setTimeout(() => {
-      progressBar.stop();
-    }, 1000);
+    progressBar.stop();
   });
