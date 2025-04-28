@@ -4,6 +4,7 @@ import { callReadMethod, ReadContract, stringToAddress } from 'utils';
 
 export type ReadProgramCommandConfig = {
   [fnName: string]: {
+    hidden?: boolean;
     name?: string;
     description?: string;
     aliases?: string[];
@@ -69,6 +70,7 @@ export function generateReadCommands<T>(
 
     // Search for a custom description for this function
     const configForFn = commandConfig[fnName];
+    if (configForFn?.hidden) return;
     // Custom command name if specified
     const commandName = methods.includes(fnName)
       ? `${fnName}${inputs[0].name}`

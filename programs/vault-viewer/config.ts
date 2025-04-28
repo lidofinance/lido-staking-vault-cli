@@ -2,6 +2,7 @@ import { ReadProgramCommandConfig } from 'utils';
 
 export const readCommandConfig: ReadProgramCommandConfig = {
   vaultsConnected: {
+    hidden: true,
     name: 'connected',
     description: 'get vaults connected to vault hub',
   },

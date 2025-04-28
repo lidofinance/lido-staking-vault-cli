@@ -29,9 +29,9 @@ yarn start v-v -h
 | by-owner-bound \<owner> \<from> \<to>                        | get vaults by owner - bound                                        |
 | by-role-address by-ra\<role> \<member>                       | get vaults by role and address                                     |
 | by-role-address-bound by-ra-b\<role> \<member> \<from> \<to> | get vaults by role and address - bound                             |
-| connected                                                    | get vaults connected to vault hub                                  |
 | connected-bound \<from> \<to>                                | get vaults connected to vault hub - bound                          |
 | my                                                           | get my vaults                                                      |
 | my-bound \<from> \<to>                                       | get my vaults - bound                                              |
 | my-by-role \<role>                                           | get my vaults by role                                              |
-| my-by-role-bound \<from> \<to> \<to>                         | get my vaults by role - bound                                      |
+| my-by-role-bound \<from> \<to>                               | get my vaults by role - bound                                      |
+| connected                                                    | get vaults connected to vault hub                                  |

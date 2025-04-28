@@ -3,7 +3,12 @@ import { Address } from 'viem';
 import { getVaultViewerContract } from 'contracts';
 import { getAccount } from 'providers';
 import { VaultViewerAbi } from 'abi';
-import { generateReadCommands, callReadMethod } from 'utils';
+import {
+  generateReadCommands,
+  callReadMethod,
+  callReadMethodSilent,
+  logResult,
+} from 'utils';
 
 import { vaultViewer } from './main.js';
 import { readCommandConfig } from './config.js';
@@ -18,11 +23,25 @@ generateReadCommands(
 vaultViewer
   .command('my')
   .description('get my vaults')
-  .action(async () => {
+  .option('-s, --simple', 'simple output')
+  .action(async ({ simple }: { simple: boolean }) => {
     const contract = getVaultViewerContract();
     const account = getAccount();
 
-    await callReadMethod(contract, 'vaultsByOwner', [account.address]);
+    const vaults = await callReadMethodSilent(contract, 'vaultsByOwner', [
+      account.address,
+    ]);
+
+    if (simple) {
+      console.info(vaults);
+      return;
+    }
+
+    logResult(
+      vaults.map((vault: string) => ({
+        'Vault Address': vault,
+      })),
+    );
   });
 
 vaultViewer
@@ -30,26 +49,53 @@ vaultViewer
   .description('get my vaults - bound')
   .argument('<from>', 'from - vault index')
   .argument('<to>', 'to - vault index')
-  .action(async (from: bigint, to: bigint) => {
+  .option('-s, --simple', 'simple output')
+  .action(async (from: bigint, to: bigint, { simple }: { simple: boolean }) => {
     const contract = getVaultViewerContract();
     const account = getAccount();
 
-    await callReadMethod(contract, 'vaultsByOwnerBound', [
+    const [vaults] = await callReadMethod(contract, 'vaultsByOwnerBound', [
       account.address,
       from,
       to,
     ]);
+
+    if (simple) {
+      console.info(vaults);
+      return;
+    }
+
+    logResult(
+      vaults.map((vault: string) => ({
+        'Vault Address': vault,
+      })),
+    );
   });
 
 vaultViewer
   .command('my-by-role')
   .description('get my vaults by role')
   .argument('<role>', 'role')
-  .action(async (role: Address) => {
+  .option('-s, --simple', 'simple output')
+  .action(async (role: Address, { simple }: { simple: boolean }) => {
     const contract = getVaultViewerContract();
     const account = getAccount();
 
-    await callReadMethod(contract, 'vaultsByRole', [role, account.address]);
+    const vaults = await callReadMethodSilent(contract, 'vaultsByRole', [
+      role,
+      account.address,
+    ]);
+
+    if (simple) {
+      console.info(vaults);
+      return;
+    }
+
+    logResult(
+      vaults.map((vault: string) => ({
+        'Vault Address': vault,
+      })),
+    );
   });
 
 vaultViewer
@@ -57,15 +103,54 @@ vaultViewer
   .description('get my vaults by role - bound')
   .argument('<from>', 'from - vault index')
   .argument('<to>', 'to - vault index')
-  .argument('<to>', 'to')
-  .action(async (role: Address, from: bigint, to: bigint) => {
-    const contract = getVaultViewerContract();
-    const account = getAccount();
+  .option('-s, --simple', 'simple output')
+  .action(
+    async (
+      role: Address,
+      from: bigint,
+      to: bigint,
+      { simple }: { simple: boolean },
+    ) => {
+      const contract = getVaultViewerContract();
+      const account = getAccount();
 
-    await callReadMethod(contract, 'vaultsByRoleBound', [
-      role,
-      account.address,
-      from,
-      to,
-    ]);
+      const [vaults] = await callReadMethod(contract, 'vaultsByRoleBound', [
+        role,
+        account.address,
+        from,
+        to,
+      ]);
+
+      if (simple) {
+        console.info(vaults);
+        return;
+      }
+
+      logResult(
+        vaults.map((vault: string) => ({
+          'Vault Address': vault,
+        })),
+      );
+    },
+  );
+
+vaultViewer
+  .command('connected')
+  .description('get vaults connected to vault hub')
+  .option('-s, --simple', 'simple output')
+  .action(async ({ simple }: { simple: boolean }) => {
+    const contract = getVaultViewerContract();
+
+    const vaults = await callReadMethodSilent(contract, 'vaultsConnected');
+
+    if (simple) {
+      console.info(vaults);
+      return;
+    }
+
+    logResult(
+      vaults.map((vault: string) => ({
+        'Vault Address': vault,
+      })),
+    );
   });
