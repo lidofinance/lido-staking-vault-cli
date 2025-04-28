@@ -25,3 +25,6 @@ tsconfig.tsbuildinfo
 
 # yarn
 .yarn/install-state.gz
+
+# wallets
+wallets/*

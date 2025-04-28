@@ -1,3 +1,4 @@
+import { readFileSync } from 'fs';
 import {
   Address,
   createPublicClient,
@@ -6,12 +7,48 @@ import {
   WalletClient,
 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
+import { Wallet } from '@kaiachain/ethers-ext';
+
 import { envs, getConfig, getChainId, getElUrl, getChain } from 'configs';
 
-export const getAccount = () => {
-  const config = getConfig();
+const getPrivateKey = () => {
+  const { PRIVATE_KEY, ACCOUNT_FILE, ACCOUNT_FILE_PASSWORD } = getConfig();
   const id = getChainId();
-  const privateKey = config?.PRIVATE_KEY ?? envs?.[`PRIVATE_KEY_${id}`];
+
+  if (PRIVATE_KEY && ACCOUNT_FILE) {
+    throw new Error(
+      'You must provide only one of the following: private key or encrypted account file',
+    );
+  }
+
+  if (PRIVATE_KEY) {
+    return PRIVATE_KEY;
+  }
+
+  if (envs?.[`PRIVATE_KEY_${id}`]) {
+    return envs[`PRIVATE_KEY_${id}`];
+  }
+
+  if (ACCOUNT_FILE) {
+    if (!ACCOUNT_FILE_PASSWORD) {
+      throw new Error('Account file password is not provided');
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const file = readFileSync(ACCOUNT_FILE, 'utf-8');
+    const fileContent = JSON.parse(file);
+    return Wallet.fromEncryptedJsonSync(
+      JSON.stringify(fileContent),
+      ACCOUNT_FILE_PASSWORD,
+    ).privateKey;
+  }
+
+  throw new Error('Private key or encrypted account file is not provided');
+};
+
+export const getAccount = () => {
+  const id = getChainId();
+  const privateKey = getPrivateKey();
 
   if (!privateKey) {
     throw new Error(`Private key for ${id} chain is not set`);

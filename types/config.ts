@@ -5,6 +5,8 @@ export interface Config {
   EL_URL?: string;
   CL_URL?: string;
   PRIVATE_KEY?: string;
+  ACCOUNT_FILE?: string;
+  ACCOUNT_FILE_PASSWORD?: string;
   CHAIN_ID: number;
   TOKEN_MANAGER?: Address;
   VOTING?: Address;

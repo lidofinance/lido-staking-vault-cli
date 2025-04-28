@@ -34,6 +34,7 @@
     "@chainsafe/blst": "^2.2.0",
     "@chainsafe/persistent-merkle-tree": "^1.0.1",
     "@chainsafe/ssz": "^1.0.2",
+    "@kaiachain/ethers-ext": "^2.0.3",
     "@lodestar/types": "^1.27.1",
     "blockstore-core": "^5.0.2",
     "chalk": "^5.4.1",

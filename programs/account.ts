@@ -2,6 +2,7 @@ import { Address, encodeFunctionData, formatEther, parseEther } from 'viem';
 import { generatePrivateKey } from 'viem/accounts';
 import { program } from 'command';
 import { Option } from 'commander';
+import { Wallet } from '@kaiachain/ethers-ext';
 
 import { getStethContract, getWstethContract } from 'contracts';
 import { getWalletWithAccount, getPublicClient, getAccount } from 'providers';
@@ -72,6 +73,17 @@ account
   .action(async () => {
     const privateKey = generatePrivateKey();
     logInfo(`Private key: ${privateKey}`);
+  });
+
+account
+  .command('generate-encrypted-account')
+  .description('generate a new encrypted account')
+  .argument('<password>', 'password for the encrypted account')
+  .action(async (password: string) => {
+    const randomPrivateKey = Wallet.createRandom();
+    const encrypted = await randomPrivateKey.encrypt(password);
+
+    logInfo(`Encrypted account: ${encrypted}`);
   });
 
 account

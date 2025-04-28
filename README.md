@@ -50,6 +50,10 @@ DEPLOYED=deployed-hoodi-vaults-testnet.json // required
 
 # Wallet
 PRIVATE_KEY=0x
+
+# or encrypted file
+# ACCOUNT_FILE=wallets/account.json
+# ACCOUNT_FILE_PASSWORD=1234
 ```
 
 If you plan to manage contracts the **privateKey** is required property for this type of operations.
