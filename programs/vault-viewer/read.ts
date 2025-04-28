@@ -28,8 +28,8 @@ vaultViewer
 vaultViewer
   .command('my-bound')
   .description('get my vaults - bound')
-  .argument('<from>', 'from')
-  .argument('<to>', 'to')
+  .argument('<from>', 'from - vault index')
+  .argument('<to>', 'to - vault index')
   .action(async (from: bigint, to: bigint) => {
     const contract = getVaultViewerContract();
     const account = getAccount();
@@ -55,8 +55,8 @@ vaultViewer
 vaultViewer
   .command('my-by-role-bound')
   .description('get my vaults by role - bound')
-  .argument('<role>', 'role')
-  .argument('<from>', 'from')
+  .argument('<from>', 'from - vault index')
+  .argument('<to>', 'to - vault index')
   .argument('<to>', 'to')
   .action(async (role: Address, from: bigint, to: bigint) => {
     const contract = getVaultViewerContract();

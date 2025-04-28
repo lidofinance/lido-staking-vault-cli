@@ -96,7 +96,7 @@ export const mintShares = async (
   );
   if (remainingMintingCapacity < amountOfShares) {
     logError(
-      `Cannot mint more shares than the vault can mint. Mintable: ${remainingMintingCapacity}`,
+      `Cannot mint more shares than the vault can mint. Mintable: ${formatEther(remainingMintingCapacity)}`,
     );
     return;
   }

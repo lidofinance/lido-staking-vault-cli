@@ -6,6 +6,7 @@ export type ReadProgramCommandConfig = {
   [fnName: string]: {
     name?: string;
     description?: string;
+    aliases?: string[];
     arguments?: {
       [argName: string]: {
         name?: string;
@@ -77,9 +78,12 @@ export function generateReadCommands<T>(
       configForFn?.description ||
       `Calls the read-only function "${fnName}" on the contract.`;
 
+    const aliases = configForFn?.aliases || [];
+
     // Create a subcommand by function name
     const fnCommand = command
       .command(commandName)
+      .aliases(aliases)
       .description(commandDescription);
     methods.push(fnName);
 

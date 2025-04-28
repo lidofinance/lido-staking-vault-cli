@@ -749,7 +749,7 @@ dashboardWrite
     const contract = getDashboardContract(address);
 
     const confirm = await confirmOperation(
-      `Are you sure you want to increase the accrued rewards adjustment by ${amount}?`,
+      `Are you sure you want to increase the accrued rewards adjustment by ${amount} ETH?`,
     );
     if (!confirm) return;
 

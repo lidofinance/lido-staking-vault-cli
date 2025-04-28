@@ -78,7 +78,7 @@ account
   .command('steth-allowance')
   .description('set allowance for steth contract')
   .argument('<address>', 'address to set allowance for', stringToAddress)
-  .argument('<amount>', 'amount of steth to allow')
+  .argument('<amount>', 'amount of steth to allow (in stETH)')
   .action(async (address: Address, amount: string) => {
     const stethContract = await getStethContract();
 
@@ -152,7 +152,7 @@ account
   .alias('wsteth-allowance-tx')
   .description('populate tx for wsteth allowance')
   .argument('<address>', 'address to set allowance for', stringToAddress)
-  .argument('<amount>', 'amount of wsteth to allow')
+  .argument('<amount>', 'amount of wsteth to allow (in wstETH)')
   .action(async (address: Address, amount: string) => {
     const wstethContract = await getWstethContract();
 

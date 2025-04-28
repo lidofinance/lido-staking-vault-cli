@@ -6,7 +6,8 @@ export const readCommandConfig: ReadProgramCommandConfig = {
     description: 'get vaults connected to vault hub',
   },
   vaultsByRole: {
-    name: 'by-ra',
+    name: 'by-role-address',
+    aliases: ['by-ra'],
     description: 'get vaults by role and address',
     arguments: {
       _role: {
@@ -34,7 +35,8 @@ export const readCommandConfig: ReadProgramCommandConfig = {
     },
   },
   vaultsByRoleBound: {
-    name: 'by-ra-bound',
+    name: 'by-role-address-bound',
+    aliases: ['by-ra-b'],
     description: 'get vaults by role and address - bound',
     arguments: {
       _role: {
@@ -80,6 +82,38 @@ export const readCommandConfig: ReadProgramCommandConfig = {
       _to: {
         name: 'to',
         description: 'to',
+      },
+    },
+  },
+  hasRole: {
+    name: 'has-role',
+    description: 'check if an address has a role in a vault',
+    arguments: {
+      vault: {
+        name: 'vault',
+        description: 'vault address',
+      },
+      _role: {
+        name: 'role',
+        description: 'role',
+      },
+      _member: {
+        name: 'member',
+        description: 'member address',
+      },
+    },
+  },
+  isOwner: {
+    name: 'is-owner',
+    description: 'check if an address is the owner of a vault',
+    arguments: {
+      vault: {
+        name: 'vault',
+        description: 'vault address',
+      },
+      _owner: {
+        name: 'owner',
+        description: 'owner address',
       },
     },
   },
