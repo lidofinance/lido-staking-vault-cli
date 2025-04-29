@@ -175,7 +175,7 @@ yarn start dashboard w burn-steth <dashboard_address> <amountOfSteth>
 #### Required
 
 - `<dashboard_address>`: Dashboard address
-- `<`<amountOfSteth>`>`: Amount of shares to burn (in stETH)
+- `<amountOfSteth>`: Amount of shares to burn (in stETH)
 
 #### Example
 
