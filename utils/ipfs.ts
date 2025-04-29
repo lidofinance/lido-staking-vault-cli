@@ -1,7 +1,7 @@
 import { CID } from 'multiformats/cid';
 import { MemoryBlockstore } from 'blockstore-core';
 import { importer } from 'ipfs-unixfs-importer';
-import { parse } from 'json-bigint';
+import jsonBigInt from 'json-bigint';
 
 import { logInfo, logResult } from './logging/console.js';
 
@@ -19,7 +19,7 @@ export const fetchIPFS = async (CID: string, url = IPFS_GATEWAY) => {
   }
 
   const raw = await response.text();
-  const parsed = parse(raw);
+  const parsed = jsonBigInt({ useNativeBigInt: true }).parse(raw);
 
   return parsed;
 };

@@ -1,20 +1,4 @@
-export const StakingVaultAbi = [
-  {
-    inputs: [
-      {
-        internalType: 'address',
-        name: '_vaultHub',
-        type: 'address',
-      },
-      {
-        internalType: 'address',
-        name: '_beaconChainDepositContract',
-        type: 'address',
-      },
-    ],
-    stateMutability: 'nonpayable',
-    type: 'constructor',
-  },
+export const StakingVaultErrorsAbi = [
   {
     inputs: [],
     name: 'AlreadyOssified',
@@ -303,6 +287,26 @@ export const StakingVaultAbi = [
     ],
     name: 'ZeroArgument',
     type: 'error',
+  },
+];
+
+export const StakingVaultAbi = [
+  ...StakingVaultErrorsAbi,
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: '_vaultHub',
+        type: 'address',
+      },
+      {
+        internalType: 'address',
+        name: '_beaconChainDepositContract',
+        type: 'address',
+      },
+    ],
+    stateMutability: 'nonpayable',
+    type: 'constructor',
   },
   {
     anonymous: false,

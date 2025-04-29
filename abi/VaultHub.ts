@@ -1,4 +1,7 @@
+import { StakingVaultErrorsAbi } from './StakingVault';
+
 export const VaultHubAbi = [
+  ...StakingVaultErrorsAbi,
   {
     inputs: [
       {
