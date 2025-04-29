@@ -82,4 +82,4 @@ yarn start hub r v-count
 
 ## Documentation
 
-For additional information about available methods and functionality, refer to the [the documentation for the Lido Ethereum SDK](/category/commands).
+For additional information about available methods and functionality, refer to the [the documentation for the Lido Staking Vault CLI](/category/commands).
