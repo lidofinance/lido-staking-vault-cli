@@ -21,7 +21,7 @@ type args = {
 export const showSpinner = (args?: args) => {
   const { type = 'point', message = 'Executing...' } = args || {};
 
-  // For nestjs compatibility
+  // For nestjs/nextjs compatibility
   const fullPath = path.resolve('utils', 'spinner', 'spinners.json');
   const spinners = JSON.parse(readFileSync(fullPath, 'utf-8')) as Record<
     SpinnerType,
