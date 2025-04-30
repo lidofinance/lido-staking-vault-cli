@@ -1,4 +1,4 @@
-import { StakingVaultErrorsAbi } from './StakingVault';
+import { StakingVaultErrorsAbi } from './StakingVault.js';
 
 export const VaultHubAbi = [
   ...StakingVaultErrorsAbi,
