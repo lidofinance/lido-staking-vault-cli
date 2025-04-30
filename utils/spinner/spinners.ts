@@ -1,14 +1,32 @@
 import logUpdate from 'log-update';
 
-import spinners from './spinners.json';
+import { readFileSync } from 'fs';
+import path from 'path';
+
+type SpinnerType =
+  | 'dots'
+  | 'dots12'
+  | 'dotsCircle'
+  | 'line'
+  | 'arrow3'
+  | 'bouncingBar'
+  | 'bouncingBall'
+  | 'point';
 
 type args = {
-  type?: keyof typeof spinners;
+  type?: SpinnerType;
   message?: string;
 };
 
 export const showSpinner = (args?: args) => {
   const { type = 'point', message = 'Executing...' } = args || {};
+
+  const fullPath = path.resolve('utils', 'spinner', 'spinners.json');
+  const spinners = JSON.parse(readFileSync(fullPath, 'utf-8')) as Record<
+    SpinnerType,
+    { interval: number; frames: string[] }
+  >;
+
   const spinner = spinners[type || 'point'];
   let index = 0;
 
