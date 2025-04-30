@@ -288,7 +288,7 @@ export const StakingVaultErrorsAbi = [
     name: 'ZeroArgument',
     type: 'error',
   },
-];
+] as const;
 
 export const StakingVaultAbi = [
   ...StakingVaultErrorsAbi,
