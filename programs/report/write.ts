@@ -16,6 +16,7 @@ import {
   getAllVaultsReports,
   getAllVaultsReportProofs,
   fetchAndVerifyFile,
+  withInterruptHandling,
 } from 'utils';
 
 import { report } from './main.js';
@@ -82,103 +83,117 @@ reportWrite
   .description('submit report for vaults')
   .argument('<vaults...>', 'vaults addresses')
   .option('-u, --url', 'ipfs gateway url')
-  .action(async (vaults: Address[], { url }) => {
-    const vaultHubContract = await getVaultHubContract();
-    const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
-      await callReadMethod(vaultHubContract, 'latestReportData');
+  .option('-e, --skip-error', 'skip error')
+  .action(
+    withInterruptHandling(async (vaults: Address[], { url, skipError }) => {
+      const vaultHubContract = await getVaultHubContract();
+      const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
+        await callReadMethod(vaultHubContract, 'latestReportData');
 
-    await fetchAndVerifyFile(vaultsDataReportCid, url);
-    const { vaultReports, proofsCID } = await getAllVaultsReports(
-      vaultsDataReportCid,
-      url,
-    );
+      await fetchAndVerifyFile(vaultsDataReportCid, url);
+      const { vaultReports, proofsCID } = await getAllVaultsReports(
+        vaultsDataReportCid,
+        url,
+      );
 
-    await fetchAndVerifyFile(proofsCID, url);
-    const allVaultsProofs = await getAllVaultsReportProofs(proofsCID, url);
+      await fetchAndVerifyFile(proofsCID, url);
+      const allVaultsProofs = await getAllVaultsReportProofs(proofsCID, url);
 
-    const progressBar = new cliProgress.SingleBar(
-      {
-        format:
-          'Progress |{bar}| {percentage}% || {value}/{total} Vaults Updated',
-        stopOnComplete: true,
-      },
-      cliProgress.Presets.shades_classic,
-    );
+      const progressBar = new cliProgress.SingleBar(
+        {
+          format:
+            'Progress |{bar}| {percentage}% || {value}/{total} Vaults Updated',
+          stopOnComplete: true,
+        },
+        cliProgress.Presets.shades_classic,
+      );
 
-    progressBar.start(vaults.length, 0);
-    for (const [_index, vault] of vaults.entries()) {
-      const vaultReport = vaultReports.find((v) => v.vault_address === vault);
-      if (!vaultReport) {
-        logError(`Vault ${vault} not found`);
-        continue;
+      progressBar.start(vaults.length, 0);
+      for (const [_index, vault] of vaults.entries()) {
+        const vaultReport = vaultReports.find((v) => v.vault_address === vault);
+        if (!vaultReport) {
+          logError(`Vault ${vault} not found`);
+          continue;
+        }
+        await callWriteMethodWithReceipt({
+          contract: vaultHubContract,
+          methodName: 'updateVaultData',
+          payload: [
+            vault,
+            BigInt(vaultReport.total_value_wei),
+            BigInt(vaultReport.in_out_delta),
+            BigInt(vaultReport.fee),
+            BigInt(vaultReport.liability_shares),
+            allVaultsProofs[vault]?.proof as Hex[],
+          ],
+          withSpinner: false,
+          silent: true,
+          skipError,
+        });
+
+        progressBar.increment();
       }
-      await callWriteMethodWithReceipt({
-        contract: vaultHubContract,
-        methodName: 'updateVaultData',
-        payload: [
-          vault,
-          BigInt(vaultReport.total_value_wei),
-          BigInt(vaultReport.in_out_delta),
-          BigInt(vaultReport.fee),
-          BigInt(vaultReport.liability_shares),
-          allVaultsProofs[vault]?.proof as Hex[],
-        ],
-        withSpinner: false,
-        silent: true,
-      });
 
-      progressBar.increment();
-    }
-
-    progressBar.stop();
-  });
+      progressBar.stop();
+    }),
+  );
 
 reportWrite
   .command('submit-all')
   .description('submit report for all vaults')
   .option('-u, --url', 'ipfs gateway url')
-  .action(async ({ url }) => {
-    const vaultHubContract = await getVaultHubContract();
-    const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
-      await callReadMethod(vaultHubContract, 'latestReportData');
+  .option('-e, --skip-error', 'skip error')
+  .action(
+    withInterruptHandling(async ({ url, skipError }) => {
+      const vaultHubContract = await getVaultHubContract();
+      const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
+        await callReadMethod(vaultHubContract, 'latestReportData');
 
-    await fetchAndVerifyFile(vaultsDataReportCid, url);
+      await fetchAndVerifyFile(vaultsDataReportCid, url);
 
-    const { vaultReports, proofsCID } = await getAllVaultsReports(
-      vaultsDataReportCid,
-      url,
-    );
-    await fetchAndVerifyFile(proofsCID, url);
-    const allVaultsProofs = await getAllVaultsReportProofs(proofsCID, url);
+      const { vaultReports, proofsCID } = await getAllVaultsReports(
+        vaultsDataReportCid,
+        url,
+      );
+      await fetchAndVerifyFile(proofsCID, url);
+      const allVaultsProofs = await getAllVaultsReportProofs(proofsCID, url);
 
-    const progressBar = new cliProgress.SingleBar(
-      {
-        format:
-          'Progress |{bar}| {percentage}% || {value}/{total} Vaults Updated',
-      },
-      cliProgress.Presets.shades_classic,
-    );
+      const progressBar = new cliProgress.SingleBar(
+        {
+          format:
+            'Progress |{bar}| {percentage}% || {value}/{total} Vaults Updated',
+        },
+        cliProgress.Presets.shades_classic,
+      );
 
-    progressBar.start(vaultReports.length, 0);
+      progressBar.start(vaultReports.length, 0);
 
-    for (const [_index, report] of vaultReports.entries()) {
-      await callWriteMethodWithReceipt({
-        contract: vaultHubContract,
-        methodName: 'updateVaultData',
-        payload: [
-          report.vault_address as Address,
-          BigInt(report.total_value_wei),
-          BigInt(report.in_out_delta),
-          BigInt(report.fee),
-          BigInt(report.liability_shares),
-          allVaultsProofs[report.vault_address]?.proof as Hex[],
-        ],
-        withSpinner: false,
-        silent: true,
-      });
+      for (const [_index, report] of vaultReports.entries()) {
+        try {
+          await callWriteMethodWithReceipt({
+            contract: vaultHubContract,
+            methodName: 'updateVaultData',
+            payload: [
+              report.vault_address as Address,
+              BigInt(report.total_value_wei),
+              BigInt(report.in_out_delta),
+              BigInt(report.fee),
+              BigInt(report.liability_shares),
+              allVaultsProofs[report.vault_address]?.proof as Hex[],
+            ],
+            withSpinner: false,
+            silent: true,
+            skipError,
+          });
+        } catch (err: any) {
+          if ('shortMessage' in err)
+            logError(err.shortMessage, 'Error when submitting report');
+          else logError('Error when submitting report');
+        }
 
-      progressBar.increment();
-    }
+        progressBar.increment();
+      }
 
-    progressBar.stop();
-  });
+      progressBar.stop();
+    }),
+  );

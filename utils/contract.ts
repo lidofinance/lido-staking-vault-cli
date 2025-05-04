@@ -4,7 +4,7 @@ import { waitForTransactionReceipt } from 'viem/actions';
 import { getAccount, getPublicClient } from 'providers';
 import { getChain } from 'configs';
 
-import { showSpinner, printError, logResult, logError } from 'utils';
+import { showSpinner, printError, logResult } from 'utils';
 
 export type ReadContract = {
   address: Address;
@@ -32,8 +32,16 @@ export const callSimulateWriteMethod = async <
   payload: Writeable<GetFirst<Parameters<T['simulate'][M]>>> | never[];
   value?: bigint;
   withSpinner?: boolean;
+  skipError?: boolean;
 }): Promise<SimulateContractReturnType> => {
-  const { contract, methodName, payload, value, withSpinner = true } = args;
+  const {
+    contract,
+    methodName,
+    payload,
+    value,
+    withSpinner = true,
+    skipError = false,
+  } = args;
   const hideSpinner = withSpinner
     ? showSpinner({
         type: 'bouncingBall',
@@ -53,14 +61,10 @@ export const callSimulateWriteMethod = async <
     return result;
   } catch (err) {
     hideSpinner();
-    const cause = (err as any).cause;
-    const signature = cause?.signature;
 
-    if (signature === '0x3fb579ad') {
-      logError('Known error: ReportTooOld(uint64,uint64)');
-    }
+    if (!skipError)
+      printError(err, `Error when simulating write method "${methodName}"`);
 
-    printError(err, `Error when simulating write method "${methodName}"`);
     throw err;
   }
 };
@@ -75,6 +79,7 @@ export const callWriteMethod = async <
   value?: bigint;
   withSpinner?: boolean;
   silent?: boolean;
+  skipError?: boolean;
 }): Promise<Address> => {
   const {
     contract,
@@ -83,6 +88,7 @@ export const callWriteMethod = async <
     value,
     withSpinner = true,
     silent = false,
+    skipError = false,
   } = args;
 
   const simulateResult = await callSimulateWriteMethod({
@@ -91,6 +97,7 @@ export const callWriteMethod = async <
     payload,
     value,
     withSpinner,
+    skipError,
   });
   if (!simulateResult) {
     printError(
@@ -126,7 +133,9 @@ export const callWriteMethod = async <
     return tx;
   } catch (err) {
     hideSpinner();
-    printError(err, `Error when calling write method "${methodName}"`);
+
+    if (!skipError)
+      printError(err, `Error when calling write method "${methodName}"`);
 
     throw err;
   }
@@ -224,6 +233,7 @@ export const callWriteMethodWithReceipt = async <
   value?: bigint;
   withSpinner?: boolean;
   silent?: boolean;
+  skipError?: boolean;
 }): Promise<{ receipt: TransactionReceipt; tx: Address }> => {
   const {
     contract,
@@ -232,6 +242,7 @@ export const callWriteMethodWithReceipt = async <
     value,
     withSpinner = true,
     silent = false,
+    skipError = false,
   } = args;
   const publicClient = getPublicClient();
 
@@ -242,6 +253,7 @@ export const callWriteMethodWithReceipt = async <
     value,
     withSpinner,
     silent,
+    skipError,
   });
 
   const hideSpinner = withSpinner
@@ -252,7 +264,10 @@ export const callWriteMethodWithReceipt = async <
     : () => {};
 
   try {
-    const receipt = await waitForTransactionReceipt(publicClient, { hash: tx });
+    const receipt = await waitForTransactionReceipt(publicClient, {
+      hash: tx,
+      confirmations: 3,
+    });
     hideSpinner();
 
     !silent &&
@@ -267,7 +282,9 @@ export const callWriteMethodWithReceipt = async <
     return { receipt, tx };
   } catch (err) {
     hideSpinner();
-    printError(err, 'Error when waiting for transaction receipt');
+
+    if (!skipError)
+      printError(err, 'Error when waiting for transaction receipt');
 
     throw err;
   }
