@@ -26,7 +26,7 @@ import { dashboard } from './main.js';
 const dashboardWrite = dashboard
   .command('write')
   .alias('w')
-  .description('write commands');
+  .description('dashboard write commands');
 
 dashboardWrite.addOption(new Option('-cmd2json'));
 dashboardWrite.on('option:-cmd2json', function () {

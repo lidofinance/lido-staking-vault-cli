@@ -24,7 +24,7 @@ import { report } from './main.js';
 const reportWrite = report
   .command('write')
   .aliases(['w'])
-  .description('pdg write commands');
+  .description('report write commands');
 
 reportWrite.addOption(new Option('-cmd2json'));
 reportWrite.on('option:-cmd2json', function () {

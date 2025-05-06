@@ -16,7 +16,7 @@ import { report } from './main.js';
 const reportRead = report
   .command('read')
   .aliases(['r'])
-  .description('pdg read commands');
+  .description('report read commands');
 
 reportRead.addOption(new Option('-cmd2json'));
 reportRead.on('option:-cmd2json', function () {
