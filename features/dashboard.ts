@@ -17,6 +17,7 @@ import {
   formatRatio,
   BASIS_POINTS_DENOMINATOR,
   logLiabilityBar,
+  logVaultHealthBar,
 } from 'utils';
 
 export const getDashboardHealth = async (contract: DashboardContract) => {
@@ -118,7 +119,11 @@ export const getDashboardOverview = async (contract: DashboardContract) => {
       stETHLiability: health.liabilitySharesInStethWei,
       reserveRatioBP: reserveRatioBP,
       forceRebalanceThresholdBP: health.forceRebalanceThresholdBP,
+      stETHTotalMintingCapacity: totalMintingCapacityStethWei,
     });
+    console.info('\n');
+    logVaultHealthBar(overview.healthRatio);
+    console.info('\n');
   } catch (err) {
     hideSpinner();
     printError(err, 'Error when getting overview');
