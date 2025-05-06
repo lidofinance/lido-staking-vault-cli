@@ -10,7 +10,7 @@ type OverviewArgs = {
   balance: bigint;
   locked: bigint;
   nodeOperatorUnclaimedFee: bigint;
-  totalMintingCapacity: bigint;
+  totalMintingCapacityStethWei: bigint;
 };
 
 export const BASIS_POINTS_DENOMINATOR = 10_000n;
@@ -35,7 +35,7 @@ export const calculateOverview = (args: OverviewArgs) => {
     balance,
     locked,
     nodeOperatorUnclaimedFee,
-    totalMintingCapacity,
+    totalMintingCapacityStethWei,
   } = args;
 
   const { healthRatio, isHealthy } = calculateHealth({
@@ -53,19 +53,19 @@ export const calculateOverview = (args: OverviewArgs) => {
 
   // Prevent division by 0
   const utilizationRatio =
-    totalMintingCapacity === 0n
+    totalMintingCapacityStethWei === 0n
       ? 0
       : Number(
           ((liabilitySharesInStethWei * SCALING_FACTOR) /
-            totalMintingCapacity) *
+            totalMintingCapacityStethWei) *
             100n,
         ) / Number(SCALING_FACTOR);
 
   const reservedRaw =
-    totalMintingCapacity === 0n
+    totalMintingCapacityStethWei === 0n
       ? 0n
       : (liabilitySharesInStethWei * totalReservable * SCALING_FACTOR) /
-        totalMintingCapacity;
+        totalMintingCapacityStethWei;
   const reserved = bigIntMax(
     bigIntMin(
       reservedRaw / SCALING_FACTOR,
@@ -98,6 +98,6 @@ export const calculateOverview = (args: OverviewArgs) => {
     utilizationRatio,
     totalReservable,
     reserved,
-    totalMintingCapacity,
+    totalMintingCapacityStethWei,
   };
 };

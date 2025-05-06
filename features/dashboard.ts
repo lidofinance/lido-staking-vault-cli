@@ -1,6 +1,10 @@
 import { formatEther } from 'viem';
 
-import { DashboardContract, getStakingVaultContract } from 'contracts';
+import {
+  DashboardContract,
+  getStakingVaultContract,
+  getStethContract,
+} from 'contracts';
 import { getPublicClient } from 'providers';
 import {
   printError,
@@ -68,10 +72,13 @@ export const getDashboardOverview = async (contract: DashboardContract) => {
       contract.read.totalValue(),
     ]);
     const vaultContract = getStakingVaultContract(vault);
+    const stethContract = await getStethContract();
     const locked = await vaultContract.read.locked();
     const balance = await publicClient.getBalance({
       address: vault,
     });
+    const totalMintingCapacityStethWei =
+      await stethContract.read.getPooledEthByShares([totalMintingCapacity]);
     const overview = calculateOverview({
       totalValue,
       reserveRatioBP,
@@ -81,7 +88,7 @@ export const getDashboardOverview = async (contract: DashboardContract) => {
       balance,
       locked,
       nodeOperatorUnclaimedFee,
-      totalMintingCapacity,
+      totalMintingCapacityStethWei,
     });
     hideSpinner();
 
@@ -102,7 +109,7 @@ export const getDashboardOverview = async (contract: DashboardContract) => {
       'No Rewards Accumulated': `${formatEther(nodeOperatorUnclaimedFee)} ETH`,
       'Total Reservable': `${formatEther(overview.totalReservable)} ETH`,
       Reserved: `${formatEther(overview.reserved)} ETH`,
-      'Total Minting Capacity': `${formatEther(overview.totalMintingCapacity)} stETH`,
+      'Total Minting Capacity': `${formatEther(overview.totalMintingCapacityStethWei)} stETH`,
     });
   } catch (err) {
     hideSpinner();
