@@ -21,3 +21,4 @@ export * from './bls.js';
 export * from './required-lock.js';
 export * from './calculate-overview.js';
 export * from './interrupt-handler.js';
+export * from './charts/index.js';

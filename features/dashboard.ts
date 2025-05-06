@@ -16,6 +16,7 @@ import {
   formatBP,
   formatRatio,
   BASIS_POINTS_DENOMINATOR,
+  logLiabilityBar,
 } from 'utils';
 
 export const getDashboardHealth = async (contract: DashboardContract) => {
@@ -110,6 +111,13 @@ export const getDashboardOverview = async (contract: DashboardContract) => {
       'Total Reservable': `${formatEther(overview.totalReservable)} ETH`,
       Reserved: `${formatEther(overview.reserved)} ETH`,
       'Total Minting Capacity': `${formatEther(overview.totalMintingCapacityStethWei)} stETH`,
+    });
+
+    logLiabilityBar({
+      totalValue: totalValue,
+      stETHLiability: health.liabilitySharesInStethWei,
+      reserveRatioBP: reserveRatioBP,
+      forceRebalanceThresholdBP: health.forceRebalanceThresholdBP,
     });
   } catch (err) {
     hideSpinner();
