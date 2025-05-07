@@ -20,12 +20,13 @@ yarn start report -h
 
 ### Read
 
-| Command            | Description              |
-| ------------------ | ------------------------ |
-| by-vault \<vault>  | get report by vault      |
-| all                | get report by all vaults |
-| check-cid          | check ipfs CID           |
-| make-leaf \<vault> | make leaf                |
+| Command                 | Description         |
+| ----------------------- | ------------------- |
+| by-vault \<vault>       | get report by vault |
+| proof-by-vault \<vault> | get proof by vault  |
+| all                     | get all reports     |
+| check-cid               | check ipfs CID      |
+| make-leaf \<vault>      | make leaf           |
 
 ### Write
 
