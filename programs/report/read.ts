@@ -6,6 +6,7 @@ import {
   getAllVaultsReports,
   getCommandsJson,
   getReportLeaf,
+  getVaultReportProof,
   getVaultReport,
   logInfo,
 } from 'utils';
@@ -28,34 +29,59 @@ reportRead
   .command('by-vault')
   .description('get report by vault')
   .argument('<vault>', 'vault address')
-  .option('-u, --url', 'ipfs url')
-  .action(async (vault, { url }) => {
+  .option('-g, --gateway', 'ipfs gateway url')
+  .action(async (vault, { gateway }) => {
     const vaultHubContract = await getVaultHubContract();
     const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
       await callReadMethod(vaultHubContract, 'latestReportData');
 
-    await fetchAndVerifyFile(vaultsDataReportCid, url);
+    await fetchAndVerifyFile(vaultsDataReportCid, gateway);
 
-    const report = await getVaultReport(vault, vaultsDataReportCid, url);
+    const report = await getVaultReport({
+      vault,
+      cid: vaultsDataReportCid,
+      gateway: gateway,
+    });
 
     logInfo(report);
   });
 
 reportRead
-  .command('all')
-  .description('get report by all vaults')
-  .option('-u, --url', 'ipfs gateway url')
-  .action(async ({ url }) => {
+  .command('proof-by-vault')
+  .description('get proof by vault')
+  .argument('<vault>', 'vault address')
+  .option('-g, --gateway', 'ipfs gateway url')
+  .action(async (vault, { gateway }) => {
     const vaultHubContract = await getVaultHubContract();
     const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
       await callReadMethod(vaultHubContract, 'latestReportData');
 
-    await fetchAndVerifyFile(vaultsDataReportCid, url);
+    const proof = await getVaultReportProof({
+      vault,
+      cid: vaultsDataReportCid,
+      gateway,
+    });
 
-    const allVaultsReports = await getAllVaultsReports(
-      vaultsDataReportCid,
-      url,
-    );
+    await fetchAndVerifyFile(vaultsDataReportCid, gateway);
+
+    logInfo(proof);
+  });
+
+reportRead
+  .command('all')
+  .description('get all reports')
+  .option('-g, --gateway', 'ipfs gateway url')
+  .action(async ({ gateway }) => {
+    const vaultHubContract = await getVaultHubContract();
+    const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
+      await callReadMethod(vaultHubContract, 'latestReportData');
+
+    await fetchAndVerifyFile(vaultsDataReportCid, gateway);
+
+    const allVaultsReports = await getAllVaultsReports({
+      cid: vaultsDataReportCid,
+      gateway,
+    });
 
     logInfo(allVaultsReports);
   });
@@ -76,14 +102,18 @@ reportRead
   .command('make-leaf')
   .description('make leaf')
   .argument('<vault>', 'vault address')
-  .option('-u, --url', 'ipfs gateway url')
-  .action(async (vault, { url }) => {
+  .option('-g, --gateway', 'ipfs gateway url')
+  .action(async (vault, { gateway }) => {
     const vaultHubContract = await getVaultHubContract();
     const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
       await callReadMethod(vaultHubContract, 'latestReportData');
 
-    await fetchAndVerifyFile(vaultsDataReportCid, url);
-    const report = await getVaultReport(vault, vaultsDataReportCid, url);
+    await fetchAndVerifyFile(vaultsDataReportCid, gateway);
+    const report = await getVaultReport({
+      vault,
+      cid: vaultsDataReportCid,
+      gateway,
+    });
 
     const reportLeaf = getReportLeaf(report.data);
     logInfo('local leaf', reportLeaf);

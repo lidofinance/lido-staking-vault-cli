@@ -1,6 +1,6 @@
 import { Address } from 'viem';
 
-import { fetchIPFS, IPFS_GATEWAY } from 'utils';
+import { BigNumberType, fetchIPFS, IPFS_GATEWAY } from 'utils';
 
 export type LeafDataFields = {
   vault_address: string;
@@ -37,7 +37,7 @@ export type VaultReport = {
   merkleTreeRoot: string;
 };
 
-export type ReportProofData = {
+export type ReportProof = {
   merkleTreeRoot: string;
   refSlot: number;
   proofs: {
@@ -56,21 +56,17 @@ export type ReportProofData = {
   prevTreeCID: string;
 };
 
-export const getReport = async (
-  CID: string,
-  url = IPFS_GATEWAY,
-): Promise<Report> => {
-  const data: Report = await fetchIPFS(CID, url);
-
-  return data;
+export type VaultReportArgs = {
+  vault: Address;
+  cid: string;
+  gateway?: string;
+  bigNumberType?: BigNumberType;
 };
 
-export const getVaultReport = async (
-  vault: Address,
-  cid: string,
-  url = IPFS_GATEWAY,
-): Promise<VaultReport> => {
-  const report = await getReport(cid, url);
+export const getVaultReport = async (args: VaultReportArgs) => {
+  const { vault, cid, gateway = IPFS_GATEWAY, bigNumberType = 'string' } = args;
+
+  const report = await fetchIPFS<Report>({ cid, gateway, bigNumberType });
   const vaultData = getVaultData(report, vault);
 
   return vaultData;
@@ -116,28 +112,27 @@ const getVaultData = (report: Report, vault: Address) => {
   };
 };
 
-export const getReportProofByVault = async (vault: Address, cid: string) => {
-  const report = await getReport(cid);
+export const getVaultReportProof = async (args: VaultReportArgs) => {
+  const { vault, cid, gateway = IPFS_GATEWAY, bigNumberType = 'string' } = args;
+
+  const report = await fetchIPFS<Report>({ cid, gateway, bigNumberType });
   const proofCID = report.proofsCID;
 
-  const response = await fetchIPFS(proofCID);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch IPFS proof: ${response.statusText}`);
-  }
+  const data = await fetchIPFS<ReportProof>({
+    cid: proofCID,
+    gateway,
+    bigNumberType,
+  });
 
-  const data: ReportProofData = await response.json();
   const proofByVault = data.proofs[vault];
   if (!proofByVault) throw new Error('Proof not found');
 
   return proofByVault;
 };
 
-export const getVaultReportProofByCid = async (
-  vault: Address,
-  proofCID: string,
-  url = IPFS_GATEWAY,
-) => {
-  const proof: ReportProofData = await fetchIPFS(proofCID, url);
+export const getVaultReportProofByCid = async (args: VaultReportArgs) => {
+  const { vault, cid, gateway = IPFS_GATEWAY, bigNumberType = 'string' } = args;
+  const proof = await fetchIPFS<ReportProof>({ cid, gateway, bigNumberType });
 
   const proofByVault = proof.proofs[vault];
   if (!proofByVault) throw new Error('Proof not found');
@@ -146,19 +141,19 @@ export const getVaultReportProofByCid = async (
 };
 
 export const getAllVaultsReportProofs = async (
-  proofCID: string,
-  url = IPFS_GATEWAY,
+  args: Omit<VaultReportArgs, 'vault'>,
 ) => {
-  const proof: ReportProofData = await fetchIPFS(proofCID, url);
+  const { cid, gateway = IPFS_GATEWAY, bigNumberType = 'string' } = args;
+  const proof = await fetchIPFS<ReportProof>({ cid, gateway, bigNumberType });
 
   return proof.proofs;
 };
 
 export const getAllVaultsReports = async (
-  CID: string,
-  url = IPFS_GATEWAY,
-): Promise<{ vaultReports: VaultReport['data'][]; proofsCID: string }> => {
-  const report = await getReport(CID, url);
+  args: Omit<VaultReportArgs, 'vault'>,
+) => {
+  const { cid, gateway = IPFS_GATEWAY, bigNumberType = 'string' } = args;
+  const report = await fetchIPFS<Report>({ cid, gateway, bigNumberType });
 
   const vaultReports = report.values.map(
     (value) => getVaultData(report, value.value[0] as Address).data,

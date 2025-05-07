@@ -37,18 +37,25 @@ reportWrite
   .alias('submit')
   .description('submit report by vault')
   .argument('<vault>', 'vault address')
-  .option('-u, --url', 'ipfs gateway url')
-  .action(async (vault, { url }) => {
+  .option('-g, --gateway', 'ipfs gateway url')
+  .action(async (vault, { gateway }) => {
     const vaultHubContract = await getVaultHubContract();
     const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
       await callReadMethod(vaultHubContract, 'latestReportData');
 
-    await fetchAndVerifyFile(vaultsDataReportCid, url);
+    await fetchAndVerifyFile(vaultsDataReportCid, gateway);
 
-    const report = await getVaultReport(vault, vaultsDataReportCid, url);
-    const reportProof = await getVaultReportProofByCid(vault, report.proofsCID);
-
-    await fetchAndVerifyFile(report.proofsCID, url);
+    const report = await getVaultReport({
+      vault,
+      cid: vaultsDataReportCid,
+      gateway,
+    });
+    const reportProof = await getVaultReportProofByCid({
+      vault,
+      cid: report.proofsCID,
+      gateway,
+    });
+    await fetchAndVerifyFile(report.proofsCID, gateway);
 
     const { confirm } = await confirmPrompt(
       `Are you sure you want to submit report for vault ${vault}?
@@ -82,22 +89,25 @@ reportWrite
   .command('by-vaults-submit')
   .description('submit report for vaults')
   .argument('<vaults...>', 'vaults addresses')
-  .option('-u, --url', 'ipfs gateway url')
+  .option('-g, --gateway', 'ipfs gateway url')
   .option('-e, --skip-error', 'skip error')
   .action(
-    withInterruptHandling(async (vaults: Address[], { url, skipError }) => {
+    withInterruptHandling(async (vaults: Address[], { gateway, skipError }) => {
       const vaultHubContract = await getVaultHubContract();
       const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
         await callReadMethod(vaultHubContract, 'latestReportData');
 
-      await fetchAndVerifyFile(vaultsDataReportCid, url);
-      const { vaultReports, proofsCID } = await getAllVaultsReports(
-        vaultsDataReportCid,
-        url,
-      );
+      await fetchAndVerifyFile(vaultsDataReportCid, gateway);
+      const { vaultReports, proofsCID } = await getAllVaultsReports({
+        cid: vaultsDataReportCid,
+        gateway,
+      });
 
-      await fetchAndVerifyFile(proofsCID, url);
-      const allVaultsProofs = await getAllVaultsReportProofs(proofsCID, url);
+      await fetchAndVerifyFile(proofsCID, gateway);
+      const allVaultsProofs = await getAllVaultsReportProofs({
+        cid: proofsCID,
+        gateway,
+      });
 
       const progressBar = new cliProgress.SingleBar(
         {
@@ -141,22 +151,25 @@ reportWrite
 reportWrite
   .command('submit-all')
   .description('submit report for all vaults')
-  .option('-u, --url', 'ipfs gateway url')
+  .option('-g, --gateway', 'ipfs gateway url')
   .option('-e, --skip-error', 'skip error')
   .action(
-    withInterruptHandling(async ({ url, skipError }) => {
+    withInterruptHandling(async ({ gateway, skipError }) => {
       const vaultHubContract = await getVaultHubContract();
       const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
         await callReadMethod(vaultHubContract, 'latestReportData');
 
-      await fetchAndVerifyFile(vaultsDataReportCid, url);
+      await fetchAndVerifyFile(vaultsDataReportCid, gateway);
 
-      const { vaultReports, proofsCID } = await getAllVaultsReports(
-        vaultsDataReportCid,
-        url,
-      );
-      await fetchAndVerifyFile(proofsCID, url);
-      const allVaultsProofs = await getAllVaultsReportProofs(proofsCID, url);
+      const { vaultReports, proofsCID } = await getAllVaultsReports({
+        cid: vaultsDataReportCid,
+        gateway,
+      });
+      await fetchAndVerifyFile(proofsCID, gateway);
+      const allVaultsProofs = await getAllVaultsReportProofs({
+        cid: proofsCID,
+        gateway,
+      });
 
       const progressBar = new cliProgress.SingleBar(
         {

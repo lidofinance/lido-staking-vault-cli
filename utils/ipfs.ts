@@ -7,9 +7,17 @@ import { logInfo, logResult } from './logging/console.js';
 
 export const IPFS_GATEWAY = 'https://ipfs.io/ipfs';
 
+export type BigNumberType = 'bigint' | 'string';
+export type ReportFetchArgs = {
+  cid: string;
+  gateway?: string;
+  bigNumberType?: BigNumberType;
+};
+
 // Fetching content by CID through IPFS gateway
-export const fetchIPFS = async (CID: string, url = IPFS_GATEWAY) => {
-  const ipfsUrl = `${url}/${CID}`;
+export const fetchIPFS = async <T>(args: ReportFetchArgs): Promise<T> => {
+  const { cid, gateway = IPFS_GATEWAY, bigNumberType = 'string' } = args;
+  const ipfsUrl = `${gateway}/${cid}`;
 
   logInfo('Fetching content from', ipfsUrl);
 
@@ -19,7 +27,11 @@ export const fetchIPFS = async (CID: string, url = IPFS_GATEWAY) => {
   }
 
   const raw = await response.text();
-  const parsed = jsonBigInt({ useNativeBigInt: true }).parse(raw);
+  const params =
+    bigNumberType === 'bigint'
+      ? { useNativeBigInt: true }
+      : { storeAsString: true };
+  const parsed = jsonBigInt(params).parse(raw);
 
   return parsed;
 };
