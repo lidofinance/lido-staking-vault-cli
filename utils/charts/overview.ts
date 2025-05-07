@@ -47,8 +47,9 @@ export const logLiabilityBar = (
   const setLabel = (pos: number, char: string) => {
     if (labels[pos] === ' ') labels[pos] = char;
     else {
+      const existingChar = labels[pos];
       labels[pos] = 'X';
-      collisions.push(labels[pos] + '/' + char);
+      collisions.push(`${existingChar}/${char}`);
     }
   };
 
