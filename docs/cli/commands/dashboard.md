@@ -34,6 +34,7 @@ yarn start dashboard -h
 | locked \<address>                                       | get locked info                                                                                           |
 | required-lock-by-shares req-lock\<address> \<newShares> | get required lock by shares                                                                               |
 | dashboard-address-by-vault dashboard-by-vault\<vault>   | get dashboard address by vault                                                                            |
+| confirmations-log \<address>                            | get pending confirmations                                                                                 |
 | BURN_ROLE \<address>                                    | Calls the read-only function "BURN_ROLE" on the contract.                                                 |
 | DEFAULT_ADMIN_ROLE \<address>                           | Calls the read-only function "DEFAULT_ADMIN_ROLE" on the contract.                                        |
 | ETH \<address>                                          | Calls the read-only function "ETH" on the contract.                                                       |
@@ -128,6 +129,7 @@ yarn start dashboard -h
 | request-tier-change \<address> \<tier>                                               | Requests a change of tier on the OperatorGrid.                                                                          |
 | increase-accrued-rewards-adjustment \<address> \<amount>                             | Increases the accrued rewards adjustment.                                                                               |
 | set-accrued-rewards-adjustment \<address> \<amount>                                  | Sets the accrued rewards adjustment.                                                                                    |
+| confirm-proposal \<address>                                                          | Confirms a proposal                                                                                                     |
 
 **\<roleAssignmentJSON>**
 
