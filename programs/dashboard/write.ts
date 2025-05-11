@@ -18,6 +18,7 @@ import {
   mintSteth,
   burnSteth,
   createPDGProof,
+  confirmProposal,
 } from 'utils';
 import { RoleAssignment, Deposit } from 'types';
 
@@ -785,5 +786,22 @@ dashboardWrite
       contract,
       methodName: 'setAccruedRewardsAdjustment',
       payload: [parseEther(amount), currentAdjustment],
+    });
+  });
+
+dashboardWrite
+  .command('confirm-proposal')
+  .description('Confirms a proposal')
+  .argument('<address>', 'dashboard address', stringToAddress)
+  .action(async (address: Address) => {
+    const contract = getDashboardContract(address);
+    const log = await confirmProposal(address);
+
+    if (!log) return;
+
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: log.decodedData.functionName as any,
+      payload: log.decodedData.args as any,
     });
   });

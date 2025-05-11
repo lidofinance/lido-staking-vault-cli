@@ -18,6 +18,7 @@ import {
   callReadMethod,
   getRequiredLockByShares,
   callReadMethodSilent,
+  getConfirmationsInfo,
 } from 'utils';
 
 import { dashboard } from './main.js';
@@ -114,6 +115,14 @@ dashboardRead
     logResult({
       'Dashboard Address': owner,
     });
+  });
+
+dashboardRead
+  .command('confirmations-log')
+  .description('get pending confirmations')
+  .argument('<address>', 'dashboard address', stringToAddress)
+  .action(async (address: Address) => {
+    await getConfirmationsInfo(address);
   });
 
 generateReadCommands(
