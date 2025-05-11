@@ -1,13 +1,15 @@
 import chalk from 'chalk';
 
+const { red, blue, green, bold, yellow } = chalk;
+
 export type HeadMessage = 'Error' | 'LOG' | 'Result' | 'Bold' | 'Cancel';
 
 const ConsoleCss = {
-  Error: chalk.red.bold,
-  LOG: chalk.blue.bold,
-  Result: chalk.green.bold,
-  Bold: chalk.bold,
-  Cancel: chalk.yellow.bold,
+  Error: red.bold,
+  LOG: blue.bold,
+  Result: green.bold,
+  Bold: bold,
+  Cancel: yellow.bold,
 };
 
 export const getColoredLog = <T>(type: HeadMessage, message: T) => {

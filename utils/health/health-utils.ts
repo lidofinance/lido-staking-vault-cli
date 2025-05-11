@@ -49,12 +49,12 @@ export const fetchAndCalculateVaultHealth = async (
     healthRatio,
     isHealthy,
     totalValue,
-    totalValueInEth: `${formatEther(totalValue)} ETH`,
+    totalValueInEth: formatEther(totalValue),
     liabilitySharesInStethWei,
-    liabilitySharesInSteth: `${formatEther(liabilitySharesInStethWei)} stETH`,
+    liabilitySharesInSteth: formatEther(liabilitySharesInStethWei),
     forceRebalanceThresholdBP,
     liabilitySharesInWei: liabilityShares,
-    liabilityShares: `${formatEther(liabilityShares)} Shares`,
+    liabilityShares: formatEther(liabilityShares),
   };
 };
 

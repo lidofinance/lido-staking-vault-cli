@@ -1,4 +1,5 @@
 import { Address, formatEther } from 'viem';
+import Table from 'cli-table3';
 
 import { confirmOperation, logInfo } from 'utils';
 
@@ -29,6 +30,12 @@ type ConfirmBurnProps = {
   type: 'shares' | 'stETH' | 'wstETH';
 };
 
+const TABLE_PARAMS: Table.TableConstructorOptions = {
+  head: ['Type', 'Value'],
+  colAligns: ['left', 'right', 'right'],
+  style: { head: ['gray'], compact: true },
+};
+
 export const confirmMint = async (props: ConfirmMintProps) => {
   const {
     vaultAddress,
@@ -52,27 +59,27 @@ export const confirmMint = async (props: ConfirmMintProps) => {
   const value =
     isShares || isWsteth ? amountOfMintInShares : amountOfMintInSteth;
 
+  const tableCurrent = new Table(TABLE_PARAMS);
   logInfo(`Current vault ${vaultAddress} health:`);
-  console.table([
-    {
-      'Vault Address': vaultAddress,
-      'Current Liability Shares (wei)': currentLiabilityShares,
-      'Current Liability Shares (Shares)': formatEther(currentLiabilityShares),
-      'Current Health Ratio': `${currentHealthRatio}%`,
-      'Current Is Healthy': currentIsHealthy,
-    },
-  ]);
+  tableCurrent.push(
+    ['Vault Address', vaultAddress],
+    ['Current Liability, wei', currentLiabilityShares],
+    ['Current Liability, Shares', formatEther(currentLiabilityShares)],
+    ['Current Health Ratio', `${currentHealthRatio.toFixed(2)}%`],
+    ['Current Is Healthy', currentIsHealthy],
+  );
+  console.info(tableCurrent.toString());
 
+  const tableNew = new Table(TABLE_PARAMS);
   logInfo(`Minting ${value} ${type} to ${recipient}:`);
-  console.table([
-    {
-      'Vault Address': vaultAddress,
-      'New Liability Shares (wei)': newLiabilityShares,
-      'New Liability Shares (Shares)': formatEther(newLiabilityShares),
-      'New Health Ratio': `${newHealthRatio}%`,
-      'New Is Healthy': newIsHealthy,
-    },
-  ]);
+  tableNew.push(
+    ['Vault Address', vaultAddress],
+    ['New Liability, wei', newLiabilityShares],
+    ['New Liability, Shares', formatEther(newLiabilityShares)],
+    ['New Health Ratio', `${newHealthRatio.toFixed(2)}%`],
+    ['New Is Healthy', newIsHealthy],
+  );
+  console.info(tableNew.toString());
 
   const confirm = await confirmOperation(
     `Are you sure you want to mint ${value} ${type} to ${recipient}?`,
@@ -103,27 +110,27 @@ export const confirmBurn = async (props: ConfirmBurnProps) => {
   const value =
     isShares || isWsteth ? amountOfBurnInShares : amountOfBurnInSteth;
 
+  const tableCurrent = new Table(TABLE_PARAMS);
   logInfo(`Current vault ${vaultAddress} health:`);
-  console.table([
-    {
-      'Vault Address': vaultAddress,
-      'Current Liability Shares (wei)': currentLiabilityShares,
-      'Current Liability Shares (Shares)': formatEther(currentLiabilityShares),
-      'Current Health Ratio': `${currentHealthRatio}%`,
-      'Current Is Healthy': currentIsHealthy,
-    },
-  ]);
+  tableCurrent.push(
+    ['Vault Address', vaultAddress],
+    ['Current Liability, wei', currentLiabilityShares],
+    ['Current Liability, Shares', formatEther(currentLiabilityShares)],
+    ['Current Health Ratio', `${currentHealthRatio.toFixed(2)}%`],
+    ['Current Is Healthy', currentIsHealthy],
+  );
+  console.info(tableCurrent.toString());
 
+  const tableNew = new Table(TABLE_PARAMS);
   logInfo(`Burning ${value} ${type} for ${vaultAddress}:`);
-  console.table([
-    {
-      'Vault Address': vaultAddress,
-      'New Liability Shares (wei)': newLiabilityShares,
-      'New Liability Shares (Shares)': formatEther(newLiabilityShares),
-      'New Health Ratio': `${newHealthRatio}%`,
-      'New Is Healthy': newIsHealthy,
-    },
-  ]);
+  tableNew.push(
+    ['Vault Address', vaultAddress],
+    ['New Liability, wei', newLiabilityShares],
+    ['New Liability, Shares', formatEther(newLiabilityShares)],
+    ['New Health Ratio', `${newHealthRatio.toFixed(2)}%`],
+    ['New Is Healthy', newIsHealthy],
+  );
+  console.info(tableNew.toString());
 
   const confirm = await confirmOperation(
     `Are you sure you want to burn ${value} ${type} for ${vaultAddress}?`,

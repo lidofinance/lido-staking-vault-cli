@@ -1,4 +1,5 @@
 import { formatEther } from 'viem';
+import Table from 'cli-table3';
 
 import {
   DashboardContract,
@@ -15,34 +16,39 @@ import {
   calculateOverview,
   formatBP,
   formatRatio,
-  BASIS_POINTS_DENOMINATOR,
   logLiabilityBar,
   logVaultHealthBar,
 } from 'utils';
+
+const TABLE_PARAMS: Table.TableConstructorOptions = {
+  head: ['Type', 'Value'],
+  colAligns: ['left', 'right', 'right'],
+  style: { head: ['gray'] },
+};
 
 export const getDashboardHealth = async (contract: DashboardContract) => {
   try {
     const {
       healthRatio,
       isHealthy,
-      totalValue,
       totalValueInEth,
       liabilitySharesInSteth,
       forceRebalanceThresholdBP,
       liabilityShares,
     } = await fetchAndCalculateVaultHealth(contract);
 
+    const table = new Table(TABLE_PARAMS);
+    table.push(
+      ['Vault Healthy', isHealthy],
+      ['Health Rate', `${healthRatio}%`],
+      ['Total Value, ETH', totalValueInEth],
+      ['Liability Shares', liabilityShares],
+      ['Liability Shares in stETH', liabilitySharesInSteth],
+      ['Rebalance Threshold, %', formatBP(forceRebalanceThresholdBP)],
+    );
+
     logInfo('Vault Health');
-    logResult({
-      'Vault Healthy': isHealthy,
-      'Health Rate': `${healthRatio}%`,
-      'Total Value, wei': totalValue,
-      'Total Value, ether': totalValueInEth,
-      'Liability Shares': liabilityShares,
-      'Liability Shares in stETH': liabilitySharesInSteth,
-      'Rebalance Threshold, BP': forceRebalanceThresholdBP,
-      'Rebalance Threshold, %': `${forceRebalanceThresholdBP / 100}%`,
-    });
+    logResult(table.toString());
   } catch (err) {
     if (err instanceof Error) {
       logInfo('Error when getting info:\n', err.message);
@@ -94,25 +100,33 @@ export const getDashboardOverview = async (contract: DashboardContract) => {
     });
     hideSpinner();
 
+    const table = new Table(TABLE_PARAMS);
     logInfo('Overview');
-    logResult({
-      'Total Value': `${formatEther(totalValue)} ETH`,
-      'Reserve Ratio': formatBP(reserveRatioBP),
-      'Health Factor': `${formatRatio(overview.healthRatio)}%`,
-      'stETH Liability': `${formatEther(health.liabilitySharesInStethWei)} stETH`,
-      'Force Rebalance Threshold': formatBP(health.forceRebalanceThresholdBP),
-      'Utilization Ratio': formatRatio(overview.utilizationRatio),
-      'Available To Withdrawal': `${formatEther(overview.AvailableToWithdrawal)} ETH`,
-      'Idle Capital': `${formatEther(overview.idleCapital)} ETH`,
-      'Total Locked': `${formatEther(overview.totalLocked)} ETH`,
-      Collateral: `${formatEther(overview.collateral)} ETH`,
-      'Pending Unlock': `${formatEther(overview.PendingUnlock)} ETH`,
-      'No Reward Share': formatBP(nodeOperatorFeeBP),
-      'No Rewards Accumulated': `${formatEther(nodeOperatorUnclaimedFee)} ETH`,
-      'Total Reservable': `${formatEther(overview.totalReservable)} ETH`,
-      Reserved: `${formatEther(overview.reserved)} ETH`,
-      'Total Minting Capacity': `${formatEther(overview.totalMintingCapacityStethWei)} stETH`,
-    });
+    table.push(
+      ['Health Factor', formatRatio(overview.healthRatio)],
+      ['Reserve Ratio', formatBP(reserveRatioBP)],
+      ['Force Rebalance Threshold', formatBP(health.forceRebalanceThresholdBP)],
+      ['NO Reward Share', formatBP(nodeOperatorFeeBP)],
+      ['Utilization Ratio', formatRatio(overview.utilizationRatio)],
+      ['Total Value, ETH', formatEther(totalValue)],
+      ['stETH Liability', formatEther(health.liabilitySharesInStethWei)],
+      [
+        'Available To Withdrawal, ETH',
+        formatEther(overview.AvailableToWithdrawal),
+      ],
+      ['Idle Capital, ETH', formatEther(overview.idleCapital)],
+      ['Total Locked, ETH', formatEther(overview.totalLocked)],
+      ['Collateral, ETH', formatEther(overview.collateral)],
+      ['Pending Unlock, ETH', formatEther(overview.PendingUnlock)],
+      ['No Rewards Accumulated, ETH', formatEther(nodeOperatorUnclaimedFee)],
+      ['Total Reservable, ETH', formatEther(overview.totalReservable)],
+      ['Reserved, ETH', formatEther(overview.reserved)],
+      [
+        'Total Minting Capacity, stETH',
+        formatEther(overview.totalMintingCapacityStethWei),
+      ],
+    );
+    logResult(table.toString());
 
     logLiabilityBar({
       totalValue: totalValue,
@@ -184,34 +198,57 @@ export const getDashboardBaseInfo = async (contract: DashboardContract) => {
 
     hideSpinner();
 
+    const table = new Table(TABLE_PARAMS);
     logInfo('Dashboard Base Info');
-    logResult({
-      'stETH address': steth,
-      'wstETH address': wsteth,
-      'Vault address': vault,
-      'Vault Hub address': vaultHub,
-      'Total Value': `${formatEther(totalValue)} ETH`,
-      'Reserve Ratio': formatBP(reserveRatioBP),
-      Locked: `${formatEther(locked)} ETH`,
-      Balance: `${formatEther(balance)} ETH`,
-      'Share Limit': `${formatEther(shareLimit)} Shares`,
-      'Share Limit in Wei': shareLimit,
-      'Total Minting Capacity': `${formatEther(totalMintingCapacity)} stETH`,
-      'Node Operator Unclaimed Fee': `${formatEther(nodeOperatorUnclaimedFee)} ETH`,
-      'Accrued Rewards Adjustment': `${formatEther(accruedRewardsAdjustment)} ETH`,
-      'Node Operator Fee BP': formatBP(nodeOperatorFeeBP),
-      'Remaining Minting Capacity': `${formatEther(remainingMintingCapacity)} stETH`,
-      'Treasury Fee BP': treasuryFeeBP,
-      'Treasury Fee BP in Percent': `${(Number(treasuryFeeBP) / Number(BASIS_POINTS_DENOMINATOR)) * 100}%`,
-      Unreserved: `${formatEther(unreserved)} ETH`,
-      'Withdrawable Ether': `${formatEther(withdrawableEther)} ETH`,
-      'Manual Accrued Rewards Adjustment Limit': `${formatEther(
-        manualAccruedRewardsAdjustmentLimit,
-      )} ETH`,
-      'Confirm Expiry': `${confirmExpiry} (${Number(confirmExpiry) / 3600} hours)`,
-      'Max Confirm Expiry': `${maxConfirmExpiry} (${Number(maxConfirmExpiry) / 3600} hours)`,
-      'Min Confirm Expiry': `${minConfirmExpiry} (${Number(minConfirmExpiry) / 3600} hours)`,
-    });
+    table.push(
+      ['stETH address', steth],
+      ['wstETH address', wsteth],
+      ['Vault address', vault],
+      ['Vault Hub address', vaultHub],
+      ['Reserve Ratio, BP', reserveRatioBP],
+      ['Reserve Ratio, %', formatBP(reserveRatioBP)],
+      ['Node Operator Fee, BP', nodeOperatorFeeBP],
+      ['Node Operator Fee, %', formatBP(nodeOperatorFeeBP)],
+      ['Treasury Fee, BP', treasuryFeeBP],
+      ['Treasury Fee, %', formatBP(treasuryFeeBP)],
+      ['Total Value, ETH', formatEther(totalValue)],
+      ['Locked, ETH', formatEther(locked)],
+      ['Balance, ETH', formatEther(balance)],
+      ['Share Limit, Shares', formatEther(shareLimit)],
+      ['Total Minting Capacity, stETH', formatEther(totalMintingCapacity)],
+      [
+        'Node Operator Unclaimed Fee, ETH',
+        formatEther(nodeOperatorUnclaimedFee),
+      ],
+      [
+        'Accrued Rewards Adjustment, ETH',
+        formatEther(accruedRewardsAdjustment),
+      ],
+      [
+        'Remaining Minting Capacity, stETH',
+        formatEther(remainingMintingCapacity),
+      ],
+
+      ['Unreserved, ETH', formatEther(unreserved)],
+      ['Withdrawable Ether, ETH', formatEther(withdrawableEther)],
+      [
+        'Manual Accrued Rewards Adjustment Limit, ETH',
+        formatEther(manualAccruedRewardsAdjustmentLimit),
+      ],
+      [
+        'Confirm Expiry',
+        `${confirmExpiry} (${Number(confirmExpiry) / 3600} hours)`,
+      ],
+      [
+        'Max Confirm Expiry',
+        `${maxConfirmExpiry} (${Number(maxConfirmExpiry) / 3600} hours)`,
+      ],
+      [
+        'Min Confirm Expiry',
+        `${minConfirmExpiry} (${Number(minConfirmExpiry) / 3600} hours)`,
+      ],
+    );
+    logResult(table.toString());
   } catch (err) {
     hideSpinner();
     printError(err, 'Error when getting base info');
@@ -293,16 +330,23 @@ export const getDashboardRoles = async (contract: DashboardContract) => {
     const result = await Promise.all(
       Object.entries(roles).map(async ([key, value]) => {
         const accounts = await contract.read.getRoleMembers([value]);
-        const roleName = `${key} (${value})`;
         return {
-          Role: roleName,
+          Role: key,
+          Keccak: value,
           Members: accounts.length > 0 ? accounts.join(', ') : 'None',
         };
       }),
     );
     hideSpinner();
+    const table = new Table({
+      ...TABLE_PARAMS,
+      head: ['Role', 'Keccak', 'Members'],
+    });
     logInfo('Dashboard Roles');
-    logResult(result);
+    table.push(
+      ...result.map(({ Role, Keccak, Members }) => [Role, Keccak, Members]),
+    );
+    logResult(table.toString());
   } catch (err) {
     hideSpinner();
     printError(err, 'Error when getting roles');
