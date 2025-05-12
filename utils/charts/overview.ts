@@ -95,15 +95,15 @@ export const logVaultHealthBar = (healthFactor: number): void => {
     const positionPercentage = (i / totalBarLength) * maxHealthFactor;
 
     if (i >= filledLength) {
-      bar += '·'; // не заполнено
+      bar += '·'; // unfilled
     } else if (positionPercentage >= VAULT_HEALTH_PERCENT_GREEN) {
-      bar += '█'; // зелёная зона
+      bar += '█'; // green zone
     } else if (positionPercentage >= VAULT_HEALTH_PERCENT_YELLOW) {
-      bar += '▓'; // жёлтая зона
+      bar += '▓'; // yellow zone
     } else if (positionPercentage >= VAULT_HEALTH_PERCENT_RED) {
-      bar += '▒'; // красная зона
+      bar += '▒'; // red zone
     } else {
-      bar += '░'; // критическая зона ниже 100%
+      bar += '░'; // critical zone below 100%
     }
   }
   bar += ']';
