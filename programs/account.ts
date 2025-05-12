@@ -54,11 +54,12 @@ account
       hideSpinner();
 
       logResult({
-        address,
-        balanceWEI: balance,
-        balanceETH: formatEther(balance),
-        balanceSTETH: formatEther(stETHBalance),
-        balanceWSTETH: formatEther(wstETHBalance),
+        data: [
+          ['Address', address],
+          ['Balance (ETH)', formatEther(balance)],
+          ['Balance (STETH)', formatEther(stETHBalance)],
+          ['Balance (WSTETH)', formatEther(wstETHBalance)],
+        ],
       });
     } catch (err) {
       printError(err, 'Error when getting account info');

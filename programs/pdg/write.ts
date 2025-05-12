@@ -23,6 +23,7 @@ import {
   getCommandsJson,
   isValidBLSDeposit,
   expandBLSSignature,
+  logTable,
 } from 'utils';
 import { Deposit } from 'types';
 
@@ -140,15 +141,17 @@ pdgWrite
       const { proof, pubkey, childBlockTimestamp, withdrawalCredentials } =
         packageProof;
 
+      logResult({});
       logInfo('----------------------proof----------------------');
       logInfo(proof);
-      logInfo('---------------------pubkey---------------------');
-      logResult(pubkey);
-      logInfo('---------------childBlockTimestamp---------------');
-      logResult(childBlockTimestamp);
-      logInfo('--------------withdrawalCredentials--------------');
-      logResult(withdrawalCredentials);
-      logInfo('------------------------------------------------');
+      logInfo('-------------------------------------------------');
+      logTable({
+        data: [
+          ['Pubkey', pubkey],
+          ['Child Block Timestamp', childBlockTimestamp],
+          ['Withdrawal Credentials', withdrawalCredentials],
+        ],
+      });
       logInfo('-----------------------end-----------------------');
 
       await callWriteMethodWithReceipt({
@@ -211,15 +214,16 @@ pdgWrite
           childBlockTimestamp,
         });
 
+        logResult({});
         logInfo('----------------------proof----------------------');
         logInfo(proof);
-        logInfo('---------------------pubkey---------------------');
-        logResult(pubkey);
-        logInfo('---------------childBlockTimestamp---------------');
-        logResult(childBlockTimestamp);
-        logInfo('--------------withdrawalCredentials--------------');
-        logResult(withdrawalCredentials);
-        logInfo('------------------------------------------------');
+        logTable({
+          data: [
+            ['Pubkey', pubkey],
+            ['Child Block Timestamp', childBlockTimestamp],
+            ['Withdrawal Credentials', withdrawalCredentials],
+          ],
+        });
         logInfo('-----------------------end-----------------------');
       } catch (err) {
         hideSpinner();
@@ -309,15 +313,16 @@ pdgWrite
       const { proof, pubkey, childBlockTimestamp, withdrawalCredentials } =
         packageProof;
 
+      logResult({});
       logInfo('----------------------proof----------------------');
       logInfo(proof);
-      logInfo('---------------------pubkey---------------------');
-      logResult(pubkey);
-      logInfo('---------------childBlockTimestamp---------------');
-      logResult(childBlockTimestamp);
-      logInfo('--------------withdrawalCredentials--------------');
-      logResult(withdrawalCredentials);
-      logInfo('------------------------------------------------');
+      logTable({
+        data: [
+          ['Pubkey', pubkey],
+          ['Child Block Timestamp', childBlockTimestamp],
+          ['Withdrawal Credentials', withdrawalCredentials],
+        ],
+      });
       logInfo('-----------------------end-----------------------');
 
       await callWriteMethodWithReceipt({
@@ -356,17 +361,17 @@ pdgWrite
       const { proof, pubkey, childBlockTimestamp, withdrawalCredentials } =
         packageProof;
 
+      logResult({});
       logInfo('----------------------proof----------------------');
       logInfo(proof);
-      logInfo('---------------------pubkey---------------------');
-      logResult(pubkey);
-      logInfo('---------------childBlockTimestamp---------------');
-      logResult(childBlockTimestamp);
-      logInfo('--------------withdrawalCredentials--------------');
-      logResult(withdrawalCredentials);
-      logInfo('------------------------------------------------');
-      logInfo('invalid withdrawal credentials');
-      logResult(invalidWithdrawalCredentials);
+      logTable({
+        data: [
+          ['Pubkey', pubkey],
+          ['Child Block Timestamp', childBlockTimestamp],
+          ['Withdrawal Credentials', withdrawalCredentials],
+          ['Invalid Withdrawal Credentials', invalidWithdrawalCredentials],
+        ],
+      });
       logInfo('-----------------------end-----------------------');
 
       if (withdrawalCredentials !== invalidWithdrawalCredentials) {

@@ -25,6 +25,7 @@ import {
   callReadMethod,
   isValidBLSDeposit,
   expandBLSSignature,
+  logTable,
 } from 'utils';
 import { Address, Hex } from 'viem';
 
@@ -63,17 +64,18 @@ predepositGuaranteeHelpers
         withdrawalCredentials,
       ]);
 
+      logResult({});
       logInfo('-----------------proof verified-----------------');
       logInfo('------------------------------------------------');
       logInfo('----------------------proof----------------------');
       logInfo(proof);
-      logInfo('---------------------pubkey---------------------');
-      logResult(pubkey);
-      logInfo('---------------childBlockTimestamp---------------');
-      logResult(childBlockTimestamp);
-      logInfo('--------------withdrawalCredentials--------------');
-      logResult(withdrawalCredentials);
-      logInfo('------------------------------------------------');
+      logTable({
+        data: [
+          ['Pubkey', pubkey],
+          ['Child Block Timestamp', childBlockTimestamp],
+          ['Withdrawal Credentials', withdrawalCredentials],
+        ],
+      });
       logInfo('-----------------------end-----------------------');
       hideSpinner();
     } catch (err) {
@@ -96,17 +98,16 @@ predepositGuaranteeHelpers
       const { proof, pubkey, childBlockTimestamp, withdrawalCredentials } =
         packageProof;
 
-      logInfo('-----------------proof verified-----------------');
-      logInfo('------------------------------------------------');
+      logResult({});
       logInfo('----------------------proof----------------------');
       logInfo(proof);
-      logInfo('---------------------pubkey---------------------');
-      logResult(pubkey);
-      logInfo('---------------childBlockTimestamp---------------');
-      logResult(childBlockTimestamp);
-      logInfo('--------------withdrawalCredentials--------------');
-      logResult(withdrawalCredentials);
-      logInfo('------------------------------------------------');
+      logTable({
+        data: [
+          ['Pubkey', pubkey],
+          ['Child Block Timestamp', childBlockTimestamp],
+          ['Withdrawal Credentials', withdrawalCredentials],
+        ],
+      });
       logInfo('-----------------------end-----------------------');
       hideSpinner();
     } catch (err) {
@@ -274,11 +275,13 @@ predepositGuaranteeHelpers
       );
 
       logResult({
-        pubkey,
-        withdrawalCredentials,
-        signature,
-        amount,
-        depositDataRoot: result,
+        data: [
+          ['Pubkey', pubkey],
+          ['Withdrawal Credentials', withdrawalCredentials],
+          ['Signature', signature],
+          ['Amount', amount],
+          ['Deposit Data Root', result],
+        ],
       });
     },
   );
@@ -292,7 +295,9 @@ predepositGuaranteeHelpers
     const result = computeDepositDomainByForkVersion(forkVersion);
 
     logResult({
-      forkVersion,
-      depositDomain: toHex(result),
+      data: [
+        ['Fork Version', forkVersion],
+        ['Deposit Domain', toHex(result)],
+      ],
     });
   });

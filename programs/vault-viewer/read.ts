@@ -7,7 +7,7 @@ import {
   generateReadCommands,
   callReadMethod,
   callReadMethodSilent,
-  logResult,
+  logTable,
 } from 'utils';
 
 import { vaultViewer } from './main.js';
@@ -37,11 +37,12 @@ vaultViewer
       return;
     }
 
-    logResult(
-      vaults.map((vault: string) => ({
-        'Vault Address': vault,
-      })),
-    );
+    logTable({
+      data: vaults.map((vault: string, idx: number) => [idx, vault]),
+      params: {
+        head: ['Index', 'Vault Address'],
+      },
+    });
   });
 
 vaultViewer
@@ -65,11 +66,12 @@ vaultViewer
       return;
     }
 
-    logResult(
-      vaults.map((vault: string) => ({
-        'Vault Address': vault,
-      })),
-    );
+    logTable({
+      data: vaults.map((vault: string, idx: number) => [idx, vault]),
+      params: {
+        head: ['Index', 'Vault Address'],
+      },
+    });
   });
 
 vaultViewer
@@ -91,11 +93,12 @@ vaultViewer
       return;
     }
 
-    logResult(
-      vaults.map((vault: string) => ({
-        'Vault Address': vault,
-      })),
-    );
+    logTable({
+      data: vaults.map((vault: string, idx: number) => [idx, vault]),
+      params: {
+        head: ['Index', 'Vault Address'],
+      },
+    });
   });
 
 vaultViewer
@@ -126,11 +129,12 @@ vaultViewer
         return;
       }
 
-      logResult(
-        vaults.map((vault: string) => ({
-          'Vault Address': vault,
-        })),
-      );
+      logTable({
+        data: vaults.map((vault: string, idx: number) => [idx, vault]),
+        params: {
+          head: ['Index', 'Vault Address'],
+        },
+      });
     },
   );
 
@@ -148,9 +152,10 @@ vaultViewer
       return;
     }
 
-    logResult(
-      vaults.map((vault: string) => ({
-        'Vault Address': vault,
-      })),
-    );
+    logTable({
+      data: vaults.map((vault: string, idx: number) => [idx, vault]),
+      params: {
+        head: ['Index', 'Vault Address'],
+      },
+    });
   });

@@ -64,8 +64,10 @@ VaultHubRead.command('vi')
       ]);
 
       logResult({
-        Vault: vault,
-        'Vault Socket': vaultSocket,
+        data: [
+          ['Vault', vault],
+          ['Vault Socket', vaultSocket],
+        ],
       });
     } catch (err) {
       printError(err, 'Error when getting vault and vault socket');

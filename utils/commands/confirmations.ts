@@ -1,5 +1,4 @@
 import { Address, decodeFunctionData, type Hex } from 'viem';
-import Table from 'cli-table3';
 
 import { getDashboardContract } from 'contracts';
 import { getPublicClient } from 'providers';
@@ -7,6 +6,7 @@ import {
   callReadMethodSilent,
   confirmOperation,
   logResult,
+  logTable,
   selectProposalEvent,
 } from 'utils';
 import { DashboardAbi } from 'abi';
@@ -87,37 +87,29 @@ export const getConfirmationsInfo = async (address: Address) => {
     }),
   );
 
-  const TABLE_PARAMS: Table.TableConstructorOptions = {
-    head: ['Type', 'Value'],
-    colAligns: ['left', 'right', 'right', 'right', 'right', 'right'],
-    style: { head: ['gray'] },
-  };
-
+  logResult({});
   Object.entries(logsData).forEach(
     (
       [data, { member, role, expiryTimestamp, expiryDate, decodedData }],
       idx,
     ) => {
-      logResult(`Event ${idx + 1}`);
-
-      const tableLog = new Table(TABLE_PARAMS);
-      tableLog.push(
-        ['Member', member],
-        ['Role', role],
-        ['Expiry Timestamp', `${expiryTimestamp.toString()} (${expiryDate})`],
-        ['Data', data],
-      );
-
-      console.info(tableLog.toString());
+      console.info(`\nEvent ${idx + 1}`);
+      logTable({
+        data: [
+          ['Member', member],
+          ['Role', role],
+          ['Expiry Timestamp', `${expiryTimestamp.toString()} (${expiryDate})`],
+          ['Data', data],
+        ],
+      });
 
       console.info('Decoded data:');
-      const tableDecoded = new Table(TABLE_PARAMS);
-      tableDecoded.push(
-        ['Function', decodedData.functionName],
-        ['Argument', decodedData.args[0] as Hex],
-      );
-
-      console.info(tableDecoded.toString());
+      logTable({
+        data: [
+          ['Function', decodedData.functionName],
+          ['Argument', decodedData.args[0] as Hex],
+        ],
+      });
     },
   );
 

@@ -97,10 +97,12 @@ dashboardRead
     );
 
     logResult({
-      'Required Lock (wei)': requiredLock,
-      'Required Lock (shares)': formatEther(requiredLock),
-      'Current Lock (wei)': currentLock,
-      'Current Lock (shares)': formatEther(currentLock),
+      data: [
+        ['Required Lock (wei)', requiredLock],
+        ['Required Lock (shares)', formatEther(requiredLock)],
+        ['Current Lock (wei)', currentLock],
+        ['Current Lock (shares)', formatEther(currentLock)],
+      ],
     });
   });
 
@@ -113,7 +115,7 @@ dashboardRead
     const contract = getStakingVaultContract(vault);
     const owner = await callReadMethodSilent(contract, 'owner');
     logResult({
-      'Dashboard Address': owner,
+      data: [['Dashboard Address', owner]],
     });
   });
 

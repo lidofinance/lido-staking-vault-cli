@@ -125,9 +125,11 @@ export const callWriteMethod = async <
 
     !silent &&
       logResult({
-        'Method name': methodName,
-        Contract: contract.address,
-        Transaction: tx,
+        data: [
+          ['Method name', methodName],
+          ['Contract', contract.address],
+          ['Transaction', tx],
+        ],
       });
 
     return tx;
@@ -159,18 +161,23 @@ export const callReadMethod = async <
 
     if (isSilent) return result;
 
-    const base = {
-      'Method name': methodName,
-      Contract: contract.address,
-    };
+    const base = [
+      ['Method name', methodName],
+      ['Contract', contract.address],
+    ];
 
     // TODO: do message better or show in called place
     if (Array.isArray(result)) {
       logResult({
-        ...base,
-        Result: result
-          .map((r) => (typeof r === 'bigint' ? r.toString() : String(r)))
-          .join(', '),
+        data: [
+          ...base,
+          [
+            'Result',
+            result
+              .map((r) => (typeof r === 'bigint' ? r.toString() : String(r)))
+              .join(', '),
+          ],
+        ],
       });
     } else if (typeof result === 'object' && result !== null) {
       // Expand result object into multiple rows
@@ -179,13 +186,14 @@ export const callReadMethod = async <
         expandedResult[k] = typeof v === 'bigint' ? v.toString() : String(v);
       }
       logResult({
-        ...base,
-        ...expandedResult,
+        data: [...base, ...Object.entries(expandedResult)],
       });
     } else {
       logResult({
-        ...base,
-        Result: typeof result === 'bigint' ? result.toString() : result,
+        data: [
+          ...base,
+          ['Result', typeof result === 'bigint' ? result.toString() : result],
+        ],
       });
     }
 
@@ -272,11 +280,13 @@ export const callWriteMethodWithReceipt = async <
 
     !silent &&
       logResult({
-        'Method name': methodName,
-        Contract: contract.address,
-        'Transaction status': receipt.status,
-        'Transaction block number': Number(receipt.blockNumber),
-        'Transaction gas used': Number(receipt.gasUsed),
+        data: [
+          ['Method name', methodName],
+          ['Contract', contract.address],
+          ['Transaction status', receipt.status],
+          ['Transaction block number', Number(receipt.blockNumber)],
+          ['Transaction gas used', Number(receipt.gasUsed)],
+        ],
       });
 
     return { receipt, tx };

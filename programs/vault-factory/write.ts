@@ -15,6 +15,7 @@ import {
   jsonToRoleAssignment,
   logCancel,
   getCommandsJson,
+  logTable,
 } from 'utils';
 
 import { vaultFactory } from './main.js';
@@ -103,7 +104,17 @@ vaultFactoryWrite
           transactions.push(tx);
         }
 
-        logResult(transactions);
+        logResult({});
+        transactions.forEach((tx) => {
+          logTable({
+            data: [
+              ['Vault Address', tx?.vault],
+              ['Dashboard Address', tx?.dashboard],
+              ['Transaction Hash', tx?.tx],
+              ['Block Number', tx?.blockNumber],
+            ],
+          });
+        });
       } catch (err) {
         if (err instanceof Error) {
           logInfo('Error occurred while creating vaults', err.message);

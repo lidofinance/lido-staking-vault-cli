@@ -3,7 +3,7 @@ import { MemoryBlockstore } from 'blockstore-core';
 import { importer } from 'ipfs-unixfs-importer';
 import jsonBigInt from 'json-bigint';
 
-import { logInfo, logResult } from './logging/console.js';
+import { logInfo, logTable } from './logging/console.js';
 
 export const IPFS_GATEWAY = 'https://ipfs.io/ipfs';
 
@@ -82,15 +82,21 @@ export const fetchAndVerifyFile = async (
   const fileContent = await fetchIPFSBuffer(cid, gateway);
   const calculatedCID = await calculateIPFSAddCID(fileContent);
 
-  logInfo('Original CID:  ', originalCID.toString());
-  logInfo('Calculated CID:', calculatedCID.toString());
-
   if (!calculatedCID.equals(originalCID)) {
     throw new Error(
       `❌ CID mismatch! Expected ${originalCID}, but got ${calculatedCID}`,
     );
   }
 
-  logResult('✅ CID verified, file matches IPFS hash');
+  logTable({
+    data: [
+      ['✅ CID verified, file matches IPFS hash'],
+      ['Original CID', originalCID.toString()],
+      ['Calculated CID', calculatedCID.toString()],
+    ],
+    params: {
+      head: ['Type', 'CID'],
+    },
+  });
   return fileContent;
 };

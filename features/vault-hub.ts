@@ -27,27 +27,29 @@ export const getVaultHubBaseInfo = async () => {
     hideSpinner();
 
     const payload = {
-      CONNECT_DEPOSIT: `${formatEther(CONNECT_DEPOSIT)} ETH`,
+      CONTRACT_ADDRESS,
       DEFAULT_ADMIN_ROLE,
       LIDO,
       LIDO_LOCATOR,
       PAUSE_INFINITELY,
       PAUSE_ROLE,
+      RESUME_ROLE,
+      VAULT_MASTER_ROLE,
+      VAULT_REGISTRY_ROLE,
+      operatorGrid,
+      CONNECT_DEPOSIT: `${formatEther(CONNECT_DEPOSIT)} ETH`,
       REPORT_FRESHNESS_DELTA,
       reportFreshnessDeltaHours: `${
         Number(REPORT_FRESHNESS_DELTA) / 60 / 60
       } hours`,
-      RESUME_ROLE,
-      VAULT_MASTER_ROLE,
-      VAULT_REGISTRY_ROLE,
       resumeSinceTimestamp,
       isPaused,
-      operatorGrid,
       vaultsCount,
-      CONTRACT_ADDRESS,
     };
 
-    logResult(Object.entries(payload));
+    logResult({
+      data: Object.entries(payload).map(([key, value]) => [key, value]),
+    });
   } catch (err) {
     hideSpinner();
     printError(err, 'Error when getting base info');
@@ -77,15 +79,20 @@ export const getVaultHubRoles = async () => {
     const result = await Promise.all(
       Object.entries(roles).map(async ([key, value]) => {
         const accounts = await contract.read.getRoleMembers([value]);
-        const roleName = `${key} (${value})`;
         return {
-          Role: roleName,
+          Role: key,
+          Keccak: value,
           Members: accounts.length > 0 ? accounts.join(', ') : 'None',
         };
       }),
     );
     hideSpinner();
-    logResult(result);
+    logResult({
+      data: result.map(({ Role, Keccak, Members }) => [Role, Keccak, Members]),
+      params: {
+        head: ['Role', 'Keccak', 'Members'],
+      },
+    });
   } catch (err) {
     hideSpinner();
     printError(err, 'Error when getting roles');

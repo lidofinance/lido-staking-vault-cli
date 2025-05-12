@@ -18,16 +18,18 @@ export const getOperatorGridBaseInfo = async () => {
     hideSpinner();
 
     const payload = {
+      CONTRACT_ADDRESS,
       DEFAULT_ADMIN_ROLE,
-      DEFAULT_TIER_ID,
       DEFAULT_TIER_OPERATOR,
       LIDO_LOCATOR,
       REGISTRY_ROLE,
+      DEFAULT_TIER_ID,
       nodeOperatorCount,
-      CONTRACT_ADDRESS,
     };
 
-    logResult(Object.entries(payload));
+    logResult({
+      data: Object.entries(payload).map(([key, value]) => [key, value]),
+    });
   } catch (err) {
     hideSpinner();
     printError(err, 'Error when getting base info');
@@ -50,15 +52,20 @@ export const getOperatorGridRoles = async () => {
     const result = await Promise.all(
       Object.entries(roles).map(async ([key, value]) => {
         const accounts = await contract.read.getRoleMembers([value]);
-        const roleName = `${key} (${value})`;
         return {
-          Role: roleName,
+          Role: key,
+          Keccak: value,
           Members: accounts.length > 0 ? accounts.join(', ') : 'None',
         };
       }),
     );
     hideSpinner();
-    logResult(result);
+    logResult({
+      data: result.map(({ Role, Keccak, Members }) => [Role, Keccak, Members]),
+      params: {
+        head: ['Role', 'Keccak', 'Members'],
+      },
+    });
   } catch (err) {
     hideSpinner();
     printError(err, 'Error when getting roles');

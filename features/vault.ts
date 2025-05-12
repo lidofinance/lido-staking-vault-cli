@@ -36,24 +36,26 @@ export const getVaultBaseInfo = async (address: Address) => {
     const payload = {
       DEPOSIT_CONTRACT,
       PUBLIC_KEY_LENGTH,
-      beaconChainDepositsPaused,
-      depositor,
-      initializedVersion,
+      CONTRACT_ADDRESS,
       owner,
-      version,
-      vaultHubAuthorized,
+      depositor,
+      nodeOperator,
       vaultHub,
+      vaultHubAuthorized,
+      beaconChainDepositsPaused,
+      initializedVersion,
+      version,
       totalValue: `${formatEther(totalValue)} ETH`,
       inOutDelta: `${formatEther(inOutDelta)} ETH`,
       balance: `${formatEther(balance)} ETH`,
-      nodeOperator,
       locked: `${formatEther(locked)} ETH`,
       unlocked: `${formatEther(unlocked)} ETH`,
-      CONTRACT_ADDRESS,
       isOwnerContract,
     };
 
-    logResult(Object.entries(payload));
+    logResult({
+      data: Object.entries(payload).map(([key, value]) => [key, value]),
+    });
   } catch (err) {
     hideSpinner();
     printError(err, 'Error when getting base info');

@@ -71,7 +71,9 @@ export const getVaultFactoryInfo = async () => {
 
     hideSpinner();
 
-    logResult(Object.entries(payload));
+    logResult({
+      data: Object.entries(payload).map(([key, value]) => [key, value]),
+    });
   } catch (err) {
     hideSpinner();
     printError(err, 'Error when getting base info');

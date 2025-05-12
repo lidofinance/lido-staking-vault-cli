@@ -34,8 +34,9 @@ export const getPdgBaseInfo = async () => {
     hideSpinner();
 
     const payload = {
-      DEFAULT_ADMIN_ROLE,
+      CONTRACT_ADDRESS,
       BEACON_ROOTS,
+      DEFAULT_ADMIN_ROLE,
       GI_FIRST_VALIDATOR,
       GI_FIRST_VALIDATOR_AFTER_CHANGE,
       GI_PUBKEY_WC_PARENT,
@@ -50,10 +51,11 @@ export const getPdgBaseInfo = async () => {
       STATE_ROOT_POSITION,
       WC_PUBKEY_PARENT_DEPTH,
       WC_PUBKEY_PARENT_POSITION,
-      CONTRACT_ADDRESS,
     };
 
-    logResult(Object.entries(payload));
+    logResult({
+      data: Object.entries(payload).map(([key, value]) => [key, value]),
+    });
   } catch (err) {
     hideSpinner();
     printError(err, 'Error when getting base info');
@@ -79,15 +81,20 @@ export const getPdgRoles = async () => {
     const result = await Promise.all(
       Object.entries(roles).map(async ([key, value]) => {
         const accounts = await contract.read.getRoleMembers([value]);
-        const roleName = `${key} (${value})`;
         return {
-          Role: roleName,
+          Role: key,
+          Keccak: value,
           Members: accounts.length > 0 ? accounts.join(', ') : 'None',
         };
       }),
     );
     hideSpinner();
-    logResult(result);
+    logResult({
+      data: result.map(({ Role, Keccak, Members }) => [Role, Keccak, Members]),
+      params: {
+        head: ['Role', 'Keccak', 'Members'],
+      },
+    });
   } catch (err) {
     hideSpinner();
     printError(err, 'Error when getting roles');

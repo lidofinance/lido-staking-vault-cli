@@ -21,7 +21,12 @@ export const getFirstValidatorGIndex = (forks: string[]) => {
     );
     gIndexes[fork] = toBytes32String(gI);
   }
-  logResult(gIndexes);
+  logResult({
+    data: Object.entries(gIndexes).map(([fork, gIndex]) => [fork, gIndex]),
+    params: {
+      head: ['Fork', 'GIndex'],
+    },
+  });
 };
 
 const pack = (gI: bigint, limit: number) => {

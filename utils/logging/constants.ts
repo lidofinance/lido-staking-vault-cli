@@ -1,6 +1,12 @@
 import chalk from 'chalk';
+import type { TableConstructorOptions } from 'cli-table3';
 
 const { red, blue, green, bold, yellow } = chalk;
+export const TABLE_PARAMS: TableConstructorOptions = {
+  head: ['Type', 'Value'],
+  colAligns: ['left', 'right', 'right', 'right', 'right', 'right'],
+  style: { head: ['gray'] },
+};
 
 export type HeadMessage = 'Error' | 'LOG' | 'Result' | 'Bold' | 'Cancel';
 
