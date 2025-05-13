@@ -52,7 +52,7 @@ export const parseDepositArray = (str: string): Deposit[] => {
     return [];
   }
 
-  const parsed = JSON.parse('[' + trimmed + ']', (key, value) => {
+  const parsed = JSON.parse(trimmed, (key, value) => {
     if (key === '') return value; // root array
     if (key === 'amount') return BigInt(value) * BigInt(10 ** 9); // to wei
     if (typeof value === 'string') {

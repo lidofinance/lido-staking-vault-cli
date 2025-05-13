@@ -126,14 +126,14 @@ predepositGuaranteeHelpers
   .addHelpText(
     'after',
     `Deposit format:
-    '{
+    '[{
       "pubkey": "...",
       "signature": "...",
       "amount": "...",
       "deposit_data_root": "..."
     }
     {second deposit}
-    ...'`,
+    ...]'`,
   )
   .action(
     async (

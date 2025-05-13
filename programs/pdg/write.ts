@@ -49,14 +49,14 @@ pdgWrite
   .addHelpText(
     'after',
     `Deposit format:
-    '{
+    '[{
       "pubkey": "...",
       "signature": "...",
       "amount": "...",
       "deposit_data_root": "..."
     }
     {second deposit}
-    ...'`,
+    ...]'`,
   )
   .action(
     async (
@@ -174,14 +174,14 @@ pdgWrite
   .addHelpText(
     'after',
     `Deposit format:
-    '{
+    '[{
       "pubkey": "...",
       "signature": "...",
       "amount": "...",
       "deposit_data_root": "..."
     }
     {second deposit}
-    ...'`,
+    ...]'`,
   )
   .action(async (indexes: bigint[], vault: Address, deposits: Deposit[]) => {
     const pdgContract = await getPredepositGuaranteeContract();
@@ -246,14 +246,14 @@ pdgWrite
   .addHelpText(
     'after',
     `Deposit format:
-    '{
+    '[{
       "pubkey": "...",
       "signature": "...",
       "amount": "...",
       "deposit_data_root": "..."
     }
     {second deposit}
-    ...'`,
+    ...]'`,
   )
   .action(async (vault: Address, deposits: Deposit[]) => {
     const pdgContract = await getPredepositGuaranteeContract();
