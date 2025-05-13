@@ -130,6 +130,8 @@ yarn start dashboard -h
 | increase-accrued-rewards-adjustment \<address> \<amount>                             | Increases the accrued rewards adjustment.                                                                               |
 | set-accrued-rewards-adjustment \<address> \<amount>                                  | Sets the accrued rewards adjustment.                                                                                    |
 | confirm-proposal \<address>                                                          | Confirms a proposal                                                                                                     |
+| set-confirm-expiry \<address> \<expiry>                                              | Sets the confirm expiry                                                                                                 |
+| set-node-operator-fee \<address> \<fee>                                              | Sets the node operator fee                                                                                              |
 
 **\<roleAssignmentJSON>**
 
@@ -143,10 +145,10 @@ yarn start dashboard -h
 **\<deposits>**
 
 ```json
-{
+[{
   "pubkey": "...",
   "signature": "...",
   "amount": number,
   "deposit_data_root": "..."
-}
+}]
 ```

@@ -79,10 +79,10 @@ yarn start pdg -h
 **\<deposits>**
 
 ```json
-{
+[{
   "pubkey": "...",
   "signature": "...",
   "amount": number,
   "deposit_data_root": "..."
-}
+}]
 ```
