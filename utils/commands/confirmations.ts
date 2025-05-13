@@ -5,6 +5,7 @@ import { getPublicClient } from 'providers';
 import {
   callReadMethodSilent,
   confirmOperation,
+  formatBP,
   logResult,
   logTable,
   selectProposalEvent,
@@ -13,16 +14,23 @@ import { DashboardAbi } from 'abi';
 
 const AVG_BLOCK_TIME_SEC = 12n;
 
+export const CONFIRM_METHODS_MAP = {
+  setConfirmExpiry: (value: bigint) => `${Number(value) / 3600} hours`,
+  setNodeOperatorFeeBP: (value: bigint) => formatBP(value),
+};
+
+type DecodedData = {
+  functionName: 'setConfirmExpiry' | 'setNodeOperatorFeeBP';
+  args: readonly [bigint];
+};
+
 type ConfirmationsInfo = {
   member: Address;
   role: Hex;
   expiryTimestamp: bigint;
   expiryDate: string;
   data: Hex;
-  decodedData: {
-    functionName: string;
-    args: any[];
-  };
+  decodedData: DecodedData;
 };
 export type LogsData = Record<Hex, ConfirmationsInfo>;
 
@@ -48,6 +56,11 @@ export const getConfirmationsInfo = async (address: Address) => {
     filter: setConfirmationLifetimeEventFilter,
   });
 
+  if (logs.length === 0) {
+    console.error('No confirmations found');
+    return;
+  }
+
   const logsData: LogsData = logs
     .map((log) => log.args)
     .filter(
@@ -60,7 +73,7 @@ export const getConfirmationsInfo = async (address: Address) => {
       const decodedData = decodeFunctionData({
         abi: DashboardAbi,
         data: args.data as Hex,
-      });
+      }) as DecodedData;
 
       acc[args.data as Hex] = {
         member: args.member,
@@ -107,7 +120,7 @@ export const getConfirmationsInfo = async (address: Address) => {
       logTable({
         data: [
           ['Function', decodedData.functionName],
-          ['Argument', decodedData.args[0] as Hex],
+          ['Argument', decodedData.args[0]],
         ],
       });
     },
@@ -118,22 +131,28 @@ export const getConfirmationsInfo = async (address: Address) => {
 
 export const confirmProposal = async (address: Address) => {
   const logsData = await getConfirmationsInfo(address);
+  if (!logsData) return;
+
   if (Object.keys(logsData).length === 0) {
     console.error('No proposals found');
     return;
   }
-
-  const { event } = await selectProposalEvent(logsData);
-  if (!event) return;
-  const log = logsData[event];
+  const answer = await selectProposalEvent(logsData);
+  if (!answer || !answer.event) {
+    return;
+  }
+  const log = logsData[answer.event];
   if (!log) {
-    console.error('Log not found');
+    console.error('No proposal found');
     return;
   }
 
+  const formattedArgs = CONFIRM_METHODS_MAP[log.decodedData.functionName](
+    log.decodedData.args[0],
+  );
   const confirm = await confirmOperation(
     `Are you sure you want to confirm this proposal?
-    ${log.decodedData.functionName} (${log.decodedData.args.join(', ')})
+    ${log.decodedData.functionName} (${log.decodedData.args.join(', ')} - ${formattedArgs})
     Member: ${log.member}
     Role: ${log.role}
     Expiry: ${log.expiryDate}`,

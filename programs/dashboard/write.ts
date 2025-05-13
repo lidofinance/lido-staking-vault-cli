@@ -19,6 +19,7 @@ import {
   burnSteth,
   createPDGProof,
   confirmProposal,
+  formatBP,
 } from 'utils';
 import { RoleAssignment, Deposit } from 'types';
 
@@ -803,5 +804,51 @@ dashboardWrite
       contract,
       methodName: log.decodedData.functionName as any,
       payload: log.decodedData.args as any,
+    });
+  });
+
+dashboardWrite
+  .command('set-confirm-expiry')
+  .description('Sets the confirm expiry')
+  .argument('<address>', 'dashboard address', stringToAddress)
+  .argument('<expiry>', 'expiry in seconds', stringToBigInt)
+  .action(async (address: Address, expiry: bigint) => {
+    const contract = getDashboardContract(address);
+
+    const hours = Number(expiry) / 3600;
+    const confirm = await confirmOperation(
+      `Are you sure you want to set the confirm expiry to ${expiry} seconds (${hours} hours)?`,
+    );
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'setConfirmExpiry',
+      payload: [expiry],
+    });
+  });
+
+dashboardWrite
+  .command('set-node-operator-fee')
+  .description('Sets the node operator fee')
+  .argument('<address>', 'dashboard address', stringToAddress)
+  .argument(
+    '<fee>',
+    'the new node operator fee in basis points',
+    stringToBigInt,
+  )
+  .action(async (address: Address, fee: bigint) => {
+    const contract = getDashboardContract(address);
+
+    const percentage = formatBP(fee);
+    const confirm = await confirmOperation(
+      `Are you sure you want to set the node operator fee ${fee} in basis points (${percentage})?`,
+    );
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'setNodeOperatorFeeBP',
+      payload: [fee],
     });
   });
