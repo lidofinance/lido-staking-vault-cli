@@ -42,7 +42,9 @@ pdgWrite.on('option:-cmd2json', function () {
 
 pdgWrite
   .command('predeposit')
-  .description('predeposit')
+  .description(
+    "deposits NO's validators with PREDEPOSIT_AMOUNT ether from StakingVault and locks up NO's balance",
+  )
   .argument('<vault>', 'vault address')
   .argument('<deposits>', 'deposits', parseDepositArray)
   .option('--no-bls-check', 'skip bls signature check')
@@ -225,6 +227,12 @@ pdgWrite
           ],
         });
         logInfo('-----------------------end-----------------------');
+
+        await callWriteMethodWithReceipt({
+          contract: pdgContract,
+          methodName: 'proveAndDeposit',
+          payload: [witnesses, deposits, vault],
+        });
       } catch (err) {
         hideSpinner();
         printError(err, 'Error when making proof');

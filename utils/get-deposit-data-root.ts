@@ -14,18 +14,14 @@ export const computeDepositDataRoot = (
   pubkey: string,
   withdrawalCredentials: string,
   signature: string,
-  amountWei: bigint | string,
+  amountGwei: bigint | string,
 ): string => {
   const pubkeyBytes = fromHex(pubkey);
   const withdrawalCredentialsBytes = fromHex(withdrawalCredentials);
   const signatureBytes = fromHex(signature);
-  // 1) Convert amount from ETH to gwei
-  const amountWeiBN =
-    typeof amountWei !== 'bigint' ? BigInt(amountWei) : amountWei;
-  const amountGwei = amountWeiBN / 1_000_000_000n;
 
   // 2) Get 8 bytes little-endian
-  const amountLE64 = encodeGweiAsLittleEndian8(amountGwei);
+  const amountLE64 = encodeGweiAsLittleEndian8(BigInt(amountGwei));
 
   // 3) pubkeyRoot = sha256(pubkey + 16 zero bytes)
   const pubkeyRoot = sha256Concat(

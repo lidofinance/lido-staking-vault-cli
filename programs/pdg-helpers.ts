@@ -176,12 +176,13 @@ predepositGuaranteeHelpers
           logInfo(`✅ AMOUNT VALID for Pubkey ${deposit.pubkey}`);
         }
 
+        const depositAmountGwei = deposit.amount / 1_000_000_000n;
         // depositDataRoot check
         const depositDataRoot = computeDepositDataRoot(
           deposit.pubkey,
           withdrawalCredentials,
           deposit.signature,
-          deposit.amount,
+          depositAmountGwei,
         );
         if (depositDataRoot != deposit.depositDataRoot) {
           logError(
