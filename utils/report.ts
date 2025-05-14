@@ -159,5 +159,9 @@ export const getAllVaultsReports = async (
     (value) => getVaultData(report, value.value[0] as Address).data,
   );
 
-  return { vaultReports, proofsCID: report.proofsCID };
+  return {
+    vaultReports,
+    proofsCID: report.proofsCID,
+    prevTreeCID: report.prevTreeCID,
+  };
 };
