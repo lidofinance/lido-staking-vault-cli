@@ -45,7 +45,7 @@ export const computeDepositDataRoot = (
   // 5) Sum all, as in Solidity:
   //    depositDataRoot = sha256(
   //       sha256(pubkeyRoot, withdrawalCredentials),
-  //       sha256(amountLE64, 24 нулевых байт, signatureRoot)
+  //       sha256(amountLE64, 24 zero bytes, signatureRoot)
   //    )
   const part1 = sha256Concat(pubkeyRoot, withdrawalCredentialsBytes);
   const part2 = sha256Concat(
