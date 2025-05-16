@@ -13,7 +13,7 @@ For changes between versions see [Changelog](./changelog.mdx)
 ## Features
 
 - **Easy Setup**: Quick installation and configuration to get you started.
-- **Vault Management**: Create, update, and delete staking vaults with simple commands.
+- **Vault Management**: Create, manage staking vaults with simple commands.
 - **Monitoring**: Track vault metrics.
 
 ## Prerequisites
