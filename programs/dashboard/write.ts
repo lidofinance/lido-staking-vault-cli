@@ -1,6 +1,7 @@
 import { Address, Hex, parseEther, formatEther } from 'viem';
 import { Option } from 'commander';
 
+import { getAccount } from 'providers';
 import { getDashboardContract, getStakingVaultContract } from 'contracts';
 import {
   callReadMethod,
@@ -20,6 +21,8 @@ import {
   createPDGProof,
   confirmProposal,
   formatBP,
+  callReadMethodSilent,
+  showSpinner,
 } from 'utils';
 import { RoleAssignment, Deposit } from 'types';
 
@@ -580,21 +583,39 @@ dashboardWrite
   .argument('<address>', 'dashboard address', stringToAddress)
   .argument('<validatorIndex...>', 'index of the validator to prove')
   .action(async (address: Address, validatorIndexes: string[]) => {
+    const account = getAccount();
     const contract = getDashboardContract(address);
     const vault = await callReadMethod(contract, 'stakingVault');
     const vaultContract = getStakingVaultContract(vault);
-    const pdgContract = await callReadMethod(vaultContract, 'depositor');
+    const pdgContract = await callReadMethodSilent(vaultContract, 'depositor');
 
     for (const validatorIndex of validatorIndexes) {
+      const hideSpinner = showSpinner({
+        type: 'bouncingBar',
+        message: `Making proof for validator ${validatorIndex}...`,
+      });
       const packageProof = await createPDGProof(Number(validatorIndex));
       const { proof, pubkey, childBlockTimestamp } = packageProof;
-
+      hideSpinner();
       const confirm = await confirmOperation(
-        `Are you sure you want to prove ${proof.length} validators to the Predeposit Guarantee contract ${pdgContract} in the staking vault ${vault}?
-      Witnesses: ${JSON.stringify(proof)}`,
+        `Are you sure you want to prove ${pubkey} validator (${validatorIndex}) to the Predeposit Guarantee contract ${pdgContract} in the staking vault ${vault}?
+      Witnesses length: ${proof.length}`,
       );
       if (!confirm) return;
+      const PDG_PROVE_VALIDATOR_ROLE = await callReadMethodSilent(
+        contract,
+        'PDG_PROVE_VALIDATOR_ROLE',
+      );
+      const hasRole = await callReadMethodSilent(contract, 'hasRole', [
+        PDG_PROVE_VALIDATOR_ROLE,
+        account.address,
+      ]);
 
+      if (!hasRole) {
+        throw new Error(
+          `You do not have role (PDG_PROVE_VALIDATOR_ROLE - ${PDG_PROVE_VALIDATOR_ROLE}) to prove validators to PDG`,
+        );
+      }
       await callWriteMethodWithReceipt({
         contract,
         methodName: 'proveUnknownValidatorsToPDG',

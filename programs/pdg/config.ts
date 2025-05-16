@@ -109,6 +109,7 @@ export const readCommandConfig: ReadProgramCommandConfig = {
   },
   validatorStatus: {
     name: 'v-status',
+    hidden: true,
     description: 'get validator status',
     arguments: {
       _validatorPubkey: {

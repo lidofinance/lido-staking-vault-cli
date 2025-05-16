@@ -1,5 +1,20 @@
-import { printError, showSpinner, logResult } from 'utils';
+import {
+  printError,
+  showSpinner,
+  logResult,
+  callReadMethodSilent,
+  toHex,
+} from 'utils';
 import { getPredepositGuaranteeContract } from 'contracts';
+import { Hex } from 'viem';
+
+const VALIDATORS_STATUS = {
+  0: 'NONE',
+  1: 'PREDEPOSITED',
+  2: 'PROVEN',
+  3: 'DISPROVEN',
+  4: 'COMPENSATED',
+};
 
 // Get base info
 export const getPdgBaseInfo = async () => {
@@ -98,5 +113,35 @@ export const getPdgRoles = async () => {
   } catch (err) {
     hideSpinner();
     printError(err, 'Error when getting roles');
+  }
+};
+
+export const getValidatorStatus = async (validatorPubkey: Hex) => {
+  const hideSpinner = showSpinner();
+  const hexValidatorPubkey = toHex(validatorPubkey);
+
+  try {
+    const contract = await getPredepositGuaranteeContract();
+
+    const { stage, stakingVault, nodeOperator } = await callReadMethodSilent(
+      contract,
+      'validatorStatus',
+      [hexValidatorPubkey],
+    );
+
+    hideSpinner();
+
+    const status = VALIDATORS_STATUS[stage as keyof typeof VALIDATORS_STATUS];
+    logResult({
+      data: [
+        ['Validator pubkey', hexValidatorPubkey],
+        ['Status', `${status} (${stage})`],
+        ['Staking vault', stakingVault],
+        ['Node operator', nodeOperator],
+      ],
+    });
+  } catch (err) {
+    hideSpinner();
+    printError(err, 'Error when getting validator status');
   }
 };

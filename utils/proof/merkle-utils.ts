@@ -2,6 +2,7 @@
   Utils that could be used for testing lodestar packages
 */
 import { createHash } from 'crypto';
+import { Hex } from 'viem';
 
 export type Validator = {
   pubkey: Uint8Array<ArrayBufferLike>;
@@ -28,13 +29,13 @@ export const fromHex = (hex: string): Uint8Array => {
 };
 
 /** anything -> hex */
-export const toHex = (value: unknown) => {
+export const toHex = (value: unknown): Hex => {
   if (typeof value === 'string' && !value.startsWith('0x')) {
     return `0x${value}`;
   }
 
   if (typeof value === 'string') {
-    return value;
+    return value as Hex;
   }
 
   if (typeof value === 'number' || typeof value === 'bigint') {

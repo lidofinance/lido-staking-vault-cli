@@ -67,7 +67,7 @@ export const calculateOverview = (args: OverviewArgs) => {
       : (liabilitySharesInStethWei * totalReservable * SCALING_FACTOR) /
         totalMintingCapacityStethWei;
   const reserved = bigIntMax(
-    bigIntMin(
+    bigIntMax(
       reservedRaw / SCALING_FACTOR,
       totalValue - liabilitySharesInStethWei,
     ),

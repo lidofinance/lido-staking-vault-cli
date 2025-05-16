@@ -302,9 +302,9 @@ pdgWrite
 pdgWrite
   .command('prove-unknown-validator')
   .description('prove unknown validator')
-  .argument('<index>', 'validator index', stringToBigInt)
   .argument('<vault>', 'vault address')
-  .action(async (index: bigint, vault: Address) => {
+  .argument('<index>', 'validator index', stringToBigInt)
+  .action(async (vault: Address, index: bigint) => {
     const pdgContract = await getPredepositGuaranteeContract();
 
     const validatorIndex = await confirmMakeProof(index);
