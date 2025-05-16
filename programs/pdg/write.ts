@@ -299,53 +299,54 @@ pdgWrite
     });
   });
 
-pdgWrite
-  .command('prove-unknown-validator')
-  .description('prove unknown validator')
-  .argument('<vault>', 'vault address')
-  .argument('<index>', 'validator index', stringToBigInt)
-  .action(async (vault: Address, index: bigint) => {
-    const pdgContract = await getPredepositGuaranteeContract();
+// TODO: Temporary disabled, because it's required to be owner of the vault
+// pdgWrite
+//   .command('prove-unknown-validator')
+//   .description('prove unknown validator')
+//   .argument('<vault>', 'vault address')
+//   .argument('<index>', 'validator index', stringToBigInt)
+//   .action(async (vault: Address, index: bigint) => {
+//     const pdgContract = await getPredepositGuaranteeContract();
 
-    const validatorIndex = await confirmMakeProof(index);
-    if (!validatorIndex) return;
+//     const validatorIndex = await confirmMakeProof(index);
+//     if (!validatorIndex) return;
 
-    const hideSpinner = showSpinner({
-      type: 'bouncingBar',
-      message: 'Making proof...',
-    });
-    try {
-      const packageProof = await createPDGProof(Number(validatorIndex));
-      hideSpinner();
+//     const hideSpinner = showSpinner({
+//       type: 'bouncingBar',
+//       message: 'Making proof...',
+//     });
+//     try {
+//       const packageProof = await createPDGProof(Number(validatorIndex));
+//       hideSpinner();
 
-      const { proof, pubkey, childBlockTimestamp, withdrawalCredentials } =
-        packageProof;
+//       const { proof, pubkey, childBlockTimestamp, withdrawalCredentials } =
+//         packageProof;
 
-      logResult({});
-      logInfo('----------------------proof----------------------');
-      logInfo(proof);
-      logTable({
-        data: [
-          ['Pubkey', pubkey],
-          ['Child Block Timestamp', childBlockTimestamp],
-          ['Withdrawal Credentials', withdrawalCredentials],
-        ],
-      });
-      logInfo('-----------------------end-----------------------');
+//       logResult({});
+//       logInfo('----------------------proof----------------------');
+//       logInfo(proof);
+//       logTable({
+//         data: [
+//           ['Pubkey', pubkey],
+//           ['Child Block Timestamp', childBlockTimestamp],
+//           ['Withdrawal Credentials', withdrawalCredentials],
+//         ],
+//       });
+//       logInfo('-----------------------end-----------------------');
 
-      await callWriteMethodWithReceipt({
-        contract: pdgContract,
-        methodName: 'proveUnknownValidator',
-        payload: [
-          { proof, pubkey, validatorIndex, childBlockTimestamp },
-          vault,
-        ],
-      });
-    } catch (err) {
-      hideSpinner();
-      printError(err, 'Error when proving unknown validator');
-    }
-  });
+//       await callWriteMethodWithReceipt({
+//         contract: pdgContract,
+//         methodName: 'proveUnknownValidator',
+//         payload: [
+//           { proof, pubkey, validatorIndex, childBlockTimestamp },
+//           vault,
+//         ],
+//       });
+//     } catch (err) {
+//       hideSpinner();
+//       printError(err, 'Error when proving unknown validator');
+//     }
+//   });
 
 pdgWrite
   .command('prove-invalid-validator-wc')

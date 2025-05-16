@@ -27,8 +27,8 @@ yarn start operator-grid -h
 
 | Command                                   | Description                                                           |
 | ----------------------------------------- | --------------------------------------------------------------------- |
-| info                                      |                                                                       |
-| roles                                     |                                                                       |
+| info                                      | get operator grid base info                                           |
+| roles                                     | get operator grid roles                                               |
 | DEFAULT_ADMIN_ROLE                        | Calls the read-only function "DEFAULT_ADMIN_ROLE" on the contract.    |
 | DEFAULT_TIER_ID                           | Calls the read-only function "DEFAULT_TIER_ID" on the contract.       |
 | DEFAULT_TIER_OPERATOR                     | Calls the read-only function "DEFAULT_TIER_OPERATOR" on the contract. |

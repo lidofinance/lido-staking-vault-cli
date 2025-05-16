@@ -19,13 +19,19 @@ operatorGridRead.on('option:-cmd2json', function () {
   process.exit();
 });
 
-operatorGridRead.command('info').action(async () => {
-  await getOperatorGridBaseInfo();
-});
+operatorGridRead
+  .command('info')
+  .description('get operator grid base info')
+  .action(async () => {
+    await getOperatorGridBaseInfo();
+  });
 
-operatorGridRead.command('roles').action(async () => {
-  await getOperatorGridRoles();
-});
+operatorGridRead
+  .command('roles')
+  .description('get operator grid roles')
+  .action(async () => {
+    await getOperatorGridRoles();
+  });
 
 generateReadCommands(
   OperatorGridAbi,
