@@ -1,15 +1,4 @@
-export const OperatorGridAbi = [
-  {
-    inputs: [
-      {
-        internalType: 'contract ILidoLocator',
-        name: '_locator',
-        type: 'address',
-      },
-    ],
-    stateMutability: 'nonpayable',
-    type: 'constructor',
-  },
+export const OperatorGridErrorsAbi = [
   {
     inputs: [],
     name: 'AccessControlBadConfirmation',
@@ -216,6 +205,21 @@ export const OperatorGridAbi = [
     ],
     name: 'ZeroArgument',
     type: 'error',
+  },
+] as const;
+
+export const OperatorGridAbi = [
+  ...OperatorGridErrorsAbi,
+  {
+    inputs: [
+      {
+        internalType: 'contract ILidoLocator',
+        name: '_locator',
+        type: 'address',
+      },
+    ],
+    stateMutability: 'nonpayable',
+    type: 'constructor',
   },
   {
     anonymous: false,
