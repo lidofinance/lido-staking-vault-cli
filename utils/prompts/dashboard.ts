@@ -9,7 +9,9 @@ type ConfirmMintProps = {
   amountOfMint: bigint;
   amountOfMintInStethWei: bigint;
   newLiabilityShares: bigint;
+  newLiabilitySharesInStethWei: bigint;
   currentLiabilityShares: bigint;
+  currentLiabilitySharesInStethWei: bigint;
   newHealthRatio: number;
   currentHealthRatio: number;
   newIsHealthy: boolean;
@@ -22,7 +24,9 @@ type ConfirmBurnProps = {
   amountOfBurn: bigint;
   amountOfBurnInStethWei: bigint;
   newLiabilityShares: bigint;
+  newLiabilitySharesInStethWei: bigint;
   currentLiabilityShares: bigint;
+  currentLiabilitySharesInStethWei: bigint;
   newHealthRatio: number;
   currentHealthRatio: number;
   newIsHealthy: boolean;
@@ -43,7 +47,9 @@ export const confirmMint = async (props: ConfirmMintProps) => {
     amountOfMint,
     amountOfMintInStethWei,
     newLiabilityShares,
+    newLiabilitySharesInStethWei,
     currentLiabilityShares,
+    currentLiabilitySharesInStethWei,
     newHealthRatio,
     currentHealthRatio,
     newIsHealthy,
@@ -65,6 +71,7 @@ export const confirmMint = async (props: ConfirmMintProps) => {
     ['Vault Address', vaultAddress],
     ['Current Liability, wei', currentLiabilityShares],
     ['Current Liability, Shares', formatEther(currentLiabilityShares)],
+    ['Current Liability, stETH', formatEther(currentLiabilitySharesInStethWei)],
     ['Current Health Ratio', `${currentHealthRatio.toFixed(2)}%`],
     ['Current Is Healthy', currentIsHealthy],
   );
@@ -76,6 +83,7 @@ export const confirmMint = async (props: ConfirmMintProps) => {
     ['Vault Address', vaultAddress],
     ['New Liability, wei', newLiabilityShares],
     ['New Liability, Shares', formatEther(newLiabilityShares)],
+    ['New Liability, stETH', formatEther(newLiabilitySharesInStethWei)],
     ['New Health Ratio', `${newHealthRatio.toFixed(2)}%`],
     ['New Is Healthy', newIsHealthy],
   );
@@ -94,7 +102,9 @@ export const confirmBurn = async (props: ConfirmBurnProps) => {
     amountOfBurn,
     amountOfBurnInStethWei,
     newLiabilityShares,
+    newLiabilitySharesInStethWei,
     currentLiabilityShares,
+    currentLiabilitySharesInStethWei,
     newHealthRatio,
     currentHealthRatio,
     newIsHealthy,
@@ -116,6 +126,7 @@ export const confirmBurn = async (props: ConfirmBurnProps) => {
     ['Vault Address', vaultAddress],
     ['Current Liability, wei', currentLiabilityShares],
     ['Current Liability, Shares', formatEther(currentLiabilityShares)],
+    ['Current Liability, stETH', formatEther(currentLiabilitySharesInStethWei)],
     ['Current Health Ratio', `${currentHealthRatio.toFixed(2)}%`],
     ['Current Is Healthy', currentIsHealthy],
   );
@@ -127,6 +138,7 @@ export const confirmBurn = async (props: ConfirmBurnProps) => {
     ['Vault Address', vaultAddress],
     ['New Liability, wei', newLiabilityShares],
     ['New Liability, Shares', formatEther(newLiabilityShares)],
+    ['New Liability, stETH', formatEther(newLiabilitySharesInStethWei)],
     ['New Health Ratio', `${newHealthRatio.toFixed(2)}%`],
     ['New Is Healthy', newIsHealthy],
   );

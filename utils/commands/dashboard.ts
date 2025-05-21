@@ -1,65 +1,19 @@
-import {
-  callWriteMethodWithReceipt,
-  confirmBurn,
-  confirmOperation,
-  getRequiredLockByShares,
-} from 'utils';
+import { Address } from 'viem';
 
-import { Address, formatEther } from 'viem';
-
-import {
-  DashboardContract,
-  getDashboardContract,
-  getStethContract,
-} from 'contracts';
+import { callWriteMethodWithReceipt, confirmBurn } from 'utils';
+import { DashboardContract, getStethContract } from 'contracts';
 import {
   callReadMethodSilent,
   fetchAndCalculateVaultHealthWithNewValue,
-  logError,
   showSpinner,
   confirmMint,
-  logInfo,
 } from 'utils';
-import { getAccount } from 'providers';
 
-const confirmLock = async (
-  amountOfSharesWei: bigint,
-  dashboardAddress: Address,
-) => {
-  const contract = getDashboardContract(dashboardAddress);
-  const { requiredLock, currentLock } = await getRequiredLockByShares(
-    dashboardAddress,
-    formatEther(amountOfSharesWei),
-  );
-  const currentWallet = getAccount();
-
-  const LOCK_ROLE = await callReadMethodSilent(contract, 'LOCK_ROLE');
-  const currentLockRoles = await callReadMethodSilent(
-    contract,
-    'getRoleMembers',
-    [LOCK_ROLE],
-  );
-
-  const isLockRole = currentLockRoles.includes(currentWallet.address);
-  if (requiredLock > currentLock) {
-    logInfo(
-      `Required lock: ${formatEther(requiredLock)} shares, current lock: ${formatEther(currentLock)} shares.
-    Auto-lock will be applied to enable minting the required number of shares. LOCK_ROLE is required.`,
-    );
-
-    if (!isLockRole) {
-      logError(
-        "You don't have a LOCK_ROLE. Please add yourself to the LOCK_ROLE.",
-      );
-      return false;
-    }
-
-    const confirm = await confirmOperation('Do you want to continue?');
-    if (!confirm) return confirm;
-  }
-
-  return true;
-};
+import {
+  checkMintingCapacity,
+  checkLiabilityShares,
+  confirmLock,
+} from './utils.js';
 
 export const mintSteth = async (
   contract: DashboardContract,
@@ -73,33 +27,11 @@ export const mintSteth = async (
     [amountOfSteth],
   );
 
-  await mintShares(contract, recipient, amountOfShares, 'mintStETH');
-};
-
-export const mintShares = async (
-  contract: DashboardContract,
-  recipient: Address,
-  amountOfShares: bigint,
-  method: 'mintShares' | 'mintStETH' | 'mintWstETH',
-) => {
-  const type =
-    method === 'mintShares'
-      ? 'shares'
-      : method === 'mintStETH'
-        ? 'stETH'
-        : 'wstETH';
-
-  const remainingMintingCapacity = await callReadMethodSilent(
+  const isMintingCapacityOk = await checkMintingCapacity(
     contract,
-    'remainingMintingCapacity',
-    [0n],
+    amountOfShares,
   );
-  if (remainingMintingCapacity < amountOfShares) {
-    logError(
-      `Cannot mint more shares than the vault can mint. Mintable: ${formatEther(remainingMintingCapacity)}`,
-    );
-    return;
-  }
+  if (!isMintingCapacityOk) return;
 
   const isConfirmedLock = await confirmLock(amountOfShares, contract.address);
   if (!isConfirmedLock) return;
@@ -109,7 +41,9 @@ export const mintShares = async (
     currentVaultHealth,
     newVaultHealth,
     newLiabilityShares,
+    newLiabilitySharesInStethWei,
     liabilityShares,
+    liabilitySharesInStethWei,
     valueInStethWei,
   } = await fetchAndCalculateVaultHealthWithNewValue(
     contract,
@@ -117,15 +51,75 @@ export const mintShares = async (
     'mint',
   );
   const vault = await callReadMethodSilent(contract, 'stakingVault');
-
   hideSpinner();
+
   const confirm = await confirmMint({
     vaultAddress: vault,
     recipient,
     amountOfMint: amountOfShares,
     amountOfMintInStethWei: valueInStethWei,
     newLiabilityShares: newLiabilityShares,
+    newLiabilitySharesInStethWei: newLiabilitySharesInStethWei,
     currentLiabilityShares: liabilityShares,
+    currentLiabilitySharesInStethWei: liabilitySharesInStethWei,
+    newHealthRatio: newVaultHealth.healthRatio,
+    currentHealthRatio: currentVaultHealth.healthRatio,
+    newIsHealthy: newVaultHealth.isHealthy,
+    currentIsHealthy: currentVaultHealth.isHealthy,
+    type: 'stETH',
+  });
+  if (!confirm) return;
+
+  await callWriteMethodWithReceipt({
+    contract,
+    methodName: 'mintStETH',
+    payload: [recipient, amountOfSteth],
+  });
+};
+
+export const mintShares = async (
+  contract: DashboardContract,
+  recipient: Address,
+  amountOfShares: bigint,
+  method: 'mintShares' | 'mintWstETH',
+) => {
+  const type = method === 'mintShares' ? 'shares' : 'wstETH';
+
+  const isMintingCapacityOk = await checkMintingCapacity(
+    contract,
+    amountOfShares,
+  );
+  if (!isMintingCapacityOk) return;
+
+  const isConfirmedLock = await confirmLock(amountOfShares, contract.address);
+  if (!isConfirmedLock) return;
+
+  const hideSpinner = showSpinner();
+  const {
+    currentVaultHealth,
+    newVaultHealth,
+    newLiabilityShares,
+    newLiabilitySharesInStethWei,
+    liabilityShares,
+    liabilitySharesInStethWei,
+    valueInStethWei,
+  } = await fetchAndCalculateVaultHealthWithNewValue(
+    contract,
+    amountOfShares,
+    'mint',
+  );
+  const vault = await callReadMethodSilent(contract, 'stakingVault');
+  hideSpinner();
+
+  const confirm = await confirmMint({
+    vaultAddress: vault,
+    recipient,
+    amountOfMint: amountOfShares,
+    amountOfMintInStethWei: valueInStethWei,
+    newLiabilityShares: newLiabilityShares,
+    newLiabilitySharesInStethWei: newLiabilitySharesInStethWei,
+    currentLiabilityShares: liabilityShares,
+    currentLiabilitySharesInStethWei: liabilitySharesInStethWei,
     newHealthRatio: newVaultHealth.healthRatio,
     currentHealthRatio: currentVaultHealth.healthRatio,
     newIsHealthy: newVaultHealth.isHealthy,
@@ -151,49 +145,90 @@ export const burnSteth = async (
     'getSharesByPooledEth',
     [amountOfSteth],
   );
-
-  await burnShares(contract, amountOfShares, 'burnStETH');
-};
-
-export const burnShares = async (
-  contract: DashboardContract,
-  amountOfShares: bigint,
-  method: 'burnShares' | 'burnStETH' | 'burnWstETH',
-) => {
-  const type =
-    method === 'burnShares'
-      ? 'shares'
-      : method === 'burnStETH'
-        ? 'stETH'
-        : 'wstETH';
-  const liabilityShares = await callReadMethodSilent(
+  const isLiabilitySharesOk = await checkLiabilityShares(
     contract,
-    'liabilityShares',
+    amountOfShares,
   );
+  if (!isLiabilitySharesOk) return;
 
-  if (amountOfShares > liabilityShares) {
-    logError('Cannot burn more shares than the vault has');
-    return;
-  }
-
+  const hideSpinner = showSpinner();
   const {
     currentVaultHealth,
     newVaultHealth,
     newLiabilityShares,
+    newLiabilitySharesInStethWei,
     valueInStethWei,
+    liabilityShares,
+    liabilitySharesInStethWei,
   } = await fetchAndCalculateVaultHealthWithNewValue(
     contract,
     amountOfShares,
     'burn',
   );
   const vault = await callReadMethodSilent(contract, 'stakingVault');
+  hideSpinner();
+
+  const confirm = await confirmBurn({
+    vaultAddress: vault,
+    amountOfBurn: amountOfSteth,
+    amountOfBurnInStethWei: valueInStethWei,
+    newLiabilityShares: newLiabilityShares,
+    newLiabilitySharesInStethWei: newLiabilitySharesInStethWei,
+    currentLiabilityShares: liabilityShares,
+    currentLiabilitySharesInStethWei: liabilitySharesInStethWei,
+    newHealthRatio: newVaultHealth.healthRatio,
+    currentHealthRatio: currentVaultHealth.healthRatio,
+    newIsHealthy: newVaultHealth.isHealthy,
+    currentIsHealthy: currentVaultHealth.isHealthy,
+    type: 'stETH',
+  });
+  if (!confirm) return;
+
+  await callWriteMethodWithReceipt({
+    contract,
+    methodName: 'burnStETH',
+    payload: [amountOfSteth],
+  });
+};
+
+export const burnShares = async (
+  contract: DashboardContract,
+  amountOfShares: bigint,
+  method: 'burnShares' | 'burnWstETH',
+) => {
+  const type = method === 'burnShares' ? 'shares' : 'wstETH';
+
+  const isLiabilitySharesOk = await checkLiabilityShares(
+    contract,
+    amountOfShares,
+  );
+  if (!isLiabilitySharesOk) return;
+
+  const hideSpinner = showSpinner();
+  const {
+    currentVaultHealth,
+    newVaultHealth,
+    newLiabilityShares,
+    newLiabilitySharesInStethWei,
+    valueInStethWei,
+    liabilityShares,
+    liabilitySharesInStethWei,
+  } = await fetchAndCalculateVaultHealthWithNewValue(
+    contract,
+    amountOfShares,
+    'burn',
+  );
+  const vault = await callReadMethodSilent(contract, 'stakingVault');
+  hideSpinner();
 
   const confirm = await confirmBurn({
     vaultAddress: vault,
     amountOfBurn: amountOfShares,
     amountOfBurnInStethWei: valueInStethWei,
     newLiabilityShares: newLiabilityShares,
+    newLiabilitySharesInStethWei: newLiabilitySharesInStethWei,
     currentLiabilityShares: liabilityShares,
+    currentLiabilitySharesInStethWei: liabilitySharesInStethWei,
     newHealthRatio: newVaultHealth.healthRatio,
     currentHealthRatio: currentVaultHealth.healthRatio,
     newIsHealthy: newVaultHealth.isHealthy,

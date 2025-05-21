@@ -1,28 +1,6 @@
 import { StakingVaultErrorsAbi } from './StakingVault.js';
 
-export const VaultHubAbi = [
-  ...StakingVaultErrorsAbi,
-  {
-    inputs: [
-      {
-        internalType: 'contract ILidoLocator',
-        name: '_locator',
-        type: 'address',
-      },
-      {
-        internalType: 'contract ILido',
-        name: '_lido',
-        type: 'address',
-      },
-      {
-        internalType: 'uint256',
-        name: '_relativeShareLimitBP',
-        type: 'uint256',
-      },
-    ],
-    stateMutability: 'nonpayable',
-    type: 'constructor',
-  },
+export const VaultHubErrorsAbi = [
   {
     inputs: [],
     name: 'AccessControlBadConfirmation',
@@ -477,6 +455,32 @@ export const VaultHubAbi = [
     inputs: [],
     name: 'ZeroPauseDuration',
     type: 'error',
+  },
+] as const;
+
+export const VaultHubAbi = [
+  ...VaultHubErrorsAbi,
+  ...StakingVaultErrorsAbi,
+  {
+    inputs: [
+      {
+        internalType: 'contract ILidoLocator',
+        name: '_locator',
+        type: 'address',
+      },
+      {
+        internalType: 'contract ILido',
+        name: '_lido',
+        type: 'address',
+      },
+      {
+        internalType: 'uint256',
+        name: '_relativeShareLimitBP',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'nonpayable',
+    type: 'constructor',
   },
   {
     anonymous: false,

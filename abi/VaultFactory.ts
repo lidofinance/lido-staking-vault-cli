@@ -1,4 +1,9 @@
+import { OperatorGridErrorsAbi } from './OperatorGrid.js';
+import { VaultHubErrorsAbi } from './VaultHub.js';
+
 export const VaultFactoryAbi = [
+  ...VaultHubErrorsAbi,
+  ...OperatorGridErrorsAbi,
   {
     inputs: [
       {
