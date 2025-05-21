@@ -7,8 +7,14 @@ import {
   getRequiredLockByShares,
   logError,
 } from 'utils';
-import { DashboardContract, getDashboardContract } from 'contracts';
+import {
+  DashboardContract,
+  getDashboardContract,
+  getStakingVaultContract,
+} from 'contracts';
 import { getAccount } from 'providers';
+
+import { submitReport } from './report.js';
 
 export const checkMintingCapacity = async (
   contract: DashboardContract,
@@ -83,4 +89,28 @@ export const confirmLock = async (
   }
 
   return true;
+};
+
+export const checkIsReportFresh = async (contract: DashboardContract) => {
+  const vault = await callReadMethodSilent(contract, 'stakingVault');
+  const vaultContract = getStakingVaultContract(vault);
+  const isReportFresh = await callReadMethodSilent(
+    vaultContract,
+    'isReportFresh',
+  );
+
+  if (!isReportFresh) {
+    logInfo('The report is not fresh');
+    const confirm = await confirmOperation(
+      'Do you want to submit a fresh report?',
+    );
+    if (!confirm) return false;
+
+    await submitReport({ vault });
+    return true;
+  }
+
+  logInfo('The report is fresh');
+
+  return isReportFresh;
 };

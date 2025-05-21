@@ -13,6 +13,7 @@ import {
   checkMintingCapacity,
   checkLiabilityShares,
   confirmLock,
+  checkIsReportFresh,
 } from './utils.js';
 
 export const mintSteth = async (
@@ -26,6 +27,9 @@ export const mintSteth = async (
     'getSharesByPooledEth',
     [amountOfSteth],
   );
+
+  const isReportFresh = await checkIsReportFresh(contract);
+  if (!isReportFresh) return;
 
   const isMintingCapacityOk = await checkMintingCapacity(
     contract,
@@ -84,6 +88,9 @@ export const mintShares = async (
   method: 'mintShares' | 'mintWstETH',
 ) => {
   const type = method === 'mintShares' ? 'shares' : 'wstETH';
+
+  const isReportFresh = await checkIsReportFresh(contract);
+  if (!isReportFresh) return;
 
   const isMintingCapacityOk = await checkMintingCapacity(
     contract,
@@ -145,6 +152,10 @@ export const burnSteth = async (
     'getSharesByPooledEth',
     [amountOfSteth],
   );
+
+  const isReportFresh = await checkIsReportFresh(contract);
+  if (!isReportFresh) return;
+
   const isLiabilitySharesOk = await checkLiabilityShares(
     contract,
     amountOfShares,
@@ -197,6 +208,9 @@ export const burnShares = async (
   method: 'burnShares' | 'burnWstETH',
 ) => {
   const type = method === 'burnShares' ? 'shares' : 'wstETH';
+
+  const isReportFresh = await checkIsReportFresh(contract);
+  if (!isReportFresh) return;
 
   const isLiabilitySharesOk = await checkLiabilityShares(
     contract,
