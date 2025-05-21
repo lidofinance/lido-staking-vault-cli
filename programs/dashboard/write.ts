@@ -23,6 +23,7 @@ import {
   formatBP,
   callReadMethodSilent,
   showSpinner,
+  checkIsReportFresh,
 } from 'utils';
 import { RoleAssignment, Deposit } from 'types';
 
@@ -116,6 +117,9 @@ dashboardWrite
       `Are you sure you want to withdraw ${ether} from the staking vault ${vault} to ${recipient}?`,
     );
     if (!confirm) return;
+
+    const isReportFresh = await checkIsReportFresh(contract);
+    if (!isReportFresh) return;
 
     await callWriteMethodWithReceipt({
       contract,

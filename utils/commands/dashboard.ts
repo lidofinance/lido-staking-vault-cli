@@ -153,9 +153,6 @@ export const burnSteth = async (
     [amountOfSteth],
   );
 
-  const isReportFresh = await checkIsReportFresh(contract);
-  if (!isReportFresh) return;
-
   const isLiabilitySharesOk = await checkLiabilityShares(
     contract,
     amountOfShares,
@@ -208,9 +205,6 @@ export const burnShares = async (
   method: 'burnShares' | 'burnWstETH',
 ) => {
   const type = method === 'burnShares' ? 'shares' : 'wstETH';
-
-  const isReportFresh = await checkIsReportFresh(contract);
-  if (!isReportFresh) return;
 
   const isLiabilitySharesOk = await checkLiabilityShares(
     contract,
