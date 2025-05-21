@@ -44,16 +44,41 @@ export const getConfirmationsInfo = async (address: Address) => {
   const currentBlock = await publicClient.getBlockNumber();
   const confirmExpireInBlocks = confirmExpire / AVG_BLOCK_TIME_SEC;
 
-  const setConfirmationLifetimeEventFilter =
-    await publicClient.createContractEventFilter({
-      abi: DashboardAbi,
-      address: address,
-      eventName: 'RoleMemberConfirmed',
-      fromBlock: currentBlock - confirmExpireInBlocks,
-    });
-
-  const logs = await publicClient.getFilterLogs({
-    filter: setConfirmationLifetimeEventFilter,
+  const logs = await publicClient.getLogs({
+    address: address,
+    event: {
+      anonymous: false,
+      inputs: [
+        {
+          indexed: true,
+          internalType: 'address',
+          name: 'member',
+          type: 'address',
+        },
+        {
+          indexed: true,
+          internalType: 'bytes32',
+          name: 'role',
+          type: 'bytes32',
+        },
+        {
+          indexed: false,
+          internalType: 'uint256',
+          name: 'expiryTimestamp',
+          type: 'uint256',
+        },
+        {
+          indexed: false,
+          internalType: 'bytes',
+          name: 'data',
+          type: 'bytes',
+        },
+      ],
+      name: 'RoleMemberConfirmed',
+      type: 'event',
+    },
+    fromBlock: currentBlock - confirmExpireInBlocks,
+    strict: true,
   });
 
   if (logs.length === 0) {
@@ -63,19 +88,16 @@ export const getConfirmationsInfo = async (address: Address) => {
 
   const logsData: LogsData = logs
     .map((log) => log.args)
-    .filter(
-      (args) => args.data && args.role && args.member && args.expiryTimestamp,
-    )
     .sort((a, b) =>
       Number((a.expiryTimestamp ?? 0n) - (b.expiryTimestamp ?? 0n)),
     )
     .reduce<Record<Hex, any>>((acc, args) => {
       const decodedData = decodeFunctionData({
         abi: DashboardAbi,
-        data: args.data as Hex,
+        data: args.data,
       }) as DecodedData;
 
-      acc[args.data as Hex] = {
+      acc[args.data] = {
         member: args.member,
         role: args.role,
         expiryTimestamp: args.expiryTimestamp,
