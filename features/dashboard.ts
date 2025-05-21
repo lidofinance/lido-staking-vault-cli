@@ -214,7 +214,7 @@ export const getDashboardBaseInfo = async (contract: DashboardContract) => {
         ['Locked, ETH', formatEther(locked)],
         ['Balance, ETH', formatEther(balance)],
         ['Share Limit, Shares', formatEther(shareLimit)],
-        ['Total Minting Capacity, stETH', formatEther(totalMintingCapacity)],
+        ['Total Minting Capacity, Shares', formatEther(totalMintingCapacity)],
         [
           'Node Operator Unclaimed Fee, ETH',
           formatEther(nodeOperatorUnclaimedFee),
@@ -224,7 +224,7 @@ export const getDashboardBaseInfo = async (contract: DashboardContract) => {
           formatEther(accruedRewardsAdjustment),
         ],
         [
-          'Remaining Minting Capacity, stETH',
+          'Remaining Minting Capacity, Shares',
           formatEther(remainingMintingCapacity),
         ],
 
