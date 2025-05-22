@@ -22,5 +22,5 @@ PRIVATE_KEY=0x
 # ACCOUNT_FILE_PASSWORD=1234
 ```
 
-If you plan to manage contracts the **PRIVATE_KEY** is required property for this type of operations.
-For using **EL_URL** in a right way be attentive to match rpc resolver link and its chain ID.
+If you plan to manage contracts, the **PRIVATE_KEY** is a required property for these operations.
+To use **EL_URL** correctly, ensure the RPC endpoint matches the configured chain ID.

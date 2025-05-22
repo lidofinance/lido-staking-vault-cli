@@ -38,7 +38,7 @@ yarn start factory -h
 | --------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
 | create-vault \<defaultAdmin> \<nodeOperator> \<nodeOperatorManager> \<confirmExpiry> \<nodeOperatorFeeBP> \<quantity> | create vault contract with deposit 1 ETH |
 
-Note: \[quantity] is optional argument, default 1
+Note: `[quantity]` is an optional argument. The default value is `1`.
 **[options]**
 
 | Option                            | Description                              |

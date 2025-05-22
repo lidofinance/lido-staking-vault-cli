@@ -64,5 +64,5 @@ yarn start vault -h
 | authorize-lido-vault-hub authorize-hub\<address>                                          | Authorizes the Lido Vault Hub to manage the staking vault.           |
 | deauthorize-lido-vault-hub deauthorize-hub\<address>                                      | Deauthorizes the Lido Vault Hub from managing the staking vault.     |
 | ossify \<address>                                                                         | Ossifies the staking vault.                                          |
-| reset-l \<ocked> \<address>                                                               | Resets the locked amount                                             |
+| reset-locked \<address>                                                                   | Resets the locked amount                                             |
 | set-depositor \<address> \<depositor>                                                     | Sets the depositor                                                   |

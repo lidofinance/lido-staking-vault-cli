@@ -49,8 +49,8 @@ PRIVATE_KEY=0x
 # ACCOUNT_FILE_PASSWORD=1234
 ```
 
-If you plan to manage contracts the **PRIVATE_KEY** is required property for this type of operations.
-For using **EL_URL** in a right way be attentive to match rpc resolver link and its chain ID.
+If you plan to manage contracts, the **PRIVATE_KEY** is a required property for these operations.
+To use **EL_URL** correctly, ensure the RPC endpoint matches the configured chain ID.
 
 ## Usage
 
@@ -82,4 +82,4 @@ yarn start hub r v-count
 
 ## Documentation
 
-For additional information about available methods and functionality, refer to the [the documentation for the Lido Staking Vault CLI](/category/commands).
+For additional information about available methods and functionality, refer to the [documentation for the Lido Staking Vault CLI](/category/commands).
