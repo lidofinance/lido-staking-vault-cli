@@ -1,4 +1,4 @@
-import { formatEther } from 'viem';
+import { formatEther, Hex } from 'viem';
 
 import {
   DashboardContract,
@@ -258,80 +258,88 @@ export const getDashboardRoles = async (contract: DashboardContract) => {
   const hideSpinner = showSpinner();
 
   try {
-    const BURN_ROLE = await contract.read.BURN_ROLE();
-    const DEFAULT_ADMIN_ROLE = await contract.read.DEFAULT_ADMIN_ROLE();
-    const FUND_ROLE = await contract.read.FUND_ROLE();
-    const LIDO_VAULTHUB_AUTHORIZATION_ROLE =
-      await contract.read.LIDO_VAULTHUB_AUTHORIZATION_ROLE();
-    const LIDO_VAULTHUB_DEAUTHORIZATION_ROLE =
-      await contract.read.LIDO_VAULTHUB_DEAUTHORIZATION_ROLE();
-    const LOCK_ROLE = await contract.read.LOCK_ROLE();
-    const MINT_ROLE = await contract.read.MINT_ROLE();
-    const NODE_OPERATOR_FEE_CLAIM_ROLE =
-      await contract.read.NODE_OPERATOR_FEE_CLAIM_ROLE();
-    const NODE_OPERATOR_MANAGER_ROLE =
-      await contract.read.NODE_OPERATOR_MANAGER_ROLE();
-    const NODE_OPERATOR_REWARDS_ADJUST_ROLE =
-      await contract.read.NODE_OPERATOR_REWARDS_ADJUST_ROLE();
-    const OSSIFY_ROLE = await contract.read.OSSIFY_ROLE();
-    const PAUSE_BEACON_CHAIN_DEPOSITS_ROLE =
-      await contract.read.PAUSE_BEACON_CHAIN_DEPOSITS_ROLE();
-    const PDG_COMPENSATE_PREDEPOSIT_ROLE =
-      await contract.read.PDG_COMPENSATE_PREDEPOSIT_ROLE();
-    const PDG_PROVE_VALIDATOR_ROLE =
-      await contract.read.PDG_PROVE_VALIDATOR_ROLE();
-    const REBALANCE_ROLE = await contract.read.REBALANCE_ROLE();
-    const RECOVER_ASSETS_ROLE = await contract.read.RECOVER_ASSETS_ROLE();
-    const REQUEST_TIER_CHANGE_ROLE =
-      await contract.read.REQUEST_TIER_CHANGE_ROLE();
-    const REQUEST_VALIDATOR_EXIT_ROLE =
-      await contract.read.REQUEST_VALIDATOR_EXIT_ROLE();
-    const RESET_LOCKED_ROLE = await contract.read.RESET_LOCKED_ROLE();
-    const RESUME_BEACON_CHAIN_DEPOSITS_ROLE =
-      await contract.read.RESUME_BEACON_CHAIN_DEPOSITS_ROLE();
-    const SET_DEPOSITOR_ROLE = await contract.read.SET_DEPOSITOR_ROLE();
-    const TRIGGER_VALIDATOR_WITHDRAWAL_ROLE =
-      await contract.read.TRIGGER_VALIDATOR_WITHDRAWAL_ROLE();
-    const UNGUARANTEED_BEACON_CHAIN_DEPOSIT_ROLE =
-      await contract.read.UNGUARANTEED_BEACON_CHAIN_DEPOSIT_ROLE();
-    const VOLUNTARY_DISCONNECT_ROLE =
-      await contract.read.VOLUNTARY_DISCONNECT_ROLE();
-    const WITHDRAW_ROLE = await contract.read.WITHDRAW_ROLE();
+    // const BURN_ROLE = await contract.read.BURN_ROLE();
+    // const DEFAULT_ADMIN_ROLE = await contract.read.DEFAULT_ADMIN_ROLE();
+    // const FUND_ROLE = await contract.read.FUND_ROLE();
+    // const LIDO_VAULTHUB_AUTHORIZATION_ROLE =
+    //   await contract.read.LIDO_VAULTHUB_AUTHORIZATION_ROLE();
+    // const LIDO_VAULTHUB_DEAUTHORIZATION_ROLE =
+    //   await contract.read.LIDO_VAULTHUB_DEAUTHORIZATION_ROLE();
+    // const LOCK_ROLE = await contract.read.LOCK_ROLE();
+    // const MINT_ROLE = await contract.read.MINT_ROLE();
+    // const NODE_OPERATOR_FEE_CLAIM_ROLE =
+    //   await contract.read.NODE_OPERATOR_FEE_CLAIM_ROLE();
+    // const NODE_OPERATOR_MANAGER_ROLE =
+    //   await contract.read.NODE_OPERATOR_MANAGER_ROLE();
+    // const NODE_OPERATOR_REWARDS_ADJUST_ROLE =
+    //   await contract.read.NODE_OPERATOR_REWARDS_ADJUST_ROLE();
+    // const OSSIFY_ROLE = await contract.read.OSSIFY_ROLE();
+    // const PAUSE_BEACON_CHAIN_DEPOSITS_ROLE =
+    //   await contract.read.PAUSE_BEACON_CHAIN_DEPOSITS_ROLE();
+    // const PDG_COMPENSATE_PREDEPOSIT_ROLE =
+    //   await contract.read.PDG_COMPENSATE_PREDEPOSIT_ROLE();
+    // const PDG_PROVE_VALIDATOR_ROLE =
+    //   await contract.read.PDG_PROVE_VALIDATOR_ROLE();
+    // const REBALANCE_ROLE = await contract.read.REBALANCE_ROLE();
+    // const RECOVER_ASSETS_ROLE = await contract.read.RECOVER_ASSETS_ROLE();
+    // const REQUEST_TIER_CHANGE_ROLE =
+    //   await contract.read.REQUEST_TIER_CHANGE_ROLE();
+    // const REQUEST_VALIDATOR_EXIT_ROLE =
+    //   await contract.read.REQUEST_VALIDATOR_EXIT_ROLE();
+    // const RESET_LOCKED_ROLE = await contract.read.RESET_LOCKED_ROLE();
+    // const RESUME_BEACON_CHAIN_DEPOSITS_ROLE =
+    //   await contract.read.RESUME_BEACON_CHAIN_DEPOSITS_ROLE();
+    // const SET_DEPOSITOR_ROLE = await contract.read.SET_DEPOSITOR_ROLE();
+    // const TRIGGER_VALIDATOR_WITHDRAWAL_ROLE =
+    //   await contract.read.TRIGGER_VALIDATOR_WITHDRAWAL_ROLE();
+    // const UNGUARANTEED_BEACON_CHAIN_DEPOSIT_ROLE =
+    //   await contract.read.UNGUARANTEED_BEACON_CHAIN_DEPOSIT_ROLE();
+    // const VOLUNTARY_DISCONNECT_ROLE =
+    //   await contract.read.VOLUNTARY_DISCONNECT_ROLE();
+    // const WITHDRAW_ROLE = await contract.read.WITHDRAW_ROLE();
 
-    const roles = {
-      BURN_ROLE,
-      DEFAULT_ADMIN_ROLE,
-      FUND_ROLE,
-      LIDO_VAULTHUB_AUTHORIZATION_ROLE,
-      LIDO_VAULTHUB_DEAUTHORIZATION_ROLE,
-      LOCK_ROLE,
-      MINT_ROLE,
-      NODE_OPERATOR_FEE_CLAIM_ROLE,
-      NODE_OPERATOR_MANAGER_ROLE,
-      NODE_OPERATOR_REWARDS_ADJUST_ROLE,
-      OSSIFY_ROLE,
-      PAUSE_BEACON_CHAIN_DEPOSITS_ROLE,
-      PDG_COMPENSATE_PREDEPOSIT_ROLE,
-      PDG_PROVE_VALIDATOR_ROLE,
-      REBALANCE_ROLE,
-      RECOVER_ASSETS_ROLE,
-      REQUEST_TIER_CHANGE_ROLE,
-      REQUEST_VALIDATOR_EXIT_ROLE,
-      RESET_LOCKED_ROLE,
-      RESUME_BEACON_CHAIN_DEPOSITS_ROLE,
-      SET_DEPOSITOR_ROLE,
-      TRIGGER_VALIDATOR_WITHDRAWAL_ROLE,
-      UNGUARANTEED_BEACON_CHAIN_DEPOSIT_ROLE,
-      VOLUNTARY_DISCONNECT_ROLE,
-      WITHDRAW_ROLE,
-    };
+    const roleKeys = [
+      'BURN_ROLE',
+      'DEFAULT_ADMIN_ROLE',
+      'FUND_ROLE',
+      'LIDO_VAULTHUB_AUTHORIZATION_ROLE',
+      'LIDO_VAULTHUB_DEAUTHORIZATION_ROLE',
+      'LOCK_ROLE',
+      'MINT_ROLE',
+      'NODE_OPERATOR_FEE_CLAIM_ROLE',
+      'NODE_OPERATOR_MANAGER_ROLE',
+      'NODE_OPERATOR_REWARDS_ADJUST_ROLE',
+      'OSSIFY_ROLE',
+      'PAUSE_BEACON_CHAIN_DEPOSITS_ROLE',
+      'PDG_COMPENSATE_PREDEPOSIT_ROLE',
+      'PDG_PROVE_VALIDATOR_ROLE',
+      'REBALANCE_ROLE',
+      'RECOVER_ASSETS_ROLE',
+      'REQUEST_TIER_CHANGE_ROLE',
+      'REQUEST_VALIDATOR_EXIT_ROLE',
+      'RESET_LOCKED_ROLE',
+      'RESUME_BEACON_CHAIN_DEPOSITS_ROLE',
+      'SET_DEPOSITOR_ROLE',
+      'TRIGGER_VALIDATOR_WITHDRAWAL_ROLE',
+      'UNGUARANTEED_BEACON_CHAIN_DEPOSIT_ROLE',
+      'VOLUNTARY_DISCONNECT_ROLE',
+      'WITHDRAW_ROLE',
+    ] as const;
+
+    const roleValues: Hex[] = await Promise.all(
+      roleKeys.map((key) => (contract.read as any)[key]()),
+    );
+
+    const roles = Object.fromEntries(
+      roleKeys.map((key, index) => [key, roleValues[index]]),
+    ) as Record<(typeof roleKeys)[number], Hex>;
 
     const result = await Promise.all(
-      Object.entries(roles).map(async ([key, value]) => {
-        const accounts = await contract.read.getRoleMembers([value]);
+      roleKeys.map(async (key) => {
+        const accounts = await contract.read.getRoleMembers([roles[key]]);
         return {
           Role: key,
-          Keccak: value,
+          Keccak: roles[key],
           Members: accounts.length > 0 ? accounts.join(', ') : 'None',
         };
       }),

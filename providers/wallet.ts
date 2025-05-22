@@ -37,10 +37,12 @@ const getPrivateKey = () => {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const file = readFileSync(ACCOUNT_FILE, 'utf-8');
     const fileContent = JSON.parse(file);
-    return Wallet.fromEncryptedJsonSync(
+    const privateKey = Wallet.fromEncryptedJsonSync(
       JSON.stringify(fileContent),
       ACCOUNT_FILE_PASSWORD,
     ).privateKey;
+
+    return privateKey;
   }
 
   throw new Error('Private key or encrypted account file is not provided');

@@ -2,6 +2,7 @@ import logUpdate from 'log-update';
 
 import { readFileSync } from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
 type SpinnerType =
   | 'dots'
@@ -21,8 +22,10 @@ type args = {
 export const showSpinner = (args?: args) => {
   const { type = 'point', message = 'Executing...' } = args || {};
 
-  // For nestjs/nextjs compatibility
-  const fullPath = path.resolve('utils', 'spinner', 'spinners.json');
+  // Resolve the JSON file relative to this module so it works when the
+  // CLI is executed from any directory
+  const __dirname = path.dirname(fileURLToPath(import.meta.url));
+  const fullPath = path.join(__dirname, 'spinners.json');
   const spinners = JSON.parse(readFileSync(fullPath, 'utf-8')) as Record<
     SpinnerType,
     { interval: number; frames: string[] }

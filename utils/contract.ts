@@ -228,7 +228,7 @@ export const isContractAddress = async (address: Address) => {
     address: address,
   });
 
-  return bytecode !== undefined;
+  return bytecode !== undefined && bytecode !== '0x';
 };
 
 export const callWriteMethodWithReceipt = async <

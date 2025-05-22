@@ -69,5 +69,5 @@
       }
     }
   },
-  "ignorePatterns": ["docs"]
+  "ignorePatterns": ["docs", "dist"]
 }
