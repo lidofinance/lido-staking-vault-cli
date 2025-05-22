@@ -567,7 +567,7 @@ dashboardWrite
 
     const confirm = await confirmOperation(
       `Are you sure you want to unguaranteed deposit ${deposits.length} deposits to the beacon chain in the staking vault ${vault}?
-      Deposits: ${JSON.stringify(deposits)}`,
+      Pubkeys: ${deposits.map((i) => i.pubkey).join(', ')}`,
     );
     if (!confirm) return;
 
