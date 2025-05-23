@@ -1,5 +1,4 @@
 import { describe, expect, test } from '@jest/globals';
-
 import { RoleAssignment } from '../../types/index.js';
 import {
   validateConfig,
