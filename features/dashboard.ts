@@ -107,7 +107,8 @@ export const getDashboardOverview = async (contract: DashboardContract) => {
         ['NO Reward Share', formatBP(nodeOperatorFeeBP)],
         ['Utilization Ratio', formatRatio(overview.utilizationRatio)],
         ['Total Value, ETH', formatEther(totalValue)],
-        ['stETH Liability', formatEther(health.liabilitySharesInStethWei)],
+        ['Liability, stETH', formatEther(health.liabilitySharesInStethWei)],
+        ['Liability, Shares', formatEther(health.liabilitySharesInWei)],
         [
           'Available To Withdrawal, ETH',
           formatEther(overview.AvailableToWithdrawal),
