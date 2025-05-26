@@ -238,12 +238,6 @@ pdgWrite
         printError(err, 'Error when making proof');
       }
     }
-
-    await callWriteMethodWithReceipt({
-      contract: pdgContract,
-      methodName: 'proveAndDeposit',
-      payload: [witnesses, deposits, vault],
-    });
   });
 
 pdgWrite
