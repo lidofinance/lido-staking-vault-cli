@@ -123,6 +123,10 @@ export const getDashboardOverview = async (contract: DashboardContract) => {
           'Total Minting Capacity, stETH',
           formatEther(overview.totalMintingCapacityStethWei),
         ],
+        [
+          'Remaining Minting Capacity, stETH',
+          formatEther(overview.remainingMintingCapacity),
+        ],
       ],
     });
 

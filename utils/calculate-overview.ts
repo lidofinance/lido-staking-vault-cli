@@ -45,6 +45,7 @@ export const calculateOverview = (args: OverviewArgs) => {
   });
   const AvailableToWithdrawal = withdrawableEther;
   const idleCapital = balance;
+  // TODO: add Lido Unclaimed Fees
   const totalLocked = locked + nodeOperatorUnclaimedFee;
 
   // ---------- Computed values ---------- //
@@ -86,6 +87,8 @@ export const calculateOverview = (args: OverviewArgs) => {
         nodeOperatorUnclaimedFee -
         liabilitySharesInStethWei -
         reserved;
+  const remainingMintingCapacity =
+    totalMintingCapacityStethWei - liabilitySharesInStethWei;
 
   return {
     healthRatio,
@@ -99,5 +102,6 @@ export const calculateOverview = (args: OverviewArgs) => {
     totalReservable,
     reserved,
     totalMintingCapacityStethWei,
+    remainingMintingCapacity,
   };
 };
