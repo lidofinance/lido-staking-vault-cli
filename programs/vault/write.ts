@@ -32,14 +32,14 @@ vaultWrite
   .option('-a, --address <address>', 'vault address')
   .option('-e, --ether <ether>', 'amount of ether to be funded (in ETH)')
   .action(async ({ address, ether }: { address: Address; ether: string }) => {
-    const { address: vault, amount } = await confirmFund(
+    const { address: vaultAddress, amount } = await confirmFund(
       address,
       ether,
       'vault',
     );
-    if (!vault || !amount) return;
+    if (!vaultAddress || !amount) return;
 
-    const contract = getStakingVaultContract(address);
+    const contract = getStakingVaultContract(vaultAddress);
 
     await callWriteMethodWithReceipt({
       contract,
@@ -116,7 +116,7 @@ vaultWrite
     const contract = getStakingVaultContract(address);
 
     const confirm = await confirmOperation(
-      `Are you sure you want to request to exit validator ${validatorPublicKey} for the staking vault ${vault}?`,
+      `Are you sure you want to request to exit validator ${validatorPublicKey} for the staking vault ${address}?`,
     );
     if (!confirm) return;
 
@@ -135,7 +135,7 @@ vaultWrite
     const contract = getStakingVaultContract(address);
 
     const confirm = await confirmOperation(
-      `Are you sure you want to resume deposits to beacon chain for the staking vault ${vault}?`,
+      `Are you sure you want to resume deposits to beacon chain for the staking vault ${address}?`,
     );
     if (!confirm) return;
 
@@ -154,7 +154,7 @@ vaultWrite
     const contract = getStakingVaultContract(address);
 
     const confirm = await confirmOperation(
-      `Are you sure you want to pause deposits to beacon chain for the staking vault ${vault}?`,
+      `Are you sure you want to pause deposits to beacon chain for the staking vault ${address}?`,
     );
     if (!confirm) return;
 
@@ -210,7 +210,7 @@ vaultWrite
     const contract = getStakingVaultContract(address);
 
     const confirm = await confirmOperation(
-      `Are you sure you want to rebalance the vault ${vault}?`,
+      `Are you sure you want to rebalance the vault ${address}?`,
     );
     if (!confirm) return;
 
@@ -255,7 +255,7 @@ vaultWrite
     const contract = getStakingVaultContract(address);
 
     const confirm = await confirmOperation(
-      `Are you sure you want to authorize the Lido Vault Hub to manage the staking vault ${vault}?`,
+      `Are you sure you want to authorize the Lido Vault Hub to manage the staking vault ${address}?`,
     );
     if (!confirm) return;
 
@@ -277,7 +277,7 @@ vaultWrite
     const contract = getStakingVaultContract(address);
 
     const confirm = await confirmOperation(
-      `Are you sure you want to deauthorize the Lido Vault Hub from managing the staking vault ${vault}?`,
+      `Are you sure you want to deauthorize the Lido Vault Hub from managing the staking vault ${address}?`,
     );
     if (!confirm) return;
 
@@ -296,7 +296,7 @@ vaultWrite
     const contract = getStakingVaultContract(address);
 
     const confirm = await confirmOperation(
-      `Are you sure you want to ossify the staking vault ${vault}?`,
+      `Are you sure you want to ossify the staking vault ${address}?`,
     );
     if (!confirm) return;
 
@@ -308,14 +308,14 @@ vaultWrite
   });
 
 vaultWrite
-  .command('reset-l ocked')
+  .command('reset-locked')
   .description('Resets the locked amount')
   .argument('<address>', 'vault address', stringToAddress)
   .action(async (address: Address) => {
     const contract = getStakingVaultContract(address);
 
     const confirm = await confirmOperation(
-      `Are you sure you want to reset the locked amount for the staking vault ${vault}?`,
+      `Are you sure you want to reset the locked amount for the staking vault ${address}?`,
     );
     if (!confirm) return;
 
@@ -335,7 +335,7 @@ vaultWrite
     const contract = getStakingVaultContract(address);
 
     const confirm = await confirmOperation(
-      `Are you sure you want to set the depositor for the staking vault ${vault} to ${depositor}?`,
+      `Are you sure you want to set the depositor for the staking vault ${address} to ${depositor}?`,
     );
     if (!confirm) return;
 
