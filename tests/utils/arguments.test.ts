@@ -4,6 +4,7 @@ import { program } from 'commander';
 import {
   stringToBigIntArray,
   stringToBigIntArrayWei,
+  stringToHexArray,
   jsonToPermit,
   jsonToRoleAssignment,
   stringToBigInt,
@@ -14,6 +15,11 @@ import {
   parseDepositArray,
   stringToAddress,
 } from '../../utils/arguments.js';
+
+const MOCK_HEX_ARRAY = [
+  '82f3254f7bf057539113fc6b5971d80958618a9893eea717ab5ad345e083df7fceaf55f48716409d3df5adb4f38c4900',
+  '23f3254f7bf057539113fc6b5971d80958618a1234eea717ab5ad345e083df7fceaf55f48716409d3df5adb4f38c4900',
+];
 
 jest.mock('commander', () => ({ program: { error: jest.fn() } }));
 
@@ -37,6 +43,16 @@ describe('arguments utils', () => {
       2000000000000000000n,
     ]);
     expect(stringToBigIntArrayWei('1.5')).toEqual([1500000000000000000n]);
+  });
+
+  test('stringToHexArray', () => {
+    expect(stringToHexArray(MOCK_HEX_ARRAY.join(','))).toEqual(
+      MOCK_HEX_ARRAY.map((hex) => `0x${hex}`),
+    );
+
+    expect(
+      stringToHexArray(MOCK_HEX_ARRAY.map((hex) => `0x${hex}`).join(',')),
+    ).toEqual(MOCK_HEX_ARRAY.map((hex) => `0x${hex}`));
   });
 
   test('jsonToPermit', () => {
@@ -89,14 +105,14 @@ describe('arguments utils', () => {
   test('parseDepositArray', () => {
     const arr = [
       {
-        pubkey: '1234',
-        signature: 'beef',
-        amount: '1',
-        deposit_data_root: 'abcd',
+        pubkey: MOCK_HEX_ARRAY[0],
+        signature: MOCK_HEX_ARRAY[1],
+        amount: 1,
+        deposit_data_root: MOCK_HEX_ARRAY[1],
       },
     ];
     const res = parseDepositArray(JSON.stringify(arr));
-    expect(res[0]).toHaveProperty('pubkey', '0x1234');
+    expect(res[0]).toHaveProperty('pubkey', `0x${MOCK_HEX_ARRAY[0]}`);
     expect(parseDepositArray('')).toEqual([]);
   });
 

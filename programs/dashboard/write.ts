@@ -6,7 +6,6 @@ import { getDashboardContract, getStakingVaultContract } from 'contracts';
 import {
   callReadMethod,
   callWriteMethodWithReceipt,
-  stringToBigIntArray,
   jsonToRoleAssignment,
   confirmOperation,
   stringToBigInt,
@@ -24,6 +23,8 @@ import {
   callReadMethodSilent,
   showSpinner,
   checkIsReportFresh,
+  stringToBigIntArrayWei,
+  stringToHexArray,
 } from 'utils';
 import { RoleAssignment, Deposit } from 'types';
 
@@ -174,18 +175,27 @@ dashboardWrite
   .command('trigger-validator-withdrawal')
   .description('triggers the withdrawal of a validator from the staking vault')
   .argument('<address>', 'dashboard address', stringToAddress)
-  .argument('<pubkeys>', 'pubkeys of the validators to withdraw')
-  .argument('<amounts>', 'amounts of ether to withdraw', stringToBigIntArray)
+  .argument(
+    '<pubkeys>',
+    'pubkeys of the validators to withdraw. Comma separated list of pubkeys',
+    stringToHexArray,
+  )
+  .argument(
+    '<amounts>',
+    'amounts of ether to withdraw. Comma separated list of amounts',
+    stringToBigIntArrayWei,
+  )
   .argument('<recipient>', 'address of the recipient', stringToAddress)
   .action(
     async (
       address: Address,
-      pubkeys: Hex,
+      pubkeys: Hex[],
       amounts: bigint[],
       recipient: Address,
     ) => {
-      const contract = getDashboardContract(address);
+      const mergedPubkeys: Hex = pubkeys.join('') as Hex;
 
+      const contract = getDashboardContract(address);
       const vault = await callReadMethod(contract, 'stakingVault');
       const vaultContract = getStakingVaultContract(vault);
       const fee = await callReadMethod(
@@ -194,15 +204,17 @@ dashboardWrite
         [BigInt(amounts.length)],
       );
 
-      const confirm = await confirmOperation(
-        `Are you sure you want to trigger the withdrawal of the validators ${pubkeys} from the staking vault ${vault} to ${recipient} with amounts ${amounts}?`,
-      );
+      const confirmationMessage = `Are you sure you want to trigger the withdrawal of the validators 
+      ${pubkeys.join(', ')} 
+      from the staking vault ${vault} to ${recipient} 
+      with amounts ${amounts.map((amount) => formatEther(amount)).join(', ')} ETH?`;
+      const confirm = await confirmOperation(confirmationMessage);
       if (!confirm) return;
 
       await callWriteMethodWithReceipt({
         contract,
         methodName: 'triggerValidatorWithdrawal',
-        payload: [pubkeys, amounts, recipient],
+        payload: [mergedPubkeys, amounts.map(BigInt), recipient],
         value: fee,
       });
     },

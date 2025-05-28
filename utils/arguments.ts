@@ -15,6 +15,10 @@ export const stringToBigIntArrayWei = (value: string) => {
   return value.split(',').map(etherToWei);
 };
 
+export const stringToHexArray = (value: string) => {
+  return value.split(',').map(toHex);
+};
+
 export const jsonToPermit = (value: string) => {
   return JSON.parse(value) as Permit;
 };
