@@ -17,7 +17,7 @@ export const fetchVaultMetrics = async (contract: DashboardContract) => {
 
   const liabilitySharesInStethWei = await callReadMethodSilent(
     stethContract,
-    'getPooledEthByShares',
+    'getPooledEthBySharesRoundUp',
     [liabilityShares],
   ); // BigInt
 
@@ -76,10 +76,10 @@ export const fetchAndCalculateVaultHealthWithNewValue = async (
     ? liabilityShares + value
     : liabilityShares - value;
   const [newLiabilitySharesInStethWei, valueInStethWei] = await Promise.all([
-    callReadMethodSilent(stethContract, 'getPooledEthByShares', [
+    callReadMethodSilent(stethContract, 'getPooledEthBySharesRoundUp', [
       newLiabilityShares,
     ]),
-    callReadMethodSilent(stethContract, 'getPooledEthByShares', [value]),
+    callReadMethodSilent(stethContract, 'getPooledEthBySharesRoundUp', [value]),
   ]);
 
   const currentVaultHealth = calculateHealth({

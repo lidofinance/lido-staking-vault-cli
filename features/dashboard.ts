@@ -80,7 +80,9 @@ export const getDashboardOverview = async (contract: DashboardContract) => {
       address: vault,
     });
     const totalMintingCapacityStethWei =
-      await stethContract.read.getPooledEthByShares([totalMintingCapacity]);
+      await stethContract.read.getPooledEthBySharesRoundUp([
+        totalMintingCapacity,
+      ]);
     const overview = calculateOverview({
       totalValue,
       reserveRatioBP,
