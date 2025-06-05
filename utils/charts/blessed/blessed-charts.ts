@@ -43,9 +43,9 @@ export const fetchChartsData = async (
 
   const grossStakingAPR = await prepareGrossStakingAPR(history);
   const netStakingAPR = await prepareNetStakingAPR(history, nodeOperatorFeeBP);
-  const efficiency = await prepareEfficiency(history, nodeOperatorFeeBP);
-  const bottomLine = await prepareBottomLine(history, nodeOperatorFeeBP);
-  const lidoAPR = await prepareLidoAPR(history);
+  const efficiency = await prepareEfficiency(history, nodeOperatorFeeBP, vault);
+  const bottomLine = await prepareBottomLine(history, nodeOperatorFeeBP, vault);
+  const lidoAPR = await prepareLidoAPR(history, vault);
 
   const grossStakingAPRChart = buildGrossStakingAPRChart(grossStakingAPR);
   const netStakingAPRChart = buildNetStakingAPRChart(netStakingAPR);

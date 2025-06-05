@@ -12,6 +12,7 @@ import { getRebaseReward, getShareRate } from '../utils.js';
 export const prepareBottomLine = async (
   history: VaultReport[],
   nodeOperatorFeeBP: bigint,
+  vaultAddress: string,
 ) => {
   const bottomLine = [];
   const timestamp = [];
@@ -22,6 +23,7 @@ export const prepareBottomLine = async (
     if (!current || !previous) continue;
 
     const stEthLiabilityRebaseRewards = await getRebaseReward(
+      vaultAddress,
       current.blockNumber,
       previous.blockNumber,
       BigInt(current.data.liability_shares),
@@ -82,6 +84,7 @@ export const prepareNetStakingAPR = async (
 export const prepareEfficiency = async (
   history: VaultReport[],
   nodeOperatorFeeBP: bigint,
+  vaultAddress: string,
 ) => {
   const efficiencyPercent = [];
   const timestamp = [];
@@ -92,6 +95,7 @@ export const prepareEfficiency = async (
     if (!current || !previous) continue;
 
     const stEthLiabilityRebaseRewards = await getRebaseReward(
+      vaultAddress,
       current.blockNumber,
       previous.blockNumber,
       BigInt(current.data.liability_shares),
@@ -111,7 +115,10 @@ export const prepareEfficiency = async (
   return { values: efficiencyPercent, timestamp };
 };
 
-export const prepareLidoAPR = async (history: VaultReport[]) => {
+export const prepareLidoAPR = async (
+  history: VaultReport[],
+  vaultAddress: string,
+) => {
   const lidoAPR = [];
   const timestamp = [];
 
@@ -120,8 +127,12 @@ export const prepareLidoAPR = async (history: VaultReport[]) => {
     const previous = history[i - 1];
     if (!current || !previous) continue;
 
-    const preShareRate = Number(await getShareRate(previous.blockNumber));
-    const postShareRate = Number(await getShareRate(current.blockNumber));
+    const preShareRate = Number(
+      await getShareRate(vaultAddress, previous.blockNumber),
+    );
+    const postShareRate = Number(
+      await getShareRate(vaultAddress, current.blockNumber),
+    );
     const timeElapsed = current.timestamp - previous.timestamp;
 
     const value = calculateLidoAPR(preShareRate, postShareRate, timeElapsed);

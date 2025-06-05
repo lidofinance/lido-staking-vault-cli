@@ -109,28 +109,32 @@ export const lineOpts = (
   return base;
 };
 
-export const getShareRate = async (blockNumber: number): Promise<bigint> => {
-  const cached = await cache.getShareRate(blockNumber);
+export const getShareRate = async (
+  vaultAddress: string,
+  blockNumber: number,
+): Promise<bigint> => {
+  const cached = await cache.getShareRate(vaultAddress, blockNumber);
   if (cached !== null) return cached;
   const shareRate = await calculateShareRate(blockNumber);
 
-  await cache.setShareRate(blockNumber, shareRate);
+  await cache.setShareRate(vaultAddress, blockNumber, shareRate);
 
   return shareRate;
 };
 
 export const getRebaseReward = async (
+  vaultAddress: string,
   blockNumberCurr: number,
   blockNumberPrev: number,
   liabilitySharesCurr: bigint,
   liabilitySharesPrev: bigint,
 ): Promise<bigint> => {
   const cacheKey = `${blockNumberPrev}_${blockNumberCurr}`;
-  const cached = await cache.getRebaseReward(cacheKey);
+  const cached = await cache.getRebaseReward(vaultAddress, cacheKey);
   if (cached !== null) return cached;
 
-  const shareRatePrev = await getShareRate(blockNumberPrev);
-  const shareRateCurr = await getShareRate(blockNumberCurr);
+  const shareRatePrev = await getShareRate(vaultAddress, blockNumberPrev);
+  const shareRateCurr = await getShareRate(vaultAddress, blockNumberCurr);
 
   const reward = calculateRebaseReward(
     shareRatePrev,
@@ -139,6 +143,6 @@ export const getRebaseReward = async (
     liabilitySharesPrev,
   );
 
-  await cache.setRebaseReward(cacheKey, reward);
+  await cache.setRebaseReward(vaultAddress, cacheKey, reward);
   return reward;
 };
