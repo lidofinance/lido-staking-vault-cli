@@ -28,6 +28,7 @@ export const fetchChartsData = async (
 ) => {
   const dashboardContract = getDashboardContract(dashboard);
   const vault = await callReadMethodSilent(dashboardContract, 'stakingVault');
+  // TODO: check nodeOperatorFeeBP for each report
   const nodeOperatorFeeBP = await callReadMethodSilent(
     dashboardContract,
     'nodeOperatorFeeBP',
