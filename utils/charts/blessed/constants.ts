@@ -1,4 +1,4 @@
-export const LIMIT = 30;
+export const LIMIT = 7;
 export const NUM_Y_LABELS = 5;
 export const SECONDS_IN_YEAR = 365 * 24 * 60 * 60;
 export const LINE_COLORS = {
