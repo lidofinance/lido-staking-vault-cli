@@ -34,7 +34,7 @@ metricsRead.on('option:-cmd2json', function () {
 
 metricsRead
   .command('statistic')
-  .description('get statistic data')
+  .description('get statistic data for last report')
   .argument('<address>', 'dashboard address', stringToAddress)
   .option('-g, --gateway', 'ipfs gateway url')
   .action(async (address: Address, { gateway }) => {
@@ -93,7 +93,7 @@ metricsRead
 
 metricsRead
   .command('charts')
-  .description('get charts data')
+  .description('get charts data for N last reports')
   .argument('<address>', 'dashboard address', stringToAddress)
   .argument('<count>', 'count of reports', stringToNumber)
   .option('-s, --simplified', 'simplified charts')
