@@ -28,3 +28,6 @@ tsconfig.tsbuildinfo
 
 # wallets
 wallets/*
+
+# IPFS cache
+ipfs-cache/*

@@ -12,7 +12,8 @@ import {
   logResult,
   fetchAndCalculateVaultHealth,
   logInfo,
-  calculateOverview,
+  // calculateOverview,
+  calculateOverviewV2,
   formatBP,
   formatRatio,
   logLiabilityBar,
@@ -83,16 +84,18 @@ export const getDashboardOverview = async (contract: DashboardContract) => {
       await stethContract.read.getPooledEthBySharesRoundUp([
         totalMintingCapacity,
       ]);
-    const overview = calculateOverview({
+    const overview = calculateOverviewV2({
       totalValue,
       reserveRatioBP,
       liabilitySharesInStethWei: health.liabilitySharesInStethWei,
+      liabilitySharesInWei: health.liabilitySharesInWei,
       forceRebalanceThresholdBP: health.forceRebalanceThresholdBP,
       withdrawableEther,
       balance,
       locked,
       nodeOperatorUnclaimedFee,
       totalMintingCapacityStethWei,
+      totalMintingCapacitySharesInWei: totalMintingCapacity,
     });
     hideSpinner();
 
@@ -120,7 +123,6 @@ export const getDashboardOverview = async (contract: DashboardContract) => {
         ['Collateral, ETH', formatEther(overview.collateral)],
         ['Pending Unlock, ETH', formatEther(overview.PendingUnlock)],
         ['No Rewards Accumulated, ETH', formatEther(nodeOperatorUnclaimedFee)],
-        ['Total Reservable, ETH', formatEther(overview.totalReservable)],
         ['Reserved, ETH', formatEther(overview.reserved)],
         [
           'Total Minting Capacity, stETH',
@@ -128,7 +130,7 @@ export const getDashboardOverview = async (contract: DashboardContract) => {
         ],
         [
           'Remaining Minting Capacity, stETH',
-          formatEther(overview.remainingMintingCapacity),
+          formatEther(overview.remainingMintingCapacitySteth),
         ],
       ],
     });

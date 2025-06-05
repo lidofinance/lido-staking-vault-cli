@@ -44,39 +44,10 @@ export const getConfirmationsInfo = async (address: Address) => {
   const currentBlock = await publicClient.getBlockNumber();
   const confirmExpireInBlocks = confirmExpire / AVG_BLOCK_TIME_SEC;
 
-  const logs = await publicClient.getLogs({
+  const logs = await publicClient.getContractEvents({
     address: address,
-    event: {
-      anonymous: false,
-      inputs: [
-        {
-          indexed: true,
-          internalType: 'address',
-          name: 'member',
-          type: 'address',
-        },
-        {
-          indexed: true,
-          internalType: 'bytes32',
-          name: 'role',
-          type: 'bytes32',
-        },
-        {
-          indexed: false,
-          internalType: 'uint256',
-          name: 'expiryTimestamp',
-          type: 'uint256',
-        },
-        {
-          indexed: false,
-          internalType: 'bytes',
-          name: 'data',
-          type: 'bytes',
-        },
-      ],
-      name: 'RoleMemberConfirmed',
-      type: 'event',
-    },
+    abi: DashboardAbi,
+    eventName: 'RoleMemberConfirmed',
     fromBlock: currentBlock - confirmExpireInBlocks,
     strict: true,
   });
@@ -87,11 +58,9 @@ export const getConfirmationsInfo = async (address: Address) => {
   }
 
   const logsData: LogsData = logs
-    .map((log) => log.args)
-    .sort((a, b) =>
-      Number((a.expiryTimestamp ?? 0n) - (b.expiryTimestamp ?? 0n)),
-    )
-    .reduce<Record<Hex, any>>((acc, args) => {
+    .sort((a, b) => Number(a.blockNumber - b.blockNumber))
+    .reduce<Record<Hex, any>>((acc, log) => {
+      const { args } = log;
       const decodedData = decodeFunctionData({
         abi: DashboardAbi,
         data: args.data,
