@@ -2,6 +2,8 @@ import { CID } from 'multiformats/cid';
 import { MemoryBlockstore } from 'blockstore-core';
 import { importer } from 'ipfs-unixfs-importer';
 import jsonBigInt from 'json-bigint';
+import fs from 'fs/promises';
+import path from 'path';
 
 import { logInfo, logTable } from './logging/console.js';
 
@@ -13,6 +15,8 @@ export type ReportFetchArgs = {
   gateway?: string;
   bigNumberType?: BigNumberType;
 };
+
+const IPFS_CACHE_DIR = path.resolve('ipfs-cache');
 
 // Fetching content by CID through IPFS gateway
 export const fetchIPFS = async <T>(args: ReportFetchArgs): Promise<T> => {
@@ -99,4 +103,21 @@ export const fetchAndVerifyFile = async (
     },
   });
   return fileContent;
+};
+
+export const fetchIPFSWithCache = async <T>(
+  args: ReportFetchArgs,
+): Promise<T> => {
+  const { cid, gateway = IPFS_GATEWAY, bigNumberType = 'string' } = args;
+  await fs.mkdir(IPFS_CACHE_DIR, { recursive: true });
+  const cacheFile = path.join(IPFS_CACHE_DIR, `${cid}.json`);
+  try {
+    const data = await fs.readFile(cacheFile, 'utf-8');
+    return JSON.parse(data) as T;
+  } catch {
+    // Not in cache, fetch from IPFS
+    const data = await fetchIPFS<T>({ cid, gateway, bigNumberType });
+    await fs.writeFile(cacheFile, JSON.stringify(data), 'utf-8');
+    return data;
+  }
 };
