@@ -4,3 +4,6 @@ export * from './gross-staking-apr.js';
 export * from './net-staking-apr.js';
 export * from './lido-apr.js';
 export * from './prepare-metrics.js';
+export * from './net-staking-rewards.js';
+export * from './node-operator-rewards.js';
+export * from './gross-staking-rewards.js';

@@ -15,9 +15,12 @@ export const getGrossStakingRewards = (
 };
 
 export const getNodeOperatorRewards = (
-  grossStakingRewards: bigint,
+  current: VaultReport,
+  previous: VaultReport,
   nodeOperatorFeeBP: bigint,
 ) => {
+  const grossStakingRewards = getGrossStakingRewards(current, previous);
+
   return (grossStakingRewards * nodeOperatorFeeBP) / BASIS_POINTS_DENOMINATOR;
 };
 
@@ -36,7 +39,8 @@ export const getNetStakingRewards = (
 ) => {
   const grossStakingRewards = getGrossStakingRewards(current, previous);
   const nodeOperatorRewards = getNodeOperatorRewards(
-    grossStakingRewards,
+    current,
+    previous,
     nodeOperatorFeeBP,
   );
   const dailyLidoFees = getDailyLidoFees();
@@ -191,7 +195,8 @@ export const reportMetrics = (args: ReportMetricsArgs) => {
 
   const grossStakingRewards = getGrossStakingRewards(current, previous);
   const nodeOperatorRewards = getNodeOperatorRewards(
-    grossStakingRewards,
+    current,
+    previous,
     nodeOperatorFeeBP,
   );
   const dailyLidoFees = getDailyLidoFees();

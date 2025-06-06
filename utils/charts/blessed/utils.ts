@@ -18,6 +18,10 @@ export const formatTimestamp = (ts: number): string => {
   return `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}`;
 };
 
+export const randomColor = () => {
+  return [Math.random() * 255, Math.random() * 255, Math.random() * 255];
+};
+
 export const getMinMax = (arr: number[]) => {
   const min = Math.min(...arr);
   const max = Math.max(...arr);
@@ -58,10 +62,12 @@ export const getAdaptiveLabels = (labels: string[], minSpacing = 2) => {
 
 export const lineOpts = (
   {
+    title,
     label,
     yLabel,
     range,
   }: {
+    title: string;
     label: string;
     yLabel: string;
     range: { min: number; max: number; minY: number; maxY: number };
@@ -69,7 +75,7 @@ export const lineOpts = (
   opts?: { legendNames?: string[]; legendColors?: string[] },
 ) => {
   const base = {
-    label: `${label} (min: ${range.min.toFixed(2)}, max: ${range.max.toFixed(2)})`,
+    label: `${title} (min: ${range.min.toFixed(2)}, max: ${range.max.toFixed(2)})`,
     showLegend: true,
     legend: { width: LEGEND_WIDTH },
     style: {

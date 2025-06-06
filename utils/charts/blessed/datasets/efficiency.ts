@@ -32,6 +32,7 @@ export const buildEfficiencyChart = (args: BuildChartArgs) => {
     range,
     dataset: {
       title: 'Efficiency',
+      label: 'efficiency',
       x: adaptiveLabels,
       y,
       style: { line: LINE_COLORS.efficiency },

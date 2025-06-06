@@ -32,6 +32,7 @@ export const buildLidoAPRChart = (args: BuildChartArgs) => {
     range,
     dataset: {
       title: 'Lido APR',
+      label: 'lidoAPR',
       x: adaptiveLabels,
       y,
       style: { line: LINE_COLORS.lidoAPR },

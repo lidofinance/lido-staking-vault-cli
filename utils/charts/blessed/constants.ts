@@ -7,6 +7,9 @@ export const LINE_COLORS = {
   efficiency: 'green',
   bottomLine: 'magenta',
   lidoAPR: 'blue',
+  grossStakingRewards: 'red',
+  nodeOperatorRewards: [0, 255, 128],
+  netStakingRewards: [255, 165, 0],
 };
 export const LINE_STYLE = {
   text: 'white',

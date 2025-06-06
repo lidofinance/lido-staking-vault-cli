@@ -1,3 +1,5 @@
+import { formatEther } from 'viem';
+
 import {
   VaultReport,
   getBottomLine,
@@ -5,6 +7,9 @@ import {
   getNetStakingAPR,
   getEfficiency,
   calculateLidoAPR,
+  getGrossStakingRewards,
+  getNodeOperatorRewards,
+  getNetStakingRewards,
 } from 'utils';
 
 import { getRebaseReward, getShareRate } from '../utils.js';
@@ -141,4 +146,61 @@ export const prepareLidoAPR = async (
     timestamp.push(current.timestamp);
   }
   return { values: lidoAPR, timestamp };
+};
+
+export const prepareGrossStakingRewards = async (history: VaultReport[]) => {
+  const grossStakingRewards = [];
+  const timestamp = [];
+
+  for (let i = 1; i < history.length; i++) {
+    const current = history[i];
+    const previous = history[i - 1];
+    if (!current || !previous) continue;
+
+    const value = getGrossStakingRewards(current, previous);
+
+    grossStakingRewards.push(Number(formatEther(value, 'gwei')));
+    timestamp.push(current.timestamp);
+  }
+  return { values: grossStakingRewards, timestamp };
+};
+
+export const prepareNodeOperatorRewards = async (
+  history: VaultReport[],
+  nodeOperatorFeeBP: bigint,
+) => {
+  const nodeOperatorRewards = [];
+  const timestamp = [];
+
+  for (let i = 1; i < history.length; i++) {
+    const current = history[i];
+    const previous = history[i - 1];
+    if (!current || !previous) continue;
+
+    const value = getNodeOperatorRewards(current, previous, nodeOperatorFeeBP);
+
+    nodeOperatorRewards.push(Number(formatEther(value, 'gwei')));
+    timestamp.push(current.timestamp);
+  }
+  return { values: nodeOperatorRewards, timestamp };
+};
+
+export const prepareNetStakingRewards = async (
+  history: VaultReport[],
+  nodeOperatorFeeBP: bigint,
+) => {
+  const netStakingRewards = [];
+  const timestamp = [];
+
+  for (let i = 1; i < history.length; i++) {
+    const current = history[i];
+    const previous = history[i - 1];
+    if (!current || !previous) continue;
+
+    const value = getNetStakingRewards(current, previous, nodeOperatorFeeBP);
+
+    netStakingRewards.push(Number(formatEther(value, 'gwei')));
+    timestamp.push(current.timestamp);
+  }
+  return { values: netStakingRewards, timestamp };
 };

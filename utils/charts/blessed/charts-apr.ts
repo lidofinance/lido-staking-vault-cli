@@ -21,7 +21,7 @@ import {
   buildGrossStakingAPRChart,
 } from './datasets/index.js';
 
-export const fetchChartsData = async (
+export const fetchAprChartsData = async (
   cid: string,
   dashboard: Address,
   limit = LIMIT,
@@ -63,7 +63,7 @@ export const fetchChartsData = async (
   };
 };
 
-export const renderCharts = ({
+export const renderAprCharts = ({
   grossStakingAPRChart,
   netStakingAPRChart,
   efficiencyChart,
@@ -84,7 +84,8 @@ export const renderCharts = ({
       1,
       contrib.line,
       lineOpts({
-        label: grossStakingAPRChart.dataset.title,
+        title: grossStakingAPRChart.dataset.title,
+        label: grossStakingAPRChart.dataset.label,
         yLabel: grossStakingAPRChart.dataset.yLabel,
         range: grossStakingAPRChart.range,
       }),
@@ -96,7 +97,8 @@ export const renderCharts = ({
       1,
       contrib.line,
       lineOpts({
-        label: netStakingAPRChart.dataset.title,
+        title: netStakingAPRChart.dataset.title,
+        label: netStakingAPRChart.dataset.label,
         yLabel: netStakingAPRChart.dataset.yLabel,
         range: netStakingAPRChart.range,
       }),
@@ -108,7 +110,8 @@ export const renderCharts = ({
       1,
       contrib.line,
       lineOpts({
-        label: efficiencyChart.dataset.title,
+        title: efficiencyChart.dataset.title,
+        label: efficiencyChart.dataset.label,
         yLabel: efficiencyChart.dataset.yLabel,
         range: efficiencyChart.range,
       }),
@@ -120,7 +123,8 @@ export const renderCharts = ({
       1,
       contrib.line,
       lineOpts({
-        label: 'Bottom Line',
+        title: bottomLineChart.dataset.title,
+        label: bottomLineChart.dataset.label,
         yLabel: bottomLineChart.dataset.yLabel,
         range: bottomLineChart.range,
       }),
@@ -132,7 +136,8 @@ export const renderCharts = ({
       1,
       contrib.line,
       lineOpts({
-        label: lidoAPRChart.dataset.title,
+        title: lidoAPRChart.dataset.title,
+        label: lidoAPRChart.dataset.label,
         yLabel: lidoAPRChart.dataset.yLabel,
         range: lidoAPRChart.range,
       }),
@@ -144,7 +149,8 @@ export const renderCharts = ({
       1,
       contrib.line,
       lineOpts({
-        label: lidoAPRChart.dataset.title,
+        title: lidoAPRChart.dataset.title,
+        label: lidoAPRChart.dataset.label,
         yLabel: lidoAPRChart.dataset.yLabel,
         range: getMinMax([
           ...netStakingAPRChart.dataset.y,
@@ -164,7 +170,9 @@ export const renderCharts = ({
   ];
 
   charts.forEach((chart, i) => {
-    if (Array.isArray(datasets[i])) {
+    if (chart.type === 'stackedBar' || chart.type === 'bar') {
+      chart.setData(datasets[i]);
+    } else if (Array.isArray(datasets[i])) {
       chart.setData(datasets[i]);
     } else {
       chart.setData([datasets[i]]);

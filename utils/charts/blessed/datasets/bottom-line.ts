@@ -32,6 +32,7 @@ export const buildBottomLineChart = (args: BuildChartArgs) => {
     range,
     dataset: {
       title: 'Bottom Line',
+      label: 'bottomLine',
       x: adaptiveLabels,
       y,
       style: { line: LINE_COLORS.bottomLine },

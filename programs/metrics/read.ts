@@ -13,8 +13,10 @@ import {
   fetchAndVerifyFile,
   logResult,
   formatRatio,
-  fetchChartsData,
-  renderCharts,
+  fetchAprChartsData,
+  renderAprCharts,
+  fetchRewardsChartsData,
+  renderRewardsCharts,
   stringToNumber,
   renderSimpleCharts,
 } from 'utils';
@@ -92,8 +94,8 @@ metricsRead
   });
 
 metricsRead
-  .command('charts')
-  .description('get charts data for N last reports')
+  .command('charts-apr')
+  .description('get APR charts data for N last reports')
   .argument('<address>', 'dashboard address', stringToAddress)
   .argument('<count>', 'count of reports', stringToNumber)
   .option('-s, --simplified', 'simplified charts')
@@ -105,11 +107,29 @@ metricsRead
     if (simplified) {
       await renderSimpleCharts(address, vaultsDataReportCid, count);
     } else {
-      const chartsData = await fetchChartsData(
+      const chartsData = await fetchAprChartsData(
         vaultsDataReportCid,
         address,
         count,
       );
-      renderCharts(chartsData);
+      renderAprCharts(chartsData);
     }
+  });
+
+metricsRead
+  .command('charts-rewards')
+  .description('get APR charts data for N last reports')
+  .argument('<address>', 'dashboard address', stringToAddress)
+  .argument('<count>', 'count of reports', stringToNumber)
+  .action(async (address: Address, count: number) => {
+    const vaultHubContract = await getVaultHubContract();
+    const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
+      await callReadMethod(vaultHubContract, 'latestReportData');
+
+    const chartsData = await fetchRewardsChartsData(
+      vaultsDataReportCid,
+      address,
+      count,
+    );
+    renderRewardsCharts(chartsData);
   });

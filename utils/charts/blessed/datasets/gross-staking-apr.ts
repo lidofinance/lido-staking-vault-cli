@@ -32,6 +32,7 @@ export const buildGrossStakingAPRChart = (args: BuildChartArgs) => {
     range,
     dataset: {
       title: 'Gross Staking APR',
+      label: 'grossStakingAPR',
       x: adaptiveLabels,
       y,
       style: { line: LINE_COLORS.grossStakingAPR },

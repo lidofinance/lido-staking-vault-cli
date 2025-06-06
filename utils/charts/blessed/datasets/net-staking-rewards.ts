@@ -3,7 +3,7 @@ import { formatTimestamp, getAdaptiveLabels, getMinMax } from '../utils.js';
 
 import { BuildChartArgs } from './types.js';
 
-export const buildNetStakingAPRChart = (args: BuildChartArgs) => {
+export const buildNetStakingRewardsChart = (args: BuildChartArgs) => {
   const { values, timestamp } = args;
 
   const y: number[] = [];
@@ -12,8 +12,8 @@ export const buildNetStakingAPRChart = (args: BuildChartArgs) => {
 
   for (const [i, element] of values.entries()) {
     y.push(element ?? 0);
-    const dayLabel = formatTimestamp(timestamp[i] ?? 0);
 
+    const dayLabel = formatTimestamp(timestamp[i] ?? 0);
     if (!uniqueDays.has(dayLabel)) {
       x.push(dayLabel);
       uniqueDays.add(dayLabel);
@@ -31,11 +31,11 @@ export const buildNetStakingAPRChart = (args: BuildChartArgs) => {
   return {
     range,
     dataset: {
-      title: 'Net Staking APR',
-      label: 'netStakingAPR',
+      title: 'Net Staking Rewards',
+      label: 'netStakingRewards',
       x: adaptiveLabels,
       y,
-      style: { line: LINE_COLORS.netStakingAPR },
+      style: { line: LINE_COLORS.netStakingRewards },
     },
   };
 };
