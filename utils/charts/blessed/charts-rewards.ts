@@ -16,6 +16,7 @@ import {
   buildNodeOperatorRewardsChart,
   buildGrossStakingRewardsChart,
 } from './datasets/index.js';
+import { cache } from './cache.js';
 
 export const fetchRewardsChartsData = async (
   cid: string,
@@ -25,11 +26,6 @@ export const fetchRewardsChartsData = async (
   const dashboardContract = getDashboardContract(dashboard);
   const vault = await callReadMethodSilent(dashboardContract, 'stakingVault');
   // TODO: check nodeOperatorFeeBP for each report
-  const nodeOperatorFeeBP = await callReadMethodSilent(
-    dashboardContract,
-    'nodeOperatorFeeBP',
-  );
-
   const history = await getVaultReportHistory({
     vault,
     cid,
@@ -38,14 +34,27 @@ export const fetchRewardsChartsData = async (
   });
   if (!history || history.length < 2) throw new Error('Not enough data');
 
+  // Get nodeOperatorFeeBP for each report block with caching
+  const nodeOperatorFeeBPs: bigint[] = [];
+  for (const r of history) {
+    let fee = await cache.getNodeOperatorFeeBP(vault, r.blockNumber);
+    if (fee === null) {
+      fee = await callReadMethodSilent(dashboardContract, 'nodeOperatorFeeBP', {
+        blockNumber: BigInt(r.blockNumber),
+      });
+      await cache.setNodeOperatorFeeBP(vault, r.blockNumber, fee);
+    }
+    nodeOperatorFeeBPs.push(fee);
+  }
+
   const grossStakingRewards = await prepareGrossStakingRewards(history);
   const nodeOperatorRewards = await prepareNodeOperatorRewards(
     history,
-    nodeOperatorFeeBP,
+    nodeOperatorFeeBPs,
   );
   const netStakingRewards = await prepareNetStakingRewards(
     history,
-    nodeOperatorFeeBP,
+    nodeOperatorFeeBPs,
   );
 
   const grossStakingRewardsChart =

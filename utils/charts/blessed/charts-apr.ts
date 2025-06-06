@@ -20,6 +20,7 @@ import {
   buildBottomLineChart,
   buildGrossStakingAPRChart,
 } from './datasets/index.js';
+import { cache } from './cache.js';
 
 export const fetchAprChartsData = async (
   cid: string,
@@ -29,11 +30,6 @@ export const fetchAprChartsData = async (
   const dashboardContract = getDashboardContract(dashboard);
   const vault = await callReadMethodSilent(dashboardContract, 'stakingVault');
   // TODO: check nodeOperatorFeeBP for each report
-  const nodeOperatorFeeBP = await callReadMethodSilent(
-    dashboardContract,
-    'nodeOperatorFeeBP',
-  );
-
   const history = await getVaultReportHistory({
     vault,
     cid,
@@ -42,11 +38,32 @@ export const fetchAprChartsData = async (
   });
   if (!history || history.length < 2) throw new Error('Not enough data');
 
+  // Get nodeOperatorFeeBP for each report block with caching
+  const nodeOperatorFeeBPs: bigint[] = [];
+  for (const r of history) {
+    let fee = await cache.getNodeOperatorFeeBP(vault, r.blockNumber);
+    if (fee === null) {
+      fee = await callReadMethodSilent(dashboardContract, 'nodeOperatorFeeBP', {
+        blockNumber: BigInt(r.blockNumber),
+      });
+      await cache.setNodeOperatorFeeBP(vault, r.blockNumber, fee);
+    }
+    nodeOperatorFeeBPs.push(fee);
+  }
+
   const grossStakingAPR = await prepareGrossStakingAPR(history);
-  const netStakingAPR = await prepareNetStakingAPR(history, nodeOperatorFeeBP);
-  const efficiency = await prepareEfficiency(history, nodeOperatorFeeBP, vault);
-  const bottomLine = await prepareBottomLine(history, nodeOperatorFeeBP, vault);
-  const lidoAPR = await prepareLidoAPR(history, vault);
+  const netStakingAPR = await prepareNetStakingAPR(history, nodeOperatorFeeBPs);
+  const efficiency = await prepareEfficiency(
+    history,
+    nodeOperatorFeeBPs,
+    vault,
+  );
+  const bottomLine = await prepareBottomLine(
+    history,
+    nodeOperatorFeeBPs,
+    vault,
+  );
+  const lidoAPR = await prepareLidoAPR(history);
 
   const grossStakingAPRChart = buildGrossStakingAPRChart(grossStakingAPR);
   const netStakingAPRChart = buildNetStakingAPRChart(netStakingAPR);

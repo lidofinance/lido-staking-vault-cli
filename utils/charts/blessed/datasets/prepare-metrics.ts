@@ -16,7 +16,7 @@ import { getRebaseReward, getShareRate } from '../utils.js';
 
 export const prepareBottomLine = async (
   history: VaultReport[],
-  nodeOperatorFeeBP: bigint,
+  nodeOperatorFeeBPs: bigint[],
   vaultAddress: string,
 ) => {
   const bottomLine = [];
@@ -38,7 +38,7 @@ export const prepareBottomLine = async (
     const bottomLineValue = getBottomLine(
       current,
       previous,
-      nodeOperatorFeeBP,
+      nodeOperatorFeeBPs[i] ?? 0n,
       stEthLiabilityRebaseRewards,
     );
 
@@ -67,7 +67,7 @@ export const prepareGrossStakingAPR = async (history: VaultReport[]) => {
 
 export const prepareNetStakingAPR = async (
   history: VaultReport[],
-  nodeOperatorFeeBP: bigint,
+  nodeOperatorFeeBPs: bigint[],
 ) => {
   const netStakingAPRPercent = [];
   const timestamp = [];
@@ -78,7 +78,11 @@ export const prepareNetStakingAPR = async (
 
     if (!current || !previous) continue;
 
-    const value = getNetStakingAPR(current, previous, nodeOperatorFeeBP);
+    const value = getNetStakingAPR(
+      current,
+      previous,
+      nodeOperatorFeeBPs[i] ?? 0n,
+    );
 
     netStakingAPRPercent.push(value.apr_percent);
     timestamp.push(current.timestamp);
@@ -88,7 +92,7 @@ export const prepareNetStakingAPR = async (
 
 export const prepareEfficiency = async (
   history: VaultReport[],
-  nodeOperatorFeeBP: bigint,
+  nodeOperatorFeeBPs: bigint[],
   vaultAddress: string,
 ) => {
   const efficiencyPercent = [];
@@ -110,7 +114,7 @@ export const prepareEfficiency = async (
     const value = getEfficiency(
       current,
       previous,
-      nodeOperatorFeeBP,
+      nodeOperatorFeeBPs[i] ?? 0n,
       stEthLiabilityRebaseRewards,
     );
 
@@ -120,10 +124,7 @@ export const prepareEfficiency = async (
   return { values: efficiencyPercent, timestamp };
 };
 
-export const prepareLidoAPR = async (
-  history: VaultReport[],
-  vaultAddress: string,
-) => {
+export const prepareLidoAPR = async (history: VaultReport[]) => {
   const lidoAPR = [];
   const timestamp = [];
 
@@ -132,12 +133,8 @@ export const prepareLidoAPR = async (
     const previous = history[i - 1];
     if (!current || !previous) continue;
 
-    const preShareRate = Number(
-      await getShareRate(vaultAddress, previous.blockNumber),
-    );
-    const postShareRate = Number(
-      await getShareRate(vaultAddress, current.blockNumber),
-    );
+    const preShareRate = Number(await getShareRate(previous.blockNumber));
+    const postShareRate = Number(await getShareRate(current.blockNumber));
     const timeElapsed = current.timestamp - previous.timestamp;
 
     const value = calculateLidoAPR(preShareRate, postShareRate, timeElapsed);
@@ -167,7 +164,7 @@ export const prepareGrossStakingRewards = async (history: VaultReport[]) => {
 
 export const prepareNodeOperatorRewards = async (
   history: VaultReport[],
-  nodeOperatorFeeBP: bigint,
+  nodeOperatorFeeBPs: bigint[],
 ) => {
   const nodeOperatorRewards = [];
   const timestamp = [];
@@ -177,7 +174,11 @@ export const prepareNodeOperatorRewards = async (
     const previous = history[i - 1];
     if (!current || !previous) continue;
 
-    const value = getNodeOperatorRewards(current, previous, nodeOperatorFeeBP);
+    const value = getNodeOperatorRewards(
+      current,
+      previous,
+      nodeOperatorFeeBPs[i] ?? 0n,
+    );
 
     nodeOperatorRewards.push(Number(formatEther(value, 'gwei')));
     timestamp.push(current.timestamp);
@@ -187,7 +188,7 @@ export const prepareNodeOperatorRewards = async (
 
 export const prepareNetStakingRewards = async (
   history: VaultReport[],
-  nodeOperatorFeeBP: bigint,
+  nodeOperatorFeeBPs: bigint[],
 ) => {
   const netStakingRewards = [];
   const timestamp = [];
@@ -197,7 +198,11 @@ export const prepareNetStakingRewards = async (
     const previous = history[i - 1];
     if (!current || !previous) continue;
 
-    const value = getNetStakingRewards(current, previous, nodeOperatorFeeBP);
+    const value = getNetStakingRewards(
+      current,
+      previous,
+      nodeOperatorFeeBPs[i] ?? 0n,
+    );
 
     netStakingRewards.push(Number(formatEther(value, 'gwei')));
     timestamp.push(current.timestamp);
