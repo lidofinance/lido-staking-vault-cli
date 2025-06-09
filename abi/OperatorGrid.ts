@@ -22,6 +22,11 @@ export const OperatorGridErrorsAbi = [
   },
   {
     inputs: [],
+    name: 'ArrayLengthMismatch',
+    type: 'error',
+  },
+  {
+    inputs: [],
     name: 'CannotChangeToDefaultTier',
     type: 'error',
   },
@@ -67,6 +72,27 @@ export const OperatorGridErrorsAbi = [
     type: 'error',
   },
   {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: 'tierId',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: 'infraFeeBP',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: 'maxInfraFeeBP',
+        type: 'uint256',
+      },
+    ],
+    name: 'InfraFeeTooHigh',
+    type: 'error',
+  },
+  {
     inputs: [],
     name: 'InvalidInitialization',
     type: 'error',
@@ -85,6 +111,27 @@ export const OperatorGridErrorsAbi = [
       },
     ],
     name: 'InvalidTierId',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: 'tierId',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: 'liquidityFeeBP',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: 'maxLiquidityFeeBP',
+        type: 'uint256',
+      },
+    ],
+    name: 'LiquidityFeeTooHigh',
     type: 'error',
   },
   {
@@ -111,6 +158,43 @@ export const OperatorGridErrorsAbi = [
   {
     inputs: [],
     name: 'NotInitializing',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: 'requestedShareLimit',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: 'tierShareLimit',
+        type: 'uint256',
+      },
+    ],
+    name: 'RequestedShareLimitTooHigh',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: 'tierId',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: 'reservationFeeBP',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: 'maxReservationFeeBP',
+        type: 'uint256',
+      },
+    ],
+    name: 'ReservationFeeTooHigh',
     type: 'error',
   },
   {
@@ -177,27 +261,6 @@ export const OperatorGridErrorsAbi = [
   {
     inputs: [
       {
-        internalType: 'uint256',
-        name: 'tierId',
-        type: 'uint256',
-      },
-      {
-        internalType: 'uint256',
-        name: 'treasuryFeeBP',
-        type: 'uint256',
-      },
-      {
-        internalType: 'uint256',
-        name: 'maxTreasuryFeeBP',
-        type: 'uint256',
-      },
-    ],
-    name: 'TreasuryFeeTooHigh',
-    type: 'error',
-  },
-  {
-    inputs: [
-      {
         internalType: 'string',
         name: 'argument',
         type: 'string',
@@ -210,6 +273,7 @@ export const OperatorGridErrorsAbi = [
 
 export const OperatorGridAbi = [
   ...OperatorGridErrorsAbi,
+
   {
     inputs: [
       {
@@ -383,7 +447,19 @@ export const OperatorGridAbi = [
       {
         indexed: false,
         internalType: 'uint256',
-        name: 'treasuryFee',
+        name: 'infraFeeBP',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'liquidityFeeBP',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'reservationFeeBP',
         type: 'uint256',
       },
     ],
@@ -464,7 +540,19 @@ export const OperatorGridAbi = [
       {
         indexed: false,
         internalType: 'uint256',
-        name: 'treasuryFee',
+        name: 'infraFeeBP',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'liquidityFeeBP',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'reservationFeeBP',
         type: 'uint256',
       },
     ],
@@ -552,9 +640,9 @@ export const OperatorGridAbi = [
   {
     inputs: [
       {
-        internalType: 'uint256',
-        name: '_tierId',
-        type: 'uint256',
+        internalType: 'uint256[]',
+        name: '_tierIds',
+        type: 'uint256[]',
       },
       {
         components: [
@@ -575,16 +663,26 @@ export const OperatorGridAbi = [
           },
           {
             internalType: 'uint256',
-            name: 'treasuryFeeBP',
+            name: 'infraFeeBP',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint256',
+            name: 'liquidityFeeBP',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint256',
+            name: 'reservationFeeBP',
             type: 'uint256',
           },
         ],
-        internalType: 'struct TierParams',
+        internalType: 'struct TierParams[]',
         name: '_tierParams',
-        type: 'tuple',
+        type: 'tuple[]',
       },
     ],
-    name: 'alterTier',
+    name: 'alterTiers',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
@@ -734,9 +832,9 @@ export const OperatorGridAbi = [
             type: 'uint96',
           },
           {
-            internalType: 'uint128[]',
+            internalType: 'uint64[]',
             name: 'tierIds',
-            type: 'uint128[]',
+            type: 'uint64[]',
           },
         ],
         internalType: 'struct OperatorGrid.Group',
@@ -797,7 +895,17 @@ export const OperatorGridAbi = [
           },
           {
             internalType: 'uint256',
-            name: 'treasuryFeeBP',
+            name: 'infraFeeBP',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint256',
+            name: 'liquidityFeeBP',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint256',
+            name: 'reservationFeeBP',
             type: 'uint256',
           },
         ],
@@ -985,7 +1093,17 @@ export const OperatorGridAbi = [
           },
           {
             internalType: 'uint256',
-            name: 'treasuryFeeBP',
+            name: 'infraFeeBP',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint256',
+            name: 'liquidityFeeBP',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint256',
+            name: 'reservationFeeBP',
             type: 'uint256',
           },
         ],
@@ -1027,6 +1145,11 @@ export const OperatorGridAbi = [
       {
         internalType: 'uint256',
         name: '_tierId',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: '_requestedShareLimit',
         type: 'uint256',
       },
     ],
@@ -1111,13 +1234,49 @@ export const OperatorGridAbi = [
           },
           {
             internalType: 'uint16',
-            name: 'treasuryFeeBP',
+            name: 'infraFeeBP',
+            type: 'uint16',
+          },
+          {
+            internalType: 'uint16',
+            name: 'liquidityFeeBP',
+            type: 'uint16',
+          },
+          {
+            internalType: 'uint16',
+            name: 'reservationFeeBP',
             type: 'uint16',
           },
         ],
         internalType: 'struct OperatorGrid.Tier',
         name: '',
         type: 'tuple',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'tierCount',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'tiersCount',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
       },
     ],
     stateMutability: 'view',
@@ -1178,7 +1337,17 @@ export const OperatorGridAbi = [
       },
       {
         internalType: 'uint256',
-        name: 'treasuryFeeBP',
+        name: 'infraFeeBP',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: 'liquidityFeeBP',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: 'reservationFeeBP',
         type: 'uint256',
       },
     ],

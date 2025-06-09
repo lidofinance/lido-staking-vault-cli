@@ -10,6 +10,7 @@ export * from './VaultViewer.js';
 export * from './PredepositGuarantee.js';
 export * from './OperatorGrid.js';
 export * from './WstEth.js';
+export * from './LazyOracle.js';
 // testing ABIs
 export * from './BlsHarness.js';
 export * from './ReportChecker.js';

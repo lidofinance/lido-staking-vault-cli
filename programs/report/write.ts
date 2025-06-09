@@ -2,7 +2,7 @@ import { Address, Hex } from 'viem';
 import { Option } from 'commander';
 import cliProgress from 'cli-progress';
 
-import { getVaultHubContract } from 'contracts';
+import { getLazyOracleContract } from 'contracts';
 import {
   callWriteMethodWithReceipt,
   callReadMethod,
@@ -47,9 +47,9 @@ reportWrite
   .option('-e, --skip-error', 'skip error')
   .action(
     withInterruptHandling(async (vaults: Address[], { gateway, skipError }) => {
-      const vaultHubContract = await getVaultHubContract();
+      const lazyOracleContract = await getLazyOracleContract();
       const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
-        await callReadMethod(vaultHubContract, 'latestReportData');
+        await callReadMethod(lazyOracleContract, 'latestReportData');
 
       await fetchAndVerifyFile(vaultsDataReportCid, gateway);
       const { vaultReports, proofsCID } = await getAllVaultsReports({
@@ -80,7 +80,7 @@ reportWrite
           continue;
         }
         await callWriteMethodWithReceipt({
-          contract: vaultHubContract,
+          contract: lazyOracleContract,
           methodName: 'updateVaultData',
           payload: [
             vault,
@@ -109,9 +109,9 @@ reportWrite
   .option('-e, --skip-error', 'skip error')
   .action(
     withInterruptHandling(async ({ gateway, skipError }) => {
-      const vaultHubContract = await getVaultHubContract();
+      const lazyOracleContract = await getLazyOracleContract();
       const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
-        await callReadMethod(vaultHubContract, 'latestReportData');
+        await callReadMethod(lazyOracleContract, 'latestReportData');
 
       await fetchAndVerifyFile(vaultsDataReportCid, gateway);
 
@@ -138,7 +138,7 @@ reportWrite
       for (const [_index, report] of vaultReports.entries()) {
         try {
           await callWriteMethodWithReceipt({
-            contract: vaultHubContract,
+            contract: lazyOracleContract,
             methodName: 'updateVaultData',
             payload: [
               report.vault_address as Address,

@@ -79,4 +79,8 @@ export const readCommandConfig: ReadProgramCommandConfig = {
       },
     },
   },
+  tiersCount: {
+    name: 'tiers-count',
+    description: 'get a tiers count',
+  },
 };

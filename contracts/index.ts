@@ -13,3 +13,4 @@ export * from './reportChecker.js';
 export * from './operator-grid.js';
 export * from './blsHarness.js';
 export * from './wsteth.js';
+export * from './lazy-oracle.js';

@@ -43,10 +43,14 @@ export interface RoleAssignment {
 }
 
 export interface Tier {
+  operator: Address;
   shareLimit: bigint;
+  minDepositAmount: bigint;
   reserveRatioBP: bigint;
   forcedRebalanceThresholdBP: bigint;
-  treasuryFeeBP: bigint;
+  infraFeeBP: bigint;
+  liquidityFeeBP: bigint;
+  reservationFeeBP: bigint;
 }
 
 export type Deposit = {
