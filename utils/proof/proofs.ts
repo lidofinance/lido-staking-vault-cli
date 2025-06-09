@@ -10,6 +10,12 @@ import { ssz } from '@lodestar/types';
 
 import { getPubkeyWCParentGIndex } from './merkle-utils.js';
 
+type View =
+  | ReturnType<(typeof ssz)['capella']['BeaconState']['deserializeToView']>
+  | ReturnType<(typeof ssz)['deneb']['BeaconState']['deserializeToView']>
+  | ReturnType<(typeof ssz)['electra']['BeaconState']['deserializeToView']>;
+type Validator = ReturnType<View['validators']['getReadonly']>;
+
 const SupportedFork = {
   capella: 'capella',
   deneb: 'deneb',
@@ -37,7 +43,7 @@ export const createStateProof = async (
   validatorIndex: number,
   bodyBytes: ArrayBuffer,
   forkName: keyof typeof SupportedFork,
-) => {
+): Promise<{ proof: SingleProof; validator: Validator; view: View }> => {
   const stateView = ssz[forkName].BeaconState.deserializeToView(
     new Uint8Array(bodyBytes),
   );
