@@ -6,39 +6,33 @@ export const StakingVaultErrorsAbi = [
   },
   {
     inputs: [],
-    name: 'BeaconChainDepositsArePaused',
+    name: 'BeaconChainDepositsAlreadyPaused',
     type: 'error',
   },
   {
     inputs: [],
-    name: 'BeaconChainDepositsPauseExpected',
+    name: 'BeaconChainDepositsAlreadyResumed',
     type: 'error',
   },
   {
     inputs: [],
-    name: 'BeaconChainDepositsResumeExpected',
+    name: 'BeaconChainDepositsOnPause',
     type: 'error',
   },
   {
     inputs: [
       {
         internalType: 'uint256',
-        name: 'balance',
+        name: '_balance',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: '_required',
         type: 'uint256',
       },
     ],
     name: 'InsufficientBalance',
-    type: 'error',
-  },
-  {
-    inputs: [
-      {
-        internalType: 'uint256',
-        name: 'unlocked',
-        type: 'uint256',
-      },
-    ],
-    name: 'InsufficientUnlocked',
     type: 'error',
   },
   {
@@ -55,17 +49,6 @@ export const StakingVaultErrorsAbi = [
       },
     ],
     name: 'InsufficientValidatorWithdrawalFee',
-    type: 'error',
-  },
-  {
-    inputs: [
-      {
-        internalType: 'address',
-        name: 'depositor',
-        type: 'address',
-      },
-    ],
-    name: 'InvalidDepositor',
     type: 'error',
   },
   {
@@ -101,33 +84,12 @@ export const StakingVaultErrorsAbi = [
   },
   {
     inputs: [],
-    name: 'NewLockedExceedsTotalValue',
-    type: 'error',
-  },
-  {
-    inputs: [],
-    name: 'NewLockedNotGreaterThanCurrent',
+    name: 'NewDepositorSameAsPrevious',
     type: 'error',
   },
   {
     inputs: [],
     name: 'NoWithdrawalRequests',
-    type: 'error',
-  },
-  {
-    inputs: [
-      {
-        internalType: 'string',
-        name: 'operation',
-        type: 'string',
-      },
-      {
-        internalType: 'address',
-        name: 'sender',
-        type: 'address',
-      },
-    ],
-    name: 'NotAuthorized',
     type: 'error',
   },
   {
@@ -159,49 +121,17 @@ export const StakingVaultErrorsAbi = [
   },
   {
     inputs: [],
-    name: 'PartialWithdrawalNotAllowed',
-    type: 'error',
-  },
-  {
-    inputs: [
-      {
-        internalType: 'uint256',
-        name: 'totalValue',
-        type: 'uint256',
-      },
-      {
-        internalType: 'uint256',
-        name: 'rebalanceAmount',
-        type: 'uint256',
-      },
-    ],
-    name: 'RebalanceAmountExceedsTotalValue',
+    name: 'PubkeyLengthDoesNotMatchAmountLength',
     type: 'error',
   },
   {
     inputs: [],
-    name: 'ReportStaled',
-    type: 'error',
-  },
-  {
-    inputs: [
-      {
-        internalType: 'uint64',
-        name: 'currentTimestamp',
-        type: 'uint64',
-      },
-      {
-        internalType: 'uint64',
-        name: 'newTimestamp',
-        type: 'uint64',
-      },
-    ],
-    name: 'ReportTooOld',
+    name: 'SenderNotDepositor',
     type: 'error',
   },
   {
     inputs: [],
-    name: 'TotalValueBelowLockedAmount',
+    name: 'SenderNotNodeOperator',
     type: 'error',
   },
   {
@@ -222,21 +152,6 @@ export const StakingVaultErrorsAbi = [
   },
   {
     inputs: [],
-    name: 'VaultConnected',
-    type: 'error',
-  },
-  {
-    inputs: [],
-    name: 'VaultHubAuthorized',
-    type: 'error',
-  },
-  {
-    inputs: [],
-    name: 'VaultHubNotAuthorized',
-    type: 'error',
-  },
-  {
-    inputs: [],
     name: 'VaultOssified',
     type: 'error',
   },
@@ -248,22 +163,6 @@ export const StakingVaultErrorsAbi = [
   {
     inputs: [],
     name: 'WithdrawalFeeReadFailed',
-    type: 'error',
-  },
-  {
-    inputs: [
-      {
-        internalType: 'address',
-        name: '_sender',
-        type: 'address',
-      },
-      {
-        internalType: 'uint256',
-        name: '_amount',
-        type: 'uint256',
-      },
-    ],
-    name: 'WithdrawalFeeRefundFailed',
     type: 'error',
   },
   {
@@ -296,11 +195,6 @@ export const StakingVaultAbi = [
     inputs: [
       {
         internalType: 'address',
-        name: '_vaultHub',
-        type: 'address',
-      },
-      {
-        internalType: 'address',
         name: '_beaconChainDepositContract',
         type: 'address',
       },
@@ -324,12 +218,6 @@ export const StakingVaultAbi = [
     anonymous: false,
     inputs: [
       {
-        indexed: true,
-        internalType: 'address',
-        name: '_sender',
-        type: 'address',
-      },
-      {
         indexed: false,
         internalType: 'uint256',
         name: '_deposits',
@@ -351,7 +239,13 @@ export const StakingVaultAbi = [
       {
         indexed: true,
         internalType: 'address',
-        name: 'depositor',
+        name: 'previousDepositor',
+        type: 'address',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'newDepositor',
         type: 'address',
       },
     ],
@@ -362,9 +256,22 @@ export const StakingVaultAbi = [
     anonymous: false,
     inputs: [
       {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'amount',
+        type: 'uint256',
+      },
+    ],
+    name: 'EtherFunded',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
         indexed: true,
         internalType: 'address',
-        name: 'sender',
+        name: 'recipient',
         type: 'address',
       },
       {
@@ -374,7 +281,7 @@ export const StakingVaultAbi = [
         type: 'uint256',
       },
     ],
-    name: 'Funded',
+    name: 'EtherWithdrawn',
     type: 'event',
   },
   {
@@ -394,19 +301,13 @@ export const StakingVaultAbi = [
     anonymous: false,
     inputs: [
       {
-        indexed: false,
-        internalType: 'uint256',
-        name: 'locked',
-        type: 'uint256',
+        indexed: true,
+        internalType: 'address',
+        name: 'nodeOperator',
+        type: 'address',
       },
     ],
-    name: 'LockedIncreased',
-    type: 'event',
-  },
-  {
-    anonymous: false,
-    inputs: [],
-    name: 'LockedReset',
+    name: 'NodeOperatorSet',
     type: 'event',
   },
   {
@@ -415,11 +316,17 @@ export const StakingVaultAbi = [
       {
         indexed: true,
         internalType: 'address',
-        name: 'nodeOperator',
+        name: 'previousOwner',
+        type: 'address',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'newOwner',
         type: 'address',
       },
     ],
-    name: 'NodeOperatorSet',
+    name: 'OwnershipTransferStarted',
     type: 'event',
   },
   {
@@ -458,52 +365,40 @@ export const StakingVaultAbi = [
     anonymous: false,
     inputs: [
       {
+        indexed: false,
+        internalType: 'bytes',
+        name: 'pubkeys',
+        type: 'bytes',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'excess',
+        type: 'uint256',
+      },
+      {
         indexed: true,
-        internalType: 'uint64',
-        name: 'timestamp',
-        type: 'uint64',
-      },
-      {
-        indexed: false,
-        internalType: 'uint256',
-        name: 'totalValue',
-        type: 'uint256',
-      },
-      {
-        indexed: false,
-        internalType: 'int256',
-        name: 'inOutDelta',
-        type: 'int256',
-      },
-      {
-        indexed: false,
-        internalType: 'uint256',
-        name: 'locked',
-        type: 'uint256',
+        internalType: 'address',
+        name: 'refundRecipient',
+        type: 'address',
       },
     ],
-    name: 'Reported',
+    name: 'ValidatorEjectionsTriggered',
     type: 'event',
   },
   {
     anonymous: false,
     inputs: [
       {
-        indexed: false,
-        internalType: 'address',
-        name: '_sender',
-        type: 'address',
-      },
-      {
         indexed: true,
         internalType: 'bytes',
-        name: '_pubkey',
+        name: 'pubkey',
         type: 'bytes',
       },
       {
         indexed: false,
         internalType: 'bytes',
-        name: '_pubkeyRaw',
+        name: 'pubkeyRaw',
         type: 'bytes',
       },
     ],
@@ -514,75 +409,31 @@ export const StakingVaultAbi = [
     anonymous: false,
     inputs: [
       {
-        indexed: true,
-        internalType: 'address',
-        name: '_sender',
-        type: 'address',
-      },
-      {
         indexed: false,
         internalType: 'bytes',
-        name: '_pubkeys',
+        name: 'pubkeys',
         type: 'bytes',
       },
       {
         indexed: false,
         internalType: 'uint64[]',
-        name: '_amounts',
+        name: 'amounts',
         type: 'uint64[]',
       },
       {
         indexed: false,
-        internalType: 'address',
-        name: '_refundRecipient',
-        type: 'address',
-      },
-      {
-        indexed: false,
         internalType: 'uint256',
-        name: '_excess',
+        name: 'excess',
         type: 'uint256',
-      },
-    ],
-    name: 'ValidatorWithdrawalTriggered',
-    type: 'event',
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: 'bool',
-        name: 'authorized',
-        type: 'bool',
-      },
-    ],
-    name: 'VaultHubAuthorizedSet',
-    type: 'event',
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: 'address',
-        name: 'sender',
-        type: 'address',
       },
       {
         indexed: true,
         internalType: 'address',
-        name: 'recipient',
+        name: 'refundRecipient',
         type: 'address',
       },
-      {
-        indexed: false,
-        internalType: 'uint256',
-        name: 'amount',
-        type: 'uint256',
-      },
     ],
-    name: 'Withdrawn',
+    name: 'ValidatorWithdrawalsTriggered',
     type: 'event',
   },
   {
@@ -600,20 +451,7 @@ export const StakingVaultAbi = [
   },
   {
     inputs: [],
-    name: 'PUBLIC_KEY_LENGTH',
-    outputs: [
-      {
-        internalType: 'uint256',
-        name: '',
-        type: 'uint256',
-      },
-    ],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'authorizeLidoVaultHub',
+    name: 'acceptOwnership',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
@@ -651,13 +489,6 @@ export const StakingVaultAbi = [
     type: 'function',
   },
   {
-    inputs: [],
-    name: 'deauthorizeLidoVaultHub',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
     inputs: [
       {
         components: [
@@ -682,7 +513,7 @@ export const StakingVaultAbi = [
             type: 'bytes32',
           },
         ],
-        internalType: 'struct StakingVaultDeposit[]',
+        internalType: 'struct IStakingVault.Deposit[]',
         name: '_deposits',
         type: 'tuple[]',
       },
@@ -706,6 +537,24 @@ export const StakingVaultAbi = [
     type: 'function',
   },
   {
+    inputs: [
+      {
+        internalType: 'bytes',
+        name: '_pubkeys',
+        type: 'bytes',
+      },
+      {
+        internalType: 'address',
+        name: '_refundRecipient',
+        type: 'address',
+      },
+    ],
+    name: 'ejectValidators',
+    outputs: [],
+    stateMutability: 'payable',
+    type: 'function',
+  },
+  {
     inputs: [],
     name: 'fund',
     outputs: [],
@@ -720,19 +569,6 @@ export const StakingVaultAbi = [
         internalType: 'uint64',
         name: '',
         type: 'uint64',
-      },
-    ],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'inOutDelta',
-    outputs: [
-      {
-        internalType: 'int256',
-        name: '',
-        type: 'int256',
       },
     ],
     stateMutability: 'view',
@@ -755,11 +591,6 @@ export const StakingVaultAbi = [
         name: '_depositor',
         type: 'address',
       },
-      {
-        internalType: 'bytes',
-        name: '',
-        type: 'bytes',
-      },
     ],
     name: 'initialize',
     outputs: [],
@@ -768,68 +599,12 @@ export const StakingVaultAbi = [
   },
   {
     inputs: [],
-    name: 'isReportFresh',
+    name: 'isOssified',
     outputs: [
       {
         internalType: 'bool',
         name: '',
         type: 'bool',
-      },
-    ],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'latestReport',
-    outputs: [
-      {
-        components: [
-          {
-            internalType: 'uint128',
-            name: 'totalValue',
-            type: 'uint128',
-          },
-          {
-            internalType: 'int128',
-            name: 'inOutDelta',
-            type: 'int128',
-          },
-          {
-            internalType: 'uint64',
-            name: 'timestamp',
-            type: 'uint64',
-          },
-        ],
-        internalType: 'struct IStakingVault.Report',
-        name: '',
-        type: 'tuple',
-      },
-    ],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [
-      {
-        internalType: 'uint256',
-        name: '_locked',
-        type: 'uint256',
-      },
-    ],
-    name: 'lock',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'locked',
-    outputs: [
-      {
-        internalType: 'uint256',
-        name: '',
-        type: 'uint256',
       },
     ],
     stateMutability: 'view',
@@ -850,20 +625,7 @@ export const StakingVaultAbi = [
   },
   {
     inputs: [],
-    name: 'ossified',
-    outputs: [
-      {
-        internalType: 'bool',
-        name: '',
-        type: 'bool',
-      },
-    ],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'ossifyStakingVault',
+    name: 'ossify',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
@@ -889,49 +651,21 @@ export const StakingVaultAbi = [
     type: 'function',
   },
   {
-    inputs: [
+    inputs: [],
+    name: 'pendingOwner',
+    outputs: [
       {
-        internalType: 'uint256',
-        name: '_ether',
-        type: 'uint256',
+        internalType: 'address',
+        name: '',
+        type: 'address',
       },
     ],
-    name: 'rebalance',
-    outputs: [],
-    stateMutability: 'nonpayable',
+    stateMutability: 'view',
     type: 'function',
   },
   {
     inputs: [],
     name: 'renounceOwnership',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      {
-        internalType: 'uint64',
-        name: '_timestamp',
-        type: 'uint64',
-      },
-      {
-        internalType: 'uint256',
-        name: '_totalValue',
-        type: 'uint256',
-      },
-      {
-        internalType: 'int256',
-        name: '_inOutDelta',
-        type: 'int256',
-      },
-      {
-        internalType: 'uint256',
-        name: '_locked',
-        type: 'uint256',
-      },
-    ],
-    name: 'report',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
@@ -945,13 +679,6 @@ export const StakingVaultAbi = [
       },
     ],
     name: 'requestValidatorExit',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'resetLocked',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
@@ -977,23 +704,10 @@ export const StakingVaultAbi = [
     type: 'function',
   },
   {
-    inputs: [],
-    name: 'totalValue',
-    outputs: [
-      {
-        internalType: 'uint256',
-        name: '',
-        type: 'uint256',
-      },
-    ],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
     inputs: [
       {
         internalType: 'address',
-        name: 'newOwner',
+        name: '_newOwner',
         type: 'address',
       },
     ],
@@ -1016,52 +730,13 @@ export const StakingVaultAbi = [
       },
       {
         internalType: 'address',
-        name: '_refundRecipient',
+        name: '_excessRefundRecipient',
         type: 'address',
       },
     ],
-    name: 'triggerValidatorWithdrawal',
+    name: 'triggerValidatorWithdrawals',
     outputs: [],
     stateMutability: 'payable',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'unlocked',
-    outputs: [
-      {
-        internalType: 'uint256',
-        name: '',
-        type: 'uint256',
-      },
-    ],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'vaultHub',
-    outputs: [
-      {
-        internalType: 'address',
-        name: '',
-        type: 'address',
-      },
-    ],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'vaultHubAuthorized',
-    outputs: [
-      {
-        internalType: 'bool',
-        name: '',
-        type: 'bool',
-      },
-    ],
-    stateMutability: 'view',
     type: 'function',
   },
   {
