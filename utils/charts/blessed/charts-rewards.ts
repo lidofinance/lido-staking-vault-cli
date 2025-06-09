@@ -1,9 +1,8 @@
 import blessed from 'blessed';
 import contrib from 'blessed-contrib';
 
-import { getVaultReportHistory } from 'utils/report/report.js';
 import { Address } from 'viem';
-import { callReadMethodSilent } from 'utils';
+import { callReadMethodSilent, cache, getVaultReportHistory } from 'utils';
 import { getDashboardContract } from 'contracts';
 
 import { lineOpts } from './utils.js';
@@ -16,7 +15,6 @@ import {
   buildNodeOperatorRewardsChart,
   buildGrossStakingRewardsChart,
 } from './datasets/index.js';
-import { cache } from './cache.js';
 
 export const fetchRewardsChartsData = async (
   cid: string,
@@ -25,7 +23,6 @@ export const fetchRewardsChartsData = async (
 ) => {
   const dashboardContract = getDashboardContract(dashboard);
   const vault = await callReadMethodSilent(dashboardContract, 'stakingVault');
-  // TODO: check nodeOperatorFeeBP for each report
   const history = await getVaultReportHistory({
     vault,
     cid,

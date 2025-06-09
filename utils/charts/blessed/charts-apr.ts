@@ -1,9 +1,8 @@
 import blessed from 'blessed';
 import contrib from 'blessed-contrib';
-
-import { getVaultReportHistory } from 'utils/report/report.js';
 import { Address } from 'viem';
-import { callReadMethodSilent } from 'utils';
+
+import { callReadMethodSilent, cache, getVaultReportHistory } from 'utils';
 import { getDashboardContract } from 'contracts';
 
 import { lineOpts, getMinMax } from './utils.js';
@@ -20,7 +19,6 @@ import {
   buildBottomLineChart,
   buildGrossStakingAPRChart,
 } from './datasets/index.js';
-import { cache } from './cache.js';
 
 export const fetchAprChartsData = async (
   cid: string,

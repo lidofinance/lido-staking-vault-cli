@@ -12,7 +12,7 @@ import {
   getNetStakingRewards,
 } from 'utils';
 
-import { getRebaseReward, getShareRate } from '../utils.js';
+import { getRebaseRewardFromCache, getShareRateFromCache } from 'utils';
 
 export const prepareBottomLine = async (
   history: VaultReport[],
@@ -27,13 +27,13 @@ export const prepareBottomLine = async (
     const previous = history[i - 1];
     if (!current || !previous) continue;
 
-    const stEthLiabilityRebaseRewards = await getRebaseReward(
+    const stEthLiabilityRebaseRewards = await getRebaseRewardFromCache({
       vaultAddress,
-      current.blockNumber,
-      previous.blockNumber,
-      BigInt(current.data.liability_shares),
-      BigInt(previous.data.liability_shares),
-    );
+      blockNumberCurr: current.blockNumber,
+      blockNumberPrev: previous.blockNumber,
+      liabilitySharesCurr: BigInt(current.data.liability_shares),
+      liabilitySharesPrev: BigInt(previous.data.liability_shares),
+    });
 
     const bottomLineValue = getBottomLine(
       current,
@@ -103,13 +103,13 @@ export const prepareEfficiency = async (
     const previous = history[i - 1];
     if (!current || !previous) continue;
 
-    const stEthLiabilityRebaseRewards = await getRebaseReward(
+    const stEthLiabilityRebaseRewards = await getRebaseRewardFromCache({
       vaultAddress,
-      current.blockNumber,
-      previous.blockNumber,
-      BigInt(current.data.liability_shares),
-      BigInt(previous.data.liability_shares),
-    );
+      blockNumberCurr: current.blockNumber,
+      blockNumberPrev: previous.blockNumber,
+      liabilitySharesCurr: BigInt(current.data.liability_shares),
+      liabilitySharesPrev: BigInt(previous.data.liability_shares),
+    });
 
     const value = getEfficiency(
       current,
@@ -133,8 +133,12 @@ export const prepareLidoAPR = async (history: VaultReport[]) => {
     const previous = history[i - 1];
     if (!current || !previous) continue;
 
-    const preShareRate = Number(await getShareRate(previous.blockNumber));
-    const postShareRate = Number(await getShareRate(current.blockNumber));
+    const preShareRate = Number(
+      await getShareRateFromCache(previous.blockNumber),
+    );
+    const postShareRate = Number(
+      await getShareRateFromCache(current.blockNumber),
+    );
     const timeElapsed = current.timestamp - previous.timestamp;
 
     const value = calculateLidoAPR(preShareRate, postShareRate, timeElapsed);

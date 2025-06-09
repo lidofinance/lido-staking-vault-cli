@@ -1,6 +1,3 @@
-import { calculateRebaseReward, calculateShareRate } from 'utils';
-
-import { cache } from './cache.js';
 import {
   LEGEND_WIDTH,
   LINE_COLORS,
@@ -113,39 +110,4 @@ export const lineOpts = (
     };
   }
   return base;
-};
-
-export const getShareRate = async (blockNumber: number): Promise<bigint> => {
-  const cached = await cache.getShareRate(blockNumber);
-  if (cached !== null) return cached;
-  const shareRate = await calculateShareRate(blockNumber);
-
-  await cache.setShareRate(blockNumber, shareRate);
-
-  return shareRate;
-};
-
-export const getRebaseReward = async (
-  vaultAddress: string,
-  blockNumberCurr: number,
-  blockNumberPrev: number,
-  liabilitySharesCurr: bigint,
-  liabilitySharesPrev: bigint,
-): Promise<bigint> => {
-  const cacheKey = `${blockNumberPrev}_${blockNumberCurr}`;
-  const cached = await cache.getRebaseReward(vaultAddress, cacheKey);
-  if (cached !== null) return cached;
-
-  const shareRatePrev = await getShareRate(blockNumberPrev);
-  const shareRateCurr = await getShareRate(blockNumberCurr);
-
-  const reward = calculateRebaseReward(
-    shareRatePrev,
-    shareRateCurr,
-    liabilitySharesCurr,
-    liabilitySharesPrev,
-  );
-
-  await cache.setRebaseReward(vaultAddress, cacheKey, reward);
-  return reward;
 };

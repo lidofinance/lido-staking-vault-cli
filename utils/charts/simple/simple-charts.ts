@@ -1,11 +1,17 @@
-import { Address } from 'viem';
-import { getDashboardContract, getStethContract } from 'contracts';
+import { Address, formatEther } from 'viem';
+import { getDashboardContract } from 'contracts';
 import {
   logError,
   logInfo,
   callReadMethodSilent,
-  reportMetrics,
   getVaultReportHistory,
+  cache,
+  getGrossStakingAPR,
+  getGrossStakingRewards,
+  getNetStakingAPR,
+  getEfficiency,
+  getBottomLine,
+  getRebaseRewardFromCache,
 } from 'utils';
 
 import {
@@ -35,7 +41,12 @@ export const renderSimpleCharts = async (
   );
   let history;
   try {
-    history = await getVaultReportHistory({ vault, cid, limit });
+    history = await getVaultReportHistory({
+      vault,
+      cid,
+      limit,
+      direction: 'asc',
+    });
   } catch (e) {
     logError('Error getting report history:', e);
     process.exit(1);
@@ -45,83 +56,80 @@ export const renderSimpleCharts = async (
     process.exit(1);
   }
 
-  // Получаем контракты
-  const stEthContract = await getStethContract();
-
-  // Считаем метрики для каждой пары (current, previous)
-  const grossStakingAPR = [];
-  const netStakingAPR = [];
-  const efficiency = [];
+  // Calculate metrics for each pair (current, previous)
+  const grossStakingAPRPercent = [];
+  const netStakingAPRPercent = [];
+  const efficiencyPercent = [];
   const bottomLine = [];
+  // TODO: log chart
+  // eslint-disable-next-line sonarjs/no-unused-collection
+  const grossStakingRewards = [];
   const timeLabels = [];
-  for (let i = history.length - 1; i > 0; i--) {
+
+  // Get nodeOperatorFeeBP for each report block with caching
+  const nodeOperatorFeeBPs: bigint[] = [];
+  for (const r of history) {
+    let fee = await cache.getNodeOperatorFeeBP(vault, r.blockNumber);
+    if (fee === null) {
+      fee = await callReadMethodSilent(dashboardContract, 'nodeOperatorFeeBP', {
+        blockNumber: BigInt(r.blockNumber),
+      });
+      await cache.setNodeOperatorFeeBP(vault, r.blockNumber, fee);
+    }
+    nodeOperatorFeeBPs.push(fee);
+  }
+
+  for (let i = 1; i < history.length; i++) {
     const current = history[i];
     const previous = history[i - 1];
-    if (!current || !previous) continue;
-    // Получаем nodeOperatorFeeBP на момент current.blockNumber
-    let nodeOperatorFeeBP = 0n;
-    try {
-      nodeOperatorFeeBP = await callReadMethodSilent(
-        dashboardContract,
-        'nodeOperatorFeeBP',
-      );
-    } catch (e) {
-      logError('Error getting nodeOperatorFeeBP:', e);
-    }
-    // Получаем totalSupply и getTotalShares для расчета shareRate
-    let totalSupplyPrev = 1n,
-      getTotalSharesPrev = 1n,
-      totalSupplyCurr = 1n,
-      getTotalSharesCurr = 1n;
-    try {
-      [totalSupplyPrev, getTotalSharesPrev] = await Promise.all([
-        callReadMethodSilent(stEthContract, 'totalSupply', {
-          blockNumber: BigInt(current.blockNumber - 10),
-        }),
-        callReadMethodSilent(stEthContract, 'getTotalShares', {
-          blockNumber: BigInt(current.blockNumber - 1),
-        }),
-      ]);
-      [totalSupplyCurr, getTotalSharesCurr] = await Promise.all([
-        callReadMethodSilent(stEthContract, 'totalSupply', {
-          blockNumber: BigInt(current.blockNumber),
-        }),
-        callReadMethodSilent(stEthContract, 'getTotalShares', {
-          blockNumber: BigInt(current.blockNumber),
-        }),
-      ]);
-    } catch (e) {
-      logError('Error getting stETH data:', e);
-    }
-    const shareRatePrev =
-      getTotalSharesPrev !== 0n
-        ? (totalSupplyPrev * 10n ** 27n) / getTotalSharesPrev
-        : 0n;
-    const shareRateCurr =
-      getTotalSharesCurr !== 0n
-        ? (totalSupplyCurr * 10n ** 27n) / getTotalSharesCurr
-        : 0n;
-    const stEthLiabilityRebaseRewards =
-      shareRatePrev * BigInt(previous.data.liability_shares) -
-      shareRateCurr * BigInt(current.data.liability_shares);
 
-    const metrics = reportMetrics({
-      reports: { current, previous },
-      nodeOperatorFeeBP,
-      stEthLiabilityRebaseRewards,
+    if (!current || !previous) continue;
+
+    const stEthLiabilityRebaseRewards = await getRebaseRewardFromCache({
+      vaultAddress: vault,
+      blockNumberCurr: current.blockNumber,
+      blockNumberPrev: previous.blockNumber,
+      liabilitySharesCurr: BigInt(current.data.liability_shares),
+      liabilitySharesPrev: BigInt(previous.data.liability_shares),
     });
-    grossStakingAPR.push(metrics.grossStakingAPR_percent);
-    netStakingAPR.push(metrics.netStakingAPR_percent);
-    efficiency.push(metrics.efficiency_percent);
-    bottomLine.push(Number(metrics.bottomLine) / 1e18); // ETH
+
+    grossStakingRewards.push(
+      Number(formatEther(getGrossStakingRewards(current, previous), 'gwei')),
+    );
+    grossStakingAPRPercent.push(
+      getGrossStakingAPR(current, previous).apr_percent,
+    );
+    netStakingAPRPercent.push(
+      getNetStakingAPR(current, previous, nodeOperatorFeeBPs[i] ?? 0n)
+        .apr_percent,
+    );
+    efficiencyPercent.push(
+      getEfficiency(
+        current,
+        previous,
+        nodeOperatorFeeBPs[i] ?? 0n,
+        stEthLiabilityRebaseRewards,
+      ).apr_percent,
+    );
+    bottomLine.push(
+      Number(
+        getBottomLine(
+          current,
+          previous,
+          nodeOperatorFeeBPs[i] ?? 0n,
+          stEthLiabilityRebaseRewards,
+        ),
+      ),
+    );
+
     timeLabels.push(formatTimestamp(current.timestamp));
   }
 
-  logGrossStakingAPRChart(grossStakingAPR, timeLabels);
+  logGrossStakingAPRChart(grossStakingAPRPercent, timeLabels);
   logInfo('\n');
-  logNetStakingAPRChart(netStakingAPR, timeLabels);
+  logNetStakingAPRChart(netStakingAPRPercent, timeLabels);
   logInfo('\n');
-  logEfficiencyChart(efficiency, timeLabels);
+  logEfficiencyChart(efficiencyPercent, timeLabels);
   logInfo('\n');
   logBottomLineChart(bottomLine, timeLabels);
   logInfo('\n');

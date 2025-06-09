@@ -33,12 +33,12 @@ export const getReportStatisticData = async (args: StatisticDataArgs) => {
     calculateShareRate(reportRefBlockNumber),
   ]);
 
-  const stEthLiabilityRebaseRewards = calculateRebaseReward(
+  const stEthLiabilityRebaseRewards = calculateRebaseReward({
     shareRatePrev,
     shareRateCurr,
-    BigInt(reports.current.data.liability_shares),
-    BigInt(reports.previous.data.liability_shares),
-  );
+    sharesPrev: BigInt(reports.previous.data.liability_shares),
+    sharesCurr: BigInt(reports.current.data.liability_shares),
+  });
 
   const metrics = reportMetrics({
     reports: { current: reports.current, previous: reports.previous },
