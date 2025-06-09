@@ -1,7 +1,11 @@
 import { Address } from 'viem';
 
-import { getDashboardContract, getStethContract } from 'contracts';
-import { calculateRebaseReward, callReadMethodSilent } from 'utils';
+import { getDashboardContract } from 'contracts';
+import {
+  calculateRebaseReward,
+  callReadMethodSilent,
+  calculateShareRate,
+} from 'utils';
 
 import { VaultReport } from './report.js';
 import { reportMetrics } from './report-statistic.js';
@@ -14,7 +18,6 @@ type StatisticDataArgs = {
 export const getReportStatisticData = async (args: StatisticDataArgs) => {
   const { dashboard, reports } = args;
   const dashboardContract = getDashboardContract(dashboard);
-  const stEthContract = await getStethContract();
   const reportRefBlockNumber = reports.current.blockNumber;
   const reportPrevBlockNumber = reports.previous.blockNumber;
 
@@ -25,24 +28,10 @@ export const getReportStatisticData = async (args: StatisticDataArgs) => {
       blockNumber: BigInt(reportRefBlockNumber),
     },
   );
-  const [totalSupplyPrev, getTotalSharesPrev] = await Promise.all([
-    callReadMethodSilent(stEthContract, 'totalSupply', {
-      blockNumber: BigInt(reportPrevBlockNumber),
-    }),
-    callReadMethodSilent(stEthContract, 'getTotalShares', {
-      blockNumber: BigInt(reportPrevBlockNumber),
-    }),
+  const [shareRatePrev, shareRateCurr] = await Promise.all([
+    calculateShareRate(reportPrevBlockNumber),
+    calculateShareRate(reportRefBlockNumber),
   ]);
-  const [totalSupplyCurr, getTotalSharesCurr] = await Promise.all([
-    callReadMethodSilent(stEthContract, 'totalSupply', {
-      blockNumber: BigInt(reportRefBlockNumber),
-    }),
-    callReadMethodSilent(stEthContract, 'getTotalShares', {
-      blockNumber: BigInt(reportRefBlockNumber),
-    }),
-  ]);
-  const shareRatePrev = (totalSupplyPrev * 10n ** 27n) / getTotalSharesPrev;
-  const shareRateCurr = (totalSupplyCurr * 10n ** 27n) / getTotalSharesCurr;
 
   const stEthLiabilityRebaseRewards = calculateRebaseReward(
     shareRatePrev,
