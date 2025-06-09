@@ -1,4 +1,3 @@
-export * from './voting.js';
 export * from './account.js';
 export * from './pdg-helpers.js';
 export * from './vault/index.js';
