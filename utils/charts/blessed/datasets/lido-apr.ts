@@ -36,6 +36,7 @@ export const buildLidoAPRChart = (args: BuildChartArgs) => {
       x: adaptiveLabels,
       y,
       style: { line: LINE_COLORS.lidoAPR },
+      yLabel: 'APR, %',
     },
   };
 };

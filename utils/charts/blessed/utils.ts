@@ -86,6 +86,7 @@ export const lineOpts = (
     yLabel: yLabel,
     minY: range.minY,
     maxY: range.maxY,
+    // TODO: dynamic numYLabels
     numYLabels: NUM_Y_LABELS,
   };
   if (opts && opts.legendNames && opts.legendColors) {
