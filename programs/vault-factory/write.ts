@@ -110,6 +110,7 @@ vaultFactoryWrite
             data: [
               ['Vault Address', tx?.vault],
               ['Dashboard Address', tx?.dashboard],
+              ['Owner Address', tx?.owner],
               ['Transaction Hash', tx?.tx],
               ['Block Number', tx?.blockNumber],
             ],

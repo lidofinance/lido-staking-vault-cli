@@ -79,6 +79,12 @@ export const VaultFactoryAbi = [
       {
         indexed: true,
         internalType: 'address',
+        name: 'vault',
+        type: 'address',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
         name: 'admin',
         type: 'address',
       },
@@ -93,12 +99,6 @@ export const VaultFactoryAbi = [
         indexed: true,
         internalType: 'address',
         name: 'vault',
-        type: 'address',
-      },
-      {
-        indexed: true,
-        internalType: 'address',
-        name: 'owner',
         type: 'address',
       },
     ],
@@ -187,11 +187,6 @@ export const VaultFactoryAbi = [
         internalType: 'struct Permissions.RoleAssignment[]',
         name: '_roleAssignments',
         type: 'tuple[]',
-      },
-      {
-        internalType: 'bytes',
-        name: '_extraParams',
-        type: 'bytes',
       },
     ],
     name: 'createVaultWithDashboard',

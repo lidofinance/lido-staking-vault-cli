@@ -33,7 +33,6 @@ export const createVault = async (
       nodeOperatorFeeBP,
       confirmExpiry,
       otherRoles,
-      '0x',
     ],
     value: parseEther('1'),
   });
@@ -47,11 +46,17 @@ export const createVault = async (
 
   const vaultEvent = events.find((event) => event.eventName === 'VaultCreated');
   const vault = vaultEvent?.args.vault;
-  const dashboard = vaultEvent?.args.owner;
+
+  const dashboardEvent = events.find(
+    (event) => event.eventName === 'DashboardCreated',
+  );
+  const dashboard = dashboardEvent?.args.dashboard;
+  const owner = dashboardEvent?.args.admin;
 
   return {
     vault,
     dashboard,
+    owner,
     tx,
     blockNumber: receipt.blockNumber,
   };
