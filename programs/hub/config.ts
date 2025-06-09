@@ -1,66 +1,6 @@
 import { ReadProgramCommandConfig } from 'utils';
 
 export const readCommandConfig: ReadProgramCommandConfig = {
-  calculateVaultTreasuryFees: {
-    name: 'calc-t-fee',
-    description: 'get calculated vault treasury fees',
-    arguments: {
-      _reportValuation: {
-        name: 'r-val',
-        description: 'report valuation',
-      },
-      _preTotalShares: {
-        name: 'pre-t-shares',
-        description: 'pre total shares',
-      },
-      _preTotalPooledEther: {
-        name: 'pre-t-pe',
-        description: 'pre total pooled ether',
-      },
-      _postInternalShares: {
-        name: 'post-i-shares',
-        description: 'post internal shares',
-      },
-      _postInternalEther: {
-        name: 'post-i-ether',
-        description: 'post internal ether',
-      },
-      _sharesToMintAsLidoCoreFees: {
-        name: 's-mlc-fees',
-        description: 'shares to mint as lido core fees',
-      },
-    },
-  },
-  calculateVaultsRebase: {
-    name: 'calc-v-rebase',
-    description: 'get calculated vaults rebase',
-    arguments: {
-      vaultsValuations: {
-        name: 'v-vals',
-        description: 'vaults valuations',
-      },
-      _preTotalShares: {
-        name: 'pre-t-shares',
-        description: 'pre total shares',
-      },
-      _preTotalPooledEther: {
-        name: 'pre-t-pe',
-        description: 'pre total pooled ether',
-      },
-      _postInternalShares: {
-        name: 'post-i-shares',
-        description: 'post internal shares',
-      },
-      _postInternalEther: {
-        name: 'post-i-ether',
-        description: 'post internal ether',
-      },
-      _sharesToMintAsLidoCoreFees: {
-        name: 's-mlc-fees',
-        description: 'shares to mint as lido core fees',
-      },
-    },
-  },
   isPaused: {
     name: 'is-paused',
     description: 'get is paused boolean',
@@ -68,14 +8,20 @@ export const readCommandConfig: ReadProgramCommandConfig = {
   isVaultHealthy: {
     name: 'is-v-h',
     description: 'get is vault healthy boolean',
+    arguments: {
+      _vault: {
+        name: 'vault',
+        description: 'vault address',
+      },
+    },
   },
   vaultsCount: {
     name: 'v-count',
-    description: 'get connected vaults count',
+    description: 'get the number of vaults connected to the hub',
   },
-  vaultSocket: {
-    name: 'vault-socket-i',
-    description: 'get vault socket by index',
+  vaultByIndex: {
+    name: 'v-by-index',
+    description: 'get the vault address by its index',
     arguments: {
       _index: {
         name: 'index',
@@ -83,9 +29,9 @@ export const readCommandConfig: ReadProgramCommandConfig = {
       },
     },
   },
-  vaultSocket_vault: {
-    name: 'vault-socket-v',
-    description: 'get vault socket by vault address',
+  vaultConnection: {
+    name: 'v-connection',
+    description: 'get connection parameters struct for the given vault',
     arguments: {
       _vault: {
         name: 'vault',
@@ -93,24 +39,30 @@ export const readCommandConfig: ReadProgramCommandConfig = {
       },
     },
   },
-  batchVaultsInfo: {
-    name: 'batch-v-info',
-    description: 'get batch of vaults info',
+  vaultRecord: {
+    name: 'v-record',
+    description: 'get the accounting record struct for the given vault',
     arguments: {
-      _offset: {
-        name: 'offset',
-        description: 'offset of the vault in the batch (indexes start from 0)',
-      },
-      _limit: {
-        name: 'limit',
-        description: 'limit of the batch',
+      _vault: {
+        name: 'vault',
+        description: 'vault address',
       },
     },
   },
-  isVaultHealthyAsOfLatestReport: {
-    name: 'is-v-healthy-latest-report',
+  isVaultConnected: {
+    name: 'is-v-connected',
+    description: 'check if the vault is connected to the hub',
+    arguments: {
+      _vault: {
+        name: 'vault',
+        description: 'vault address',
+      },
+    },
+  },
+  totalValue: {
+    name: 'total-value',
     description:
-      'get checks if the vault is healthy by comparing its total value after applying rebalance threshold against current liability shares',
+      'get total value of the vault (as of the latest report received)',
     arguments: {
       _vault: {
         name: 'vault',
@@ -118,8 +70,77 @@ export const readCommandConfig: ReadProgramCommandConfig = {
       },
     },
   },
-  latestReportData: {
+  liabilityShares: {
+    name: 'liability-shares',
+    description: 'get liability shares of the vault',
+    arguments: {
+      _vault: {
+        name: 'vault',
+        description: 'vault address',
+      },
+    },
+  },
+  locked: {
+    name: 'locked',
+    description: 'get llocked amount of ether for the vault',
+    arguments: {
+      _vault: {
+        name: 'vault',
+        description: 'vault address',
+      },
+    },
+  },
+  unlocked: {
+    name: 'unlocked',
+    description:
+      'get amount of ether that is part of the vault`s total value and is not locked as a collateral',
+    arguments: {
+      _vault: {
+        name: 'vault',
+        description: 'vault address',
+      },
+    },
+  },
+  latestReport: {
     name: 'latest-report-data',
-    description: 'get latest report data',
+    description: 'get latest report for the vault',
+    arguments: {
+      _vault: {
+        name: 'vault',
+        description: 'vault address',
+      },
+    },
+  },
+  latestVaultReportTimestamp: {
+    name: 'latest-v-report-ts',
+    description: 'get latest report timestamp for the vault',
+    arguments: {
+      _vault: {
+        name: 'vault',
+        description: 'vault address',
+      },
+    },
+  },
+  isReportFresh: {
+    name: 'is-report-fresh',
+    description:
+      'check if if the report for the vault is fresh, false otherwise',
+    arguments: {
+      _vault: {
+        name: 'vault',
+        description: 'vault address',
+      },
+    },
+  },
+  rebalanceShortfall: {
+    name: 'rebalance-shortfall',
+    description:
+      'get amount to rebalance or UINT256_MAX if it`s impossible to make the vault healthy using rebalance',
+    arguments: {
+      _vault: {
+        name: 'vault',
+        description: 'vault address',
+      },
+    },
   },
 };

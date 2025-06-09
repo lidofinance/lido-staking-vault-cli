@@ -1,4 +1,3 @@
-import { Address } from 'viem';
 import { Option } from 'commander';
 
 import { getVaultHubContract } from 'contracts';
@@ -10,7 +9,6 @@ import {
   logResult,
   getCommandsJson,
   logInfo,
-  stringToAddress,
 } from 'utils';
 import { VaultHubAbi } from 'abi';
 
@@ -50,37 +48,32 @@ generateReadCommands(
 
 // // Works fine
 
-VaultHubRead.command('vi')
-  .description('get vault and vault socket by index')
+VaultHubRead.command('vault-info-by-index')
+  .aliases(['vi'])
+  .description('get vault and vault connection parameters by index')
   .argument('<index>', 'index')
   .action(async (index: string) => {
     const biIndex = BigInt(index);
     const contract = await getVaultHubContract();
 
     try {
-      const vault = await callReadMethod(contract, 'vault', [biIndex]);
-      const vaultSocket = await callReadMethod(contract, 'vaultSocket', [
-        biIndex,
-      ]);
+      const vault = await callReadMethod(contract, 'vaultByIndex', [biIndex]);
+      const vaultConnection = await callReadMethod(
+        contract,
+        'vaultConnection',
+        [vault],
+      );
 
       logResult({
         data: [
           ['Vault', vault],
-          ['Vault Socket', vaultSocket],
+          ...Object.entries(vaultConnection).map(([key, value]) => [
+            key,
+            value.toString(),
+          ]),
         ],
       });
     } catch (err) {
       printError(err, 'Error when getting vault and vault socket');
     }
-  });
-
-VaultHubRead.command('rebalance-shortfall')
-  .description(
-    'estimate ether amount to make the vault healthy using rebalance',
-  )
-  .argument('<address>', 'vault address', stringToAddress)
-  .action(async (address: Address) => {
-    const contract = await getVaultHubContract();
-
-    await callReadMethod(contract, 'rebalanceShortfall', [address]);
   });
