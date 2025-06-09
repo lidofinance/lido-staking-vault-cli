@@ -148,6 +148,7 @@ export const getBottomLine = (
     previous,
     nodeOperatorFeeBP,
   );
+
   return netStakingRewards - stEthLiabilityRebaseRewards;
 };
 
@@ -221,15 +222,6 @@ export const reportMetrics = (args: ReportMetricsArgs) => {
     stEthLiabilityRebaseRewards,
   );
 
-  // For UI: convert to float percent (divide by SCALE, then by 100)
-  const grossStakingAPR_bps = grossStakingAPR.apr_bps;
-  const netStakingAPR_bps = netStakingAPR.apr_bps;
-  const efficiency_bps = efficiency.apr_bps;
-
-  const grossStakingAPR_percent = grossStakingAPR.apr_percent;
-  const netStakingAPR_percent = netStakingAPR.apr_percent;
-  const efficiency_percent = efficiency.apr_percent;
-
   return {
     grossStakingRewards,
     nodeOperatorRewards,
@@ -239,11 +231,5 @@ export const reportMetrics = (args: ReportMetricsArgs) => {
     netStakingAPR,
     bottomLine,
     efficiency,
-    grossStakingAPR_bps,
-    netStakingAPR_bps,
-    efficiency_bps,
-    grossStakingAPR_percent,
-    netStakingAPR_percent,
-    efficiency_percent,
   };
 };

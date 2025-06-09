@@ -1,8 +1,9 @@
-import { callReadMethodSilent } from 'utils/contract.js';
-import { VaultReport } from './report.js';
-import { getDashboardContract, getStethContract } from 'contracts';
 import { Address } from 'viem';
 
+import { getDashboardContract, getStethContract } from 'contracts';
+import { calculateRebaseReward, callReadMethodSilent } from 'utils';
+
+import { VaultReport } from './report.js';
 import { reportMetrics } from './report-statistic.js';
 
 type StatisticDataArgs = {
@@ -15,17 +16,21 @@ export const getReportStatisticData = async (args: StatisticDataArgs) => {
   const dashboardContract = getDashboardContract(dashboard);
   const stEthContract = await getStethContract();
   const reportRefBlockNumber = reports.current.blockNumber;
+  const reportPrevBlockNumber = reports.previous.blockNumber;
 
   const nodeOperatorFeeBP = await callReadMethodSilent(
     dashboardContract,
     'nodeOperatorFeeBP',
+    {
+      blockNumber: BigInt(reportRefBlockNumber),
+    },
   );
   const [totalSupplyPrev, getTotalSharesPrev] = await Promise.all([
     callReadMethodSilent(stEthContract, 'totalSupply', {
-      blockNumber: BigInt(reportRefBlockNumber - 10),
+      blockNumber: BigInt(reportPrevBlockNumber),
     }),
     callReadMethodSilent(stEthContract, 'getTotalShares', {
-      blockNumber: BigInt(reportRefBlockNumber - 1),
+      blockNumber: BigInt(reportPrevBlockNumber),
     }),
   ]);
   const [totalSupplyCurr, getTotalSharesCurr] = await Promise.all([
@@ -39,9 +44,12 @@ export const getReportStatisticData = async (args: StatisticDataArgs) => {
   const shareRatePrev = (totalSupplyPrev * 10n ** 27n) / getTotalSharesPrev;
   const shareRateCurr = (totalSupplyCurr * 10n ** 27n) / getTotalSharesCurr;
 
-  const stEthLiabilityRebaseRewards =
-    shareRatePrev * BigInt(reports.previous.data.liability_shares) -
-    shareRateCurr * BigInt(reports.current.data.liability_shares);
+  const stEthLiabilityRebaseRewards = calculateRebaseReward(
+    shareRatePrev,
+    shareRateCurr,
+    BigInt(reports.current.data.liability_shares),
+    BigInt(reports.previous.data.liability_shares),
+  );
 
   const metrics = reportMetrics({
     reports: { current: reports.current, previous: reports.previous },
