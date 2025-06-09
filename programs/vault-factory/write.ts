@@ -106,6 +106,10 @@ vaultFactoryWrite
 
         logResult({});
         transactions.forEach((tx) => {
+          if (program.opts().populateTx) {
+            logInfo('Populated transaction data:', tx);
+            return;
+          }
           logTable({
             data: [
               ['Vault Address', tx?.vault],

@@ -1,10 +1,18 @@
-import { Address, SimulateContractReturnType, TransactionReceipt } from 'viem';
+import {
+  Address,
+  SimulateContractReturnType,
+  TransactionReceipt,
+  encodeFunctionData,
+  Hex,
+  Abi,
+} from 'viem';
 import { waitForTransactionReceipt } from 'viem/actions';
+import { program } from 'command';
 
 import { getAccount, getPublicClient } from 'providers';
 import { getChain } from 'configs';
 
-import { showSpinner, printError, logResult } from 'utils';
+import { showSpinner, printError, logResult, logInfo } from 'utils';
 
 export type ReadContract = {
   address: Address;
@@ -14,6 +22,7 @@ export type ReadContract = {
 export type PartialContract = ReadContract & {
   simulate: Record<string, (...args: any[]) => Promise<any>>;
   write: Record<string, (...args: any[]) => Promise<any>>;
+  abi: Abi;
 };
 
 type Writeable<T> = { -readonly [P in keyof T]: T[P] };
@@ -231,6 +240,23 @@ export const isContractAddress = async (address: Address) => {
   return bytecode !== undefined && bytecode !== '0x';
 };
 
+export const populateWriteTx = async <
+  T extends PartialContract,
+  M extends keyof T['write'] & string,
+>(args: {
+  contract: T;
+  methodName: M;
+  payload: Writeable<GetFirst<Parameters<T['write'][M]>>> | never[];
+}): Promise<Hex> => {
+  const { contract, methodName, payload } = args;
+
+  return encodeFunctionData({
+    abi: contract.abi,
+    functionName: methodName as any,
+    args: payload as any,
+  });
+};
+
 export const callWriteMethodWithReceipt = async <
   T extends PartialContract,
   M extends keyof T['write'] & string,
@@ -252,6 +278,23 @@ export const callWriteMethodWithReceipt = async <
     silent = false,
     skipError = false,
   } = args;
+  if (program.opts().populateTx) {
+    const data = await populateWriteTx({
+      contract,
+      methodName,
+      payload,
+    });
+    logInfo('Populated transaction data:', data);
+    logResult({
+      data: [
+        ['Method name', methodName],
+        ['Contract', contract.address],
+        ['Value', value ? value.toString() : '0'],
+      ],
+    });
+
+    return { receipt: undefined as any, tx: data as any };
+  }
   const publicClient = getPublicClient();
 
   const tx = await callWriteMethod({

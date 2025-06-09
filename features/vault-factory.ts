@@ -8,6 +8,7 @@ import {
   printError,
   showSpinner,
 } from 'utils';
+import { program } from 'command';
 
 export const createVault = async (
   payload: VaultWithDashboard,
@@ -38,6 +39,9 @@ export const createVault = async (
     value: parseEther('1'),
   });
   if (!result) return;
+  if (program.opts().populateTx) {
+    return { tx: result.tx };
+  }
   const { receipt, tx } = result;
 
   const events = parseEventLogs({
