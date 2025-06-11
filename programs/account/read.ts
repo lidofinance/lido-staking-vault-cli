@@ -74,7 +74,7 @@ accountRead
     }
   });
 
-account
+accountRead
   .command('steth-allowance-populate-tx')
   .alias('steth-allowance-tx')
   .description('populate tx for steth allowance')
@@ -103,7 +103,7 @@ accountRead
     await callReadMethod(stethContract, 'allowance', [accountAddress, address]);
   });
 
-account
+accountRead
   .command('wsteth-allowance-populate-tx')
   .alias('wsteth-allowance-tx')
   .description('populate tx for wsteth allowance')
@@ -121,7 +121,7 @@ account
     logInfo(tx);
   });
 
-account
+accountRead
   .command('get-wsteth-allowance')
   .description('get wsteth allowance for an address')
   .argument('<address>', 'address to get allowance for', stringToAddress)
