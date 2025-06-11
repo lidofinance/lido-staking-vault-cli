@@ -1,8 +1,5 @@
-import { Address, encodeFunctionData, formatEther, parseEther } from 'viem';
-import { generatePrivateKey } from 'viem/accounts';
-import { program } from 'command';
 import { Option } from 'commander';
-import { Wallet } from '@kaiachain/ethers-ext';
+import { Address, encodeFunctionData, formatEther, parseEther } from 'viem';
 
 import { getStethContract, getWstethContract } from 'contracts';
 import { getWalletWithAccount, getPublicClient, getAccount } from 'providers';
@@ -12,36 +9,47 @@ import {
   logResult,
   getCommandsJson,
   logInfo,
-  callWriteMethodWithReceipt,
   stringToAddress,
-  confirmOperation,
   callReadMethod,
 } from 'utils';
 
-const account = program
-  .command('account')
-  .description('connected account info');
+import { account } from './main.js';
 
-account.addOption(new Option('-cmd2json'));
-account.on('option:-cmd2json', function () {
-  logInfo(getCommandsJson(account));
+const accountRead = account
+  .command('read')
+  .aliases(['r'])
+  .description('report read commands');
+
+accountRead.addOption(new Option('-cmd2json'));
+accountRead.on('option:-cmd2json', function () {
+  logInfo(getCommandsJson(accountRead));
   process.exit();
 });
 
-account
+accountRead
   .command('info')
   .description('general account info.')
-  .action(async () => {
-    const walletClient = getWalletWithAccount();
+  .argument('[address]', 'wallet address to check (optional)', stringToAddress)
+  .action(async (providedAddress?: Address) => {
     const publicClient = getPublicClient();
-    const address = walletClient.account?.address;
+    let address: Address;
 
-    if (!address) {
-      printError(
-        new Error('No account address found'),
-        'No account address found',
-      );
-      return;
+    if (providedAddress) {
+      // Use provided address
+      address = providedAddress;
+    } else {
+      // Use wallet address from config
+      const walletClient = getWalletWithAccount();
+      const walletAddress = walletClient.account?.address;
+
+      if (!walletAddress) {
+        printError(
+          new Error('No account address found'),
+          'No account address found. Please provide an address as argument or configure PRIVATE_KEY.',
+        );
+        return;
+      }
+      address = walletAddress;
     }
 
     try {
@@ -67,49 +75,6 @@ account
   });
 
 account
-  .command('generate-key')
-  .description(
-    'generate a new key. Disclaimer: this command is not recommended for production use.',
-  )
-  .action(async () => {
-    const privateKey = generatePrivateKey();
-    logInfo(`Private key: ${privateKey}`);
-  });
-
-account
-  .command('generate-encrypted-account')
-  .description('generate a new encrypted account')
-  .argument('<password>', 'password for the encrypted account')
-  .action(async (password: string) => {
-    const randomPrivateKey = Wallet.createRandom();
-    const encrypted = await randomPrivateKey.encrypt(password);
-
-    logInfo(`Encrypted account: ${encrypted}`);
-  });
-
-account
-  .command('steth-allowance')
-  .description('set allowance for steth contract')
-  .argument('<address>', 'address to set allowance for', stringToAddress)
-  .argument('<amount>', 'amount of steth to allow (in stETH)')
-  .action(async (address: Address, amount: string) => {
-    const stethContract = await getStethContract();
-
-    const confirm = await confirmOperation(
-      `Are you sure you want to set allowance ${formatEther(
-        parseEther(amount),
-      )} for ${address}?`,
-    );
-    if (!confirm) return;
-
-    await callWriteMethodWithReceipt({
-      contract: stethContract,
-      methodName: 'approve',
-      payload: [address, parseEther(amount)],
-    });
-  });
-
-account
   .command('steth-allowance-populate-tx')
   .alias('steth-allowance-tx')
   .description('populate tx for steth allowance')
@@ -127,7 +92,7 @@ account
     logInfo(tx);
   });
 
-account
+accountRead
   .command('get-steth-allowance')
   .description('get steth allowance for an address')
   .argument('<address>', 'address to get allowance for', stringToAddress)
@@ -136,28 +101,6 @@ account
     const stethContract = await getStethContract();
 
     await callReadMethod(stethContract, 'allowance', [accountAddress, address]);
-  });
-
-account
-  .command('wsteth-allowance')
-  .description('set allowance for wsteth contract')
-  .argument('<address>', 'address to set allowance for', stringToAddress)
-  .argument('<amount>', 'amount of wsteth to allow')
-  .action(async (address: Address, amount: string) => {
-    const wstethContract = await getWstethContract();
-
-    const confirm = await confirmOperation(
-      `Are you sure you want to set allowance ${formatEther(
-        parseEther(amount),
-      )} for ${address}?`,
-    );
-    if (!confirm) return;
-
-    await callWriteMethodWithReceipt({
-      contract: wstethContract,
-      methodName: 'approve',
-      payload: [address, parseEther(amount)],
-    });
   });
 
 account

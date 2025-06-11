@@ -6,9 +6,9 @@ import {
   fetchAndVerifyFile,
   getVaultReport,
   getVaultReportProofByCid,
-  confirmPrompt,
   logCancel,
   callWriteMethodWithReceipt,
+  confirmOperation,
 } from 'utils';
 
 type SubmitReportArgs = {
@@ -35,14 +35,13 @@ export const submitReport = async ({ vault, gateway }: SubmitReportArgs) => {
   });
   await fetchAndVerifyFile(report.proofsCID, gateway);
 
-  const { confirm } = await confirmPrompt(
+  const confirm = await confirmOperation(
     `Are you sure you want to submit report for vault ${vault}?
         Total value wei: ${report.data.total_value_wei}
         In out delta: ${report.data.in_out_delta}
         Fee: ${report.data.fee}
         Liability shares: ${report.data.liability_shares}
         `,
-    'confirm',
   );
   if (!confirm) {
     logCancel('Report not submitted');

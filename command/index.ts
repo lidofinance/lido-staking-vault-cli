@@ -9,3 +9,7 @@ program.option(
   '--populate-tx',
   'output raw transaction data instead of sending',
 );
+program.option(
+  '-y, --yes',
+  'automatically confirm prompts and proceed without asking',
+);

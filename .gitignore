@@ -31,3 +31,6 @@ wallets/*
 
 # IPFS cache
 ipfs-cache/*
+
+# lsv-web-terminal
+lsv-web-terminal

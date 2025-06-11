@@ -1,5 +1,5 @@
 import { Address } from 'viem';
-import { program } from 'commander';
+import { program } from 'command';
 
 import { logCancel } from 'utils';
 
@@ -52,6 +52,10 @@ export const confirmFund = async (
 };
 
 export const confirmOperation = async (message: string) => {
+  // Check if --yes flag is provided
+  const opts = program.opts();
+  if (opts.yes) return true;
+
   const { confirm } = await confirmPrompt(message, 'confirm');
 
   if (!confirm) {
