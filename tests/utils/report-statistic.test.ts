@@ -75,8 +75,8 @@ describe('reportMetrics', () => {
     expect(res).toHaveProperty('efficiency_percent');
     // Проверяем что значения APR положительные
     expect(Number(res.grossStakingAPR)).toBeGreaterThan(0);
-    expect(Number(res.grossStakingAPR_bps)).toBeGreaterThan(0);
-    expect(Number(res.grossStakingAPR_percent)).toBeGreaterThan(0);
+    expect(Number(res.grossStakingAPR.apr_bps)).toBeGreaterThan(0);
+    expect(Number(res.grossStakingAPR.apr_percent)).toBeGreaterThan(0);
   });
 
   it('returns all expected fields with zero rewards', () => {
@@ -102,8 +102,8 @@ describe('reportMetrics', () => {
     });
     expect(res.grossStakingRewards).toBe(0n);
     expect(res.grossStakingAPR).toBe(0n);
-    expect(res.grossStakingAPR_bps).toBe(0);
-    expect(res.grossStakingAPR_percent).toBe(0);
+    expect(res.grossStakingAPR.apr_bps).toBe(0);
+    expect(res.grossStakingAPR.apr_percent).toBe(0);
   });
 
   it('returns all expected fields with negative rewards', () => {
@@ -129,8 +129,8 @@ describe('reportMetrics', () => {
     });
     expect(res.grossStakingRewards).toBe(-10_000_000_000_000_000_000n);
     expect(Number(res.grossStakingAPR)).toBeLessThan(0);
-    expect(Number(res.grossStakingAPR_bps)).toBeLessThan(0);
-    expect(Number(res.grossStakingAPR_percent)).toBeLessThan(0);
+    expect(Number(res.grossStakingAPR.apr_bps)).toBeLessThan(0);
+    expect(Number(res.grossStakingAPR.apr_percent)).toBeLessThan(0);
   });
 
   it('handles very small rewards (edge case)', () => {
@@ -155,7 +155,7 @@ describe('reportMetrics', () => {
       expect(res).toHaveProperty(key);
     });
     expect(res.grossStakingRewards).toBe(1n);
-    expect(Number(res.grossStakingAPR_percent)).toBeGreaterThanOrEqual(0);
+    expect(Number(res.grossStakingAPR.apr_percent)).toBeGreaterThanOrEqual(0);
   });
 
   it('handles very large values (big TVL and rewards)', () => {
@@ -182,7 +182,7 @@ describe('reportMetrics', () => {
     expect(res.grossStakingRewards).toBe(
       10_000_000_000_000_000_000_000_000_000n,
     );
-    expect(Number(res.grossStakingAPR_percent)).toBeGreaterThan(0);
+    expect(Number(res.grossStakingAPR.apr_percent)).toBeGreaterThan(0);
   });
 
   it('handles nodeOperatorFeeBP = 0 (no operator fee)', () => {
@@ -247,7 +247,7 @@ describe('reportMetrics', () => {
       nodeOperatorFeeBP: 100n,
       stEthLiabilityRebaseRewards: 0n,
     });
-    expect(Number(res.grossStakingAPR_percent)).toBeGreaterThan(1000000); // Очень большой APR
+    expect(Number(res.grossStakingAPR.apr_percent)).toBeGreaterThan(1000000); // Очень большой APR
   });
 
   it('handles very long period (1 year)', () => {
@@ -268,6 +268,6 @@ describe('reportMetrics', () => {
       nodeOperatorFeeBP: 100n,
       stEthLiabilityRebaseRewards: 0n,
     });
-    expect(Number(res.grossStakingAPR_percent)).toBeCloseTo(10, 1); // ~10% годовых
+    expect(Number(res.grossStakingAPR.apr_percent)).toBeCloseTo(10, 1); // ~10% годовых
   });
 });
