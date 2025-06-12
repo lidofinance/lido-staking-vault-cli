@@ -197,7 +197,7 @@ export async function POST(request: NextRequest) {
             CHAIN_ID: '560048',
             DEPLOYED: 'deployed-hoodi-vaults-testnet.json',
             EL_URL: elUrl || process.env.EL_URL,
-            // Только минимальные настройки для npm
+            // Only minimal npm settings
             HOME: '/tmp',
           },
           stdio: ['pipe', 'pipe', 'pipe'],
