@@ -9,8 +9,7 @@
   "bin": "dist/index.js",
   "scripts": {
     "start": "tsx ./index.ts",
-    "build": "npx tsc && tsc-alias && npm run copy-assets",
-    "copy-assets": "cp utils/spinner/spinners.json dist/utils/spinner/",
+    "build": "npx tsc && tsc-alias",
     "types": "echo 'No types yet'",
     "lint": "eslint . --ext .ts --max-warnings 0",
     "test": "jest",
