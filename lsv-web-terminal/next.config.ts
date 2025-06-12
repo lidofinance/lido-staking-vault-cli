@@ -2,17 +2,15 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   /* config options here */
-  experimental: {
-    serverComponentsExternalPackages: ['@chainsafe/blst'],
-  },
+  serverExternalPackages: ['@chainsafe/blst'],
   webpack: (config) => {
     // Exclude CLI folder from webpack processing
-    config.module.rules.push({
-      test: /\.(ts|js)$/,
-      exclude: /cli\//,
-      use: {
-        loader: 'ignore-loader',
-      },
+    config.externals = config.externals || [];
+    config.externals.push({
+      // Exclude any files in cli directory
+      '../cli': 'commonjs ../cli',
+      './cli': 'commonjs ./cli',
+      'cli/': 'commonjs cli/',
     });
 
     return config;
