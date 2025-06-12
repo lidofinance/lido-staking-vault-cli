@@ -143,32 +143,6 @@ export async function POST(request: NextRequest) {
   try {
     const { command, args, walletAddress, elUrl } = await request.json();
 
-    // Check if we're running on Vercel (serverless environment)
-    const isProduction = process.env.NODE_ENV === 'production';
-    const isVercel = process.env.VERCEL === '1';
-
-    if (isProduction || isVercel) {
-      // In production/Vercel, we can't run the CLI
-      return NextResponse.json({
-        success: false,
-        output: `🚀 Production Environment Detected
-
-This web terminal is currently running in a serverless environment (Vercel) which doesn't support executing the CLI directly.
-
-📋 Command attempted: ${command} ${args.join(' ')}
-${walletAddress ? `🔗 Wallet address: ${walletAddress}` : ''}
-
-🛠️ Development Options:
-1. Run this locally: \`npm run dev\` in the project directory
-2. Use the CLI directly: \`npm start -- ${command} ${args.join(' ')}\`
-
-💡 For full functionality, consider deploying on a platform that supports Node.js processes like Railway, Render, or your own server.
-
-⚡ This interface demonstrates the CLI integration concept and wallet connectivity.`,
-        exitCode: 1,
-      });
-    }
-
     // Add -y flag for write commands to auto-confirm prompts
     const enhancedArgs = [...args];
     const isWriteCommand =
