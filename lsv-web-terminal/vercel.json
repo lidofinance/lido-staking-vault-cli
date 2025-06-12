@@ -1,10 +1,5 @@
 {
-  "functions": {
-    "src/app/api/cli/route.ts": {
-      "maxDuration": 30
-    }
-  },
-  "buildCommand": "npm run vercel-build",
+  "buildCommand": "npm run build",
   "installCommand": "npm install",
   "env": {
     "NODE_ENV": "production"
