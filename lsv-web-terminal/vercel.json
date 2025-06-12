@@ -4,6 +4,11 @@
   "env": {
     "NODE_ENV": "production"
   },
+  "functions": {
+    "src/app/api/cli/route.ts": {
+      "includeFiles": "configs/**"
+    }
+  },
   "rewrites": [
     {
       "source": "/api/config",

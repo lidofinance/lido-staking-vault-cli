@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { spawn } from 'child_process';
+import * as fs from 'fs';
+import * as path from 'path';
 
 interface TransactionData {
   to: string;
@@ -184,25 +186,76 @@ export async function POST(request: NextRequest) {
     console.log('Is write command:', isWriteCommand);
     console.log('Is interactive command:', isInteractiveCommand);
 
+    console.log('=== FILE SYSTEM DEBUG ===');
+    console.log('Current working directory:', process.cwd());
+    console.log('Root directory contents:', fs.readdirSync(process.cwd()));
+
     return new Promise<NextResponse>((resolve) => {
-      // Используем npx с автоматической установкой
-      const child = spawn(
-        'npx',
-        ['--yes', '@lidofinance/lsv-cli', command, ...enhancedArgs],
-        {
-          env: {
-            ...process.env,
-            NODE_ENV: 'production',
-            FORCE_COLOR: '0',
-            CHAIN_ID: '560048',
-            DEPLOYED: 'deployed-hoodi-vaults-testnet.json',
-            EL_URL: elUrl || process.env.EL_URL,
-            // Only minimal npm settings
-            HOME: '/tmp',
-          },
-          stdio: ['pipe', 'pipe', 'pipe'],
-        },
+      // Создаем конфигурационный файл программно
+      const workingDir = process.cwd();
+
+      const configsDir = path.join(workingDir, 'configs');
+      const configFilePath = path.join(
+        configsDir,
+        'deployed-hoodi-vaults-testnet.json',
       );
+
+      console.log('=== CREATING CONFIG FILE ===');
+      console.log('Working dir:', workingDir);
+      console.log('Configs dir:', configsDir);
+      console.log('Config file path:', configFilePath);
+
+      try {
+        // Создаем папку configs
+        if (!fs.existsSync(configsDir)) {
+          fs.mkdirSync(configsDir, { recursive: true });
+          console.log('✓ Created configs directory');
+        }
+
+        // Копируем конфигурационный файл из исходной папки
+        const configSourcePath = path.join(
+          process.cwd(),
+          '..',
+          'configs',
+          'deployed-hoodi-vaults-testnet.json',
+        );
+        console.log('Reading config from:', configSourcePath);
+
+        if (fs.existsSync(configSourcePath)) {
+          // Просто копируем файл целиком
+          fs.copyFileSync(configSourcePath, configFilePath);
+          console.log('✓ Config file copied from source');
+        } else {
+          console.log('✗ Source config not found at:', configSourcePath);
+          throw new Error(`Configuration file not found: ${configSourcePath}`);
+        }
+        console.log('✓ Created config file');
+        console.log(
+          'Config file size:',
+          fs.statSync(configFilePath).size,
+          'bytes',
+        );
+      } catch (error) {
+        console.log(
+          'Error creating config file:',
+          error instanceof Error ? error.message : String(error),
+        );
+      }
+
+      // Используем node напрямую с локально установленным CLI
+      const cliPath = `${process.cwd()}/node_modules/@lidofinance/lsv-cli/dist/index.js`;
+      const child = spawn('node', [cliPath, command, ...enhancedArgs], {
+        cwd: workingDir,
+        env: {
+          ...process.env,
+          NODE_ENV: 'production',
+          FORCE_COLOR: '0',
+          CHAIN_ID: '560048',
+          DEPLOYED: `deployed-hoodi-vaults-testnet.json`,
+          EL_URL: elUrl || process.env.EL_URL,
+        },
+        stdio: ['pipe', 'pipe', 'pipe'],
+      });
 
       let output = '';
       let error = '';
