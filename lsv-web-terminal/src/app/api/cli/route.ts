@@ -196,7 +196,7 @@ export async function POST(request: NextRequest) {
             CHAIN_ID: '560048',
             DEPLOYED: 'deployed-hoodi-vaults-testnet.json',
             EL_URL: elUrl || process.env.EL_URL,
-            // Переменные для npm чтобы избежать создания папок в /home/sbx_user1051
+            // Environment variables for npm to avoid creating directories in /home/sbx_user1051
             HOME: '/tmp',
             npm_config_cache: '/tmp/.npm',
             npm_config_prefix: '/tmp/.npm-prefix',
