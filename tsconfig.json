@@ -40,5 +40,5 @@
     "swc": true,
     "require": ["tsconfig-paths/register"]
   },
-  "exclude": ["docs", "dist"]
+  "exclude": ["docs", "dist", "lsv-web-terminal"]
 }

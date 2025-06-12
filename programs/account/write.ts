@@ -1,7 +1,7 @@
 import { Address, formatEther, parseEther } from 'viem';
 import { generatePrivateKey } from 'viem/accounts';
 import { Option } from 'commander';
-import { Wallet } from '@kaiachain/ethers-ext';
+import { Wallet } from 'ethers';
 
 import { getStethContract, getWstethContract } from 'contracts';
 import {
