@@ -185,24 +185,24 @@ export async function POST(request: NextRequest) {
     console.log('Is interactive command:', isInteractiveCommand);
 
     return new Promise<NextResponse>((resolve) => {
-      // Используем локально установленный пакет, который имеет все зависимости
-      const cliPath = './node_modules/@lidofinance/lsv-cli/dist/index.js';
-
-      console.log('=== CLI EXECUTION ===');
-      console.log('CLI path:', cliPath);
-      console.log('Working directory:', process.cwd());
-
-      const child = spawn('node', [cliPath, command, ...enhancedArgs], {
-        env: {
-          ...process.env,
-          NODE_ENV: 'production',
-          FORCE_COLOR: '0',
-          CHAIN_ID: '560048',
-          DEPLOYED: 'deployed-hoodi-vaults-testnet.json',
-          EL_URL: elUrl || process.env.EL_URL,
+      // Используем npx с автоматической установкой
+      const child = spawn(
+        'npx',
+        ['--yes', '@lidofinance/lsv-cli', command, ...enhancedArgs],
+        {
+          env: {
+            ...process.env,
+            NODE_ENV: 'production',
+            FORCE_COLOR: '0',
+            CHAIN_ID: '560048',
+            DEPLOYED: 'deployed-hoodi-vaults-testnet.json',
+            EL_URL: elUrl || process.env.EL_URL,
+            // Только минимальные настройки для npm
+            HOME: '/tmp',
+          },
+          stdio: ['pipe', 'pipe', 'pipe'],
         },
-        stdio: ['pipe', 'pipe', 'pipe'],
-      });
+      );
 
       let output = '';
       let error = '';
