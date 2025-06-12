@@ -185,28 +185,24 @@ export async function POST(request: NextRequest) {
     console.log('Is interactive command:', isInteractiveCommand);
 
     return new Promise<NextResponse>((resolve) => {
-      const child = spawn(
-        'npx',
-        ['@lidofinance/lsv-cli', command, ...enhancedArgs],
-        {
-          env: {
-            ...process.env,
-            NODE_ENV: 'production',
-            FORCE_COLOR: '0',
-            CHAIN_ID: '560048',
-            DEPLOYED: 'deployed-hoodi-vaults-testnet.json',
-            EL_URL: elUrl || process.env.EL_URL,
-            // Environment variables for npm to avoid creating directories in /home/sbx_user1051
-            HOME: '/tmp',
-            npm_config_cache: '/tmp/.npm',
-            npm_config_prefix: '/tmp/.npm-prefix',
-            npm_config_tmp: '/tmp',
-            npm_config_userconfig: '/tmp/.npmrc-user',
-            npm_config_globalconfig: '/tmp/.npmrc-global',
-          },
-          stdio: ['pipe', 'pipe', 'pipe'],
+      // Используем локально установленный пакет, который имеет все зависимости
+      const cliPath = './node_modules/@lidofinance/lsv-cli/dist/index.js';
+
+      console.log('=== CLI EXECUTION ===');
+      console.log('CLI path:', cliPath);
+      console.log('Working directory:', process.cwd());
+
+      const child = spawn('node', [cliPath, command, ...enhancedArgs], {
+        env: {
+          ...process.env,
+          NODE_ENV: 'production',
+          FORCE_COLOR: '0',
+          CHAIN_ID: '560048',
+          DEPLOYED: 'deployed-hoodi-vaults-testnet.json',
+          EL_URL: elUrl || process.env.EL_URL,
         },
-      );
+        stdio: ['pipe', 'pipe', 'pipe'],
+      });
 
       let output = '';
       let error = '';
