@@ -28,11 +28,17 @@ const formatTimestamp = function (ts: number): string {
   return `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 };
 
-export const renderSimpleCharts = async (
-  dashboard: Address,
-  cid: string,
+export const renderSimpleCharts = async ({
+  dashboard,
+  cid,
   limit = 20,
-) => {
+  cacheUse = true,
+}: {
+  dashboard: Address;
+  cid: string;
+  limit?: number;
+  cacheUse?: boolean;
+}) => {
   const dashboardContract = getDashboardContract(dashboard);
   const vault = await callReadMethodSilent(dashboardContract, 'stakingVault');
 
@@ -41,12 +47,15 @@ export const renderSimpleCharts = async (
   );
   let history;
   try {
-    history = await getVaultReportHistory({
-      vault,
-      cid,
-      limit,
-      direction: 'asc',
-    });
+    history = await getVaultReportHistory(
+      {
+        vault,
+        cid,
+        limit,
+        direction: 'asc',
+      },
+      cacheUse,
+    );
   } catch (e) {
     logError('Error getting report history:', e);
     process.exit(1);
