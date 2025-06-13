@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@lidofinance/lsv-cli": "^1.0.0-alpha.51",
+    "@lidofinance/lsv-cli": "^1.0.0-alpha.52",
     "@reown/appkit": "^1.7.8",
     "@reown/appkit-adapter-wagmi": "^1.7.8",
     "@tanstack/react-query": "^5.80.6",
