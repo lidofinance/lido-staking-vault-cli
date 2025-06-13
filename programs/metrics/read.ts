@@ -111,11 +111,16 @@ metricsRead
     const vaultHubContract = await getVaultHubContract();
     const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
       await callReadMethod(vaultHubContract, 'latestReportData');
+    const { cacheUse } = program.opts();
 
     if (simplified) {
-      await renderSimpleCharts(address, vaultsDataReportCid, count);
+      await renderSimpleCharts({
+        dashboard: address,
+        cid: vaultsDataReportCid,
+        limit: count,
+        cacheUse,
+      });
     } else {
-      const { cacheUse } = program.opts();
       const chartsData = await fetchAprChartsData({
         cid: vaultsDataReportCid,
         dashboard: address,
