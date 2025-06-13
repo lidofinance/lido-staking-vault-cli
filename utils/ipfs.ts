@@ -18,8 +18,22 @@ export type ReportFetchArgs = {
 
 const IPFS_CACHE_DIR = path.resolve('ipfs-cache');
 
+export const fetchIPFS = async <T>(
+  args: ReportFetchArgs,
+  cache = true,
+): Promise<T> => {
+  const { cid, gateway = IPFS_GATEWAY, bigNumberType = 'string' } = args;
+  const ipfsUrl = `${gateway}/${cid}`;
+
+  logInfo('Fetching content from', ipfsUrl);
+
+  if (cache) return fetchIPFSWithCache<T>({ cid, gateway, bigNumberType });
+
+  return fetchIPFSDirect<T>({ cid, gateway, bigNumberType });
+};
+
 // Fetching content by CID through IPFS gateway
-export const fetchIPFS = async <T>(args: ReportFetchArgs): Promise<T> => {
+export const fetchIPFSDirect = async <T>(args: ReportFetchArgs): Promise<T> => {
   const { cid, gateway = IPFS_GATEWAY, bigNumberType = 'string' } = args;
   const ipfsUrl = `${gateway}/${cid}`;
 
@@ -116,7 +130,7 @@ export const fetchIPFSWithCache = async <T>(
     return JSON.parse(data) as T;
   } catch {
     // Not in cache, fetch from IPFS
-    const data = await fetchIPFS<T>({ cid, gateway, bigNumberType });
+    const data = await fetchIPFSDirect<T>({ cid, gateway, bigNumberType });
     await fs.writeFile(cacheFile, JSON.stringify(data), 'utf-8');
     return data;
   }

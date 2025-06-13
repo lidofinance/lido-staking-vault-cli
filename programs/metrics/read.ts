@@ -1,5 +1,6 @@
 import { Address, formatEther } from 'viem';
 import { Option } from 'commander';
+import { program } from 'command';
 
 import { getDashboardContract, getVaultHubContract } from 'contracts';
 import {
@@ -49,16 +50,23 @@ metricsRead
     const dashboardContract = getDashboardContract(address);
     const vault = await callReadMethod(dashboardContract, 'stakingVault');
 
-    const reportCurrent = await getVaultReport({
-      vault,
-      cid: vaultsDataReportCid,
-      gateway,
-    });
-    const reportPrevious = await getVaultPreviousReport({
-      vault,
-      cid: vaultsDataReportCid,
-      gateway,
-    });
+    const { cacheUse } = program.opts();
+    const reportCurrent = await getVaultReport(
+      {
+        vault,
+        cid: vaultsDataReportCid,
+        gateway,
+      },
+      cacheUse,
+    );
+    const reportPrevious = await getVaultPreviousReport(
+      {
+        vault,
+        cid: vaultsDataReportCid,
+        gateway,
+      },
+      cacheUse,
+    );
     const statisticData = await getReportStatisticData({
       dashboard: address,
       reports: { current: reportCurrent, previous: reportPrevious },
@@ -107,11 +115,13 @@ metricsRead
     if (simplified) {
       await renderSimpleCharts(address, vaultsDataReportCid, count);
     } else {
-      const chartsData = await fetchAprChartsData(
-        vaultsDataReportCid,
-        address,
-        count,
-      );
+      const { cacheUse } = program.opts();
+      const chartsData = await fetchAprChartsData({
+        cid: vaultsDataReportCid,
+        dashboard: address,
+        limit: count,
+        cacheUse,
+      });
       renderAprCharts(chartsData);
     }
   });
@@ -126,10 +136,12 @@ metricsRead
     const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
       await callReadMethod(vaultHubContract, 'latestReportData');
 
-    const chartsData = await fetchRewardsChartsData(
-      vaultsDataReportCid,
-      address,
-      count,
-    );
+    const { cacheUse } = program.opts();
+    const chartsData = await fetchRewardsChartsData({
+      cid: vaultsDataReportCid,
+      dashboard: address,
+      limit: count,
+      cacheUse,
+    });
     renderRewardsCharts(chartsData);
   });

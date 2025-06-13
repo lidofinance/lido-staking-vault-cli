@@ -10,6 +10,7 @@ import {
   callWriteMethodWithReceipt,
   confirmOperation,
 } from 'utils';
+import { program } from 'command';
 
 type SubmitReportArgs = {
   vault: Address;
@@ -23,16 +24,23 @@ export const submitReport = async ({ vault, gateway }: SubmitReportArgs) => {
 
   await fetchAndVerifyFile(vaultsDataReportCid, gateway);
 
-  const report = await getVaultReport({
-    vault,
-    cid: vaultsDataReportCid,
-    gateway,
-  });
-  const reportProof = await getVaultReportProofByCid({
-    vault,
-    cid: report.proofsCID,
-    gateway,
-  });
+  const { cacheUse } = program.opts();
+  const report = await getVaultReport(
+    {
+      vault,
+      cid: vaultsDataReportCid,
+      gateway,
+    },
+    cacheUse,
+  );
+  const reportProof = await getVaultReportProofByCid(
+    {
+      vault,
+      cid: report.proofsCID,
+      gateway,
+    },
+    cacheUse,
+  );
   await fetchAndVerifyFile(report.proofsCID, gateway);
 
   const confirm = await confirmOperation(

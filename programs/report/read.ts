@@ -1,4 +1,5 @@
 import { Option } from 'commander';
+import { program } from 'command';
 
 import {
   callReadMethod,
@@ -37,11 +38,15 @@ reportRead
 
     await fetchAndVerifyFile(vaultsDataReportCid, gateway);
 
-    const report = await getVaultReport({
-      vault,
-      cid: vaultsDataReportCid,
-      gateway: gateway,
-    });
+    const { cacheUse } = program.opts();
+    const report = await getVaultReport(
+      {
+        vault,
+        cid: vaultsDataReportCid,
+        gateway: gateway,
+      },
+      cacheUse,
+    );
 
     logInfo(report);
   });
@@ -56,11 +61,15 @@ reportRead
     const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
       await callReadMethod(vaultHubContract, 'latestReportData');
 
-    const proof = await getVaultReportProof({
-      vault,
-      cid: vaultsDataReportCid,
-      gateway,
-    });
+    const { cacheUse } = program.opts();
+    const proof = await getVaultReportProof(
+      {
+        vault,
+        cid: vaultsDataReportCid,
+        gateway,
+      },
+      cacheUse,
+    );
 
     await fetchAndVerifyFile(vaultsDataReportCid, gateway);
 
@@ -78,10 +87,14 @@ reportRead
 
     await fetchAndVerifyFile(vaultsDataReportCid, gateway);
 
-    const allVaultsReports = await getAllVaultsReports({
-      cid: vaultsDataReportCid,
-      gateway,
-    });
+    const { cacheUse } = program.opts();
+    const allVaultsReports = await getAllVaultsReports(
+      {
+        cid: vaultsDataReportCid,
+        gateway,
+      },
+      cacheUse,
+    );
 
     logInfo(allVaultsReports);
   });
@@ -109,11 +122,15 @@ reportRead
       await callReadMethod(vaultHubContract, 'latestReportData');
 
     await fetchAndVerifyFile(vaultsDataReportCid, gateway);
-    const report = await getVaultReport({
-      vault,
-      cid: vaultsDataReportCid,
-      gateway,
-    });
+    const { cacheUse } = program.opts();
+    const report = await getVaultReport(
+      {
+        vault,
+        cid: vaultsDataReportCid,
+        gateway,
+      },
+      cacheUse,
+    );
 
     const reportLeaf = getReportLeaf(report.data);
     logInfo('local leaf', reportLeaf);

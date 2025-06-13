@@ -20,20 +20,30 @@ import {
   buildGrossStakingAPRChart,
 } from './datasets/index.js';
 
-export const fetchAprChartsData = async (
-  cid: string,
-  dashboard: Address,
+type FetchAprChartsDataArgs = {
+  cid: string;
+  dashboard: Address;
+  limit?: number;
+  cacheUse?: boolean;
+};
+
+export const fetchAprChartsData = async ({
+  cid,
+  dashboard,
   limit = LIMIT,
-) => {
+  cacheUse = true,
+}: FetchAprChartsDataArgs) => {
   const dashboardContract = getDashboardContract(dashboard);
   const vault = await callReadMethodSilent(dashboardContract, 'stakingVault');
-  // TODO: check nodeOperatorFeeBP for each report
-  const history = await getVaultReportHistory({
-    vault,
-    cid,
-    limit,
-    direction: 'asc',
-  });
+  const history = await getVaultReportHistory(
+    {
+      vault,
+      cid,
+      limit,
+      direction: 'asc',
+    },
+    cacheUse,
+  );
   if (!history || history.length < 2) throw new Error('Not enough data');
 
   // Get nodeOperatorFeeBP for each report block with caching
