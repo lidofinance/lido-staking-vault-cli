@@ -13,3 +13,7 @@ program.option(
   '-y, --yes',
   'automatically confirm prompts and proceed without asking',
 );
+program.option(
+  '--no-cache-use',
+  'do not use cache for fetching data from IPFS',
+);
