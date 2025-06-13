@@ -156,6 +156,9 @@ export async function POST(request: NextRequest) {
       if (!enhancedArgs.includes('--populate-tx')) {
         enhancedArgs.push('--populate-tx');
       }
+      if (!enhancedArgs.includes('--no-cache-use')) {
+        enhancedArgs.push('--no-cache-use');
+      }
     }
 
     // Add wallet address for account commands that don't have address yet
