@@ -149,6 +149,8 @@ export async function POST(request: NextRequest) {
     const enhancedArgs = [...args];
     const isWriteCommand =
       args.length > 0 && (args[0] === 'w' || args[0] === 'write');
+    const isReadCommand =
+      args.length > 0 && (args[0] === 'r' || args[0] === 'read');
     if (isWriteCommand) {
       if (!enhancedArgs.includes('-y')) {
         enhancedArgs.unshift('-y');
@@ -156,11 +158,13 @@ export async function POST(request: NextRequest) {
       if (!enhancedArgs.includes('--populate-tx')) {
         enhancedArgs.push('--populate-tx');
       }
+    }
+
+    if (isReadCommand || isWriteCommand) {
       if (!enhancedArgs.includes('--no-cache-use')) {
         enhancedArgs.push('--no-cache-use');
       }
     }
-
     // Add wallet address for account commands that don't have address yet
     if (walletAddress && command === 'account') {
       // For account info command, add wallet address as argument if not provided
@@ -338,11 +342,11 @@ export async function POST(request: NextRequest) {
         setTimeout(() => {
           if (!child.killed) {
             console.log(
-              'Sending Ctrl+C to interactive command after 10 seconds...',
+              'Sending Ctrl+C to interactive command after 120 seconds...',
             );
             child.kill('SIGINT'); // Try Ctrl+C first
           }
-        }, 10000);
+        }, 1200000);
       } else {
         // Normal timeout for other commands
         timeoutMs = isWriteCommand ? 120000 : 120000;
