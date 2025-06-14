@@ -13,7 +13,6 @@ export const confirmContractAndAmount = async (
   contract: Address,
   amountETH: string,
 ) => {
-  // Check if --yes flag is provided
   const opts = program.opts();
   if (opts.yes) return true;
 
@@ -63,7 +62,6 @@ export const confirmFund = async (
 };
 
 export const confirmOperation = async (message: string) => {
-  // Check if --yes flag is provided
   const opts = program.opts();
   if (opts.yes) return true;
 
