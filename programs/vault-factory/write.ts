@@ -95,7 +95,7 @@ vaultFactoryWrite
 
       const transactions = [];
 
-      const { confirm } = await confirmCreateVaultParams(payload, otherRoles);
+      const confirm = await confirmCreateVaultParams(payload, otherRoles);
       if (!confirm) return logCancel('Vault creation cancelled');
 
       try {

@@ -13,10 +13,21 @@ export const confirmContractAndAmount = async (
   contract: Address,
   amountETH: string,
 ) => {
-  return await confirmPrompt(
+  // Check if --yes flag is provided
+  const opts = program.opts();
+  if (opts.yes) return true;
+
+  const { confirm } = await confirmPrompt(
     `Do you want to fund the contract ${contract} with ${amountETH} ETH?`,
     'confirm',
   );
+
+  if (!confirm) {
+    logCancel('Command cancelled');
+    return false;
+  }
+
+  return true;
 };
 
 export const enterAmountETH = async () => {
@@ -45,7 +56,7 @@ export const confirmFund = async (
     if (!amount) program.error('Command cancelled', { exitCode: 1 });
   }
 
-  const { confirm } = await confirmContractAndAmount(contractAddress, amount);
+  const confirm = await confirmContractAndAmount(contractAddress, amount);
   if (!confirm) program.error('Command cancelled', { exitCode: 1 });
 
   return { address: contractAddress, amount: amount };

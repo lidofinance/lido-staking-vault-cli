@@ -1,4 +1,5 @@
-import { textPrompt, confirmPrompt } from './default.js';
+import { textPrompt } from './default.js';
+import { confirmOperation } from './operations.js';
 import { logCancel } from 'utils/logging/console.js';
 
 export const enterValidatorIndex = async () => {
@@ -6,9 +7,8 @@ export const enterValidatorIndex = async () => {
 };
 
 export const confirmValidatorIndex = async (validatorIndex: bigint) => {
-  return await confirmPrompt(
+  return await confirmOperation(
     `Do you want to make proof for validator ${validatorIndex}?`,
-    'confirm',
   );
 };
 
@@ -22,7 +22,7 @@ export const confirmMakeProof = async (index: bigint) => {
     if (!validatorIndex) return logCancel('Command cancelled');
   }
 
-  const { confirm } = await confirmValidatorIndex(validatorIndex);
+  const confirm = await confirmValidatorIndex(validatorIndex);
   if (!confirm) return logCancel('Command cancelled');
 
   return validatorIndex;

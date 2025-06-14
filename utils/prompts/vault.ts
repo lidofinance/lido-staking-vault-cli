@@ -1,11 +1,11 @@
 import { RoleAssignment, VaultWithDashboard } from 'types';
-import { confirmPrompt } from './default.js';
+import { confirmOperation } from './operations.js';
 
 export const confirmCreateVaultParams = async (
   payload: VaultWithDashboard,
   otherRoles: RoleAssignment[],
 ) => {
-  return await confirmPrompt(
+  return await confirmOperation(
     `Do you want to create a vault with the following parameters?
     ${JSON.stringify(
       payload,
@@ -24,6 +24,5 @@ export const confirmCreateVaultParams = async (
       },
       2,
     )}`,
-    'confirm',
   );
 };
