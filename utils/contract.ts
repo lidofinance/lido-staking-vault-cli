@@ -247,11 +247,13 @@ export const populateWriteTx = async <
   contract: T;
   methodName: M;
   payload: Writeable<GetFirst<Parameters<T['write'][M]>>> | never[];
-}): Promise<{ to: Address; data: Hex }> => {
-  const { contract, methodName, payload } = args;
+  value?: bigint;
+}): Promise<{ to: Address; value: bigint; data: Hex }> => {
+  const { contract, methodName, payload, value } = args;
 
   return {
     to: contract.address,
+    value: value ?? 0n,
     data: encodeFunctionData({
       abi: contract.abi,
       functionName: methodName as any,
@@ -286,6 +288,7 @@ export const callWriteMethodWithReceipt = async <
       contract,
       methodName,
       payload,
+      value,
     });
     logInfo('Populated transaction data:', data);
     logResult({
