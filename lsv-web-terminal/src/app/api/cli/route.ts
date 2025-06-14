@@ -49,18 +49,27 @@ function parseTransactionData(output: string): TransactionData | null {
           // Replace single quotes with double quotes and add quotes around unquoted keys
           const validJsonStr = jsonStr
             .replace(/(\w+):/g, '"$1":') // Add quotes around keys
-            .replace(/'/g, '"'); // Replace single quotes with double quotes
+            .replace(/'/g, '"') // Replace single quotes with double quotes
+            .replace(/(\d+)n/g, '"$1n"'); // Convert BigInt literals to strings with 'n' suffix
 
           console.log('=== CONVERTING TO VALID JSON ===');
           console.log('Original string:', jsonStr);
           console.log('Converted JSON:', validJsonStr);
 
-          // Parse the JSON object
-          const txData = JSON.parse(validJsonStr);
+          // Parse JSON with BigInt reviver function
+          const txData = JSON.parse(validJsonStr, (key, value) => {
+            // Convert strings ending with 'n' back to string numbers (removing 'n')
+            if (typeof value === 'string' && /^\d+n$/.test(value)) {
+              return value.slice(0, -1); // Remove 'n' suffix
+            }
+            return value;
+          });
 
           console.log('=== PARSED TRANSACTION JSON ===');
           console.log('Raw JSON string:', jsonStr);
           console.log('Parsed txData:', txData);
+
+          console.log('Actual transaction object:', txData);
           console.log('Contract address (to):', txData.to);
           console.log('Calldata (data):', txData.data);
           console.log('Value:', txData.value);

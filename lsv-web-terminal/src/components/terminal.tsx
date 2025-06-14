@@ -5,7 +5,7 @@ import { Terminal } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import { useAccount, useSendTransaction } from 'wagmi';
 import '@xterm/xterm/css/xterm.css';
-import { Address, Hex } from 'viem';
+import { Address, formatEther, Hex } from 'viem';
 
 interface TransactionData {
   to: Address;
@@ -344,6 +344,13 @@ export function TerminalComponent() {
             terminal.current.writeln(
               `\x1b[36mData: ${result.transactionData.data.slice(0, 50)}...\x1b[0m`,
             );
+            if (result.transactionData.value) {
+              terminal.current.writeln(
+                `\x1b[36mValue: ${formatEther(
+                  BigInt(result.transactionData.value),
+                )} ETH\x1b[0m`,
+              );
+            }
             try {
               const txData: {
                 to: Address;
