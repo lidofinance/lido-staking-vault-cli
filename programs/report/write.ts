@@ -1,5 +1,5 @@
 import { Address, Hex } from 'viem';
-import { Option } from 'commander';
+import { Option, program } from 'commander';
 import cliProgress from 'cli-progress';
 
 import { getLazyOracleContract } from 'contracts';
@@ -51,17 +51,25 @@ reportWrite
       const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
         await callReadMethod(lazyOracleContract, 'latestReportData');
 
+      const { cacheUse } = program.opts();
+
       await fetchAndVerifyFile(vaultsDataReportCid, gateway);
-      const { vaultReports, proofsCID } = await getAllVaultsReports({
-        cid: vaultsDataReportCid,
-        gateway,
-      });
+      const { vaultReports, proofsCID } = await getAllVaultsReports(
+        {
+          cid: vaultsDataReportCid,
+          gateway,
+        },
+        cacheUse,
+      );
 
       await fetchAndVerifyFile(proofsCID, gateway);
-      const allVaultsProofs = await getAllVaultsReportProofs({
-        cid: proofsCID,
-        gateway,
-      });
+      const allVaultsProofs = await getAllVaultsReportProofs(
+        {
+          cid: proofsCID,
+          gateway,
+        },
+        cacheUse,
+      );
 
       const progressBar = new cliProgress.SingleBar(
         {
@@ -114,16 +122,23 @@ reportWrite
         await callReadMethod(lazyOracleContract, 'latestReportData');
 
       await fetchAndVerifyFile(vaultsDataReportCid, gateway);
+      const { cacheUse } = program.opts();
 
-      const { vaultReports, proofsCID } = await getAllVaultsReports({
-        cid: vaultsDataReportCid,
-        gateway,
-      });
+      const { vaultReports, proofsCID } = await getAllVaultsReports(
+        {
+          cid: vaultsDataReportCid,
+          gateway,
+        },
+        cacheUse,
+      );
       await fetchAndVerifyFile(proofsCID, gateway);
-      const allVaultsProofs = await getAllVaultsReportProofs({
-        cid: proofsCID,
-        gateway,
-      });
+      const allVaultsProofs = await getAllVaultsReportProofs(
+        {
+          cid: proofsCID,
+          gateway,
+        },
+        cacheUse,
+      );
 
       const progressBar = new cliProgress.SingleBar(
         {

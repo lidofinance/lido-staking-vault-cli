@@ -95,7 +95,7 @@ vaultFactoryWrite
 
       const transactions = [];
 
-      const { confirm } = await confirmCreateVaultParams(payload, otherRoles);
+      const confirm = await confirmCreateVaultParams(payload, otherRoles);
       if (!confirm) return logCancel('Vault creation cancelled');
 
       try {
@@ -106,6 +106,10 @@ vaultFactoryWrite
 
         logResult({});
         transactions.forEach((tx) => {
+          if (program.opts().populateTx) {
+            logInfo('Populated transaction data:', tx);
+            return;
+          }
           logTable({
             data: [
               ['Vault Address', tx?.vault],

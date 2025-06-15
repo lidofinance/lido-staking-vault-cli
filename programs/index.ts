@@ -1,4 +1,4 @@
-export * from './account.js';
+export * from './account/index.js';
 export * from './pdg-helpers.js';
 export * from './vault/index.js';
 export * from './dashboard/index.js';

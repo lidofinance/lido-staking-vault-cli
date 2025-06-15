@@ -1,11 +1,6 @@
 import { Address } from 'viem';
 
-import {
-  BigNumberType,
-  fetchIPFSWithCache,
-  IPFS_GATEWAY,
-  logInfo,
-} from 'utils';
+import { BigNumberType, fetchIPFS, IPFS_GATEWAY, logInfo } from 'utils';
 
 export type LeafDataFields = {
   vault_address: string;
@@ -70,14 +65,18 @@ export type VaultReportArgs = {
 
 export const getVaultReport = async (
   args: VaultReportArgs,
+  cache = true,
 ): Promise<VaultReport> => {
   const { vault, cid, gateway = IPFS_GATEWAY, bigNumberType = 'string' } = args;
 
-  const report = await fetchIPFSWithCache<Report>({
-    cid,
-    gateway,
-    bigNumberType,
-  });
+  const report = await fetchIPFS<Report>(
+    {
+      cid,
+      gateway,
+      bigNumberType,
+    },
+    cache,
+  );
   const vaultData = getVaultData(report, vault);
 
   return vaultData;
@@ -85,16 +84,20 @@ export const getVaultReport = async (
 
 export const getVaultPreviousReport = async (
   args: VaultReportArgs,
+  cache = true,
 ): Promise<VaultReport> => {
   const { vault, cid, gateway = IPFS_GATEWAY, bigNumberType = 'string' } = args;
-  const report = await fetchIPFSWithCache<Report>({
-    cid,
-    gateway,
-    bigNumberType,
-  });
+  const report = await fetchIPFS<Report>(
+    {
+      cid,
+      gateway,
+      bigNumberType,
+    },
+    cache,
+  );
 
   const previousReportCID = report.prevTreeCID;
-  const previousReport = await fetchIPFSWithCache<Report>({
+  const previousReport = await fetchIPFS<Report>({
     cid: previousReportCID,
     gateway,
     bigNumberType,
@@ -144,21 +147,30 @@ const getVaultData = (report: Report, vault: Address): VaultReport => {
   };
 };
 
-export const getVaultReportProof = async (args: VaultReportArgs) => {
+export const getVaultReportProof = async (
+  args: VaultReportArgs,
+  cache = true,
+) => {
   const { vault, cid, gateway = IPFS_GATEWAY, bigNumberType = 'string' } = args;
 
-  const report = await fetchIPFSWithCache<Report>({
-    cid,
-    gateway,
-    bigNumberType,
-  });
+  const report = await fetchIPFS<Report>(
+    {
+      cid,
+      gateway,
+      bigNumberType,
+    },
+    cache,
+  );
   const proofCID = report.proofsCID;
 
-  const data = await fetchIPFSWithCache<ReportProof>({
-    cid: proofCID,
-    gateway,
-    bigNumberType,
-  });
+  const data = await fetchIPFS<ReportProof>(
+    {
+      cid: proofCID,
+      gateway,
+      bigNumberType,
+    },
+    cache,
+  );
 
   const proofByVault = data.proofs[vault];
   if (!proofByVault) throw new Error('Proof not found');
@@ -166,13 +178,19 @@ export const getVaultReportProof = async (args: VaultReportArgs) => {
   return proofByVault;
 };
 
-export const getVaultReportProofByCid = async (args: VaultReportArgs) => {
+export const getVaultReportProofByCid = async (
+  args: VaultReportArgs,
+  cache = true,
+) => {
   const { vault, cid, gateway = IPFS_GATEWAY, bigNumberType = 'string' } = args;
-  const proof = await fetchIPFSWithCache<ReportProof>({
-    cid,
-    gateway,
-    bigNumberType,
-  });
+  const proof = await fetchIPFS<ReportProof>(
+    {
+      cid,
+      gateway,
+      bigNumberType,
+    },
+    cache,
+  );
 
   const proofByVault = proof.proofs[vault];
   if (!proofByVault) throw new Error('Proof not found');
@@ -182,26 +200,34 @@ export const getVaultReportProofByCid = async (args: VaultReportArgs) => {
 
 export const getAllVaultsReportProofs = async (
   args: Omit<VaultReportArgs, 'vault'>,
+  cache = true,
 ) => {
   const { cid, gateway = IPFS_GATEWAY, bigNumberType = 'string' } = args;
-  const proof = await fetchIPFSWithCache<ReportProof>({
-    cid,
-    gateway,
-    bigNumberType,
-  });
+  const proof = await fetchIPFS<ReportProof>(
+    {
+      cid,
+      gateway,
+      bigNumberType,
+    },
+    cache,
+  );
 
   return proof.proofs;
 };
 
 export const getAllVaultsReports = async (
   args: Omit<VaultReportArgs, 'vault'>,
+  cache = true,
 ) => {
   const { cid, gateway = IPFS_GATEWAY, bigNumberType = 'string' } = args;
-  const report = await fetchIPFSWithCache<Report>({
-    cid,
-    gateway,
-    bigNumberType,
-  });
+  const report = await fetchIPFS<Report>(
+    {
+      cid,
+      gateway,
+      bigNumberType,
+    },
+    cache,
+  );
 
   const vaultReports = report.values.map(
     (value) => getVaultData(report, value.value[0] as Address).data,
@@ -221,6 +247,7 @@ export const getAllVaultsReports = async (
  */
 export const getVaultReportHistory = async (
   args: VaultReportArgs & { limit?: number; direction?: 'asc' | 'desc' },
+  cache = true,
 ): Promise<VaultReport[]> => {
   const {
     vault,
@@ -233,12 +260,15 @@ export const getVaultReportHistory = async (
   const history: VaultReport[] = [];
   for (let i = 0; i < limit; i++) {
     try {
-      const report = await getVaultReport({
-        vault,
-        cid,
-        gateway,
-        bigNumberType,
-      });
+      const report = await getVaultReport(
+        {
+          vault,
+          cid,
+          gateway,
+          bigNumberType,
+        },
+        cache,
+      );
       history.push(report);
       if (!report.prevTreeCID || report.prevTreeCID === cid) break;
       cid = report.prevTreeCID;

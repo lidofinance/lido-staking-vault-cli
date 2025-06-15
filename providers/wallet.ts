@@ -7,7 +7,7 @@ import {
   WalletClient,
 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { Wallet } from '@kaiachain/ethers-ext';
+import { Wallet } from 'ethers';
 
 import { envs, getConfig, getChainId, getElUrl, getChain } from 'configs';
 
