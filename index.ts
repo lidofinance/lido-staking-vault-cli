@@ -8,7 +8,7 @@ export * from './utils/index.js';
 
 const showTestnetWarning = () => {
   console.info(
-    '\n⚠️  Heads-up! All Testnet data will be erased on 23 Jun 2025 as a part of the Web UI migration to the stVaults Testnet-2 contracts. Back up anything important.',
+    '\n⚠️  Heads-up! All Testnet data will not be available via Web UI on 23 Jun 2025 as part of migration to the stVaults',
   );
   console.info(
     '🔄 Testnet-1 CLI functionality will remain available in the testnet-1 branch.',
