@@ -268,24 +268,6 @@ VaultHubWrite.command('v-force-validator-exit')
     },
   );
 
-VaultHubWrite.command('mint-vaults-treasury-fee-shares')
-  .description('mint vaults treasury fee shares')
-  .argument('<amountOfShares>', 'amount of shares (in Shares)')
-  .action(async (amountOfShares: string) => {
-    const contract = await getVaultHubContract();
-
-    const confirm = await confirmOperation(
-      `Are you sure you want to mint ${amountOfShares} treasury fee shares?`,
-    );
-    if (!confirm) return;
-
-    await callWriteMethodWithReceipt({
-      contract,
-      methodName: 'mintVaultsTreasuryFeeShares',
-      payload: [parseEther(amountOfShares)],
-    });
-  });
-
 VaultHubWrite.command('update-vault-fees')
   .description(
     'updates fees for the vault. msg.sender must have VAULT_MASTER_ROLE',
@@ -576,3 +558,92 @@ VaultHubWrite.command('compensate-disproven-predeposit-from-pdg')
       });
     },
   );
+
+VaultHubWrite.command('socialize-bad-debt')
+  .description(
+    'transfer the bad debt from the donor vault to the acceptor vault. msg.sender must have BAD_DEBT_MASTER_ROLE',
+  )
+  .argument(
+    '<badDebtVault>',
+    'address of the vault that has the bad debt',
+    stringToAddress,
+  )
+  .argument(
+    '<acceptorVault>',
+    'address of the vault that will accept the bad debt',
+    stringToAddress,
+  )
+  .argument(
+    '<maxSharesToSocialize>',
+    'maximum amount of shares to socialize',
+    stringToBigInt,
+  )
+  .action(
+    async (
+      badDebtVault: Address,
+      acceptorVault: Address,
+      maxSharesToSocialize: bigint,
+    ) => {
+      const contract = await getVaultHubContract();
+
+      const confirm = await confirmOperation(
+        `Are you sure you want to socialize bad debt from the vault ${badDebtVault} to the vault ${acceptorVault}?`,
+      );
+      if (!confirm) return;
+
+      await callWriteMethodWithReceipt({
+        contract,
+        methodName: 'socializeBadDebt',
+        payload: [badDebtVault, acceptorVault, maxSharesToSocialize],
+      });
+    },
+  );
+
+VaultHubWrite.command('internalize-bad-debt')
+  .description(
+    'internalize the bad debt to the protocol. msg.sender must have BAD_DEBT_MASTER_ROLE',
+  )
+  .argument(
+    '<badDebtVault>',
+    'address of the vault that has the bad debt',
+    stringToAddress,
+  )
+  .argument(
+    '<maxSharesToInternalize>',
+    'maximum amount of shares to internalize',
+    stringToBigInt,
+  )
+  .action(async (badDebtVault: Address, maxSharesToInternalize: bigint) => {
+    const contract = await getVaultHubContract();
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to internalize bad debt from the vault ${badDebtVault}?`,
+    );
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'internalizeBadDebt',
+      payload: [badDebtVault, maxSharesToInternalize],
+    });
+  });
+
+VaultHubWrite.command('settle-vault-obligations')
+  .description(
+    'allows permissionless full or partial settlement of unsettled obligations on the vault',
+  )
+  .argument('<vaultAddress>', 'vault address', stringToAddress)
+  .action(async (vaultAddress: Address) => {
+    const contract = await getVaultHubContract();
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to settle the obligations of the vault ${vaultAddress}?`,
+    );
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'settleVaultObligations',
+      payload: [vaultAddress],
+    });
+  });

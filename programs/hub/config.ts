@@ -1,6 +1,7 @@
 import { ReadProgramCommandConfig } from 'utils';
+import { VaultHubAbi } from 'abi';
 
-export const readCommandConfig: ReadProgramCommandConfig = {
+export const readCommandConfig: ReadProgramCommandConfig<typeof VaultHubAbi> = {
   isPaused: {
     name: 'is-paused',
     description: 'get is paused boolean',
@@ -90,17 +91,6 @@ export const readCommandConfig: ReadProgramCommandConfig = {
       },
     },
   },
-  unlocked: {
-    name: 'unlocked',
-    description:
-      'get amount of ether that is part of the vault`s total value and is not locked as a collateral',
-    arguments: {
-      _vault: {
-        name: 'vault',
-        description: 'vault address',
-      },
-    },
-  },
   latestReport: {
     name: 'latest-report-data',
     description: 'get latest report for the vault',
@@ -136,6 +126,53 @@ export const readCommandConfig: ReadProgramCommandConfig = {
     name: 'rebalance-shortfall',
     description:
       'get amount to rebalance or UINT256_MAX if it`s impossible to make the vault healthy using rebalance',
+    arguments: {
+      _vault: {
+        name: 'vault',
+        description: 'vault address',
+      },
+    },
+  },
+  maxLockableValue: {
+    name: 'max-lockable-value',
+    description:
+      'get the amount of ether that can be locked in the vault given the current total value',
+    arguments: {
+      _vault: {
+        name: 'vault',
+        description: 'vault address',
+      },
+    },
+  },
+  vaultObligations: {
+    name: 'v-obligations',
+    description: 'get the obligations struct for the given vault',
+    arguments: {
+      _vault: {
+        name: 'vault',
+        description: 'vault address',
+      },
+    },
+  },
+  withdrawableValue: {
+    name: 'w-ether',
+    description:
+      'get the amount of ether that can be instantly withdrawn from the staking vault',
+    arguments: {
+      _vault: {
+        name: 'vault',
+        description: 'vault address',
+      },
+    },
+  },
+  badDebtToInternalizeAsOfLastRefSlot: {
+    name: 'bad-debt',
+    description:
+      'get the amount of bad debt to be internalized to become the protocol loss',
+  },
+  inOutDeltaAsOfLastRefSlot: {
+    name: 'in-out-delta',
+    description: 'get the inOutDelta of the vault as of the last refSlot',
     arguments: {
       _vault: {
         name: 'vault',
