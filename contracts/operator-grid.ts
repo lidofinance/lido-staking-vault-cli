@@ -24,3 +24,5 @@ export const getOperatorGridContract = async (): Promise<
     }),
   });
 };
+
+export type OperatorGridContract = ReturnType<typeof getOperatorGridContract>;

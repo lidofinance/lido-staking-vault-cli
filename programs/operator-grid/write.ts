@@ -10,6 +10,7 @@ import {
   logInfo,
   getCommandsJson,
   stringToBigIntArray,
+  confirmProposal,
 } from 'utils';
 import { Tier } from 'types';
 
@@ -116,9 +117,9 @@ operatorGridWrite
   });
 
 operatorGridWrite
-  .command('request-tier-change')
-  .alias('rtc')
-  .description('request tier change')
+  .command('change-tier')
+  .alias('ct')
+  .description('vault tier change with multi-role confirmation')
   .argument('<vault>', 'vault address')
   .argument('<tierId>', 'tier id', stringToBigInt)
   .argument('<requestedShareLimit>', 'requested share limit', stringToBigInt)
@@ -133,7 +134,7 @@ operatorGridWrite
 
       await callWriteMethodWithReceipt({
         contract: operatorGridContract,
-        methodName: 'requestTierChange',
+        methodName: 'changeTier',
         payload: [vault, tierId, requestedShareLimit],
       });
     },
@@ -141,22 +142,16 @@ operatorGridWrite
 
 operatorGridWrite
   .command('confirm-tier-change')
-  .alias('ctc')
-  .description('confirm tier change')
-  .argument('<vault>', 'vault address')
-  .argument('<tierId>', 'tier id to confirm', stringToBigInt)
-  .action(async (vault: Address, tierId: bigint) => {
-    const operatorGridContract = await getOperatorGridContract();
-    await callReadMethod(operatorGridContract, 'tier', [tierId]);
+  .description('Confirms a tier change proposal')
+  .action(async () => {
+    const contract = await getOperatorGridContract();
+    const log = await confirmProposal(contract as any);
 
-    const confirm = await confirmOperation(
-      `Are you sure you want to confirm tier ${tierId} change for vault ${vault}?`,
-    );
-    if (!confirm) return;
+    if (!log) return;
 
     await callWriteMethodWithReceipt({
-      contract: operatorGridContract,
-      methodName: 'confirmTierChange',
-      payload: [vault, tierId],
+      contract,
+      methodName: log.decodedData.functionName as any,
+      payload: log.decodedData.args as any,
     });
   });

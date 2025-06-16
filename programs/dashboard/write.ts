@@ -799,7 +799,7 @@ dashboardWrite
   .argument('<address>', 'dashboard address', stringToAddress)
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
-    const log = await confirmProposal(address);
+    const log = await confirmProposal(contract as any);
 
     if (!log) return;
 

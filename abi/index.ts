@@ -11,3 +11,4 @@ export * from './PredepositGuarantee.js';
 export * from './OperatorGrid.js';
 export * from './WstEth.js';
 export * from './LazyOracle.js';
+export * from './AccessControlConfirmable.js';

@@ -1,28 +1,48 @@
-import { Address, decodeFunctionData, type Hex } from 'viem';
+import {
+  Address,
+  decodeFunctionData,
+  type Hex,
+  type GetContractReturnType,
+  WalletClient,
+  formatEther,
+} from 'viem';
 
-import { getDashboardContract } from 'contracts';
 import { getPublicClient } from 'providers';
 import {
-  callReadMethodSilent,
   confirmOperation,
   formatBP,
   logResult,
   logTable,
   selectProposalEvent,
 } from 'utils';
-import { DashboardAbi } from 'abi';
+import { DashboardAbi, AccessControlConfirmableAbi } from 'abi';
 
 const AVG_BLOCK_TIME_SEC = 12n;
 
-export const CONFIRM_METHODS_MAP = {
-  setConfirmExpiry: (value: bigint) => `${Number(value) / 3600} hours`,
-  setNodeOperatorFeeBP: (value: bigint) => formatBP(value),
+// Define argument types for each function
+type FunctionArgsMap = {
+  setConfirmExpiry: readonly [bigint];
+  setNodeOperatorFeeBP: readonly [bigint];
+  changeTier: readonly [Address, bigint, bigint];
 };
 
+// Type-safe function map
+export const CONFIRM_METHODS_MAP = {
+  setConfirmExpiry: (args: FunctionArgsMap['setConfirmExpiry']) =>
+    `${Number(args[0]) / 3600} hours`,
+  setNodeOperatorFeeBP: (args: FunctionArgsMap['setNodeOperatorFeeBP']) =>
+    formatBP(args[0]),
+  changeTier: (args: FunctionArgsMap['changeTier']) =>
+    `vault: ${args[0]}, tier: ${args[1]}, requested share limit: ${formatEther(args[2])} shares`,
+} as const;
+
+type FunctionName = keyof typeof CONFIRM_METHODS_MAP;
 type DecodedData = {
-  functionName: 'setConfirmExpiry' | 'setNodeOperatorFeeBP';
-  args: readonly [bigint];
-};
+  [K in FunctionName]: {
+    functionName: K;
+    args: FunctionArgsMap[K];
+  };
+}[FunctionName];
 
 type ConfirmationsInfo = {
   member: Address;
@@ -33,20 +53,44 @@ type ConfirmationsInfo = {
   decodedData: DecodedData;
 };
 export type LogsData = Record<Hex, ConfirmationsInfo>;
+type ConfirmationContract = GetContractReturnType<
+  typeof AccessControlConfirmableAbi,
+  WalletClient
+>;
 
-export const getConfirmationsInfo = async (address: Address) => {
+const formatArgs = (
+  args: readonly [bigint] | readonly [Address, bigint, bigint],
+  functionName: FunctionName,
+) => {
+  switch (functionName) {
+    case 'setConfirmExpiry':
+      return CONFIRM_METHODS_MAP.setConfirmExpiry(
+        args as FunctionArgsMap['setConfirmExpiry'],
+      );
+    case 'setNodeOperatorFeeBP':
+      return CONFIRM_METHODS_MAP.setNodeOperatorFeeBP(
+        args as FunctionArgsMap['setNodeOperatorFeeBP'],
+      );
+    case 'changeTier':
+      return CONFIRM_METHODS_MAP.changeTier(
+        args as FunctionArgsMap['changeTier'],
+      );
+    default:
+      throw new Error(`Unknown function: ${functionName}`);
+  }
+};
+
+export const getConfirmationsInfo = async <T extends ConfirmationContract>(
+  contract: T,
+) => {
   const publicClient = getPublicClient();
-  const contract = getDashboardContract(address);
-  const confirmExpire = await callReadMethodSilent(
-    contract,
-    'getConfirmExpiry',
-  );
+  const confirmExpire = await contract.read.getConfirmExpiry();
   const currentBlock = await publicClient.getBlockNumber();
   const confirmExpireInBlocks = confirmExpire / AVG_BLOCK_TIME_SEC;
 
   const logs = await publicClient.getContractEvents({
-    address: address,
-    abi: DashboardAbi,
+    address: contract.address,
+    abi: contract.abi,
     eventName: 'RoleMemberConfirmed',
     fromBlock: currentBlock - confirmExpireInBlocks,
     strict: true,
@@ -82,11 +126,10 @@ export const getConfirmationsInfo = async (address: Address) => {
 
   await Promise.all(
     Object.entries(logsData).map(async ([data, { role }]) => {
-      const confirmations = await callReadMethodSilent(
-        contract,
-        'confirmations',
-        [data as Hex, role],
-      );
+      const confirmations = await contract.read.confirmation([
+        data as Hex,
+        role,
+      ]);
       if (confirmations === 0n) delete logsData[data as Hex];
     }),
   );
@@ -120,8 +163,10 @@ export const getConfirmationsInfo = async (address: Address) => {
   return logsData;
 };
 
-export const confirmProposal = async (address: Address) => {
-  const logsData = await getConfirmationsInfo(address);
+export const confirmProposal = async <T extends ConfirmationContract>(
+  contract: T,
+) => {
+  const logsData = await getConfirmationsInfo(contract);
   if (!logsData) return;
 
   if (Object.keys(logsData).length === 0) {
@@ -138,8 +183,10 @@ export const confirmProposal = async (address: Address) => {
     return;
   }
 
-  const formattedArgs = CONFIRM_METHODS_MAP[log.decodedData.functionName](
-    log.decodedData.args[0],
+  // Type-safe function call using discriminated union
+  const formattedArgs = formatArgs(
+    log.decodedData.args,
+    log.decodedData.functionName,
   );
   const confirm = await confirmOperation(
     `Are you sure you want to confirm this proposal?
