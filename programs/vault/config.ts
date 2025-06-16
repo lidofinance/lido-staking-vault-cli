@@ -1,6 +1,9 @@
 import { ReadProgramCommandConfig } from 'utils';
+import { StakingVaultAbi } from 'abi';
 
-export const readCommandConfig: ReadProgramCommandConfig = {
+export const readCommandConfig: ReadProgramCommandConfig<
+  typeof StakingVaultAbi
+> = {
   calculateValidatorWithdrawalFee: {
     name: 'validator-w-fee',
     description: 'get calculated withdrawal fee for a validator',
@@ -35,10 +38,6 @@ export const readCommandConfig: ReadProgramCommandConfig = {
   version: {
     name: 'version',
     description: 'get vault version',
-  },
-  initializedVersion: {
-    name: 'i-version',
-    description: 'get vault initialized version',
   },
   depositor: {
     name: 'depositor',

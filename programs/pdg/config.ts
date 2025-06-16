@@ -1,6 +1,9 @@
 import { ReadProgramCommandConfig } from 'utils';
+import { PredepositGuaranteeAbi } from 'abi';
 
-export const readCommandConfig: ReadProgramCommandConfig = {
+export const readCommandConfig: ReadProgramCommandConfig<
+  typeof PredepositGuaranteeAbi
+> = {
   DEFAULT_ADMIN_ROLE: {
     name: 'DEFAULT_ADMIN_ROLE',
     description: 'get default admin role',
@@ -9,17 +12,18 @@ export const readCommandConfig: ReadProgramCommandConfig = {
     name: 'BEACON_ROOTS',
     description: 'get beacon roots address',
   },
-  GI_FIRST_VALIDATOR: {
-    name: 'GI_FIRST_VALIDATOR',
-    description: 'get first validator gIndex',
+  GI_FIRST_VALIDATOR_CURR: {
+    name: 'GI_FIRST_VALIDATOR_CURR',
+    description:
+      'get GIndex of first validator in CL state tree after PIVOT_SLOT',
   },
-  GI_FIRST_VALIDATOR_AFTER_CHANGE: {
-    name: 'GI_FIRST_VALIDATOR_AFTER_CHANGE',
-    description: 'get first validator gIndex after change',
+  GI_FIRST_VALIDATOR_PREV: {
+    name: 'GI_FIRST_VALIDATOR_PREV',
+    description: 'get GIndex of first validator in CL state tree',
   },
-  SLOT_CHANGE_GI_FIRST_VALIDATOR: {
-    name: 'SLOT_CHANGE_GI_FIRST_VALIDATOR',
-    description: 'get slot change first validator gIndex',
+  PIVOT_SLOT: {
+    name: 'PIVOT_SLOT',
+    description: 'get slot when GIndex change will occur due to the hardfork',
   },
   GI_PUBKEY_WC_PARENT: {
     name: 'GI_PUBKEY_WC_PARENT',
@@ -51,27 +55,21 @@ export const readCommandConfig: ReadProgramCommandConfig = {
   },
   PREDEPOSIT_AMOUNT: {
     name: 'PREDEPOSIT_AMOUNT',
-    description: 'get amount of ether that is predeposited with each validator',
+    description: 'get computed DEPOSIT_DOMAIN for current chain',
   },
-  PREDEPOSIT_ROLE: {
-    name: 'PREDEPOSIT_ROLE',
+  DEPOSIT_DOMAIN: {
+    name: 'DEPOSIT_DOMAIN',
     description: 'get predeposit role',
   },
-  STATE_ROOT_DEPTH: {
-    name: 'STATE_ROOT_DEPTH',
-    description: 'get state root depth',
-  },
-  STATE_ROOT_POSITION: {
-    name: 'STATE_ROOT_POSITION',
-    description: 'get state root position',
-  },
-  WC_PUBKEY_PARENT_DEPTH: {
-    name: 'WC_PUBKEY_PARENT_DEPTH',
-    description: 'get wc pubkey parent depth',
-  },
-  WC_PUBKEY_PARENT_POSITION: {
-    name: 'WC_PUBKEY_PARENT_POSITION',
-    description: 'get wc pubkey parent position',
+  nodeOperatorDepositor: {
+    name: 'node-operator-depositor',
+    description: 'get address of the depositor for the NO',
+    arguments: {
+      _nodeOperator: {
+        name: 'address',
+        description: 'address of the node operator',
+      },
+    },
   },
   isPaused: {
     name: 'is-paused',
@@ -129,6 +127,41 @@ export const readCommandConfig: ReadProgramCommandConfig = {
       _guarantor: {
         name: 'guarantor',
         description: 'guarantor address',
+      },
+    },
+  },
+  validatePubKeyWCProof: {
+    name: 'validate-pubkey-wc-proof',
+    description:
+      'validates proof of validator in CL with withdrawalCredentials and pubkey against Beacon block root',
+    arguments: {
+      _witness: {
+        name: 'witness',
+        description: 'validator witness',
+      },
+      _withdrawalCredentials: {
+        name: 'withdrawal-credentials',
+        description: 'withdrawal credentials to verify proof with',
+      },
+    },
+  },
+  verifyDepositMessage: {
+    name: 'verify-deposit-message',
+    description:
+      'verifies the deposit message signature using BLS12-381 pairing check',
+    arguments: {
+      _deposit: {
+        name: 'deposit',
+        description: 'staking vault deposit to verify',
+      },
+      _depositsY: {
+        name: 'depositsY',
+        description:
+          'Y coordinates of the two BLS12-381 points (uncompressed pubkey and signature)',
+      },
+      _withdrawalCredentials: {
+        name: 'withdrawal-credentials',
+        description: 'withdrawal credentials of the deposit message to verify',
       },
     },
   },
