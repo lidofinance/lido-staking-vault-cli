@@ -58,7 +58,7 @@ type ConfirmationContract = GetContractReturnType<
   WalletClient
 >;
 
-const formatArgs = (
+export const formatConfirmationArgs = (
   args: readonly [bigint] | readonly [Address, bigint, bigint],
   functionName: FunctionName,
 ) => {
@@ -184,7 +184,7 @@ export const confirmProposal = async <T extends ConfirmationContract>(
   }
 
   // Type-safe function call using discriminated union
-  const formattedArgs = formatArgs(
+  const formattedArgs = formatConfirmationArgs(
     log.decodedData.args,
     log.decodedData.functionName,
   );

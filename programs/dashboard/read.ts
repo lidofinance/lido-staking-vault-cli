@@ -99,7 +99,8 @@ dashboardRead
   .description('get pending confirmations')
   .argument('<address>', 'dashboard address', stringToAddress)
   .action(async (address: Address) => {
-    await getConfirmationsInfo(address);
+    const contract = getDashboardContract(address);
+    await getConfirmationsInfo(contract as any);
   });
 
 generateReadCommands(

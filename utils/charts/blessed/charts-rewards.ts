@@ -45,12 +45,16 @@ export const fetchRewardsChartsData = async ({
   // Get nodeOperatorFeeBP for each report block with caching
   const nodeOperatorFeeBPs: bigint[] = [];
   for (const r of history) {
-    let fee = await cache.getNodeOperatorFeeBP(vault, r.blockNumber);
+    let fee = await cache.getNodeOperatorFeeRate(vault, r.blockNumber);
     if (fee === null) {
-      fee = await callReadMethodSilent(dashboardContract, 'nodeOperatorFeeBP', {
-        blockNumber: BigInt(r.blockNumber),
-      });
-      await cache.setNodeOperatorFeeBP(vault, r.blockNumber, fee);
+      fee = await callReadMethodSilent(
+        dashboardContract,
+        'nodeOperatorFeeRate',
+        {
+          blockNumber: BigInt(r.blockNumber),
+        },
+      );
+      await cache.setNodeOperatorFeeRate(vault, r.blockNumber, fee);
     }
     nodeOperatorFeeBPs.push(fee);
   }

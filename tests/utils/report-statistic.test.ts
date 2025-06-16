@@ -46,10 +46,10 @@ describe('reportMetrics', () => {
       timestamp: 1000 + 3600,
     });
     const stEthLiabilityRebaseRewards = '5000000000000000000';
-    const nodeOperatorFeeBP = 100n;
+    const nodeOperatorFeeRate = 100n;
     const res = reportMetrics({
       reports: { current, previous },
-      nodeOperatorFeeBP,
+      nodeOperatorFeeRate,
       stEthLiabilityRebaseRewards: BigInt(stEthLiabilityRebaseRewards),
     });
     // Проверяем все возвращаемые значения
@@ -94,7 +94,7 @@ describe('reportMetrics', () => {
     });
     const res = reportMetrics({
       reports: { current, previous },
-      nodeOperatorFeeBP: 100n,
+      nodeOperatorFeeRate: 100n,
       stEthLiabilityRebaseRewards: 0n,
     });
     Object.keys(res).forEach((key) => {
@@ -121,7 +121,7 @@ describe('reportMetrics', () => {
     });
     const res = reportMetrics({
       reports: { current, previous },
-      nodeOperatorFeeBP: 100n,
+      nodeOperatorFeeRate: 100n,
       stEthLiabilityRebaseRewards: 0n,
     });
     Object.keys(res).forEach((key) => {
@@ -148,7 +148,7 @@ describe('reportMetrics', () => {
     });
     const res = reportMetrics({
       reports: { current, previous },
-      nodeOperatorFeeBP: 100n,
+      nodeOperatorFeeRate: 100n,
       stEthLiabilityRebaseRewards: 0n,
     });
     Object.keys(res).forEach((key) => {
@@ -173,7 +173,7 @@ describe('reportMetrics', () => {
     });
     const res = reportMetrics({
       reports: { current, previous },
-      nodeOperatorFeeBP: 100n,
+      nodeOperatorFeeRate: 100n,
       stEthLiabilityRebaseRewards: 0n,
     });
     Object.keys(res).forEach((key) => {
@@ -200,7 +200,7 @@ describe('reportMetrics', () => {
     });
     const res = reportMetrics({
       reports: { current, previous },
-      nodeOperatorFeeBP: 0n,
+      nodeOperatorFeeRate: 0n,
       stEthLiabilityRebaseRewards: 0n,
     });
     expect(res.nodeOperatorRewards).toBe(0n);
@@ -222,7 +222,7 @@ describe('reportMetrics', () => {
     });
     const res = reportMetrics({
       reports: { current, previous },
-      nodeOperatorFeeBP: 10000n,
+      nodeOperatorFeeRate: 10000n,
       stEthLiabilityRebaseRewards: 0n,
     });
     expect(res.nodeOperatorRewards).toBe(res.grossStakingRewards);
@@ -244,7 +244,7 @@ describe('reportMetrics', () => {
     });
     const res = reportMetrics({
       reports: { current, previous },
-      nodeOperatorFeeBP: 100n,
+      nodeOperatorFeeRate: 100n,
       stEthLiabilityRebaseRewards: 0n,
     });
     expect(Number(res.grossStakingAPR.apr_percent)).toBeGreaterThan(1000000); // Очень большой APR
@@ -265,7 +265,7 @@ describe('reportMetrics', () => {
     });
     const res = reportMetrics({
       reports: { current, previous },
-      nodeOperatorFeeBP: 100n,
+      nodeOperatorFeeRate: 100n,
       stEthLiabilityRebaseRewards: 0n,
     });
     expect(Number(res.grossStakingAPR.apr_percent)).toBeCloseTo(10, 1); // ~10% годовых

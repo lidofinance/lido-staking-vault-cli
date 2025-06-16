@@ -1,11 +1,12 @@
-import { LogsData, CONFIRM_METHODS_MAP } from 'utils';
+import { LogsData, formatConfirmationArgs } from 'utils';
 
 import { selectPrompt } from './default.js';
 
 export const selectProposalEvent = async (logsData: LogsData) => {
   const events = Object.values(logsData).map((log) => {
-    const formattedArgs = CONFIRM_METHODS_MAP[log.decodedData.functionName](
-      log.decodedData.args[0],
+    const formattedArgs = formatConfirmationArgs(
+      log.decodedData.args,
+      log.decodedData.functionName,
     );
     const argsDescription = `Args: ${log.decodedData.args.join(', ')} (${formattedArgs})`;
 

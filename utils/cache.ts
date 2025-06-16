@@ -7,8 +7,11 @@ const getShareRateCacheFile = () =>
   path.resolve('ipfs-cache', `share-rate-cache-global.json`);
 const getRebaseRewardCacheFile = (vaultAddress: string) =>
   path.resolve('ipfs-cache', `rebase-rewards-cache-${vaultAddress}.json`);
-const getNodeOperatorFeeBPCacheFile = (vaultAddress: string) =>
-  path.resolve('ipfs-cache', `node-operator-fee-bp-cache-${vaultAddress}.json`);
+const getNodeOperatorFeeRateCacheFile = (vaultAddress: string) =>
+  path.resolve(
+    'ipfs-cache',
+    `node-operator-fee-rate-cache-${vaultAddress}.json`,
+  );
 
 export const cache = {
   async getShareRate(blockNumber: number): Promise<bigint | null> {
@@ -68,13 +71,16 @@ export const cache = {
       'utf-8',
     );
   },
-  async getNodeOperatorFeeBP(
+  async getNodeOperatorFeeRate(
     vaultAddress: string,
     blockNumber: number,
   ): Promise<bigint | null> {
     try {
       const data = JSON.parse(
-        await fs.readFile(getNodeOperatorFeeBPCacheFile(vaultAddress), 'utf-8'),
+        await fs.readFile(
+          getNodeOperatorFeeRateCacheFile(vaultAddress),
+          'utf-8',
+        ),
       );
       if (data[blockNumber] !== undefined) return BigInt(data[blockNumber]);
     } catch {
@@ -82,7 +88,7 @@ export const cache = {
     }
     return null;
   },
-  async setNodeOperatorFeeBP(
+  async setNodeOperatorFeeRate(
     vaultAddress: string,
     blockNumber: number,
     value: bigint,
@@ -90,17 +96,23 @@ export const cache = {
     let data: Record<string, string> = {};
     try {
       data = JSON.parse(
-        await fs.readFile(getNodeOperatorFeeBPCacheFile(vaultAddress), 'utf-8'),
+        await fs.readFile(
+          getNodeOperatorFeeRateCacheFile(vaultAddress),
+          'utf-8',
+        ),
       );
     } catch {
       /* ignore */
     }
     data[blockNumber] = value.toString();
-    await fs.mkdir(path.dirname(getNodeOperatorFeeBPCacheFile(vaultAddress)), {
-      recursive: true,
-    });
+    await fs.mkdir(
+      path.dirname(getNodeOperatorFeeRateCacheFile(vaultAddress)),
+      {
+        recursive: true,
+      },
+    );
     await fs.writeFile(
-      getNodeOperatorFeeBPCacheFile(vaultAddress),
+      getNodeOperatorFeeRateCacheFile(vaultAddress),
       JSON.stringify(data),
       'utf-8',
     );

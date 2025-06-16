@@ -1,6 +1,6 @@
 import { Address, Hex } from 'viem';
 
-import { getVaultHubContract } from 'contracts';
+import { getLazyOracleContract } from 'contracts';
 import {
   callReadMethod,
   fetchAndVerifyFile,
@@ -18,9 +18,9 @@ type SubmitReportArgs = {
 };
 
 export const submitReport = async ({ vault, gateway }: SubmitReportArgs) => {
-  const vaultHubContract = await getVaultHubContract();
+  const lazyOracleContract = await getLazyOracleContract();
   const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
-    await callReadMethod(vaultHubContract, 'latestReportData');
+    await callReadMethod(lazyOracleContract, 'latestReportData');
 
   await fetchAndVerifyFile(vaultsDataReportCid, gateway);
 
@@ -57,7 +57,7 @@ export const submitReport = async ({ vault, gateway }: SubmitReportArgs) => {
   }
 
   await callWriteMethodWithReceipt({
-    contract: vaultHubContract,
+    contract: lazyOracleContract,
     methodName: 'updateVaultData',
     payload: [
       vault,

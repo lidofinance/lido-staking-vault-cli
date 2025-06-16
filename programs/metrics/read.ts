@@ -2,7 +2,7 @@ import { Address, formatEther } from 'viem';
 import { Option } from 'commander';
 import { program } from 'command';
 
-import { getDashboardContract, getVaultHubContract } from 'contracts';
+import { getDashboardContract, getLazyOracleContract } from 'contracts';
 import {
   logInfo,
   getCommandsJson,
@@ -41,9 +41,9 @@ metricsRead
   .argument('<address>', 'dashboard address', stringToAddress)
   .option('-g, --gateway', 'ipfs gateway url')
   .action(async (address: Address, { gateway }) => {
-    const vaultHubContract = await getVaultHubContract();
+    const lazyOracleContract = await getLazyOracleContract();
     const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
-      await callReadMethod(vaultHubContract, 'latestReportData');
+      await callReadMethod(lazyOracleContract, 'latestReportData');
 
     await fetchAndVerifyFile(vaultsDataReportCid, gateway);
 
@@ -108,9 +108,9 @@ metricsRead
   .argument('<count>', 'count of reports', stringToNumber)
   .option('-s, --simplified', 'simplified charts')
   .action(async (address: Address, count: number, { simplified }) => {
-    const vaultHubContract = await getVaultHubContract();
+    const lazyOracleContract = await getLazyOracleContract();
     const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
-      await callReadMethod(vaultHubContract, 'latestReportData');
+      await callReadMethod(lazyOracleContract, 'latestReportData');
     const { cacheUse } = program.opts();
 
     if (simplified) {
@@ -137,9 +137,9 @@ metricsRead
   .argument('<address>', 'dashboard address', stringToAddress)
   .argument('<count>', 'count of reports', stringToNumber)
   .action(async (address: Address, count: number) => {
-    const vaultHubContract = await getVaultHubContract();
+    const lazyOracleContract = await getLazyOracleContract();
     const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
-      await callReadMethod(vaultHubContract, 'latestReportData');
+      await callReadMethod(lazyOracleContract, 'latestReportData');
 
     const { cacheUse } = program.opts();
     const chartsData = await fetchRewardsChartsData({

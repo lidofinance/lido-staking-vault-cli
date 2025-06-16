@@ -1,6 +1,9 @@
+import { VaultViewerAbi } from 'abi';
 import { ReadProgramCommandConfig } from 'utils';
 
-export const readCommandConfig: ReadProgramCommandConfig = {
+export const readCommandConfig: ReadProgramCommandConfig<
+  typeof VaultViewerAbi
+> = {
   vaultsConnected: {
     hidden: true,
     name: 'connected',

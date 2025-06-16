@@ -12,7 +12,6 @@ import {
 import {
   checkMintingCapacity,
   checkLiabilityShares,
-  confirmLock,
   checkIsReportFresh,
 } from './utils.js';
 
@@ -36,9 +35,6 @@ export const mintSteth = async (
     amountOfShares,
   );
   if (!isMintingCapacityOk) return;
-
-  const isConfirmedLock = await confirmLock(amountOfShares, contract.address);
-  if (!isConfirmedLock) return;
 
   const hideSpinner = showSpinner();
   const {
@@ -97,9 +93,6 @@ export const mintShares = async (
     amountOfShares,
   );
   if (!isMintingCapacityOk) return;
-
-  const isConfirmedLock = await confirmLock(amountOfShares, contract.address);
-  if (!isConfirmedLock) return;
 
   const hideSpinner = showSpinner();
   const {
