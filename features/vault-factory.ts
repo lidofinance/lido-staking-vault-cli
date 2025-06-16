@@ -7,12 +7,75 @@ import {
   logResult,
   printError,
   showSpinner,
+  logError,
+  transformAddressesToArray,
+  validateAddressesMap,
+  validateAddressMap,
 } from 'utils';
 import { program } from 'command';
+
+export const prepareCreateVaultPayload = (args: {
+  defaultAdmin: string;
+  nodeOperator: string;
+  nodeOperatorManager: string;
+  nodeOperatorFeeBP: bigint;
+  confirmExpiry: bigint;
+  quantity: string;
+  options: { roles: RoleAssignment[] };
+}) => {
+  const {
+    defaultAdmin,
+    nodeOperator,
+    nodeOperatorManager,
+    nodeOperatorFeeBP,
+    confirmExpiry,
+    quantity,
+    options,
+  } = args;
+
+  const qnt = parseInt(quantity);
+  const otherRoles = options.roles || [];
+
+  if (isNaN(qnt)) {
+    logError('quantity must be a number');
+    return;
+  }
+
+  const addresses = transformAddressesToArray(otherRoles);
+
+  const errorsAddressesList = validateAddressesMap(addresses);
+  const errorsList = [
+    ...errorsAddressesList,
+    ...validateAddressMap([nodeOperator, defaultAdmin, nodeOperatorManager]),
+  ];
+  if (errorsList.length > 0) {
+    errorsList.forEach((error) => program.error(error));
+    return;
+  }
+
+  // eslint-disable-next-line unicorn/new-for-builtins
+  const list: number[] = Array.from(Array(qnt));
+  const payload = {
+    defaultAdmin,
+    nodeOperator,
+    nodeOperatorManager,
+    confirmExpiry,
+    nodeOperatorFeeBP,
+  } as VaultWithDashboard;
+
+  return {
+    payload,
+    list,
+    otherRoles,
+  };
+};
 
 export const createVault = async (
   payload: VaultWithDashboard,
   otherRoles: RoleAssignment[] = [],
+  methodName:
+    | 'createVaultWithDashboard'
+    | 'createVaultWithDashboardWithoutConnectingToVaultHub' = 'createVaultWithDashboard',
 ) => {
   const contract = getVaultFactoryContract();
 
@@ -26,7 +89,7 @@ export const createVault = async (
 
   const result = await callWriteMethodWithReceipt({
     contract,
-    methodName: 'createVaultWithDashboard',
+    methodName,
     payload: [
       defaultAdmin,
       nodeOperator,

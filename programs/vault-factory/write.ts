@@ -1,16 +1,12 @@
 import { program } from 'command';
 import { Option } from 'commander';
 
-import { createVault } from 'features';
-import { RoleAssignment, VaultWithDashboard } from 'types';
+import { createVault, prepareCreateVaultPayload } from 'features';
+import { RoleAssignment } from 'types';
 import {
-  validateAddressesMap,
-  validateAddressMap,
-  transformAddressesToArray,
   confirmCreateVaultParams,
   logResult,
   logInfo,
-  logError,
   stringToBigInt,
   jsonToRoleAssignment,
   logCancel,
@@ -59,40 +55,18 @@ vaultFactoryWrite
       quantity: string,
       options: { roles: RoleAssignment[] },
     ) => {
-      const qnt = parseInt(quantity);
-      const otherRoles = options.roles || [];
-
-      if (isNaN(qnt)) {
-        logError('quantity must be a number');
-        return;
-      }
-
-      const addresses = transformAddressesToArray(otherRoles);
-
-      const errorsAddressesList = validateAddressesMap(addresses);
-      const errorsList = [
-        ...errorsAddressesList,
-        ...validateAddressMap([
-          nodeOperator,
-          defaultAdmin,
-          nodeOperatorManager,
-        ]),
-      ];
-      if (errorsList.length > 0) {
-        errorsList.forEach((error) => program.error(error));
-        return;
-      }
-
-      // eslint-disable-next-line unicorn/new-for-builtins
-      const list: number[] = Array.from(Array(qnt));
-      const payload = {
+      const createVaultData = prepareCreateVaultPayload({
         defaultAdmin,
         nodeOperator,
         nodeOperatorManager,
         confirmExpiry,
         nodeOperatorFeeBP,
-      } as VaultWithDashboard;
+        quantity,
+        options,
+      });
+      if (!createVaultData) return;
 
+      const { payload, list, otherRoles } = createVaultData;
       const transactions = [];
 
       const confirm = await confirmCreateVaultParams(payload, otherRoles);
@@ -105,6 +79,86 @@ vaultFactoryWrite
         }
 
         logResult({});
+        transactions.forEach((tx) => {
+          if (program.opts().populateTx) {
+            logInfo('Populated transaction data:', tx);
+            return;
+          }
+          logTable({
+            data: [
+              ['Vault Address', tx?.vault],
+              ['Dashboard Address', tx?.dashboard],
+              ['Owner Address', tx?.owner],
+              ['Transaction Hash', tx?.tx],
+              ['Block Number', tx?.blockNumber],
+            ],
+          });
+        });
+      } catch (err) {
+        if (err instanceof Error) {
+          logInfo('Error occurred while creating vaults', err.message);
+        }
+      }
+    },
+  );
+
+vaultFactoryWrite
+  .command('create-vault-with-dashboard-without-connecting-to-vault-hub')
+  .description('create vault contract with deposit 1 ETH')
+  .argument('<defaultAdmin>', 'default admin address')
+  .argument('<nodeOperator>', 'node operator address')
+  .argument('<nodeOperatorManager>', 'node operator manager address')
+  .argument('<confirmExpiry>', 'confirm expiry', stringToBigInt)
+  .argument(
+    '<nodeOperatorFeeBP>',
+    'Node operator fee, for e.g. 100 == 1%',
+    stringToBigInt,
+  )
+  .argument('[quantity]', 'quantity of vaults to create, default 1', '1')
+  .option(
+    '-r, --roles <roles>',
+    'other roles to assign to the vault',
+    jsonToRoleAssignment,
+  )
+  .action(
+    async (
+      defaultAdmin: string,
+      nodeOperator: string,
+      nodeOperatorManager: string,
+      confirmExpiry: bigint,
+      nodeOperatorFeeBP: bigint,
+      quantity: string,
+      options: { roles: RoleAssignment[] },
+    ) => {
+      const createVaultData = prepareCreateVaultPayload({
+        defaultAdmin,
+        nodeOperator,
+        nodeOperatorManager,
+        confirmExpiry,
+        nodeOperatorFeeBP,
+        quantity,
+        options,
+      });
+      if (!createVaultData) return;
+
+      const { payload, list, otherRoles } = createVaultData;
+      const transactions = [];
+
+      const confirm = await confirmCreateVaultParams(payload, otherRoles);
+      if (!confirm) return logCancel('Vault creation cancelled');
+
+      try {
+        for (const _ of list) {
+          const tx = await createVault(
+            payload,
+            otherRoles,
+            'createVaultWithDashboardWithoutConnectingToVaultHub',
+          );
+          transactions.push(tx);
+        }
+
+        logResult({});
+        // eslint-disable-next-line sonarjs/no-identical-functions
         transactions.forEach((tx) => {
           if (program.opts().populateTx) {
             logInfo('Populated transaction data:', tx);
