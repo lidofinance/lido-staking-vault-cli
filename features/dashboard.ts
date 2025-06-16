@@ -1,10 +1,6 @@
 import { formatEther, Hex } from 'viem';
 
-import {
-  DashboardContract,
-  getStakingVaultContract,
-  getStethContract,
-} from 'contracts';
+import { DashboardContract, getStethContract } from 'contracts';
 import { getPublicClient } from 'providers';
 import {
   printError,
@@ -59,30 +55,30 @@ export const getDashboardOverview = async (contract: DashboardContract) => {
     const health = await fetchAndCalculateVaultHealth(contract);
     const [
       vault,
-      nodeOperatorFeeBP,
+      nodeOperatorFeeRate,
       reserveRatioBP,
-      totalMintingCapacity,
-      withdrawableEther,
-      nodeOperatorUnclaimedFee,
+      totalMintingCapacityShares,
+      withdrawableValue,
+      nodeOperatorDisbursableFee,
       totalValue,
+      locked,
     ] = await Promise.all([
       contract.read.stakingVault(),
-      contract.read.nodeOperatorFeeBP(),
+      contract.read.nodeOperatorFeeRate(),
       contract.read.reserveRatioBP(),
-      contract.read.totalMintingCapacity(),
-      contract.read.withdrawableEther(),
-      contract.read.nodeOperatorUnclaimedFee(),
+      contract.read.totalMintingCapacityShares(),
+      contract.read.withdrawableValue(),
+      contract.read.nodeOperatorDisbursableFee(),
       contract.read.totalValue(),
+      contract.read.locked(),
     ]);
-    const vaultContract = getStakingVaultContract(vault);
     const stethContract = await getStethContract();
-    const locked = await vaultContract.read.locked();
     const balance = await publicClient.getBalance({
       address: vault,
     });
     const totalMintingCapacityStethWei =
       await stethContract.read.getPooledEthBySharesRoundUp([
-        totalMintingCapacity,
+        totalMintingCapacityShares,
       ]);
     const overview = calculateOverviewV2({
       totalValue,
@@ -90,12 +86,12 @@ export const getDashboardOverview = async (contract: DashboardContract) => {
       liabilitySharesInStethWei: health.liabilitySharesInStethWei,
       liabilitySharesInWei: health.liabilitySharesInWei,
       forceRebalanceThresholdBP: health.forceRebalanceThresholdBP,
-      withdrawableEther,
+      withdrawableEther: withdrawableValue,
       balance,
       locked,
-      nodeOperatorUnclaimedFee,
+      nodeOperatorDisbursableFee,
       totalMintingCapacityStethWei,
-      totalMintingCapacitySharesInWei: totalMintingCapacity,
+      totalMintingCapacitySharesInWei: totalMintingCapacityShares,
     });
     hideSpinner();
 
@@ -104,13 +100,13 @@ export const getDashboardOverview = async (contract: DashboardContract) => {
     logTable({
       data: [
         ['Health Factor', formatRatio(overview.healthRatio)],
-        ['Reserve Ratio', formatBP(reserveRatioBP)],
+        ['Reserve Ratio, %', formatBP(reserveRatioBP)],
         [
           'Force Rebalance Threshold',
           formatBP(health.forceRebalanceThresholdBP),
         ],
-        ['NO Reward Share', formatBP(nodeOperatorFeeBP)],
-        ['Utilization Ratio', formatRatio(overview.utilizationRatio)],
+        ['Node Operator Fee Rate, %', formatBP(nodeOperatorFeeRate)],
+        ['Utilization Ratio, %', formatRatio(overview.utilizationRatio)],
         ['Total Value, ETH', formatEther(totalValue)],
         ['Liability, stETH', formatEther(health.liabilitySharesInStethWei)],
         ['Liability, Shares', formatEther(health.liabilitySharesInWei)],
@@ -122,7 +118,10 @@ export const getDashboardOverview = async (contract: DashboardContract) => {
         ['Total Locked, ETH', formatEther(overview.totalLocked)],
         ['Collateral, ETH', formatEther(overview.collateral)],
         ['Pending Unlock, ETH', formatEther(overview.PendingUnlock)],
-        ['No Rewards Accumulated, ETH', formatEther(nodeOperatorUnclaimedFee)],
+        [
+          'Node Operator Disbursable Fee, ETH',
+          formatEther(nodeOperatorDisbursableFee),
+        ],
         ['Reserved, ETH', formatEther(overview.reserved)],
         [
           'Total Minting Capacity, stETH',
@@ -159,46 +158,63 @@ export const getDashboardBaseInfo = async (contract: DashboardContract) => {
     const [
       steth,
       wsteth,
-      vault,
+      eth,
+      lidoLocator,
       vaultHub,
-      accruedRewardsAdjustment,
-      confirmExpiry,
-      nodeOperatorFeeBP,
-      remainingMintingCapacity,
+      vault,
       reserveRatioBP,
+      forcedRebalanceThresholdBP,
+      infraFeeBP,
+      liquidityFeeBP,
+      reservationFeeBP,
       shareLimit,
-      totalMintingCapacity,
-      treasuryFeeBP,
-      unreserved,
-      withdrawableEther,
-      manualAccruedRewardsAdjustmentLimit,
+      liabilityShares,
+      unsettledObligations,
+      totalValue,
+      locked,
+      maxLockableValue,
+      totalMintingCapacityShares,
+      remainingMintingCapacityShares,
+      withdrawableValue,
+      nodeOperatorFeeRecipient,
+      rewardsAdjustment,
+      nodeOperatorDisbursableFee,
+      nodeOperatorFeeRate,
+      confirmExpiry,
       maxConfirmExpiry,
       minConfirmExpiry,
-      nodeOperatorUnclaimedFee,
-      totalValue,
     ] = await Promise.all([
       contract.read.STETH(),
       contract.read.WSTETH(),
-      contract.read.stakingVault(),
+      contract.read.ETH(),
+      contract.read.LIDO_LOCATOR(),
       contract.read.VAULT_HUB(),
-      contract.read.accruedRewardsAdjustment(),
-      contract.read.getConfirmExpiry(),
-      contract.read.nodeOperatorFeeBP(),
-      contract.read.remainingMintingCapacity([0n]),
+      contract.read.stakingVault(),
+
       contract.read.reserveRatioBP(),
+      contract.read.forcedRebalanceThresholdBP(),
+      contract.read.infraFeeBP(),
+      contract.read.liquidityFeeBP(),
+      contract.read.reservationFeeBP(),
       contract.read.shareLimit(),
-      contract.read.totalMintingCapacity(),
-      contract.read.treasuryFeeBP(),
-      contract.read.unreserved(),
-      contract.read.withdrawableEther(),
-      contract.read.MANUAL_ACCRUED_REWARDS_ADJUSTMENT_LIMIT(),
+      contract.read.liabilityShares(),
+      contract.read.unsettledObligations(),
+      contract.read.totalValue(),
+      contract.read.locked(),
+      contract.read.maxLockableValue(),
+      contract.read.totalMintingCapacityShares(),
+      contract.read.remainingMintingCapacityShares([0n]),
+      contract.read.withdrawableValue(),
+
+      contract.read.nodeOperatorFeeRecipient(),
+      contract.read.rewardsAdjustment(),
+      contract.read.nodeOperatorDisbursableFee(),
+      contract.read.nodeOperatorFeeRate(),
+
+      contract.read.getConfirmExpiry(),
       contract.read.MAX_CONFIRM_EXPIRY(),
       contract.read.MIN_CONFIRM_EXPIRY(),
-      contract.read.nodeOperatorUnclaimedFee(),
-      contract.read.totalValue(),
     ]);
-    const vaultContract = getStakingVaultContract(vault);
-    const locked = await vaultContract.read.locked();
     const balance = await publicClient.getBalance({
       address: contract.address,
     });
@@ -211,38 +227,54 @@ export const getDashboardBaseInfo = async (contract: DashboardContract) => {
       data: [
         ['stETH address', steth],
         ['wstETH address', wsteth],
-        ['Vault address', vault],
+        ['ETH address', eth],
+        ['LIDO Locator address', lidoLocator],
         ['Vault Hub address', vaultHub],
+        ['Vault address', vault],
         ['Reserve Ratio, BP', reserveRatioBP],
         ['Reserve Ratio, %', formatBP(reserveRatioBP)],
-        ['Node Operator Fee, BP', nodeOperatorFeeBP],
-        ['Node Operator Fee, %', formatBP(nodeOperatorFeeBP)],
-        ['Treasury Fee, BP', treasuryFeeBP],
-        ['Treasury Fee, %', formatBP(treasuryFeeBP)],
+        ['Forced Rebalance Threshold, BP', forcedRebalanceThresholdBP],
+        ['Forced Rebalance Threshold, %', formatBP(forcedRebalanceThresholdBP)],
+        ['Infra Fee, BP', infraFeeBP],
+        ['Infra Fee, %', formatBP(infraFeeBP)],
+        ['Liquidity Fee, BP', liquidityFeeBP],
+        ['Liquidity Fee, %', formatBP(liquidityFeeBP)],
+        ['Reservation Fee, BP', reservationFeeBP],
+        ['Reservation Fee, %', formatBP(reservationFeeBP)],
+        ['Share Limit, Shares', shareLimit],
+        ['Liability Shares, Shares', formatEther(liabilityShares)],
+        ['Unsettled Obligations, ETH', formatEther(unsettledObligations)],
         ['Total Value, ETH', formatEther(totalValue)],
         ['Locked, ETH', formatEther(locked)],
+        ['Max Lockable Value, ETH', formatEther(maxLockableValue)],
         ['Balance, ETH', formatEther(balance)],
-        ['Share Limit, Shares', formatEther(shareLimit)],
-        ['Total Minting Capacity, Shares', formatEther(totalMintingCapacity)],
+
         [
-          'Node Operator Unclaimed Fee, ETH',
-          formatEther(nodeOperatorUnclaimedFee),
-        ],
-        [
-          'Accrued Rewards Adjustment, ETH',
-          formatEther(accruedRewardsAdjustment),
+          'Total Minting Capacity, Shares',
+          formatEther(totalMintingCapacityShares),
         ],
         [
           'Remaining Minting Capacity, Shares',
-          formatEther(remainingMintingCapacity),
+          formatEther(remainingMintingCapacityShares),
         ],
+        ['Withdrawable Value, ETH', formatEther(withdrawableValue)],
 
-        ['Unreserved, ETH', formatEther(unreserved)],
-        ['Withdrawable Ether, ETH', formatEther(withdrawableEther)],
+        ['Node Operator Fee Recipient', nodeOperatorFeeRecipient],
+        ['Node Operator Fee Rate, %', formatBP(nodeOperatorFeeRate)],
         [
-          'Manual Accrued Rewards Adjustment Limit, ETH',
-          formatEther(manualAccruedRewardsAdjustmentLimit),
+          'Node Operator Disbursable Fee, ETH',
+          formatEther(nodeOperatorDisbursableFee),
         ],
+        ['Node Operator Fee Recipient', nodeOperatorFeeRecipient],
+        ['Rewards Adjustment amount, ETH', formatEther(rewardsAdjustment[0])],
+        ['Rewards Adjustment latestTimestamp', rewardsAdjustment[1]],
+
+        [
+          'Node Operator disbursable Fee, ETH',
+          formatEther(nodeOperatorDisbursableFee),
+        ],
+        ['Node Operator Fee, BP', nodeOperatorFeeRate],
+        ['Node Operator Fee, %', formatBP(nodeOperatorFeeRate)],
         [
           'Confirm Expiry',
           `${confirmExpiry} (${Number(confirmExpiry) / 3600} hours)`,

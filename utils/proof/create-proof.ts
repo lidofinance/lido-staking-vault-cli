@@ -19,6 +19,8 @@ export interface ValidatorWitness {
   pubkey: Hex;
   validatorIndex: bigint;
   childBlockTimestamp: bigint;
+  slot: bigint;
+  proposerIndex: bigint;
 }
 
 export interface ValidatorWitnessWithWC extends ValidatorWitness {

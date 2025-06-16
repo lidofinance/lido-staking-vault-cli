@@ -1,4 +1,4 @@
-import { Address, formatEther } from 'viem';
+import { Address } from 'viem';
 import { Option } from 'commander';
 
 import { DashboardAbi } from 'abi';
@@ -16,7 +16,6 @@ import {
   getCommandsJson,
   stringToAddress,
   callReadMethod,
-  getRequiredLockByShares,
   callReadMethodSilent,
   getConfirmationsInfo,
 } from 'utils';
@@ -78,32 +77,8 @@ dashboardRead
   .argument('<address>', 'dashboard address', stringToAddress)
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
-    const vault = await callReadMethod(contract, 'stakingVault');
-    const vaultContract = getStakingVaultContract(vault);
 
-    await callReadMethod(vaultContract, 'locked');
-  });
-
-dashboardRead
-  .command('required-lock-by-shares')
-  .alias('req-lock')
-  .description('get required lock by shares')
-  .argument('<address>', 'dashboard address', stringToAddress)
-  .argument('<newShares>', 'new shares')
-  .action(async (address: Address, newShares: string) => {
-    const { requiredLock, currentLock } = await getRequiredLockByShares(
-      address,
-      newShares,
-    );
-
-    logResult({
-      data: [
-        ['Required Lock (wei)', requiredLock],
-        ['Required Lock (shares)', formatEther(requiredLock)],
-        ['Current Lock (wei)', currentLock],
-        ['Current Lock (shares)', formatEther(currentLock)],
-      ],
-    });
+    await callReadMethod(contract, 'locked');
   });
 
 dashboardRead
