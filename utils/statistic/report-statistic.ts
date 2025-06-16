@@ -1,4 +1,6 @@
-import { BASIS_POINTS_DENOMINATOR, VaultReport } from 'utils';
+import type { VaultReport } from 'utils/report/types.js';
+
+import { BASIS_POINTS_DENOMINATOR } from '../consts.js';
 
 const SCALE = 1_000_000_000n; // 1e9 for 9 decimal places precision
 

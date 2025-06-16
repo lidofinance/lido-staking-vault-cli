@@ -27,3 +27,5 @@ export * from './rebase-rewards.js';
 export * from './lido-apr.js';
 export * from './charts/index.js';
 export * from './cache.js';
+export * from './statistic/index.js';
+export * from './consts.js';

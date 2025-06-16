@@ -5,10 +5,10 @@ import {
   calculateRebaseReward,
   callReadMethodSilent,
   calculateShareRate,
+  reportMetrics,
 } from 'utils';
 
-import { VaultReport } from './report.js';
-import { reportMetrics } from './report-statistic.js';
+import type { VaultReport } from './types.js';
 
 type StatisticDataArgs = {
   dashboard: Address;

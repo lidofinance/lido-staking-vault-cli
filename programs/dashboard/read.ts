@@ -15,7 +15,6 @@ import {
   logInfo,
   getCommandsJson,
   stringToAddress,
-  callReadMethod,
   callReadMethodSilent,
   getConfirmationsInfo,
 } from 'utils';
@@ -69,16 +68,6 @@ dashboardRead
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
     await getDashboardHealth(contract);
-  });
-
-dashboardRead
-  .command('locked')
-  .description('get locked info')
-  .argument('<address>', 'dashboard address', stringToAddress)
-  .action(async (address: Address) => {
-    const contract = getDashboardContract(address);
-
-    await callReadMethod(contract, 'locked');
   });
 
 dashboardRead

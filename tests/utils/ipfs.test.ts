@@ -55,7 +55,7 @@ describe('ipfs helpers', () => {
       ok: true,
       text: async () => '{"foo":1}',
     });
-    const res = await ipfs.fetchIPFS<{ foo: number }>({ cid: '123' });
+    const res = await ipfs.fetchIPFS<{ foo: number }>({ cid: '123' }, false);
     expect(global.fetch).toHaveBeenCalledWith('https://ipfs.io/ipfs/123');
     expect(res).toEqual({ foo: 1 });
     expect(logInfo).toHaveBeenCalled();
@@ -66,7 +66,7 @@ describe('ipfs helpers', () => {
       ok: false,
       statusText: 'bad',
     });
-    await expect(ipfs.fetchIPFS({ cid: 'fail' })).rejects.toThrow(
+    await expect(ipfs.fetchIPFS({ cid: 'fail' }, false)).rejects.toThrow(
       'Failed to fetch IPFS content: bad',
     );
   });

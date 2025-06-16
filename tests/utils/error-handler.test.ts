@@ -4,15 +4,6 @@ import { program } from 'commander';
 import { logError } from '../../utils/logging/console.js';
 import { printError } from '../../utils/error-handler.js';
 
-// Mock chalk module
-jest.mock('chalk', () => ({
-  red: { bold: jest.fn((str) => str) },
-  blue: { bold: jest.fn((str) => str) },
-  green: { bold: jest.fn((str) => str) },
-  bold: jest.fn((str) => str),
-  yellow: { bold: jest.fn((str) => str) },
-}));
-
 jest.mock('commander', () => ({ program: { error: jest.fn() } }));
 jest.mock('../../utils/logging/console.js', () => ({ logError: jest.fn() }));
 
