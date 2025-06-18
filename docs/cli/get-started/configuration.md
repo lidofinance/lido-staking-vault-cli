@@ -12,7 +12,7 @@ CL_URL=url
 EL_URL=url
 
 # Contract addresses
-DEPLOYED=deployed-hoodi-vaults-testnet.json // required
+DEPLOYED=deployed-hoodi-vaults-testnet-2.json // required
 
 # Wallet
 PRIVATE_KEY=0x
