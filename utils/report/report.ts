@@ -54,22 +54,22 @@ export const getVaultPreviousReport = async (
   return vaultData;
 };
 
-const getVaultData = (report: Report, vault: Address): VaultReport => {
+export const getVaultData = (report: Report, vault: Address): VaultReport => {
   const match = report.values.find(
     (entry) => entry.value[0]?.toLowerCase() === vault.toLowerCase(),
   );
 
   if (!match) throw new Error('Vault not found');
 
-  const leaf = report.tree[match.treeIndex];
+  const leaf = report.tree[Number(match.treeIndex)];
   if (!leaf) throw new Error('Leaf not found');
 
   const data: LeafDataFields = {
     vault_address: '',
-    in_out_delta: '',
     fee: '',
     total_value_wei: '',
     liability_shares: '',
+    slashing_reserve: '',
   };
 
   for (const [index, fieldName] of Object.entries(report.leafIndexToData)) {
@@ -86,7 +86,7 @@ const getVaultData = (report: Report, vault: Address): VaultReport => {
     data,
     leaf,
     refSlot: report.refSlot,
-    blockNumber: report.blockNumber,
+    blockNumber: Number(report.blockNumber),
     timestamp: report.timestamp,
     proofsCID: report.proofsCID,
     merkleTreeRoot: report.merkleTreeRoot,
@@ -177,7 +177,7 @@ export const getAllVaultsReports = async (
   );
 
   const vaultReports = report.values.map(
-    (value) => getVaultData(report, value.value[0] as Address).data,
+    (value) => getVaultData(report, value.value[0]).data,
   );
 
   return {

@@ -1,24 +1,27 @@
-import { Address } from 'viem';
+import { Address, Hex } from 'viem';
 
 type BigNumberType = 'bigint' | 'string';
 
 export type LeafDataFields = {
   vault_address: string;
   total_value_wei: string;
-  in_out_delta: string;
   fee: string;
   liability_shares: string;
+  slashing_reserve: string;
 };
 
 export type Report = {
-  format: string;
-  leafEncoding: string[];
-  tree: string[];
-  values: { value: string[]; treeIndex: number }[];
-  merkleTreeRoot: string;
+  format: 'standard-v1';
+  leafEncoding: ['address', 'uint256', 'uint256', 'uint256', 'uint256'];
+  tree: Hex[];
+  values: {
+    treeIndex: bigint;
+    value: [Address, string, string, string, string];
+  }[];
+  merkleTreeRoot: Hex;
   refSlot: number;
   timestamp: number;
-  blockNumber: number;
+  blockNumber: bigint;
   proofsCID: string;
   prevTreeCID: string;
   leafIndexToData: {
