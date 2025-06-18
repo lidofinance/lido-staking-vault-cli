@@ -1,5 +1,5 @@
-import { Address, Hex } from 'viem';
-import { Option, program } from 'commander';
+import { Address } from 'viem';
+import { Option } from 'commander';
 import cliProgress from 'cli-progress';
 
 import { getLazyOracleContract } from 'contracts';
@@ -9,11 +9,11 @@ import {
   logInfo,
   getCommandsJson,
   logError,
-  getAllVaultsReports,
-  getAllVaultsReportProofs,
   fetchAndVerifyFile,
   withInterruptHandling,
   submitReport,
+  getReportProofByVaults,
+  getReportProofs,
 } from 'utils';
 
 import { report } from './main.js';
@@ -51,25 +51,12 @@ reportWrite
       const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
         await callReadMethod(lazyOracleContract, 'latestReportData');
 
-      const { cacheUse } = program.opts();
-
       await fetchAndVerifyFile(vaultsDataReportCid, gateway);
-      const { vaultReports, proofsCID } = await getAllVaultsReports(
-        {
-          cid: vaultsDataReportCid,
-          gateway,
-        },
-        cacheUse,
-      );
-
-      await fetchAndVerifyFile(proofsCID, gateway);
-      const allVaultsProofs = await getAllVaultsReportProofs(
-        {
-          cid: proofsCID,
-          gateway,
-        },
-        cacheUse,
-      );
+      const proofs = await getReportProofByVaults({
+        cid: vaultsDataReportCid,
+        gateway,
+        vaults,
+      });
 
       const progressBar = new cliProgress.SingleBar(
         {
@@ -82,7 +69,7 @@ reportWrite
 
       progressBar.start(vaults.length, 0);
       for (const [_index, vault] of vaults.entries()) {
-        const vaultReport = vaultReports.find((v) => v.vault_address === vault);
+        const vaultReport = proofs.find((v) => v.data.vault_address === vault);
         if (!vaultReport) {
           logError(`Vault ${vault} not found`);
           continue;
@@ -92,11 +79,11 @@ reportWrite
           methodName: 'updateVaultData',
           payload: [
             vault,
-            BigInt(vaultReport.total_value_wei),
-            BigInt(vaultReport.in_out_delta),
-            BigInt(vaultReport.fee),
-            BigInt(vaultReport.liability_shares),
-            allVaultsProofs[vault]?.proof as Hex[],
+            BigInt(vaultReport.data.total_value_wei),
+            BigInt(vaultReport.data.fee),
+            BigInt(vaultReport.data.liability_shares),
+            BigInt(vaultReport.data.slashing_reserve),
+            vaultReport.proof,
           ],
           withSpinner: false,
           silent: true,
@@ -122,23 +109,11 @@ reportWrite
         await callReadMethod(lazyOracleContract, 'latestReportData');
 
       await fetchAndVerifyFile(vaultsDataReportCid, gateway);
-      const { cacheUse } = program.opts();
 
-      const { vaultReports, proofsCID } = await getAllVaultsReports(
-        {
-          cid: vaultsDataReportCid,
-          gateway,
-        },
-        cacheUse,
-      );
-      await fetchAndVerifyFile(proofsCID, gateway);
-      const allVaultsProofs = await getAllVaultsReportProofs(
-        {
-          cid: proofsCID,
-          gateway,
-        },
-        cacheUse,
-      );
+      const proofs = await getReportProofs({
+        cid: vaultsDataReportCid,
+        gateway,
+      });
 
       const progressBar = new cliProgress.SingleBar(
         {
@@ -148,20 +123,20 @@ reportWrite
         cliProgress.Presets.shades_classic,
       );
 
-      progressBar.start(vaultReports.length, 0);
+      progressBar.start(proofs.length, 0);
 
-      for (const [_index, report] of vaultReports.entries()) {
+      for (const [_index, report] of proofs.entries()) {
         try {
           await callWriteMethodWithReceipt({
             contract: lazyOracleContract,
             methodName: 'updateVaultData',
             payload: [
-              report.vault_address as Address,
-              BigInt(report.total_value_wei),
-              BigInt(report.in_out_delta),
-              BigInt(report.fee),
-              BigInt(report.liability_shares),
-              allVaultsProofs[report.vault_address]?.proof as Hex[],
+              report.data.vault_address as Address,
+              BigInt(report.data.total_value_wei),
+              BigInt(report.data.fee),
+              BigInt(report.data.liability_shares),
+              BigInt(report.data.slashing_reserve),
+              report.proof,
             ],
             withSpinner: false,
             silent: true,
