@@ -295,23 +295,44 @@ dashboardWrite
   });
 
 dashboardWrite
-  .command('rebalance')
+  .command('rebalance-ether')
   .description('rebalance the vault by transferring ether')
   .argument('<address>', 'dashboard address', stringToAddress)
-  .argument('<ether>', 'amount of ether to rebalance (in ETH)')
-  .action(async (address: Address, ether: string) => {
+  .argument('<ether>', 'amount of ether to rebalance (in ETH)', etherToWei)
+  .action(async (address: Address, ether: bigint) => {
     const contract = getDashboardContract(address);
     const vault = await callReadMethod(contract, 'stakingVault');
 
     const confirm = await confirmOperation(
-      `Are you sure you want to rebalance the vault ${vault} with ${ether} ether?`,
+      `Are you sure you want to rebalance the vault ${vault} with ${formatEther(ether)} ether?`,
     );
     if (!confirm) return;
 
     await callWriteMethodWithReceipt({
       contract,
-      methodName: 'rebalanceVault',
-      payload: [parseEther(ether)],
+      methodName: 'rebalanceVaultWithEther',
+      payload: [ether],
+    });
+  });
+
+dashboardWrite
+  .command('rebalance-shares')
+  .description('rebalance the vault by transferring shares')
+  .argument('<address>', 'dashboard address', stringToAddress)
+  .argument('<shares>', 'amount of shares to rebalance (in shares)', etherToWei)
+  .action(async (address: Address, shares: bigint) => {
+    const contract = getDashboardContract(address);
+    const vault = await callReadMethod(contract, 'stakingVault');
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to rebalance the vault ${vault} with ${formatEther(shares)} shares?`,
+    );
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'rebalanceVaultWithShares',
+      payload: [shares],
     });
   });
 

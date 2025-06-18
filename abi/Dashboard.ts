@@ -576,6 +576,19 @@ export const DashboardAbi = [
   },
   {
     inputs: [],
+    name: 'FUND_ON_RECEIVE_FLAG_SLOT',
+    outputs: [
+      {
+        internalType: 'bytes32',
+        name: '',
+        type: 'bytes32',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
     name: 'FUND_ROLE',
     outputs: [
       {
@@ -605,9 +618,9 @@ export const DashboardAbi = [
     name: 'MANUAL_REWARDS_ADJUSTMENT_LIMIT',
     outputs: [
       {
-        internalType: 'uint128',
+        internalType: 'uint256',
         name: '',
-        type: 'uint128',
+        type: 'uint256',
       },
     ],
     stateMutability: 'view',
@@ -1028,14 +1041,19 @@ export const DashboardAbi = [
     name: 'feePeriodStartReport',
     outputs: [
       {
-        internalType: 'uint128',
+        internalType: 'uint112',
         name: 'totalValue',
-        type: 'uint128',
+        type: 'uint112',
       },
       {
         internalType: 'int112',
         name: 'inOutDelta',
         type: 'int112',
+      },
+      {
+        internalType: 'uint32',
+        name: 'timestamp',
+        type: 'uint32',
       },
     ],
     stateMutability: 'view',
@@ -1296,14 +1314,19 @@ export const DashboardAbi = [
       {
         components: [
           {
-            internalType: 'uint128',
+            internalType: 'uint112',
             name: 'totalValue',
-            type: 'uint128',
+            type: 'uint112',
           },
           {
             internalType: 'int112',
             name: 'inOutDelta',
             type: 'int112',
+          },
+          {
+            internalType: 'uint32',
+            name: 'timestamp',
+            type: 'uint32',
           },
         ],
         internalType: 'struct VaultHub.Report',
@@ -1519,9 +1542,22 @@ export const DashboardAbi = [
         type: 'uint256',
       },
     ],
-    name: 'rebalanceVault',
+    name: 'rebalanceVaultWithEther',
     outputs: [],
     stateMutability: 'payable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: '_shares',
+        type: 'uint256',
+      },
+    ],
+    name: 'rebalanceVaultWithShares',
+    outputs: [],
+    stateMutability: 'nonpayable',
     type: 'function',
   },
   {

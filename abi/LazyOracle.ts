@@ -12,6 +12,37 @@ export const LazyOracleAbi = [
   },
   {
     inputs: [],
+    name: 'AccessControlBadConfirmation',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'account',
+        type: 'address',
+      },
+      {
+        internalType: 'bytes32',
+        name: 'neededRole',
+        type: 'bytes32',
+      },
+    ],
+    name: 'AccessControlUnauthorizedAccount',
+    type: 'error',
+  },
+  {
+    inputs: [],
+    name: 'AdminCannotBeZero',
+    type: 'error',
+  },
+  {
+    inputs: [],
+    name: 'InvalidInitialization',
+    type: 'error',
+  },
+  {
+    inputs: [],
     name: 'InvalidProof',
     type: 'error',
   },
@@ -19,6 +50,166 @@ export const LazyOracleAbi = [
     inputs: [],
     name: 'NotAuthorized',
     type: 'error',
+  },
+  {
+    inputs: [],
+    name: 'NotInitializing',
+    type: 'error',
+  },
+  {
+    inputs: [],
+    name: 'TotalValueTooLarge',
+    type: 'error',
+  },
+  {
+    inputs: [],
+    name: 'UnderflowInTotalValueCalculation',
+    type: 'error',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: 'uint64',
+        name: 'version',
+        type: 'uint64',
+      },
+    ],
+    name: 'Initialized',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'vault',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        internalType: 'uint128',
+        name: 'delta',
+        type: 'uint128',
+      },
+    ],
+    name: 'QuarantineExpired',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'vault',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        internalType: 'uint128',
+        name: 'delta',
+        type: 'uint128',
+      },
+    ],
+    name: 'QuarantinedDeposit',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'bytes32',
+        name: 'role',
+        type: 'bytes32',
+      },
+      {
+        indexed: true,
+        internalType: 'bytes32',
+        name: 'previousAdminRole',
+        type: 'bytes32',
+      },
+      {
+        indexed: true,
+        internalType: 'bytes32',
+        name: 'newAdminRole',
+        type: 'bytes32',
+      },
+    ],
+    name: 'RoleAdminChanged',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'bytes32',
+        name: 'role',
+        type: 'bytes32',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'account',
+        type: 'address',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'sender',
+        type: 'address',
+      },
+    ],
+    name: 'RoleGranted',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'bytes32',
+        name: 'role',
+        type: 'bytes32',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'account',
+        type: 'address',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'sender',
+        type: 'address',
+      },
+    ],
+    name: 'RoleRevoked',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: 'uint64',
+        name: 'quarantinePeriod',
+        type: 'uint64',
+      },
+      {
+        indexed: false,
+        internalType: 'uint16',
+        name: 'maxRewardRatioBP',
+        type: 'uint16',
+      },
+    ],
+    name: 'SanityParamsUpdated',
+    type: 'event',
   },
   {
     anonymous: false,
@@ -47,6 +238,19 @@ export const LazyOracleAbi = [
   },
   {
     inputs: [],
+    name: 'DEFAULT_ADMIN_ROLE',
+    outputs: [
+      {
+        internalType: 'bytes32',
+        name: '',
+        type: 'bytes32',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
     name: 'LIDO_LOCATOR',
     outputs: [
       {
@@ -56,6 +260,48 @@ export const LazyOracleAbi = [
       },
     ],
     stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'UPDATE_SANITY_PARAMS_ROLE',
+    outputs: [
+      {
+        internalType: 'bytes32',
+        name: '',
+        type: 'bytes32',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: '_vault',
+        type: 'address',
+      },
+      {
+        internalType: 'uint256',
+        name: '_totalValue',
+        type: 'uint256',
+      },
+    ],
+    name: '_handleSanityChecks',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: 'totalValueWithoutQuarantine',
+        type: 'uint256',
+      },
+      {
+        internalType: 'int256',
+        name: 'inOutDeltaOnRefSlot',
+        type: 'int256',
+      },
+    ],
+    stateMutability: 'nonpayable',
     type: 'function',
   },
   {
@@ -81,14 +327,14 @@ export const LazyOracleAbi = [
             type: 'address',
           },
           {
+            internalType: 'uint96',
+            name: 'vaultIndex',
+            type: 'uint96',
+          },
+          {
             internalType: 'uint256',
             name: 'balance',
             type: 'uint256',
-          },
-          {
-            internalType: 'int256',
-            name: 'inOutDelta',
-            type: 'int256',
           },
           {
             internalType: 'bytes32',
@@ -98,6 +344,11 @@ export const LazyOracleAbi = [
           {
             internalType: 'uint256',
             name: 'liabilityShares',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint256',
+            name: 'mintableStETH',
             type: 'uint256',
           },
           {
@@ -145,6 +396,152 @@ export const LazyOracleAbi = [
     type: 'function',
   },
   {
+    inputs: [
+      {
+        internalType: 'bytes32',
+        name: 'role',
+        type: 'bytes32',
+      },
+    ],
+    name: 'getRoleAdmin',
+    outputs: [
+      {
+        internalType: 'bytes32',
+        name: '',
+        type: 'bytes32',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'bytes32',
+        name: 'role',
+        type: 'bytes32',
+      },
+      {
+        internalType: 'uint256',
+        name: 'index',
+        type: 'uint256',
+      },
+    ],
+    name: 'getRoleMember',
+    outputs: [
+      {
+        internalType: 'address',
+        name: '',
+        type: 'address',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'bytes32',
+        name: 'role',
+        type: 'bytes32',
+      },
+    ],
+    name: 'getRoleMemberCount',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'bytes32',
+        name: 'role',
+        type: 'bytes32',
+      },
+    ],
+    name: 'getRoleMembers',
+    outputs: [
+      {
+        internalType: 'address[]',
+        name: '',
+        type: 'address[]',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'bytes32',
+        name: 'role',
+        type: 'bytes32',
+      },
+      {
+        internalType: 'address',
+        name: 'account',
+        type: 'address',
+      },
+    ],
+    name: 'grantRole',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'bytes32',
+        name: 'role',
+        type: 'bytes32',
+      },
+      {
+        internalType: 'address',
+        name: 'account',
+        type: 'address',
+      },
+    ],
+    name: 'hasRole',
+    outputs: [
+      {
+        internalType: 'bool',
+        name: '',
+        type: 'bool',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: '_admin',
+        type: 'address',
+      },
+      {
+        internalType: 'uint64',
+        name: '_quarantinePeriod',
+        type: 'uint64',
+      },
+      {
+        internalType: 'uint16',
+        name: '_maxRewardRatioBP',
+        type: 'uint16',
+      },
+    ],
+    name: 'initialize',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
     inputs: [],
     name: 'latestReportData',
     outputs: [
@@ -181,6 +578,87 @@ export const LazyOracleAbi = [
     type: 'function',
   },
   {
+    inputs: [],
+    name: 'maxRewardRatioBP',
+    outputs: [
+      {
+        internalType: 'uint16',
+        name: '',
+        type: 'uint16',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'quarantinePeriod',
+    outputs: [
+      {
+        internalType: 'uint64',
+        name: '',
+        type: 'uint64',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'bytes32',
+        name: 'role',
+        type: 'bytes32',
+      },
+      {
+        internalType: 'address',
+        name: 'callerConfirmation',
+        type: 'address',
+      },
+    ],
+    name: 'renounceRole',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'bytes32',
+        name: 'role',
+        type: 'bytes32',
+      },
+      {
+        internalType: 'address',
+        name: 'account',
+        type: 'address',
+      },
+    ],
+    name: 'revokeRole',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'bytes4',
+        name: 'interfaceId',
+        type: 'bytes4',
+      },
+    ],
+    name: 'supportsInterface',
+    outputs: [
+      {
+        internalType: 'bool',
+        name: '',
+        type: 'bool',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
     inputs: [
       {
         internalType: 'uint256',
@@ -206,6 +684,24 @@ export const LazyOracleAbi = [
   {
     inputs: [
       {
+        internalType: 'uint64',
+        name: '_quarantinePeriod',
+        type: 'uint64',
+      },
+      {
+        internalType: 'uint16',
+        name: '_maxRewardRatioBP',
+        type: 'uint16',
+      },
+    ],
+    name: 'updateSanityParams',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
         internalType: 'address',
         name: '_vault',
         type: 'address',
@@ -216,18 +712,18 @@ export const LazyOracleAbi = [
         type: 'uint256',
       },
       {
-        internalType: 'int256',
-        name: '_inOutDelta',
-        type: 'int256',
-      },
-      {
         internalType: 'uint256',
-        name: '_feeSharesCharged',
+        name: '_cumulativeLidoFees',
         type: 'uint256',
       },
       {
         internalType: 'uint256',
         name: '_liabilityShares',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: '_slashingReserve',
         type: 'uint256',
       },
       {
@@ -239,6 +735,47 @@ export const LazyOracleAbi = [
     name: 'updateVaultData',
     outputs: [],
     stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: '_vault',
+        type: 'address',
+      },
+    ],
+    name: 'vaultQuarantine',
+    outputs: [
+      {
+        components: [
+          {
+            internalType: 'bool',
+            name: 'isActive',
+            type: 'bool',
+          },
+          {
+            internalType: 'uint256',
+            name: 'pendingTotalValueIncrease',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint256',
+            name: 'startTimestamp',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint256',
+            name: 'endTimestamp',
+            type: 'uint256',
+          },
+        ],
+        internalType: 'struct LazyOracle.QuarantineInfo',
+        name: '',
+        type: 'tuple',
+      },
+    ],
+    stateMutability: 'view',
     type: 'function',
   },
 ] as const;
