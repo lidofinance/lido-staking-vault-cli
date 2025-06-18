@@ -90,6 +90,16 @@ export const LidoLocatorAbi = [
           },
           {
             internalType: 'address',
+            name: 'vaultFactory',
+            type: 'address',
+          },
+          {
+            internalType: 'address',
+            name: 'lazyOracle',
+            type: 'address',
+          },
+          {
+            internalType: 'address',
             name: 'operatorGrid',
             type: 'address',
           },
@@ -200,6 +210,19 @@ export const LidoLocatorAbi = [
   {
     inputs: [],
     name: 'elRewardsVault',
+    outputs: [
+      {
+        internalType: 'address',
+        name: '',
+        type: 'address',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'lazyOracle',
     outputs: [
       {
         internalType: 'address',
@@ -360,6 +383,19 @@ export const LidoLocatorAbi = [
   {
     inputs: [],
     name: 'validatorsExitBusOracle',
+    outputs: [
+      {
+        internalType: 'address',
+        name: '',
+        type: 'address',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'vaultFactory',
     outputs: [
       {
         internalType: 'address',

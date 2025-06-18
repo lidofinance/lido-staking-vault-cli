@@ -1,54 +1,43 @@
-import { Address, Hex } from 'viem';
+import { Address } from 'viem';
 
-import { getVaultHubContract } from 'contracts';
+import { getLazyOracleContract } from 'contracts';
 import {
   callReadMethod,
   fetchAndVerifyFile,
-  getVaultReport,
-  getVaultReportProofByCid,
   logCancel,
   callWriteMethodWithReceipt,
   confirmOperation,
+  getReportProofByVault,
 } from 'utils';
-import { program } from 'command';
 
 type SubmitReportArgs = {
   vault: Address;
   gateway?: string;
 };
 
-export const submitReport = async ({ vault, gateway }: SubmitReportArgs) => {
-  const vaultHubContract = await getVaultHubContract();
+export const submitReport = async ({
+  vault,
+  gateway,
+}: SubmitReportArgs): Promise<void> => {
+  const lazyOracleContract = await getLazyOracleContract();
   const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
-    await callReadMethod(vaultHubContract, 'latestReportData');
+    await callReadMethod(lazyOracleContract, 'latestReportData');
 
   await fetchAndVerifyFile(vaultsDataReportCid, gateway);
 
-  const { cacheUse } = program.opts();
-  const report = await getVaultReport(
-    {
-      vault,
-      cid: vaultsDataReportCid,
-      gateway,
-    },
-    cacheUse,
-  );
-  const reportProof = await getVaultReportProofByCid(
-    {
-      vault,
-      cid: report.proofsCID,
-      gateway,
-    },
-    cacheUse,
-  );
-  await fetchAndVerifyFile(report.proofsCID, gateway);
+  const proof = await getReportProofByVault({
+    vault,
+    cid: vaultsDataReportCid,
+    gateway,
+  });
+  await fetchAndVerifyFile(vaultsDataReportCid, gateway);
 
   const confirm = await confirmOperation(
     `Are you sure you want to submit report for vault ${vault}?
-        Total value wei: ${report.data.total_value_wei}
-        In out delta: ${report.data.in_out_delta}
-        Fee: ${report.data.fee}
-        Liability shares: ${report.data.liability_shares}
+        Total value wei: ${proof.data.total_value_wei}
+        Fee: ${proof.data.fee}
+        Liability shares: ${proof.data.liability_shares}
+        Slashing reserve: ${proof.data.slashing_reserve}
         `,
   );
   if (!confirm) {
@@ -57,15 +46,15 @@ export const submitReport = async ({ vault, gateway }: SubmitReportArgs) => {
   }
 
   await callWriteMethodWithReceipt({
-    contract: vaultHubContract,
+    contract: lazyOracleContract,
     methodName: 'updateVaultData',
     payload: [
       vault,
-      BigInt(report.data.total_value_wei),
-      BigInt(report.data.in_out_delta),
-      BigInt(report.data.fee),
-      BigInt(report.data.liability_shares),
-      reportProof.proof as Hex[],
+      BigInt(proof.data.total_value_wei),
+      BigInt(proof.data.fee),
+      BigInt(proof.data.liability_shares),
+      BigInt(proof.data.slashing_reserve),
+      proof.proof,
     ],
   });
 };

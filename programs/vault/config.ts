@@ -1,10 +1,9 @@
 import { ReadProgramCommandConfig } from 'utils';
+import { StakingVaultAbi } from 'abi';
 
-export const readCommandConfig: ReadProgramCommandConfig = {
-  latestReport: {
-    name: 'l-report',
-    description: 'get latest vault report',
-  },
+export const readCommandConfig: ReadProgramCommandConfig<
+  typeof StakingVaultAbi
+> = {
   calculateValidatorWithdrawalFee: {
     name: 'validator-w-fee',
     description: 'get calculated withdrawal fee for a validator',
@@ -16,25 +15,9 @@ export const readCommandConfig: ReadProgramCommandConfig = {
       },
     },
   },
-  inOutDelta: {
-    name: 'delta',
-    description: 'get the net difference between deposits and withdrawals',
-  },
   beaconChainDepositsPaused: {
     name: 'is-paused-deposits',
     description: 'get whether deposits are paused by the vault owner',
-  },
-  valuation: {
-    name: 'valuation',
-    description: 'get vault valuation',
-  },
-  unlocked: {
-    name: 'unlocked',
-    description: 'get vault unlocked',
-  },
-  locked: {
-    name: 'locked',
-    description: 'get vault locked',
   },
   withdrawalCredentials: {
     name: 'wc',
@@ -52,17 +35,9 @@ export const readCommandConfig: ReadProgramCommandConfig = {
     name: 'owner',
     description: 'get vault owner',
   },
-  vaultHub: {
-    name: 'vault-hub',
-    description: 'get vault hub',
-  },
   version: {
     name: 'version',
     description: 'get vault version',
-  },
-  initializedVersion: {
-    name: 'i-version',
-    description: 'get vault initialized version',
   },
   depositor: {
     name: 'depositor',

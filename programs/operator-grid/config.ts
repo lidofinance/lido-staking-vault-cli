@@ -1,6 +1,17 @@
 import { ReadProgramCommandConfig } from 'utils';
+import { OperatorGridAbi } from 'abi';
 
-export const readCommandConfig: ReadProgramCommandConfig = {
+export const readCommandConfig: ReadProgramCommandConfig<
+  typeof OperatorGridAbi
+> = {
+  MAX_CONFIRM_EXPIRY: {
+    name: 'max-confirm-expiry',
+    description: 'get max confirm expiry',
+  },
+  MIN_CONFIRM_EXPIRY: {
+    name: 'min-confirm-expiry',
+    description: 'get min confirm expiry',
+  },
   group: {
     name: 'group',
     description: 'get group by node operator address',
@@ -25,40 +36,6 @@ export const readCommandConfig: ReadProgramCommandConfig = {
     name: 'node-operator-count',
     description: 'get node operator count',
   },
-  pendingRequest: {
-    name: 'pending-request',
-    description: 'get pending request for a node operator by index',
-    arguments: {
-      _nodeOperator: {
-        name: 'node-operator',
-        description: 'node operator address',
-      },
-      _index: {
-        name: 'index',
-        description: 'index',
-      },
-    },
-  },
-  pendingRequests: {
-    name: 'pending-requests',
-    description: 'get pending requests for a node operator',
-    arguments: {
-      _nodeOperator: {
-        name: 'node-operator',
-        description: 'node operator address',
-      },
-    },
-  },
-  pendingRequestsCount: {
-    name: 'pending-requests-count',
-    description: 'get pending requests count for a node operator',
-    arguments: {
-      _nodeOperator: {
-        name: 'node-operator',
-        description: 'node operator address',
-      },
-    },
-  },
   tier: {
     name: 'tier',
     description: 'get tier by ID',
@@ -78,5 +55,38 @@ export const readCommandConfig: ReadProgramCommandConfig = {
         description: 'vault address',
       },
     },
+  },
+  tiersCount: {
+    name: 'tiers-count',
+    description: 'get a tiers count',
+  },
+  confirmation: {
+    name: 'confirmation',
+    description: 'get confirmation by role and call data',
+    arguments: {
+      _role: {
+        name: 'role',
+        description: 'role',
+      },
+      _callData: {
+        name: 'call-data',
+        description: 'call data',
+      },
+    },
+  },
+  effectiveShareLimit: {
+    name: 'effective-share-limit',
+    description:
+      'get the effective share limit of a vault according to the OperatorGrid and vault share limits',
+    arguments: {
+      _vault: {
+        name: 'vault',
+        description: 'vault address',
+      },
+    },
+  },
+  getConfirmExpiry: {
+    name: 'get-confirm-expiry',
+    description: 'get confirm expiry',
   },
 };

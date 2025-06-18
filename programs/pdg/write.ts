@@ -24,6 +24,7 @@ import {
   isValidBLSDeposit,
   expandBLSSignature,
   logTable,
+  type ValidatorWitness,
 } from 'utils';
 import { Deposit } from 'types';
 
@@ -140,8 +141,14 @@ pdgWrite
     try {
       const packageProof = await createPDGProof(Number(validatorIndex));
       hideSpinner();
-      const { proof, pubkey, childBlockTimestamp, withdrawalCredentials } =
-        packageProof;
+      const {
+        proof,
+        pubkey,
+        childBlockTimestamp,
+        withdrawalCredentials,
+        slot,
+        proposerIndex,
+      } = packageProof;
 
       logResult({});
       logInfo('----------------------proof----------------------');
@@ -159,7 +166,16 @@ pdgWrite
       await callWriteMethodWithReceipt({
         contract: pdgContract,
         methodName: 'proveValidatorWC',
-        payload: [{ proof, pubkey, validatorIndex, childBlockTimestamp }],
+        payload: [
+          {
+            proof,
+            pubkey,
+            validatorIndex,
+            childBlockTimestamp,
+            slot,
+            proposerIndex,
+          },
+        ],
       });
     } catch (err) {
       hideSpinner();
@@ -188,12 +204,7 @@ pdgWrite
   .action(async (indexes: bigint[], vault: Address, deposits: Deposit[]) => {
     const pdgContract = await getPredepositGuaranteeContract();
 
-    const witnesses: {
-      proof: Hex[];
-      pubkey: Hex;
-      validatorIndex: bigint;
-      childBlockTimestamp: bigint;
-    }[] = [];
+    const witnesses: ValidatorWitness[] = [];
 
     for (const index of indexes) {
       const validatorIndex = await confirmMakeProof(index);
@@ -206,14 +217,22 @@ pdgWrite
       try {
         const packageProof = await createPDGProof(Number(validatorIndex));
         hideSpinner();
-        const { proof, pubkey, childBlockTimestamp, withdrawalCredentials } =
-          packageProof;
+        const {
+          proof,
+          pubkey,
+          childBlockTimestamp,
+          withdrawalCredentials,
+          slot,
+          proposerIndex,
+        } = packageProof;
 
         witnesses.push({
           proof,
           pubkey,
           validatorIndex,
           childBlockTimestamp,
+          slot,
+          proposerIndex,
         });
 
         logResult({});
@@ -227,17 +246,17 @@ pdgWrite
           ],
         });
         logInfo('-----------------------end-----------------------');
-
-        await callWriteMethodWithReceipt({
-          contract: pdgContract,
-          methodName: 'proveAndDeposit',
-          payload: [witnesses, deposits, vault],
-        });
       } catch (err) {
         hideSpinner();
         printError(err, 'Error when making proof');
       }
     }
+
+    await callWriteMethodWithReceipt({
+      contract: pdgContract,
+      methodName: 'proveAndDeposit',
+      payload: [witnesses, deposits, vault],
+    });
   });
 
 pdgWrite
@@ -361,8 +380,14 @@ pdgWrite
     try {
       const packageProof = await createPDGProof(Number(validatorIndex));
       hideSpinner();
-      const { proof, pubkey, childBlockTimestamp, withdrawalCredentials } =
-        packageProof;
+      const {
+        proof,
+        pubkey,
+        childBlockTimestamp,
+        withdrawalCredentials,
+        slot,
+        proposerIndex,
+      } = packageProof;
 
       logResult({});
       logInfo('----------------------proof----------------------');
@@ -386,7 +411,14 @@ pdgWrite
         contract: pdgContract,
         methodName: 'proveInvalidValidatorWC',
         payload: [
-          { proof, pubkey, validatorIndex, childBlockTimestamp },
+          {
+            proof,
+            pubkey,
+            validatorIndex,
+            childBlockTimestamp,
+            slot,
+            proposerIndex,
+          },
           invalidWithdrawalCredentials,
         ],
       });

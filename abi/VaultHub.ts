@@ -41,17 +41,6 @@ export const VaultHubErrorsAbi = [
   {
     inputs: [
       {
-        internalType: 'bytes32',
-        name: 'codehash',
-        type: 'bytes32',
-      },
-    ],
-    name: 'AlreadyExists',
-    type: 'error',
-  },
-  {
-    inputs: [
-      {
         internalType: 'address',
         name: 'vault',
         type: 'address',
@@ -69,16 +58,42 @@ export const VaultHubErrorsAbi = [
       },
       {
         internalType: 'uint256',
-        name: 'forcedRebalanceThresholdBP',
+        name: 'withdrawable',
         type: 'uint256',
       },
       {
         internalType: 'uint256',
-        name: 'maxForcedRebalanceThresholdBP',
+        name: 'requested',
         type: 'uint256',
       },
     ],
-    name: 'ForcedRebalanceThresholdTooHigh',
+    name: 'AmountExceedsWithdrawableValue',
+    type: 'error',
+  },
+  {
+    inputs: [],
+    name: 'BadDebtSocializationNotAllowed',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'vault',
+        type: 'address',
+      },
+      {
+        internalType: 'bytes32',
+        name: 'codehash',
+        type: 'bytes32',
+      },
+    ],
+    name: 'CodehashNotAllowed',
+    type: 'error',
+  },
+  {
+    inputs: [],
+    name: 'ForcedValidatorExitNotAllowed',
     type: 'error',
   },
   {
@@ -106,11 +121,27 @@ export const VaultHubErrorsAbi = [
       },
       {
         internalType: 'uint256',
-        name: 'totalValue',
+        name: 'maxLockableValue',
         type: 'uint256',
       },
     ],
-    name: 'InsufficientTotalValueToMint',
+    name: 'InsufficientValueToMint',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: 'valueBP',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: 'maxValueBP',
+        type: 'uint256',
+      },
+    ],
+    name: 'InvalidBasisPoints',
     type: 'error',
   },
   {
@@ -140,13 +171,24 @@ export const VaultHubErrorsAbi = [
     type: 'error',
   },
   {
-    inputs: [],
-    name: 'InvalidProof',
-    type: 'error',
-  },
-  {
-    inputs: [],
-    name: 'InvalidPubkeysLength',
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'vault',
+        type: 'address',
+      },
+      {
+        internalType: 'uint256',
+        name: 'totalValueShares',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: 'liabilityShares',
+        type: 'uint256',
+      },
+    ],
+    name: 'NoBadDebtToWriteOff',
     type: 'error',
   },
   {
@@ -166,18 +208,7 @@ export const VaultHubErrorsAbi = [
     type: 'error',
   },
   {
-    inputs: [
-      {
-        internalType: 'string',
-        name: 'operation',
-        type: 'string',
-      },
-      {
-        internalType: 'address',
-        name: 'addr',
-        type: 'address',
-      },
-    ],
+    inputs: [],
     name: 'NotAuthorized',
     type: 'error',
   },
@@ -198,6 +229,22 @@ export const VaultHubErrorsAbi = [
     type: 'error',
   },
   {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'vault',
+        type: 'address',
+      },
+    ],
+    name: 'PDGNotDepositor',
+    type: 'error',
+  },
+  {
+    inputs: [],
+    name: 'PartialValidatorWithdrawalNotAllowed',
+    type: 'error',
+  },
+  {
     inputs: [],
     name: 'PauseUntilMustBeInFuture',
     type: 'error',
@@ -211,37 +258,16 @@ export const VaultHubErrorsAbi = [
     inputs: [
       {
         internalType: 'uint256',
-        name: 'relativeShareLimitBP',
+        name: 'totalValue',
         type: 'uint256',
       },
       {
         internalType: 'uint256',
-        name: 'totalBasisPoints',
+        name: 'rebalanceAmount',
         type: 'uint256',
       },
     ],
-    name: 'RelativeShareLimitBPTooHigh',
-    type: 'error',
-  },
-  {
-    inputs: [
-      {
-        internalType: 'address',
-        name: 'vault',
-        type: 'address',
-      },
-      {
-        internalType: 'uint256',
-        name: 'reserveRatioBP',
-        type: 'uint256',
-      },
-      {
-        internalType: 'uint256',
-        name: 'maxReserveRatioBP',
-        type: 'uint256',
-      },
-    ],
-    name: 'ReserveRatioTooHigh',
+    name: 'RebalanceAmountExceedsTotalValue',
     type: 'error',
   },
   {
@@ -258,6 +284,11 @@ export const VaultHubErrorsAbi = [
       },
       {
         internalType: 'uint256',
+        name: 'expectedSharesAfterMint',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
         name: 'shareLimit',
         type: 'uint256',
       },
@@ -267,11 +298,6 @@ export const VaultHubErrorsAbi = [
   },
   {
     inputs: [
-      {
-        internalType: 'address',
-        name: 'vault',
-        type: 'address',
-      },
       {
         internalType: 'uint256',
         name: 'shareLimit',
@@ -293,18 +319,29 @@ export const VaultHubErrorsAbi = [
         name: 'vault',
         type: 'address',
       },
+    ],
+    name: 'UnhealthyVaultCannotDeposit',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'vault',
+        type: 'address',
+      },
       {
         internalType: 'uint256',
-        name: 'treasuryFeeBP',
+        name: 'unsettledObligations',
         type: 'uint256',
       },
       {
         internalType: 'uint256',
-        name: 'maxTreasuryFeeBP',
+        name: 'allowedUnsettled',
         type: 'uint256',
       },
     ],
-    name: 'TreasuryFeeTooHigh',
+    name: 'VaultHasUnsettledObligations',
     type: 'error',
   },
   {
@@ -315,18 +352,7 @@ export const VaultHubErrorsAbi = [
         type: 'address',
       },
     ],
-    name: 'VaultDeauthorized',
-    type: 'error',
-  },
-  {
-    inputs: [
-      {
-        internalType: 'address',
-        name: 'depositor',
-        type: 'address',
-      },
-    ],
-    name: 'VaultDepositorNotAllowed',
+    name: 'VaultHubNotPendingOwner',
     type: 'error',
   },
   {
@@ -357,18 +383,8 @@ export const VaultHubErrorsAbi = [
         name: 'vault',
         type: 'address',
       },
-      {
-        internalType: 'uint256',
-        name: 'currentLocked',
-        type: 'uint256',
-      },
-      {
-        internalType: 'uint256',
-        name: 'expectedLocked',
-        type: 'uint256',
-      },
     ],
-    name: 'VaultInsufficientLocked',
+    name: 'VaultIsDisconnecting',
     type: 'error',
   },
   {
@@ -412,43 +428,31 @@ export const VaultHubErrorsAbi = [
     inputs: [
       {
         internalType: 'address',
-        name: 'beacon',
-        type: 'address',
-      },
-      {
-        internalType: 'bytes32',
-        name: 'codehash',
-        type: 'bytes32',
-      },
-    ],
-    name: 'VaultProxyNotAllowed',
-    type: 'error',
-  },
-  {
-    inputs: [],
-    name: 'VaultProxyZeroCodehash',
-    type: 'error',
-  },
-  {
-    inputs: [
-      {
-        internalType: 'address',
         name: 'vault',
         type: 'address',
       },
     ],
-    name: 'VaultReportStaled',
+    name: 'VaultReportStale',
     type: 'error',
   },
   {
-    inputs: [
-      {
-        internalType: 'string',
-        name: 'argument',
-        type: 'string',
-      },
-    ],
+    inputs: [],
+    name: 'ZeroAddress',
+    type: 'error',
+  },
+  {
+    inputs: [],
     name: 'ZeroArgument',
+    type: 'error',
+  },
+  {
+    inputs: [],
+    name: 'ZeroBalance',
+    type: 'error',
+  },
+  {
+    inputs: [],
+    name: 'ZeroCodehash',
     type: 'error',
   },
   {
@@ -474,13 +478,81 @@ export const VaultHubAbi = [
         type: 'address',
       },
       {
+        internalType: 'contract IHashConsensus',
+        name: '_consensusContract',
+        type: 'address',
+      },
+      {
         internalType: 'uint256',
-        name: '_relativeShareLimitBP',
+        name: '_maxRelativeShareLimitBP',
         type: 'uint256',
       },
     ],
     stateMutability: 'nonpayable',
     type: 'constructor',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'bytes32',
+        name: 'codehash',
+        type: 'bytes32',
+      },
+      {
+        indexed: false,
+        internalType: 'bool',
+        name: 'allowed',
+        type: 'bool',
+      },
+    ],
+    name: 'AllowedCodehashUpdated',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'vaultDonor',
+        type: 'address',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'vaultAcceptor',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'badDebtShares',
+        type: 'uint256',
+      },
+    ],
+    name: 'BadDebtSocialized',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'vault',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'badDebtShares',
+        type: 'uint256',
+      },
+    ],
+    name: 'BadDebtWrittenOffToBeInternalized',
+    type: 'event',
   },
   {
     anonymous: false,
@@ -551,7 +623,38 @@ export const VaultHubAbi = [
       {
         indexed: false,
         internalType: 'uint256',
+        name: 'unsettledLidoFees',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'settledLidoFees',
+        type: 'uint256',
+      },
+    ],
+    name: 'LidoFeesUpdated',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'vault',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
         name: 'amountOfShares',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'lockedAmount',
         type: 'uint256',
       },
     ],
@@ -569,6 +672,44 @@ export const VaultHubAbi = [
       },
     ],
     name: 'Paused',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'vault',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'redemptionsValue',
+        type: 'uint256',
+      },
+    ],
+    name: 'RedemptionsNotSet',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'vault',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'unsettledRedemptions',
+        type: 'uint256',
+      },
+    ],
+    name: 'RedemptionsUpdated',
     type: 'event',
   },
   {
@@ -664,11 +805,41 @@ export const VaultHubAbi = [
       {
         indexed: false,
         internalType: 'uint256',
-        name: 'newShareLimit',
+        name: 'shareLimit',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'reserveRatioBP',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'forcedRebalanceThresholdBP',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'infraFeeBP',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'liquidityFeeBP',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'reservationFeeBP',
         type: 'uint256',
       },
     ],
-    name: 'ShareLimitUpdated',
+    name: 'VaultConnected',
     type: 'event',
   },
   {
@@ -701,11 +872,42 @@ export const VaultHubAbi = [
       {
         indexed: false,
         internalType: 'uint256',
-        name: 'treasuryFeeBP',
+        name: 'infraFeeBP',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'liquidityFeeBP',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'reservationFeeBP',
         type: 'uint256',
       },
     ],
-    name: 'VaultConnectionSet',
+    name: 'VaultConnectionUpdated',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'vault',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'slashingReserve',
+        type: 'uint256',
+      },
+    ],
+    name: 'VaultDisconnectAborted',
     type: 'event',
   },
   {
@@ -718,7 +920,7 @@ export const VaultHubAbi = [
         type: 'address',
       },
     ],
-    name: 'VaultDisconnected',
+    name: 'VaultDisconnectCompleted',
     type: 'event',
   },
   {
@@ -726,12 +928,148 @@ export const VaultHubAbi = [
     inputs: [
       {
         indexed: true,
-        internalType: 'bytes32',
-        name: 'codehash',
-        type: 'bytes32',
+        internalType: 'address',
+        name: 'vault',
+        type: 'address',
       },
     ],
-    name: 'VaultProxyCodehashAdded',
+    name: 'VaultDisconnectInitiated',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'vault',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'preInfraFeeBP',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'preLiquidityFeeBP',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'preReservationFeeBP',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'infraFeeBP',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'liquidityFeeBP',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'reservationFeeBP',
+        type: 'uint256',
+      },
+    ],
+    name: 'VaultFeesUpdated',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'vault',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        internalType: 'int112',
+        name: 'inOutDelta',
+        type: 'int112',
+      },
+    ],
+    name: 'VaultInOutDeltaUpdated',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'vault',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'rebalanced',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'transferredToLido',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'unsettledRedemptions',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'unsettledLidoFees',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'settledLidoFees',
+        type: 'uint256',
+      },
+    ],
+    name: 'VaultObligationsSettled',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'vault',
+        type: 'address',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'newOwner',
+        type: 'address',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'oldOwner',
+        type: 'address',
+      },
+    ],
+    name: 'VaultOwnershipTransferred',
     type: 'event',
   },
   {
@@ -749,6 +1087,12 @@ export const VaultHubAbi = [
         name: 'sharesBurned',
         type: 'uint256',
       },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'etherWithdrawn',
+        type: 'uint256',
+      },
     ],
     name: 'VaultRebalanced',
     type: 'event',
@@ -758,25 +1102,81 @@ export const VaultHubAbi = [
     inputs: [
       {
         indexed: true,
-        internalType: 'uint64',
-        name: 'timestamp',
-        type: 'uint64',
+        internalType: 'address',
+        name: 'vault',
+        type: 'address',
       },
       {
         indexed: false,
-        internalType: 'bytes32',
-        name: 'root',
-        type: 'bytes32',
+        internalType: 'uint256',
+        name: 'reportTimestamp',
+        type: 'uint256',
       },
       {
         indexed: false,
-        internalType: 'string',
-        name: 'cid',
-        type: 'string',
+        internalType: 'uint256',
+        name: 'reportTotalValue',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'int256',
+        name: 'reportInOutDelta',
+        type: 'int256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'reportCumulativeLidoFees',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'reportLiabilityShares',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'reportSlashingReserve',
+        type: 'uint256',
       },
     ],
-    name: 'VaultsReportDataUpdated',
+    name: 'VaultReportApplied',
     type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'vault',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'newShareLimit',
+        type: 'uint256',
+      },
+    ],
+    name: 'VaultShareLimitUpdated',
+    type: 'event',
+  },
+  {
+    inputs: [],
+    name: 'BAD_DEBT_MASTER_ROLE',
+    outputs: [
+      {
+        internalType: 'bytes32',
+        name: '',
+        type: 'bytes32',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
   },
   {
     inputs: [],
@@ -786,6 +1186,19 @@ export const VaultHubAbi = [
         internalType: 'uint256',
         name: '',
         type: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'CONSENSUS_CONTRACT',
+    outputs: [
+      {
+        internalType: 'contract IHashConsensus',
+        name: '',
+        type: 'address',
       },
     ],
     stateMutability: 'view',
@@ -832,6 +1245,19 @@ export const VaultHubAbi = [
   },
   {
     inputs: [],
+    name: 'MAX_RELATIVE_SHARE_LIMIT_BP',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
     name: 'PAUSE_INFINITELY',
     outputs: [
       {
@@ -846,6 +1272,19 @@ export const VaultHubAbi = [
   {
     inputs: [],
     name: 'PAUSE_ROLE',
+    outputs: [
+      {
+        internalType: 'bytes32',
+        name: '',
+        type: 'bytes32',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'REDEMPTION_MASTER_ROLE',
     outputs: [
       {
         internalType: 'bytes32',
@@ -884,7 +1323,7 @@ export const VaultHubAbi = [
   },
   {
     inputs: [],
-    name: 'VAULT_MASTER_ROLE',
+    name: 'VALIDATOR_EXIT_ROLE',
     outputs: [
       {
         internalType: 'bytes32',
@@ -897,7 +1336,20 @@ export const VaultHubAbi = [
   },
   {
     inputs: [],
-    name: 'VAULT_REGISTRY_ROLE',
+    name: 'VAULT_CODEHASH_SET_ROLE',
+    outputs: [
+      {
+        internalType: 'bytes32',
+        name: '',
+        type: 'bytes32',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'VAULT_MASTER_ROLE',
     outputs: [
       {
         internalType: 'bytes32',
@@ -911,62 +1363,54 @@ export const VaultHubAbi = [
   {
     inputs: [
       {
-        internalType: 'bytes32',
-        name: '_codehash',
-        type: 'bytes32',
+        internalType: 'address',
+        name: '_vault',
+        type: 'address',
+      },
+      {
+        internalType: 'uint256',
+        name: '_reportTimestamp',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: '_reportTotalValue',
+        type: 'uint256',
+      },
+      {
+        internalType: 'int256',
+        name: '_reportInOutDelta',
+        type: 'int256',
+      },
+      {
+        internalType: 'uint256',
+        name: '_reportCumulativeLidoFees',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: '_reportLiabilityShares',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: '_reportSlashingReserve',
+        type: 'uint256',
       },
     ],
-    name: 'addVaultProxyCodehash',
+    name: 'applyVaultReport',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
   },
   {
-    inputs: [
-      {
-        internalType: 'uint256',
-        name: '_offset',
-        type: 'uint256',
-      },
-      {
-        internalType: 'uint256',
-        name: '_limit',
-        type: 'uint256',
-      },
-    ],
-    name: 'batchVaultsInfo',
+    inputs: [],
+    name: 'badDebtToInternalizeAsOfLastRefSlot',
     outputs: [
       {
-        components: [
-          {
-            internalType: 'address',
-            name: 'vault',
-            type: 'address',
-          },
-          {
-            internalType: 'uint256',
-            name: 'balance',
-            type: 'uint256',
-          },
-          {
-            internalType: 'int256',
-            name: 'inOutDelta',
-            type: 'int256',
-          },
-          {
-            internalType: 'bytes32',
-            name: 'withdrawalCredentials',
-            type: 'bytes32',
-          },
-          {
-            internalType: 'uint256',
-            name: 'liabilityShares',
-            type: 'uint256',
-          },
-        ],
-        internalType: 'struct VaultHub.VaultInfo[]',
+        internalType: 'uint256',
         name: '',
-        type: 'tuple[]',
+        type: 'uint256',
       },
     ],
     stateMutability: 'view',
@@ -997,8 +1441,50 @@ export const VaultHubAbi = [
         name: '_vault',
         type: 'address',
       },
+      {
+        internalType: 'bytes',
+        name: '_pubkey',
+        type: 'bytes',
+      },
+      {
+        internalType: 'address',
+        name: '_recipient',
+        type: 'address',
+      },
+    ],
+    name: 'compensateDisprovenPredepositFromPDG',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: '_vault',
+        type: 'address',
+      },
     ],
     name: 'connectVault',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: '_amountOfShares',
+        type: 'uint256',
+      },
+    ],
+    name: 'decreaseInternalizedBadDebt',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
@@ -1048,6 +1534,19 @@ export const VaultHubAbi = [
       },
     ],
     name: 'forceValidatorExit',
+    outputs: [],
+    stateMutability: 'payable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: '_vault',
+        type: 'address',
+      },
+    ],
+    name: 'fund',
     outputs: [],
     stateMutability: 'payable',
     type: 'function',
@@ -1192,11 +1691,48 @@ export const VaultHubAbi = [
     inputs: [
       {
         internalType: 'address',
+        name: '_vault',
+        type: 'address',
+      },
+    ],
+    name: 'inOutDeltaAsOfLastRefSlot',
+    outputs: [
+      {
+        internalType: 'int256',
+        name: '',
+        type: 'int256',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
         name: '_admin',
         type: 'address',
       },
     ],
     name: 'initialize',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: '_badDebtVault',
+        type: 'address',
+      },
+      {
+        internalType: 'uint256',
+        name: '_maxSharesToInternalize',
+        type: 'uint256',
+      },
+    ],
+    name: 'internalizeBadDebt',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
@@ -1222,7 +1758,7 @@ export const VaultHubAbi = [
         type: 'address',
       },
     ],
-    name: 'isVaultHealthyAsOfLatestReport',
+    name: 'isReportFresh',
     outputs: [
       {
         internalType: 'bool',
@@ -1234,23 +1770,131 @@ export const VaultHubAbi = [
     type: 'function',
   },
   {
-    inputs: [],
-    name: 'latestReportData',
+    inputs: [
+      {
+        internalType: 'address',
+        name: '_vault',
+        type: 'address',
+      },
+    ],
+    name: 'isVaultConnected',
     outputs: [
       {
-        internalType: 'uint64',
-        name: 'timestamp',
-        type: 'uint64',
+        internalType: 'bool',
+        name: '',
+        type: 'bool',
       },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
       {
-        internalType: 'bytes32',
-        name: 'treeRoot',
-        type: 'bytes32',
+        internalType: 'address',
+        name: '_vault',
+        type: 'address',
       },
+    ],
+    name: 'isVaultHealthy',
+    outputs: [
       {
-        internalType: 'string',
-        name: 'reportCid',
-        type: 'string',
+        internalType: 'bool',
+        name: '',
+        type: 'bool',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: '_vault',
+        type: 'address',
+      },
+    ],
+    name: 'latestReport',
+    outputs: [
+      {
+        components: [
+          {
+            internalType: 'uint112',
+            name: 'totalValue',
+            type: 'uint112',
+          },
+          {
+            internalType: 'int112',
+            name: 'inOutDelta',
+            type: 'int112',
+          },
+          {
+            internalType: 'uint32',
+            name: 'timestamp',
+            type: 'uint32',
+          },
+        ],
+        internalType: 'struct VaultHub.Report',
+        name: '',
+        type: 'tuple',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: '_vault',
+        type: 'address',
+      },
+    ],
+    name: 'liabilityShares',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: '_vault',
+        type: 'address',
+      },
+    ],
+    name: 'locked',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: '_vault',
+        type: 'address',
+      },
+    ],
+    name: 'maxLockableValue',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
       },
     ],
     stateMutability: 'view',
@@ -1282,27 +1926,14 @@ export const VaultHubAbi = [
   {
     inputs: [
       {
-        internalType: 'uint256',
-        name: '_amountOfShares',
-        type: 'uint256',
-      },
-    ],
-    name: 'mintVaultsTreasuryFeeShares',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'operatorGrid',
-    outputs: [
-      {
         internalType: 'address',
-        name: '',
+        name: '_vault',
         type: 'address',
       },
     ],
-    stateMutability: 'view',
+    name: 'pauseBeaconChainDeposits',
+    outputs: [],
+    stateMutability: 'nonpayable',
     type: 'function',
   },
   {
@@ -1332,10 +1963,71 @@ export const VaultHubAbi = [
     type: 'function',
   },
   {
-    inputs: [],
+    inputs: [
+      {
+        internalType: 'address',
+        name: '_vault',
+        type: 'address',
+      },
+      {
+        components: [
+          {
+            internalType: 'bytes32[]',
+            name: 'proof',
+            type: 'bytes32[]',
+          },
+          {
+            internalType: 'bytes',
+            name: 'pubkey',
+            type: 'bytes',
+          },
+          {
+            internalType: 'uint256',
+            name: 'validatorIndex',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint64',
+            name: 'childBlockTimestamp',
+            type: 'uint64',
+          },
+          {
+            internalType: 'uint64',
+            name: 'slot',
+            type: 'uint64',
+          },
+          {
+            internalType: 'uint64',
+            name: 'proposerIndex',
+            type: 'uint64',
+          },
+        ],
+        internalType: 'struct IPredepositGuarantee.ValidatorWitness',
+        name: '_witness',
+        type: 'tuple',
+      },
+    ],
+    name: 'proveUnknownValidatorToPDG',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: '_vault',
+        type: 'address',
+      },
+      {
+        internalType: 'uint256',
+        name: '_shares',
+        type: 'uint256',
+      },
+    ],
     name: 'rebalance',
     outputs: [],
-    stateMutability: 'payable',
+    stateMutability: 'nonpayable',
     type: 'function',
   },
   {
@@ -1376,8 +2068,39 @@ export const VaultHubAbi = [
     type: 'function',
   },
   {
+    inputs: [
+      {
+        internalType: 'address',
+        name: '_vault',
+        type: 'address',
+      },
+      {
+        internalType: 'bytes',
+        name: '_pubkeys',
+        type: 'bytes',
+      },
+    ],
+    name: 'requestValidatorExit',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
     inputs: [],
     name: 'resume',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: '_vault',
+        type: 'address',
+      },
+    ],
+    name: 'resumeBeaconChainDeposits',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
@@ -1403,6 +2126,78 @@ export const VaultHubAbi = [
   {
     inputs: [
       {
+        internalType: 'bytes32',
+        name: '_codehash',
+        type: 'bytes32',
+      },
+      {
+        internalType: 'bool',
+        name: '_allowed',
+        type: 'bool',
+      },
+    ],
+    name: 'setAllowedCodehash',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: '_vault',
+        type: 'address',
+      },
+      {
+        internalType: 'uint256',
+        name: '_redemptionsValue',
+        type: 'uint256',
+      },
+    ],
+    name: 'setVaultRedemptions',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: '_vault',
+        type: 'address',
+      },
+    ],
+    name: 'settleVaultObligations',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: '_badDebtVault',
+        type: 'address',
+      },
+      {
+        internalType: 'address',
+        name: '_vaultAcceptor',
+        type: 'address',
+      },
+      {
+        internalType: 'uint256',
+        name: '_maxSharesToSocialize',
+        type: 'uint256',
+      },
+    ],
+    name: 'socializeBadDebt',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
         internalType: 'bytes4',
         name: 'interfaceId',
         type: 'bytes4',
@@ -1414,6 +2209,25 @@ export const VaultHubAbi = [
         internalType: 'bool',
         name: '',
         type: 'bool',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: '_vault',
+        type: 'address',
+      },
+    ],
+    name: 'totalValue',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
       },
     ],
     stateMutability: 'view',
@@ -1445,6 +2259,52 @@ export const VaultHubAbi = [
         type: 'address',
       },
       {
+        internalType: 'address',
+        name: '_newOwner',
+        type: 'address',
+      },
+    ],
+    name: 'transferVaultOwnership',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: '_vault',
+        type: 'address',
+      },
+      {
+        internalType: 'bytes',
+        name: '_pubkeys',
+        type: 'bytes',
+      },
+      {
+        internalType: 'uint64[]',
+        name: '_amounts',
+        type: 'uint64[]',
+      },
+      {
+        internalType: 'address',
+        name: '_refundRecipient',
+        type: 'address',
+      },
+    ],
+    name: 'triggerValidatorWithdrawals',
+    outputs: [],
+    stateMutability: 'payable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: '_vault',
+        type: 'address',
+      },
+      {
         internalType: 'uint256',
         name: '_shareLimit',
         type: 'uint256',
@@ -1461,34 +2321,21 @@ export const VaultHubAbi = [
       },
       {
         internalType: 'uint256',
-        name: '_treasuryFeeBP',
+        name: '_infraFeeBP',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: '_liquidityFeeBP',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: '_reservationFeeBP',
         type: 'uint256',
       },
     ],
     name: 'updateConnection',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      {
-        internalType: 'uint64',
-        name: '_vaultsDataTimestamp',
-        type: 'uint64',
-      },
-      {
-        internalType: 'bytes32',
-        name: '_vaultsDataTreeRoot',
-        type: 'bytes32',
-      },
-      {
-        internalType: 'string',
-        name: '_vaultsDataReportCid',
-        type: 'string',
-      },
-    ],
-    name: 'updateReportData',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
@@ -1520,31 +2367,21 @@ export const VaultHubAbi = [
       },
       {
         internalType: 'uint256',
-        name: '_totalValue',
-        type: 'uint256',
-      },
-      {
-        internalType: 'int256',
-        name: '_inOutDelta',
-        type: 'int256',
-      },
-      {
-        internalType: 'uint256',
-        name: '_feeSharesCharged',
+        name: '_infraFeeBP',
         type: 'uint256',
       },
       {
         internalType: 'uint256',
-        name: '_liabilityShares',
+        name: '_liquidityFeeBP',
         type: 'uint256',
       },
       {
-        internalType: 'bytes32[]',
-        name: '_proof',
-        type: 'bytes32[]',
+        internalType: 'uint256',
+        name: '_reservationFeeBP',
+        type: 'uint256',
       },
     ],
-    name: 'updateVaultData',
+    name: 'updateVaultFees',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
@@ -1557,7 +2394,7 @@ export const VaultHubAbi = [
         type: 'uint256',
       },
     ],
-    name: 'vault',
+    name: 'vaultByIndex',
     outputs: [
       {
         internalType: 'address',
@@ -1571,29 +2408,34 @@ export const VaultHubAbi = [
   {
     inputs: [
       {
-        internalType: 'uint256',
-        name: '_index',
-        type: 'uint256',
+        internalType: 'address',
+        name: '_vault',
+        type: 'address',
       },
     ],
-    name: 'vaultSocket',
+    name: 'vaultConnection',
     outputs: [
       {
         components: [
           {
             internalType: 'address',
-            name: 'vault',
+            name: 'owner',
             type: 'address',
-          },
-          {
-            internalType: 'uint96',
-            name: 'liabilityShares',
-            type: 'uint96',
           },
           {
             internalType: 'uint96',
             name: 'shareLimit',
             type: 'uint96',
+          },
+          {
+            internalType: 'uint96',
+            name: 'vaultIndex',
+            type: 'uint96',
+          },
+          {
+            internalType: 'bool',
+            name: 'pendingDisconnect',
+            type: 'bool',
           },
           {
             internalType: 'uint16',
@@ -1607,21 +2449,26 @@ export const VaultHubAbi = [
           },
           {
             internalType: 'uint16',
-            name: 'treasuryFeeBP',
+            name: 'infraFeeBP',
+            type: 'uint16',
+          },
+          {
+            internalType: 'uint16',
+            name: 'liquidityFeeBP',
+            type: 'uint16',
+          },
+          {
+            internalType: 'uint16',
+            name: 'reservationFeeBP',
             type: 'uint16',
           },
           {
             internalType: 'bool',
-            name: 'pendingDisconnect',
+            name: 'isBeaconDepositsManuallyPaused',
             type: 'bool',
           },
-          {
-            internalType: 'uint96',
-            name: 'feeSharesCharged',
-            type: 'uint96',
-          },
         ],
-        internalType: 'struct VaultHub.VaultSocket',
+        internalType: 'struct VaultHub.VaultConnection',
         name: '',
         type: 'tuple',
       },
@@ -1637,14 +2484,72 @@ export const VaultHubAbi = [
         type: 'address',
       },
     ],
-    name: 'vaultSocket',
+    name: 'vaultObligations',
     outputs: [
       {
         components: [
           {
-            internalType: 'address',
-            name: 'vault',
-            type: 'address',
+            internalType: 'uint128',
+            name: 'settledLidoFees',
+            type: 'uint128',
+          },
+          {
+            internalType: 'uint128',
+            name: 'unsettledLidoFees',
+            type: 'uint128',
+          },
+          {
+            internalType: 'uint128',
+            name: 'redemptions',
+            type: 'uint128',
+          },
+        ],
+        internalType: 'struct VaultHub.VaultObligations',
+        name: '',
+        type: 'tuple',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: '_vault',
+        type: 'address',
+      },
+    ],
+    name: 'vaultRecord',
+    outputs: [
+      {
+        components: [
+          {
+            components: [
+              {
+                internalType: 'uint112',
+                name: 'totalValue',
+                type: 'uint112',
+              },
+              {
+                internalType: 'int112',
+                name: 'inOutDelta',
+                type: 'int112',
+              },
+              {
+                internalType: 'uint32',
+                name: 'timestamp',
+                type: 'uint32',
+              },
+            ],
+            internalType: 'struct VaultHub.Report',
+            name: 'report',
+            type: 'tuple',
+          },
+          {
+            internalType: 'uint128',
+            name: 'locked',
+            type: 'uint128',
           },
           {
             internalType: 'uint96',
@@ -1652,37 +2557,29 @@ export const VaultHubAbi = [
             type: 'uint96',
           },
           {
-            internalType: 'uint96',
-            name: 'shareLimit',
-            type: 'uint96',
-          },
-          {
-            internalType: 'uint16',
-            name: 'reserveRatioBP',
-            type: 'uint16',
-          },
-          {
-            internalType: 'uint16',
-            name: 'forcedRebalanceThresholdBP',
-            type: 'uint16',
-          },
-          {
-            internalType: 'uint16',
-            name: 'treasuryFeeBP',
-            type: 'uint16',
-          },
-          {
-            internalType: 'bool',
-            name: 'pendingDisconnect',
-            type: 'bool',
-          },
-          {
-            internalType: 'uint96',
-            name: 'feeSharesCharged',
-            type: 'uint96',
+            components: [
+              {
+                internalType: 'int112',
+                name: 'value',
+                type: 'int112',
+              },
+              {
+                internalType: 'int112',
+                name: 'valueOnRefSlot',
+                type: 'int112',
+              },
+              {
+                internalType: 'uint32',
+                name: 'refSlot',
+                type: 'uint32',
+              },
+            ],
+            internalType: 'struct RefSlotCache.Int112WithRefSlotCache',
+            name: 'inOutDelta',
+            type: 'tuple',
           },
         ],
-        internalType: 'struct VaultHub.VaultSocket',
+        internalType: 'struct VaultHub.VaultRecord',
         name: '',
         type: 'tuple',
       },
@@ -1715,5 +2612,51 @@ export const VaultHubAbi = [
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: '_vault',
+        type: 'address',
+      },
+      {
+        internalType: 'address',
+        name: '_recipient',
+        type: 'address',
+      },
+      {
+        internalType: 'uint256',
+        name: '_ether',
+        type: 'uint256',
+      },
+    ],
+    name: 'withdraw',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: '_vault',
+        type: 'address',
+      },
+    ],
+    name: 'withdrawableValue',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    stateMutability: 'payable',
+    type: 'receive',
   },
 ] as const;

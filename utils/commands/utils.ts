@@ -1,18 +1,16 @@
-import { Address, formatEther } from 'viem';
+import { formatEther } from 'viem';
 
 import {
   callReadMethodSilent,
   confirmOperation,
   logInfo,
-  getRequiredLockByShares,
   logError,
 } from 'utils';
 import {
   DashboardContract,
-  getDashboardContract,
   getStakingVaultContract,
+  getVaultHubContract,
 } from 'contracts';
-import { getAccount } from 'providers';
 
 import { submitReport } from './report.js';
 
@@ -20,14 +18,14 @@ export const checkMintingCapacity = async (
   contract: DashboardContract,
   amountOfShares: bigint,
 ) => {
-  const remainingMintingCapacity = await callReadMethodSilent(
+  const remainingMintingCapacityShares = await callReadMethodSilent(
     contract,
-    'remainingMintingCapacity',
+    'remainingMintingCapacityShares',
     [0n],
   );
-  if (remainingMintingCapacity < amountOfShares) {
+  if (remainingMintingCapacityShares < amountOfShares) {
     logError(
-      `Cannot mint more shares than the vault can mint. Mintable: ${formatEther(remainingMintingCapacity)}`,
+      `Cannot mint more shares than the vault can mint. Mintable: ${formatEther(remainingMintingCapacityShares)}`,
     );
     return false;
   }
@@ -52,51 +50,14 @@ export const checkLiabilityShares = async (
   return true;
 };
 
-export const confirmLock = async (
-  amountOfSharesWei: bigint,
-  dashboardAddress: Address,
-) => {
-  const contract = getDashboardContract(dashboardAddress);
-  const { requiredLock, currentLock } = await getRequiredLockByShares(
-    dashboardAddress,
-    formatEther(amountOfSharesWei),
-  );
-  const currentWallet = getAccount();
-
-  const LOCK_ROLE = await callReadMethodSilent(contract, 'LOCK_ROLE');
-  const currentLockRoles = await callReadMethodSilent(
-    contract,
-    'getRoleMembers',
-    [LOCK_ROLE],
-  );
-
-  const isLockRole = currentLockRoles.includes(currentWallet.address);
-  if (requiredLock > currentLock) {
-    logInfo(
-      `Required lock: ${formatEther(requiredLock)} shares, current lock: ${formatEther(currentLock)} shares.
-      Auto-lock will be applied to enable minting the required number of shares. LOCK_ROLE is required.`,
-    );
-
-    if (!isLockRole) {
-      logError(
-        "You don't have a LOCK_ROLE. Please add yourself to the LOCK_ROLE.",
-      );
-      return false;
-    }
-
-    const confirm = await confirmOperation('Do you want to continue?');
-    if (!confirm) return confirm;
-  }
-
-  return true;
-};
-
 export const checkIsReportFresh = async (contract: DashboardContract) => {
   const vault = await callReadMethodSilent(contract, 'stakingVault');
+  const vaultHubContract = await getVaultHubContract();
   const vaultContract = getStakingVaultContract(vault);
   const isReportFresh = await callReadMethodSilent(
-    vaultContract,
+    vaultHubContract,
     'isReportFresh',
+    [vaultContract.address],
   );
 
   if (!isReportFresh) {

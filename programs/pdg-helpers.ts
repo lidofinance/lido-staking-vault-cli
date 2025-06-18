@@ -2,9 +2,7 @@ import { program } from 'command';
 import { Option } from 'commander';
 
 import {
-  getBLSHarnessContract,
   getStakingVaultContract,
-  getCLProofVerifierContract,
   getPredepositGuaranteeContract,
 } from 'contracts';
 import { Deposit } from 'types';
@@ -26,6 +24,7 @@ import {
   isValidBLSDeposit,
   expandBLSSignature,
   logTable,
+  callReadMethodSilent,
 } from 'utils';
 import { Address, Hex } from 'viem';
 
@@ -50,17 +49,30 @@ predepositGuaranteeHelpers
     const validatorIndex = await confirmMakeProof(index);
     if (!validatorIndex) return;
 
-    const clProofVerifierContract = getCLProofVerifierContract();
+    const pdgContract = await getPredepositGuaranteeContract();
 
     const hideSpinner = showSpinner();
     try {
       const packageProof = await createPDGProof(Number(validatorIndex));
       hideSpinner();
-      const { proof, pubkey, childBlockTimestamp, withdrawalCredentials } =
-        packageProof;
+      const {
+        proof,
+        pubkey,
+        childBlockTimestamp,
+        withdrawalCredentials,
+        slot,
+        proposerIndex,
+      } = packageProof;
 
-      await clProofVerifierContract.read.TEST_validatePubKeyWCProof([
-        { proof, pubkey, validatorIndex, childBlockTimestamp },
+      await callReadMethodSilent(pdgContract, 'validatePubKeyWCProof', [
+        {
+          proof,
+          pubkey,
+          validatorIndex,
+          childBlockTimestamp,
+          slot,
+          proposerIndex,
+        },
         withdrawalCredentials,
       ]);
 
@@ -150,7 +162,6 @@ predepositGuaranteeHelpers
         logError('You can only provide one of vault or withdrawal credentials');
         return;
       }
-      const bls = getBLSHarnessContract();
       const hideMetadataSpinner = showSpinner({
         type: 'bouncingBar',
         message: 'Loading metadata...',
@@ -218,7 +229,7 @@ predepositGuaranteeHelpers
           message: 'Checking onchain againts BLSHarness contract',
         });
         try {
-          await bls.read.verifyDepositMessage([
+          await callReadMethodSilent(pdg, 'verifyDepositMessage', [
             deposit,
             {
               pubkeyY: { a: pubkeyY_a, b: pubkeyY_b },

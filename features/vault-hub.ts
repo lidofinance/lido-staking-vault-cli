@@ -16,12 +16,13 @@ export const getVaultHubBaseInfo = async () => {
     const REPORT_FRESHNESS_DELTA = await contract.read.REPORT_FRESHNESS_DELTA();
     const RESUME_ROLE = await contract.read.RESUME_ROLE();
     const VAULT_MASTER_ROLE = await contract.read.VAULT_MASTER_ROLE();
-    const VAULT_REGISTRY_ROLE = await contract.read.VAULT_REGISTRY_ROLE();
+    const VAULT_CODEHASH_SET_ROLE =
+      await contract.read.VAULT_CODEHASH_SET_ROLE();
+    const MAX_RELATIVE_SHARE_LIMIT_BP =
+      await contract.read.MAX_RELATIVE_SHARE_LIMIT_BP();
     const resumeSinceTimestamp = await contract.read.getResumeSinceTimestamp();
     const isPaused = await contract.read.isPaused();
-    const operatorGrid = await contract.read.operatorGrid();
     const vaultsCount = await contract.read.vaultsCount();
-
     const CONTRACT_ADDRESS = contract.address;
 
     hideSpinner();
@@ -35,8 +36,8 @@ export const getVaultHubBaseInfo = async () => {
       PAUSE_ROLE,
       RESUME_ROLE,
       VAULT_MASTER_ROLE,
-      VAULT_REGISTRY_ROLE,
-      operatorGrid,
+      VAULT_CODEHASH_SET_ROLE,
+      MAX_RELATIVE_SHARE_LIMIT_BP,
       CONNECT_DEPOSIT: `${formatEther(CONNECT_DEPOSIT)} ETH`,
       REPORT_FRESHNESS_DELTA,
       reportFreshnessDeltaHours: `${
@@ -66,14 +67,15 @@ export const getVaultHubRoles = async () => {
     const PAUSE_ROLE = await contract.read.PAUSE_ROLE();
     const RESUME_ROLE = await contract.read.RESUME_ROLE();
     const VAULT_MASTER_ROLE = await contract.read.VAULT_MASTER_ROLE();
-    const VAULT_REGISTRY_ROLE = await contract.read.VAULT_REGISTRY_ROLE();
+    const VAULT_CODEHASH_SET_ROLE =
+      await contract.read.VAULT_CODEHASH_SET_ROLE();
 
     const roles = {
       DEFAULT_ADMIN_ROLE,
       PAUSE_ROLE,
       RESUME_ROLE,
       VAULT_MASTER_ROLE,
-      VAULT_REGISTRY_ROLE,
+      VAULT_CODEHASH_SET_ROLE,
     };
 
     const result = await Promise.all(

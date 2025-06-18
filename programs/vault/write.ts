@@ -11,6 +11,7 @@ import {
   stringToAddress,
   stringToBigInt,
   stringToBigIntArrayWei,
+  stringToHexArray,
 } from 'utils';
 
 import { vault } from './main.js';
@@ -166,66 +167,10 @@ vaultWrite
   });
 
 vaultWrite
-  .command('report')
-  .description(
-    'Submits a report containing valuation, inOutDelta, and locked amount',
-  )
-  .argument('<address>', 'vault address', stringToAddress)
-  .argument('<timestamp>', 'timestamp of the report', stringToBigInt)
-  .argument(
-    '<totalValue>',
-    'new total value: validator balances + StakingVault balance',
-    stringToBigInt,
-  )
-  .argument(
-    '<inOutDelta>',
-    'new net difference between funded and withdrawn ether',
-    stringToBigInt,
-  )
-  .argument('<locked>', 'new amount of locked ether', stringToBigInt)
-  .action(
-    async (
-      address: Address,
-      timestamp: bigint,
-      totalValue: bigint,
-      inOutDelta: bigint,
-      locked: bigint,
-    ) => {
-      const contract = getStakingVaultContract(address);
-
-      await callWriteMethodWithReceipt({
-        contract,
-        methodName: 'report',
-        payload: [timestamp, totalValue, inOutDelta, locked],
-      });
-    },
-  );
-
-vaultWrite
-  .command('rebalance')
-  .description('Rebalances the vault')
-  .argument('<address>', 'vault address', stringToAddress)
-  .argument('<amount>', 'amount to rebalance (in ETH)', etherToWei)
-  .action(async (address: Address, amount: bigint) => {
-    const contract = getStakingVaultContract(address);
-
-    const confirm = await confirmOperation(
-      `Are you sure you want to rebalance the vault ${address}?`,
-    );
-    if (!confirm) return;
-
-    await callWriteMethodWithReceipt({
-      contract,
-      methodName: 'rebalance',
-      payload: [amount],
-    });
-  });
-
-vaultWrite
   .command('trigger-v-w')
   .description('Trigger validator withdrawal')
   .argument('<address>', 'vault address', stringToAddress)
-  .argument('<pubkeys>', 'validator public keys')
+  .argument('<pubkeys>', 'validator public keys', stringToHexArray)
   .argument('<amounts>', 'amounts to withdraw (in ETH)', stringToBigIntArrayWei)
   .argument('<refundRecipient>', 'refund recipient address', stringToAddress)
   .action(
@@ -240,53 +185,30 @@ vaultWrite
 
       await callWriteMethodWithReceipt({
         contract,
-        methodName: 'triggerValidatorWithdrawal',
+        methodName: 'triggerValidatorWithdrawals',
         payload: [concatenatedPubkeys, amounts, refundRecipient],
       });
     },
   );
 
 vaultWrite
-  .command('authorize-lido-vault-hub')
-  .alias('authorize-hub')
-  .description('Authorizes the Lido Vault Hub to manage the staking vault.')
+  .command('eject-validators')
+  .description('triggers EIP-7002 validator exits by the node operator.')
   .argument('<address>', 'vault address', stringToAddress)
-  .action(async (address: Address) => {
-    const contract = getStakingVaultContract(address);
+  .argument('<pubkeys>', 'validator public keys', stringToHexArray)
+  .argument('<refundRecipient>', 'refund recipient address', stringToAddress)
+  .action(
+    async (address: Address, pubkeys: Hex[], refundRecipient: Address) => {
+      const contract = getStakingVaultContract(address);
+      const concatenatedPubkeys = pubkeys.join('') as `0x${string}`;
 
-    const confirm = await confirmOperation(
-      `Are you sure you want to authorize the Lido Vault Hub to manage the staking vault ${address}?`,
-    );
-    if (!confirm) return;
-
-    await callWriteMethodWithReceipt({
-      contract,
-      methodName: 'authorizeLidoVaultHub',
-      payload: [],
-    });
-  });
-
-vaultWrite
-  .command('deauthorize-lido-vault-hub')
-  .alias('deauthorize-hub')
-  .description(
-    'Deauthorizes the Lido Vault Hub from managing the staking vault.',
-  )
-  .argument('<address>', 'dashboard address', stringToAddress)
-  .action(async (address: Address) => {
-    const contract = getStakingVaultContract(address);
-
-    const confirm = await confirmOperation(
-      `Are you sure you want to deauthorize the Lido Vault Hub from managing the staking vault ${address}?`,
-    );
-    if (!confirm) return;
-
-    await callWriteMethodWithReceipt({
-      contract,
-      methodName: 'deauthorizeLidoVaultHub',
-      payload: [],
-    });
-  });
+      await callWriteMethodWithReceipt({
+        contract,
+        methodName: 'ejectValidators',
+        payload: [concatenatedPubkeys, refundRecipient],
+      });
+    },
+  );
 
 vaultWrite
   .command('ossify')
@@ -302,26 +224,7 @@ vaultWrite
 
     await callWriteMethodWithReceipt({
       contract,
-      methodName: 'ossifyStakingVault',
-      payload: [],
-    });
-  });
-
-vaultWrite
-  .command('reset-locked')
-  .description('Resets the locked amount')
-  .argument('<address>', 'vault address', stringToAddress)
-  .action(async (address: Address) => {
-    const contract = getStakingVaultContract(address);
-
-    const confirm = await confirmOperation(
-      `Are you sure you want to reset the locked amount for the staking vault ${address}?`,
-    );
-    if (!confirm) return;
-
-    await callWriteMethodWithReceipt({
-      contract,
-      methodName: 'resetLocked',
+      methodName: 'ossify',
       payload: [],
     });
   });
@@ -343,5 +246,44 @@ vaultWrite
       contract,
       methodName: 'setDepositor',
       payload: [depositor],
+    });
+  });
+
+vaultWrite
+  .command('transfer-ownership')
+  .description('Transfers the ownership of the contract to a new owner')
+  .argument('<address>', 'vault address', stringToAddress)
+  .argument('<newOwner>', 'new owner address', stringToAddress)
+  .action(async (address: Address, newOwner: Address) => {
+    const contract = getStakingVaultContract(address);
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to transfer the ownership of the staking vault ${address} to ${newOwner}?`,
+    );
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'transferOwnership',
+      payload: [newOwner],
+    });
+  });
+
+vaultWrite
+  .command('accept-ownership')
+  .description('Accepts the pending owner')
+  .argument('<address>', 'vault address', stringToAddress)
+  .action(async (address: Address) => {
+    const contract = getStakingVaultContract(address);
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to accept the ownership of the staking vault ${address}?`,
+    );
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'acceptOwnership',
+      payload: [],
     });
   });

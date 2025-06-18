@@ -11,7 +11,7 @@ type OverviewArgs = {
   withdrawableEther: bigint;
   balance: bigint;
   locked: bigint;
-  nodeOperatorUnclaimedFee: bigint;
+  nodeOperatorDisbursableFee: bigint;
   totalMintingCapacityStethWei: bigint;
   totalMintingCapacitySharesInWei: bigint;
 };
@@ -33,7 +33,7 @@ export const calculateOverviewV2 = (args: OverviewArgs) => {
     withdrawableEther,
     balance,
     locked,
-    nodeOperatorUnclaimedFee,
+    nodeOperatorDisbursableFee,
     totalMintingCapacityStethWei,
     totalMintingCapacitySharesInWei,
   } = args;
@@ -47,7 +47,7 @@ export const calculateOverviewV2 = (args: OverviewArgs) => {
   const idleCapital = balance;
   const UnsettledLidoFees = 0n;
   // TODO: add Lido Unclaimed Fees
-  const totalLocked = locked + nodeOperatorUnclaimedFee + UnsettledLidoFees;
+  const totalLocked = locked + nodeOperatorDisbursableFee + UnsettledLidoFees;
   const RR =
     (BigInt(reserveRatioBP) * SCALING_FACTOR) / BASIS_POINTS_DENOMINATOR; // RR with SCALING_FACTOR
   const oneMinusRR = SCALING_FACTOR - RR; // (1 - RR) with SCALING_FACTOR

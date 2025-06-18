@@ -1,4 +1,6 @@
-import { BASIS_POINTS_DENOMINATOR, VaultReport } from 'utils';
+import type { VaultReport } from 'utils/report/types.js';
+
+import { BASIS_POINTS_DENOMINATOR } from '../consts.js';
 
 const SCALE = 1_000_000_000n; // 1e9 for 9 decimal places precision
 
@@ -9,7 +11,9 @@ export const getGrossStakingRewards = (
   const grossStakingRewards =
     BigInt(current.data.total_value_wei) -
     BigInt(previous.data.total_value_wei) -
-    (BigInt(current.data.in_out_delta) - BigInt(previous.data.in_out_delta));
+    // TODO: change to in_out_delta
+    (BigInt(current.data.slashing_reserve) -
+      BigInt(previous.data.slashing_reserve));
 
   return grossStakingRewards;
 };
@@ -186,39 +190,43 @@ export const getEfficiency = (
 
 type ReportMetricsArgs = {
   reports: { current: VaultReport; previous: VaultReport };
-  nodeOperatorFeeBP: bigint;
+  nodeOperatorFeeRate: bigint;
   stEthLiabilityRebaseRewards: bigint;
 };
 
 export const reportMetrics = (args: ReportMetricsArgs) => {
-  const { reports, nodeOperatorFeeBP, stEthLiabilityRebaseRewards } = args;
+  const { reports, nodeOperatorFeeRate, stEthLiabilityRebaseRewards } = args;
   const { current, previous } = reports;
 
   const grossStakingRewards = getGrossStakingRewards(current, previous);
   const nodeOperatorRewards = getNodeOperatorRewards(
     current,
     previous,
-    nodeOperatorFeeBP,
+    nodeOperatorFeeRate,
   );
   const dailyLidoFees = getDailyLidoFees();
   const netStakingRewards = getNetStakingRewards(
     current,
     previous,
-    nodeOperatorFeeBP,
+    nodeOperatorFeeRate,
   );
 
   const grossStakingAPR = getGrossStakingAPR(current, previous);
-  const netStakingAPR = getNetStakingAPR(current, previous, nodeOperatorFeeBP);
+  const netStakingAPR = getNetStakingAPR(
+    current,
+    previous,
+    nodeOperatorFeeRate,
+  );
   const bottomLine = getBottomLine(
     current,
     previous,
-    nodeOperatorFeeBP,
+    nodeOperatorFeeRate,
     stEthLiabilityRebaseRewards,
   );
   const efficiency = getEfficiency(
     current,
     previous,
-    nodeOperatorFeeBP,
+    nodeOperatorFeeRate,
     stEthLiabilityRebaseRewards,
   );
 

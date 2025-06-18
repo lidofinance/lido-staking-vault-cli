@@ -1,5 +1,7 @@
 import { parseEther } from 'viem';
+
 import { calculateHealth } from './health/calculate-health.js';
+import { BASIS_POINTS_DENOMINATOR, SCALING_FACTOR } from './consts.js';
 
 type OverviewArgs = {
   totalValue: bigint;
@@ -12,10 +14,6 @@ type OverviewArgs = {
   nodeOperatorUnclaimedFee: bigint;
   totalMintingCapacityStethWei: bigint;
 };
-
-export const BASIS_POINTS_DENOMINATOR = 10_000n;
-const DECIMALS = 18n;
-const SCALING_FACTOR = 10n ** DECIMALS;
 
 const bigIntMax = (...args: bigint[]) => args.reduce((a, b) => (a > b ? a : b));
 const bigIntMin = (...args: bigint[]) => args.reduce((a, b) => (a < b ? a : b));

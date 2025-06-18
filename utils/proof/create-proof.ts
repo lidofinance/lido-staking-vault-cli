@@ -19,10 +19,14 @@ export interface ValidatorWitness {
   pubkey: Hex;
   validatorIndex: bigint;
   childBlockTimestamp: bigint;
+  slot: bigint;
+  proposerIndex: bigint;
 }
 
 export interface ValidatorWitnessWithWC extends ValidatorWitness {
   withdrawalCredentials: Hex;
+  slot: bigint;
+  proposerIndex: bigint;
 }
 
 const slotToTimestamp = (slot: number, genesisTimestamp: number): number => {
@@ -82,6 +86,8 @@ export const createPDGProof = async (
     withdrawalCredentials: toHex(validator.withdrawalCredentials),
     validatorIndex: BigInt(validatorIndex),
     childBlockTimestamp: BigInt(headerByParentTimestamp),
+    slot: BigInt(beaconHeader.slot),
+    proposerIndex: BigInt(beaconHeader.proposer_index),
   };
 
   return result;

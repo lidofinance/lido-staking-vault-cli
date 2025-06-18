@@ -37,6 +37,7 @@
     "@chainsafe/persistent-merkle-tree": "^1.0.1",
     "@chainsafe/ssz": "^1.0.2",
     "@lodestar/types": "^1.27.1",
+    "@openzeppelin/merkle-tree": "^1.0.8",
     "blessed": "^0.1.81",
     "blessed-contrib": "^4.11.0",
     "blockstore-core": "^5.0.2",

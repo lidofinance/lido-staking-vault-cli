@@ -18,9 +18,9 @@ const encoding = [
 const getLeafInput = (vault: LeafDataFields) => [
   vault.vault_address,
   BigInt(vault.total_value_wei),
-  BigInt(vault.in_out_delta),
   BigInt(vault.fee),
   BigInt(vault.liability_shares),
+  BigInt(vault.slashing_reserve),
 ];
 
 export const getReportLeaf = (input: LeafDataFields): Hex => {

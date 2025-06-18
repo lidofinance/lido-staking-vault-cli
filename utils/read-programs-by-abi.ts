@@ -1,9 +1,18 @@
 import { Command } from 'commander';
-import { Abi } from 'viem';
+import { Abi, AbiFunction } from 'viem';
 import { callReadMethod, ReadContract, stringToAddress } from 'utils';
 
-export type ReadProgramCommandConfig = {
-  [fnName: string]: {
+// Enhanced typing for extracting function names from ABI
+type ExtractFunctionNames<T extends Abi> = {
+  [K in keyof T]: T[K] extends { type: 'function'; name: infer N }
+    ? N extends string
+      ? N
+      : never
+    : never;
+}[number];
+
+export type ReadProgramCommandConfig<T extends Abi> = {
+  [K in ExtractFunctionNames<T>]?: {
     hidden?: boolean;
     name?: string;
     description?: string;
@@ -18,17 +27,17 @@ export type ReadProgramCommandConfig = {
   };
 };
 
-export function generateReadCommands<T>(
-  abi: Abi,
+export function generateReadCommands<T, U extends Abi>(
+  abi: U,
   createContract: (address: T) => ReadContract,
   command: Command,
-  commandConfig: ReadProgramCommandConfig,
+  commandConfig: ReadProgramCommandConfig<U>,
 ): Command;
-export function generateReadCommands(
+export function generateReadCommands<U extends Abi>(
   abi: Abi,
   createContractAsync: () => Promise<ReadContract>,
   command: Command,
-  commandConfig: ReadProgramCommandConfig,
+  commandConfig: ReadProgramCommandConfig<U>,
 ): Command;
 
 /**
@@ -37,20 +46,21 @@ export function generateReadCommands(
  * Allows adding custom descriptions.
  */
 // eslint-disable-next-line func-style
-export function generateReadCommands<T>(
-  abi: Abi,
+export function generateReadCommands<T, U extends Abi>(
+  abi: U,
   createContractOrContract:
     | ((address: T) => ReadContract)
     | (() => Promise<ReadContract>),
   command: Command,
-  commandConfig: ReadProgramCommandConfig,
+  commandConfig: ReadProgramCommandConfig<U>,
 ): Command {
-  // Filter only view/pure functions
+  // Filter only view/pure functions with proper typing
   const readOnlyFunctions = abi.filter(
-    (entry: any) =>
+    (entry): entry is AbiFunction =>
       entry.type === 'function' &&
       (entry.stateMutability === 'view' || entry.stateMutability === 'pure') &&
-      entry.name,
+      'name' in entry &&
+      entry.name !== undefined,
   );
 
   // Check if the contract is already created
@@ -64,17 +74,19 @@ export function generateReadCommands<T>(
   const methods: string[] = [];
 
   // Generate subcommands
-  readOnlyFunctions.forEach((fn: any) => {
+  readOnlyFunctions.forEach((fn: AbiFunction) => {
     const fnName = fn.name;
     const inputs = fn.inputs || [];
 
     // Search for a custom description for this function
-    const configForFn = commandConfig[fnName];
+    const configForFn = commandConfig[fnName as ExtractFunctionNames<U>];
     if (configForFn?.hidden) return;
+
     // Custom command name if specified
     const commandName = methods.includes(fnName)
-      ? `${fnName}${inputs[0].name}`
+      ? `${fnName}${inputs[0]?.name || '0'}`
       : configForFn?.name || fnName;
+
     // Command description
     const commandDescription =
       configForFn?.description ||
