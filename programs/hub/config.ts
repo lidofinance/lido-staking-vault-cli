@@ -101,16 +101,6 @@ export const readCommandConfig: ReadProgramCommandConfig<typeof VaultHubAbi> = {
       },
     },
   },
-  latestVaultReportTimestamp: {
-    name: 'latest-v-report-ts',
-    description: 'get latest report timestamp for the vault',
-    arguments: {
-      _vault: {
-        name: 'vault',
-        description: 'vault address',
-      },
-    },
-  },
   isReportFresh: {
     name: 'is-report-fresh',
     description:

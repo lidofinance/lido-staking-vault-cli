@@ -5,7 +5,7 @@ import { VaultViewerAbi } from 'abi';
 import { getChain, getElUrl } from 'configs';
 
 const VaultViewerAddresses: Record<number, Address> = {
-  [hoodi.id]: '0x9E90338495FfD691bDDC680e47D94b60cF66dDad',
+  [hoodi.id]: '0xA49da29B3C37fb192dD87C9ED5b16d6e40C9736C',
 };
 
 export const getVaultViewerContract = () => {
