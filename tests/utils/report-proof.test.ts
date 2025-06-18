@@ -8,9 +8,9 @@ import {
 const leafData = {
   vault_address: '0x' + '11'.repeat(20),
   total_value_wei: '1',
-  in_out_delta: '2',
   fee: '3',
   liability_shares: '4',
+  slashing_reserve: '5',
 };
 
 describe('report proof utils', () => {

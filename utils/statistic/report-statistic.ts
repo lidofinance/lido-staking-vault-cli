@@ -11,7 +11,9 @@ export const getGrossStakingRewards = (
   const grossStakingRewards =
     BigInt(current.data.total_value_wei) -
     BigInt(previous.data.total_value_wei) -
-    (BigInt(current.data.in_out_delta) - BigInt(previous.data.in_out_delta));
+    // TODO: change to in_out_delta
+    (BigInt(current.data.slashing_reserve) -
+      BigInt(previous.data.slashing_reserve));
 
   return grossStakingRewards;
 };
