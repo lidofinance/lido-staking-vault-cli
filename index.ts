@@ -18,12 +18,17 @@ const showTestnetWarning = () => {
   );
 };
 
+program.addHelpText('afterAll', () => {
+  showTestnetWarning();
+  return '';
+});
+
 program
   .parseAsync(process.argv)
-  .then(() => {
-    showTestnetWarning();
-  })
   .catch((error) => {
     logError('CLI Error:', error.message);
     process.exit(1);
+  })
+  .finally(() => {
+    showTestnetWarning();
   });
