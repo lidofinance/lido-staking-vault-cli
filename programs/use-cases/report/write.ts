@@ -93,9 +93,9 @@ reportWrite
           payload: [
             vault,
             BigInt(vaultReport.total_value_wei),
-            BigInt(vaultReport.in_out_delta),
             BigInt(vaultReport.fee),
             BigInt(vaultReport.liability_shares),
+            BigInt(vaultReport.slashing_reserve),
             allVaultsProofs[vault]?.proof as Hex[],
           ],
           withSpinner: false,
@@ -158,9 +158,9 @@ reportWrite
             payload: [
               report.vault_address as Address,
               BigInt(report.total_value_wei),
-              BigInt(report.in_out_delta),
               BigInt(report.fee),
               BigInt(report.liability_shares),
+              BigInt(report.slashing_reserve),
               allVaultsProofs[report.vault_address]?.proof as Hex[],
             ],
             withSpinner: false,

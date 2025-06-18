@@ -33,10 +33,18 @@ export const getDashboardByVault = async (vault: Address) => {
 
 export const chooseVaultAndGetDashboard = async (
   vault?: Address,
-): Promise<{ address: Address; contract: DashboardContract }> => {
+): Promise<{
+  address: Address;
+  contract: DashboardContract;
+  vault: Address;
+}> => {
   const chosenVault = vault ?? (await chooseVault());
   const dashboard = await getDashboardByVault(chosenVault);
   const dashboardContract = getDashboardContract(dashboard);
 
-  return { address: dashboard, contract: dashboardContract };
+  return {
+    address: dashboard,
+    contract: dashboardContract,
+    vault: chosenVault,
+  };
 };

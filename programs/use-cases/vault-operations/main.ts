@@ -2,5 +2,5 @@ import { program } from 'command';
 
 export const vaultOperations = program
   .command('vault-operations')
-  .alias('vop')
+  .alias('vo')
   .description('vault operations utilities');

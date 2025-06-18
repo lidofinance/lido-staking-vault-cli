@@ -4,25 +4,27 @@ import { Option } from 'commander';
 import { getAccount } from 'providers';
 import { getDashboardContract, getStakingVaultContract } from 'contracts';
 import {
+  mintShares,
+  burnShares,
+  mintSteth,
+  burnSteth,
+  checkIsReportFresh,
+} from 'features';
+import {
   callReadMethod,
   callWriteMethodWithReceipt,
   jsonToRoleAssignment,
   confirmOperation,
   stringToBigInt,
-  mintShares,
-  burnShares,
   parseDepositArray,
   logInfo,
   getCommandsJson,
   stringToAddress,
-  mintSteth,
-  burnSteth,
   createPDGProof,
   confirmProposal,
   formatBP,
   callReadMethodSilent,
   showSpinner,
-  checkIsReportFresh,
   stringToBigIntArrayWei,
   stringToHexArray,
   etherToWei,
@@ -123,7 +125,7 @@ dashboardWrite
     );
     if (!confirm) return;
 
-    const isReportFresh = await checkIsReportFresh(contract);
+    const isReportFresh = await checkIsReportFresh(vault);
     if (!isReportFresh) return;
 
     await callWriteMethodWithReceipt({
@@ -213,11 +215,13 @@ dashboardWrite
   .action(
     async (address: Address, recipient: Address, amountOfShares: string) => {
       const contract = getDashboardContract(address);
+      const vault = await callReadMethod(contract, 'stakingVault');
 
       await mintShares(
         contract,
         recipient,
         parseEther(amountOfShares),
+        vault,
         'mintShares',
       );
     },
@@ -232,8 +236,9 @@ dashboardWrite
   .action(
     async (address: Address, recipient: Address, amountOfSteth: string) => {
       const contract = getDashboardContract(address);
+      const vault = await callReadMethod(contract, 'stakingVault');
 
-      await mintSteth(contract, recipient, parseEther(amountOfSteth));
+      await mintSteth(contract, recipient, parseEther(amountOfSteth), vault);
     },
   );
 
@@ -246,11 +251,13 @@ dashboardWrite
   .action(
     async (address: Address, recipient: Address, amountOfWsteth: string) => {
       const contract = getDashboardContract(address);
+      const vault = await callReadMethod(contract, 'stakingVault');
 
       await mintShares(
         contract,
         recipient,
         parseEther(amountOfWsteth),
+        vault,
         'mintWstETH',
       );
     },
@@ -266,8 +273,9 @@ dashboardWrite
   .argument('<amountOfShares>', 'amount of shares to burn (in Shares)')
   .action(async (address: Address, amountOfShares: string) => {
     const contract = getDashboardContract(address);
+    const vault = await callReadMethod(contract, 'stakingVault');
 
-    await burnShares(contract, parseEther(amountOfShares), 'burnShares');
+    await burnShares(contract, parseEther(amountOfShares), vault, 'burnShares');
   });
 
 dashboardWrite
@@ -279,8 +287,9 @@ dashboardWrite
   .argument('<amountOfShares>', 'amount of shares to burn (in stETH)')
   .action(async (address: Address, amountOfShares: string) => {
     const contract = getDashboardContract(address);
+    const vault = await callReadMethod(contract, 'stakingVault');
 
-    await burnSteth(contract, parseEther(amountOfShares));
+    await burnSteth(contract, parseEther(amountOfShares), vault);
   });
 
 dashboardWrite
@@ -290,8 +299,9 @@ dashboardWrite
   .argument('<tokens>', 'amount of wstETH tokens to burn (in wstETH)')
   .action(async (address: Address, tokens: string) => {
     const contract = getDashboardContract(address);
+    const vault = await callReadMethod(contract, 'stakingVault');
 
-    await burnShares(contract, parseEther(tokens), 'burnWstETH');
+    await burnShares(contract, parseEther(tokens), vault, 'burnWstETH');
   });
 
 dashboardWrite

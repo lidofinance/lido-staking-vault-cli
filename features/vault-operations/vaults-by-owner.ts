@@ -25,5 +25,7 @@ export const chooseVault = async () => {
     })),
   );
 
+  if (!vault.address) throw new Error('No vault selected');
+
   return vault.address;
 };

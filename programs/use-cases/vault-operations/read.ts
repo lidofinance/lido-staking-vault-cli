@@ -8,6 +8,7 @@ import {
   getVaultHealthByDashboard,
   chooseVaultAndGetDashboard,
   getVaultInfoByDashboard,
+  getVaultOverviewByDashboard,
 } from 'features';
 
 const vaultOperationsRead = vaultOperations
@@ -39,4 +40,14 @@ vaultOperationsRead
     const { contract } = await chooseVaultAndGetDashboard(vault);
 
     await getVaultHealthByDashboard(contract);
+  });
+
+vaultOperationsRead
+  .command('overview')
+  .description('get vault overview')
+  .option('-v, --vault <string>', 'vault address')
+  .action(async ({ vault }: { vault: Address }) => {
+    const { contract } = await chooseVaultAndGetDashboard(vault);
+
+    await getVaultOverviewByDashboard(contract);
   });

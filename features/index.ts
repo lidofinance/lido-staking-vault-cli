@@ -5,3 +5,5 @@ export * from './operator-grid.js';
 export * from './pdg.js';
 export * from './vault.js';
 export * from './vault-operations/index.js';
+export * from './utils/index.js';
+export * from './mint-burn/index.js';
