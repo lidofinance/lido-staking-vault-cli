@@ -17,34 +17,13 @@ import {
   logTable,
 } from 'utils';
 
-export const getDashboardHealth = async (contract: DashboardContract) => {
-  try {
-    const {
-      healthRatio,
-      isHealthy,
-      totalValueInEth,
-      liabilitySharesInSteth,
-      forceRebalanceThresholdBP,
-      liabilityShares,
-    } = await fetchAndCalculateVaultHealth(contract);
+import {
+  getVaultHealthByDashboard,
+  getVaultInfoByDashboard,
+} from './vault-operations/index.js';
 
-    logResult({});
-    logInfo('Vault Health');
-    logTable({
-      data: [
-        ['Vault Healthy', isHealthy],
-        ['Health Rate', `${healthRatio}%`],
-        ['Total Value, ETH', totalValueInEth],
-        ['Liability Shares', liabilityShares],
-        ['Liability Shares in stETH', liabilitySharesInSteth],
-        ['Rebalance Threshold, %', formatBP(forceRebalanceThresholdBP)],
-      ],
-    });
-  } catch (err) {
-    if (err instanceof Error) {
-      logInfo('Error when getting info:\n', err.message);
-    }
-  }
+export const getDashboardHealth = async (contract: DashboardContract) => {
+  return getVaultHealthByDashboard(contract);
 };
 
 export const getDashboardOverview = async (contract: DashboardContract) => {
@@ -151,148 +130,7 @@ export const getDashboardOverview = async (contract: DashboardContract) => {
 };
 
 export const getDashboardBaseInfo = async (contract: DashboardContract) => {
-  const hideSpinner = showSpinner();
-  const publicClient = getPublicClient();
-
-  try {
-    const [
-      steth,
-      wsteth,
-      eth,
-      lidoLocator,
-      vaultHub,
-      vault,
-      reserveRatioBP,
-      forcedRebalanceThresholdBP,
-      infraFeeBP,
-      liquidityFeeBP,
-      reservationFeeBP,
-      shareLimit,
-      liabilityShares,
-      unsettledObligations,
-      totalValue,
-      locked,
-      maxLockableValue,
-      totalMintingCapacityShares,
-      remainingMintingCapacityShares,
-      withdrawableValue,
-      nodeOperatorFeeRecipient,
-      rewardsAdjustment,
-      nodeOperatorDisbursableFee,
-      nodeOperatorFeeRate,
-      confirmExpiry,
-      maxConfirmExpiry,
-      minConfirmExpiry,
-    ] = await Promise.all([
-      contract.read.STETH(),
-      contract.read.WSTETH(),
-      contract.read.ETH(),
-      contract.read.LIDO_LOCATOR(),
-      contract.read.VAULT_HUB(),
-      contract.read.stakingVault(),
-
-      contract.read.reserveRatioBP(),
-      contract.read.forcedRebalanceThresholdBP(),
-      contract.read.infraFeeBP(),
-      contract.read.liquidityFeeBP(),
-      contract.read.reservationFeeBP(),
-      contract.read.shareLimit(),
-      contract.read.liabilityShares(),
-      contract.read.unsettledObligations(),
-      contract.read.totalValue(),
-      contract.read.locked(),
-      contract.read.maxLockableValue(),
-      contract.read.totalMintingCapacityShares(),
-      contract.read.remainingMintingCapacityShares([0n]),
-      contract.read.withdrawableValue(),
-
-      contract.read.nodeOperatorFeeRecipient(),
-      contract.read.rewardsAdjustment(),
-      contract.read.nodeOperatorDisbursableFee(),
-      contract.read.nodeOperatorFeeRate(),
-
-      contract.read.getConfirmExpiry(),
-      contract.read.MAX_CONFIRM_EXPIRY(),
-      contract.read.MIN_CONFIRM_EXPIRY(),
-    ]);
-    const balance = await publicClient.getBalance({
-      address: contract.address,
-    });
-
-    hideSpinner();
-
-    logResult({});
-    logInfo('Dashboard Base Info');
-    logTable({
-      data: [
-        ['stETH address', steth],
-        ['wstETH address', wsteth],
-        ['ETH address', eth],
-        ['LIDO Locator address', lidoLocator],
-        ['Vault Hub address', vaultHub],
-        ['Vault address', vault],
-        ['Reserve Ratio, BP', reserveRatioBP],
-        ['Reserve Ratio, %', formatBP(reserveRatioBP)],
-        ['Forced Rebalance Threshold, BP', forcedRebalanceThresholdBP],
-        ['Forced Rebalance Threshold, %', formatBP(forcedRebalanceThresholdBP)],
-        ['Infra Fee, BP', infraFeeBP],
-        ['Infra Fee, %', formatBP(infraFeeBP)],
-        ['Liquidity Fee, BP', liquidityFeeBP],
-        ['Liquidity Fee, %', formatBP(liquidityFeeBP)],
-        ['Reservation Fee, BP', reservationFeeBP],
-        ['Reservation Fee, %', formatBP(reservationFeeBP)],
-        ['Share Limit, Shares', shareLimit],
-        ['Liability Shares, Shares', formatEther(liabilityShares)],
-        ['Unsettled Obligations, ETH', formatEther(unsettledObligations)],
-        ['Total Value, ETH', formatEther(totalValue)],
-        ['Locked, ETH', formatEther(locked)],
-        ['Max Lockable Value, ETH', formatEther(maxLockableValue)],
-        ['Balance, ETH', formatEther(balance)],
-
-        [
-          'Total Minting Capacity, Shares',
-          formatEther(totalMintingCapacityShares),
-        ],
-        [
-          'Remaining Minting Capacity, Shares',
-          formatEther(remainingMintingCapacityShares),
-        ],
-        ['Withdrawable Value, ETH', formatEther(withdrawableValue)],
-
-        ['Node Operator Fee Recipient', nodeOperatorFeeRecipient],
-        ['Node Operator Fee Rate, %', formatBP(nodeOperatorFeeRate)],
-        [
-          'Node Operator Disbursable Fee, ETH',
-          formatEther(nodeOperatorDisbursableFee),
-        ],
-        ['Node Operator Fee Recipient', nodeOperatorFeeRecipient],
-        ['Rewards Adjustment amount, ETH', formatEther(rewardsAdjustment[0])],
-        ['Rewards Adjustment latestTimestamp', rewardsAdjustment[1]],
-
-        [
-          'Node Operator disbursable Fee, ETH',
-          formatEther(nodeOperatorDisbursableFee),
-        ],
-        ['Node Operator Fee, BP', nodeOperatorFeeRate],
-        ['Node Operator Fee, %', formatBP(nodeOperatorFeeRate)],
-        [
-          'Confirm Expiry',
-          `${confirmExpiry} (${Number(confirmExpiry) / 3600} hours)`,
-        ],
-        [
-          'Max Confirm Expiry',
-          `${maxConfirmExpiry} (${Number(maxConfirmExpiry) / 3600} hours)`,
-        ],
-        [
-          'Min Confirm Expiry',
-          `${minConfirmExpiry} (${Number(minConfirmExpiry) / 3600} hours)`,
-        ],
-      ],
-    });
-  } catch (err) {
-    hideSpinner();
-    printError(err, 'Error when getting base info');
-  }
+  await getVaultInfoByDashboard(contract);
 };
 
 export const getDashboardRoles = async (contract: DashboardContract) => {

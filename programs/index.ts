@@ -9,3 +9,4 @@ export * from './vault-viewer/index.js';
 export * from './report/index.js';
 export * from './operator-grid/index.js';
 export * from './metrics/index.js';
+export * from './use-cases/index.js';
