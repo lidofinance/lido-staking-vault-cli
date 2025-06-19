@@ -1,4 +1,4 @@
-import { type Address } from 'viem';
+import { formatEther, type Address } from 'viem';
 import { Option } from 'commander';
 
 import {
@@ -12,12 +12,18 @@ import {
   confirmMakeProof,
   stringToNumberArray,
   stringToNumber,
+  etherToWei,
 } from 'utils';
 import {
   chooseVaultAndGetDashboard,
   checkBLSDeposits,
   makePDGProofByIndex,
   makePDGProofByIndexes,
+  checkNOBalancePDGforDeposit,
+  getRecipient,
+  checkNodeOperatorForDeposit,
+  checkAndSpecifyNodeOperatorForTopUp,
+  getGuarantor,
 } from 'features';
 import { Deposit } from 'types';
 import {
@@ -67,6 +73,8 @@ depositsWrite
       const pdgContract = await getPredepositGuaranteeContract();
       const vaultContract = getStakingVaultContract(vaultAddress);
 
+      await checkNodeOperatorForDeposit(vaultContract);
+
       if (blsCheck)
         await checkBLSDeposits(pdgContract, vaultContract, deposits);
 
@@ -83,6 +91,11 @@ depositsWrite
         };
       });
 
+      const { amountToTopUp, isNeedTopUp } = await checkNOBalancePDGforDeposit(
+        pdgContract,
+        vaultAddress,
+      );
+
       const confirm = await confirmOperation(
         `Are you sure you want to predeposit ${deposits.length} deposits to the vault ${vaultAddress}?
       Pubkeys: ${deposits.map((i) => i.pubkey).join(', ')}`,
@@ -93,6 +106,7 @@ depositsWrite
         contract: pdgContract,
         methodName: 'predeposit',
         payload: [vaultAddress, deposits, depositsY],
+        value: isNeedTopUp ? amountToTopUp : undefined,
       });
     },
   );
@@ -151,7 +165,11 @@ depositsWrite
       deposits: Deposit[],
       { vault }: { vault: Address },
     ) => {
+      const { vault: vaultAddress } = await chooseVaultAndGetDashboard(vault);
       const pdgContract = await getPredepositGuaranteeContract();
+      const vaultContract = getStakingVaultContract(vaultAddress);
+
+      await checkNodeOperatorForDeposit(vaultContract);
 
       const witnesses = await makePDGProofByIndexes(indexes);
       if (!witnesses) return;
@@ -159,7 +177,132 @@ depositsWrite
       await callWriteMethodWithReceipt({
         contract: pdgContract,
         methodName: 'proveAndDeposit',
-        payload: [witnesses, deposits, vault],
+        payload: [witnesses, deposits, vaultAddress],
       });
     },
   );
+
+depositsWrite
+  .command('deposit-to-beacon-chain')
+  .description('deposits ether to proven validators from staking vault')
+  .argument('<deposits>', 'deposits', parseDepositArray)
+  .option('-v, --vault <string>', 'vault address', stringToAddress)
+  .addHelpText(
+    'after',
+    `Deposit format:
+  '[{
+    "pubkey": "...",
+    "signature": "...",
+    "amount": "...",
+    "deposit_data_root": "..."
+  }
+  {second deposit}
+  ...]'`,
+  )
+  .action(async (deposits: Deposit[], { vault }: { vault: Address }) => {
+    const { vault: vaultAddress } = await chooseVaultAndGetDashboard(vault);
+    const pdgContract = await getPredepositGuaranteeContract();
+    const vaultContract = getStakingVaultContract(vaultAddress);
+
+    await checkNodeOperatorForDeposit(vaultContract);
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to deposit ${deposits.length} deposits to the vault ${vaultAddress}?`,
+    );
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt({
+      contract: pdgContract,
+      methodName: 'depositToBeaconChain',
+      payload: [vaultAddress, deposits],
+    });
+  });
+
+depositsWrite
+  .command('top-up')
+  .description('top up no balance')
+  .argument('<amount>', 'amount in ETH', etherToWei)
+  .option('-v, --vault <string>', 'vault address', stringToAddress)
+  .action(
+    async ({ amount }: { amount: bigint }, { vault }: { vault: Address }) => {
+      const pdgContract = await getPredepositGuaranteeContract();
+      const { vault: vaultAddress } = await chooseVaultAndGetDashboard(vault);
+      const vaultContract = getStakingVaultContract(vaultAddress);
+
+      const nodeOperator = await checkAndSpecifyNodeOperatorForTopUp(
+        vaultContract,
+        pdgContract,
+      );
+
+      const confirm = await confirmOperation(
+        `Are you sure you want to top up the node operator ${nodeOperator} with ${formatEther(amount)} ETH?`,
+      );
+      if (!confirm) return;
+
+      await callWriteMethodWithReceipt({
+        contract: pdgContract,
+        methodName: 'topUpNodeOperatorBalance',
+        payload: [nodeOperator],
+        value: amount,
+      });
+    },
+  );
+
+depositsWrite
+  .command('withdraw-no-balance')
+  .description('withdraw node operator balance')
+  .argument('<amount>', 'amount in ETH', etherToWei)
+  .option('-v, --vault <string>', 'vault address', stringToAddress)
+  .option(
+    '-r, --recipient <string>',
+    'address of the recipient',
+    stringToAddress,
+  )
+  .action(
+    async (
+      amount: bigint,
+      { vault, recipient }: { vault: Address; recipient: Address },
+    ) => {
+      const pdgContract = await getPredepositGuaranteeContract();
+      const { vault: vaultAddress } = await chooseVaultAndGetDashboard(vault);
+      const vaultContract = getStakingVaultContract(vaultAddress);
+
+      const nodeOperator = await checkAndSpecifyNodeOperatorForTopUp(
+        vaultContract,
+        pdgContract,
+      );
+      const recipientAddress = await getRecipient(recipient);
+
+      const confirm = await confirmOperation(
+        `Are you sure you want to withdraw the node operator ${nodeOperator} balance ${formatEther(amount)} ETH to ${recipientAddress}?`,
+      );
+      if (!confirm) return;
+
+      await callWriteMethodWithReceipt({
+        contract: pdgContract,
+        methodName: 'withdrawNodeOperatorBalance',
+        payload: [nodeOperator, amount, recipientAddress],
+      });
+    },
+  );
+
+depositsWrite
+  .command('set-no-guarantor')
+  .aliases(['set-no-g'])
+  .description('set node operator guarantor')
+  .action(async () => {
+    const pdgContract = await getPredepositGuaranteeContract();
+
+    const { newGuarantor, currentAccount } = await getGuarantor(pdgContract);
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to set the node operator (${currentAccount}) guarantor to ${newGuarantor}?`,
+    );
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt({
+      contract: pdgContract,
+      methodName: 'setNodeOperatorGuarantor',
+      payload: [newGuarantor],
+    });
+  });
