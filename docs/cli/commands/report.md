@@ -1,5 +1,5 @@
 ---
-sidebar_position: 10
+sidebar_position: 2
 ---
 
 # Report
@@ -20,18 +20,18 @@ yarn start report -h
 
 ### Read
 
-| Command                 | Description         |
-| ----------------------- | ------------------- |
-| by-vault \<vault>       | get report by vault |
-| proof-by-vault \<vault> | get proof by vault  |
-| all                     | get all reports     |
-| check-cid               | check ipfs CID      |
-| make-leaf \<vault>      | make leaf           |
+| Command                | Description                |
+| ---------------------- | -------------------------- |
+| latest-report-data lrd | get the latest report data |
+| by-vault               | get report by vault        |
+| proof-by-vault         | get proof by vault         |
+| all                    | get all reports            |
+| check-cid              | check ipfs CID             |
 
 ### Write
 
-| Command                        | Description                  |
-| ------------------------------ | ---------------------------- |
-| by-vault-submit submit\<vault> | submit report by vault       |
-| by-vaults-submit \<vaults>     | submit report for vaults     |
-| submit-all                     | submit report for all vaults |
+| Command                    | Description                  |
+| -------------------------- | ---------------------------- |
+| by-vault-submit submit     | submit report by vault       |
+| by-vaults-submit \<vaults> | submit report for vaults     |
+| submit-all                 | submit report for all vaults |

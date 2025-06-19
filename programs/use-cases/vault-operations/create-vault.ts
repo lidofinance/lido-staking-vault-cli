@@ -1,5 +1,4 @@
 import { program } from 'command';
-import { Option } from 'commander';
 
 import { createVault, prepareCreateVaultPayload } from 'features';
 import { RoleAssignment } from 'types';
@@ -10,24 +9,16 @@ import {
   stringToBigInt,
   jsonToRoleAssignment,
   logCancel,
-  getCommandsJson,
   logTable,
 } from 'utils';
 
-import { vaultFactory } from './main.js';
+import { vaultOperationsWrite } from './write.js';
 
-const vaultFactoryWrite = vaultFactory
-  .command('write')
-  .aliases(['w'])
-  .description('vault factory write commands');
+const vaultOperationsCreateVault = vaultOperationsWrite
+  .command('create-vault')
+  .description('creates a new StakingVault and Dashboard contracts');
 
-vaultFactoryWrite.addOption(new Option('-cmd2json'));
-vaultFactoryWrite.on('option:-cmd2json', function () {
-  logInfo(getCommandsJson(vaultFactoryWrite));
-  process.exit();
-});
-
-vaultFactoryWrite
+vaultOperationsCreateVault
   .command('create-vault')
   .description('creates a new StakingVault and Dashboard contracts')
   .argument('<defaultAdmin>', 'default admin address')
@@ -102,7 +93,7 @@ vaultFactoryWrite
     },
   );
 
-vaultFactoryWrite
+vaultOperationsCreateVault
   .command('create-vault-without-connecting')
   .description(
     'creates a new StakingVault and Dashboard contracts without connecting to VaultHub',

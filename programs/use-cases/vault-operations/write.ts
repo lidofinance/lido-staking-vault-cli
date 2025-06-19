@@ -21,7 +21,7 @@ import {
 
 import { vaultOperations } from './main.js';
 
-const vaultOperationsWrite = vaultOperations
+export const vaultOperationsWrite = vaultOperations
   .command('write')
   .aliases(['w'])
   .description('vault operations write commands');

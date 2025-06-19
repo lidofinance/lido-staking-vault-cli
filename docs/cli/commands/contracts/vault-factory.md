@@ -1,5 +1,5 @@
 ---
-sidebar_position: 3
+sidebar_position: 4
 ---
 
 # VaultFactory
@@ -7,13 +7,13 @@ sidebar_position: 3
 ## Command
 
 ```bash
-yarn start factory [arguments] [-options]
+yarn start contracts factory [arguments] [-options]
 ```
 
 ## VaultFactory commands list
 
 ```bash
-yarn start factory -h
+yarn start contracts factory -h
 ```
 
 ## API
@@ -34,9 +34,10 @@ yarn start factory -h
 
 ### Write
 
-| Command                                                                                                               | Description                              |
-| --------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
-| create-vault \<defaultAdmin> \<nodeOperator> \<nodeOperatorManager> \<confirmExpiry> \<nodeOperatorFeeBP> \<quantity> | create vault contract with deposit 1 ETH |
+| Command                                                                                                                                  | Description                                                                       |
+| ---------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| create-vault \<defaultAdmin> \<nodeOperator> \<nodeOperatorManager> \<confirmExpiry> \<nodeOperatorFeeBP> \<quantity>                    | creates a new StakingVault and Dashboard contracts                                |
+| create-vault-without-connecting \<defaultAdmin> \<nodeOperator> \<nodeOperatorManager> \<confirmExpiry> \<nodeOperatorFeeBP> \<quantity> | creates a new StakingVault and Dashboard contracts without connecting to VaultHub |
 
 Note: `[quantity]` is an optional argument. The default value is `1`.
 **[options]**

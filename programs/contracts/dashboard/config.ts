@@ -10,8 +10,8 @@ export const readCommandConfig: ReadProgramCommandConfig<typeof DashboardAbi> =
         'get amount of ether that can be withdrawn from the staking vault',
     },
     vaultConnection: {
-      name: 'socket',
-      description: 'get vault socket',
+      name: 'vault-connection',
+      description: 'get vault connection',
     },
     VAULT_HUB: {
       name: 'hub',
