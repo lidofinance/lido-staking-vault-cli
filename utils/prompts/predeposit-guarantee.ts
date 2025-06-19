@@ -6,14 +6,14 @@ export const enterValidatorIndex = async () => {
   return await textPrompt('Enter validator index', 'validatorIndex');
 };
 
-export const confirmValidatorIndex = async (validatorIndex: bigint) => {
+export const confirmValidatorIndex = async (validatorIndex: number) => {
   return await confirmOperation(
     `Do you want to make proof for validator ${validatorIndex}?`,
   );
 };
 
-export const confirmMakeProof = async (index: bigint) => {
-  let validatorIndex: bigint = index;
+export const confirmMakeProof = async (index?: number) => {
+  let validatorIndex: number | undefined = index;
 
   if (validatorIndex === undefined) {
     const answerValidatorIndex = await enterValidatorIndex();

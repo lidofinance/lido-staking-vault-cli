@@ -24,3 +24,7 @@ export const getPredepositGuaranteeContract = async (): Promise<
     }),
   });
 };
+
+export type PredepositGuaranteeContract = Awaited<
+  ReturnType<typeof getPredepositGuaranteeContract>
+>;

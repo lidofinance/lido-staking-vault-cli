@@ -12,8 +12,6 @@ import {
   showSpinner,
   printError,
   parseDepositArray,
-  stringToBigInt,
-  stringToBigIntArray,
   etherToWei,
   callReadMethod,
   logResult,
@@ -25,6 +23,8 @@ import {
   expandBLSSignature,
   logTable,
   type ValidatorWitness,
+  stringToNumber,
+  stringToNumberArray,
 } from 'utils';
 import { Deposit } from 'types';
 
@@ -127,8 +127,8 @@ pdgWrite
   .command('proof-and-prove')
   .aliases(['prove'])
   .description('make proof and prove')
-  .argument('<index>', 'validator index', stringToBigInt)
-  .action(async (index: bigint) => {
+  .argument('<index>', 'validator index', stringToNumber)
+  .action(async (index: number) => {
     const pdgContract = await getPredepositGuaranteeContract();
 
     const validatorIndex = await confirmMakeProof(index);
@@ -139,7 +139,7 @@ pdgWrite
       message: 'Making proof...',
     });
     try {
-      const packageProof = await createPDGProof(Number(validatorIndex));
+      const packageProof = await createPDGProof(validatorIndex);
       hideSpinner();
       const {
         proof,
@@ -170,7 +170,7 @@ pdgWrite
           {
             proof,
             pubkey,
-            validatorIndex,
+            validatorIndex: BigInt(validatorIndex),
             childBlockTimestamp,
             slot,
             proposerIndex,
@@ -186,7 +186,7 @@ pdgWrite
 pdgWrite
   .command('prove-and-deposit')
   .description('prove and deposit')
-  .argument('<indexes>', 'validator indexes', stringToBigIntArray)
+  .argument('<indexes>', 'validator indexes', stringToNumberArray)
   .argument('<vault>', 'vault address')
   .argument('<deposits>', 'deposits', parseDepositArray)
   .addHelpText(
@@ -201,7 +201,7 @@ pdgWrite
     {second deposit}
     ...]'`,
   )
-  .action(async (indexes: bigint[], vault: Address, deposits: Deposit[]) => {
+  .action(async (indexes: number[], vault: Address, deposits: Deposit[]) => {
     const pdgContract = await getPredepositGuaranteeContract();
 
     const witnesses: ValidatorWitness[] = [];
@@ -215,7 +215,7 @@ pdgWrite
         message: 'Making proof...',
       });
       try {
-        const packageProof = await createPDGProof(Number(validatorIndex));
+        const packageProof = await createPDGProof(validatorIndex);
         hideSpinner();
         const {
           proof,
@@ -229,7 +229,7 @@ pdgWrite
         witnesses.push({
           proof,
           pubkey,
-          validatorIndex,
+          validatorIndex: BigInt(validatorIndex),
           childBlockTimestamp,
           slot,
           proposerIndex,
@@ -364,9 +364,9 @@ pdgWrite
 pdgWrite
   .command('prove-invalid-validator-wc')
   .description('prove invalid validator withdrawal credentials')
-  .argument('<index>', 'validator index', stringToBigInt)
+  .argument('<index>', 'validator index', stringToNumber)
   .argument('<invalidWithdrawalCredentials>', 'invalid withdrawal credentials')
-  .action(async (index: bigint, invalidWithdrawalCredentials: Hex) => {
+  .action(async (index: number, invalidWithdrawalCredentials: Hex) => {
     const pdgContract = await getPredepositGuaranteeContract();
 
     const validatorIndex = await confirmMakeProof(index);
@@ -378,7 +378,7 @@ pdgWrite
     });
 
     try {
-      const packageProof = await createPDGProof(Number(validatorIndex));
+      const packageProof = await createPDGProof(validatorIndex);
       hideSpinner();
       const {
         proof,
@@ -414,7 +414,7 @@ pdgWrite
           {
             proof,
             pubkey,
-            validatorIndex,
+            validatorIndex: BigInt(validatorIndex),
             childBlockTimestamp,
             slot,
             proposerIndex,
