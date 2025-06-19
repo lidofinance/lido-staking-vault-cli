@@ -22,6 +22,7 @@ import {
   logResult,
   printError,
   logTable,
+  stringToNumber,
 } from 'utils';
 
 import { vaultHub } from './main.js';
@@ -478,8 +479,8 @@ VaultHubWrite.command('prove-unknown-validator-to-pdg')
     'proves that validators unknown to PDG have correct WC to participate in the vault',
   )
   .argument('<vaultAddress>', 'vault address', stringToAddress)
-  .argument('<validatorIndex>', 'validator index', stringToBigInt)
-  .action(async (vaultAddress: Address, index: bigint) => {
+  .argument('<validatorIndex>', 'validator index', stringToNumber)
+  .action(async (vaultAddress: Address, index: number) => {
     const contract = await getVaultHubContract();
 
     const validatorIndex = await confirmMakeProof(index);
@@ -524,7 +525,7 @@ VaultHubWrite.command('prove-unknown-validator-to-pdg')
           {
             proof,
             pubkey,
-            validatorIndex,
+            validatorIndex: BigInt(validatorIndex),
             childBlockTimestamp,
             slot,
             proposerIndex,

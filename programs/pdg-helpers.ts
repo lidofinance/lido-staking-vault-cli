@@ -25,6 +25,7 @@ import {
   expandBLSSignature,
   logTable,
   callReadMethodSilent,
+  stringToNumber,
 } from 'utils';
 import { Address, Hex } from 'viem';
 
@@ -41,11 +42,11 @@ predepositGuaranteeHelpers.on('option:-cmd2json', function () {
 predepositGuaranteeHelpers
   .command('proof-and-check')
   .aliases(['proof-check'])
-  .option('-i, --index <index>', 'validator index')
+  .option('-i, --index <index>', 'validator index', stringToNumber)
   .description(
     'make predeposit proof by validator index and check by test contract',
   )
-  .action(async ({ index }: { index: bigint }) => {
+  .action(async ({ index }: { index: number }) => {
     const validatorIndex = await confirmMakeProof(index);
     if (!validatorIndex) return;
 
@@ -68,7 +69,7 @@ predepositGuaranteeHelpers
         {
           proof,
           pubkey,
-          validatorIndex,
+          validatorIndex: BigInt(validatorIndex),
           childBlockTimestamp,
           slot,
           proposerIndex,
@@ -99,8 +100,8 @@ predepositGuaranteeHelpers
 predepositGuaranteeHelpers
   .command('proof')
   .description('make predeposit proof by validator index')
-  .option('-i, --index <index>', 'validator index')
-  .action(async ({ index }: { index: bigint }) => {
+  .option('-i, --index <index>', 'validator index', stringToNumber)
+  .action(async ({ index }: { index: number }) => {
     const validatorIndex = await confirmMakeProof(index);
     if (!validatorIndex) return;
 
