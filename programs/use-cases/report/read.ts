@@ -6,12 +6,12 @@ import {
   fetchAndVerifyFile,
   getAllVaultsReports,
   getCommandsJson,
-  getReportLeaf,
-  getVaultReportProof,
   getVaultReport,
   logInfo,
+  getReportProofByVault,
 } from 'utils';
 import { getLazyOracleContract } from 'contracts';
+import { chooseVaultAndGetDashboard } from 'features';
 
 import { report } from './main.js';
 
@@ -42,9 +42,11 @@ reportRead
 reportRead
   .command('by-vault')
   .description('get report by vault')
-  .argument('<vault>', 'vault address')
+  .option('-v, --vault <string>', 'vault address')
   .option('-g, --gateway', 'ipfs gateway url')
-  .action(async (vault, { gateway }) => {
+  .action(async ({ vault, gateway }) => {
+    const { vault: vaultAddress } = await chooseVaultAndGetDashboard(vault);
+
     const lazyOracleContract = await getLazyOracleContract();
     const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
       await callReadMethod(lazyOracleContract, 'latestReportData');
@@ -54,7 +56,7 @@ reportRead
     const { cacheUse } = program.opts();
     const report = await getVaultReport(
       {
-        vault,
+        vault: vaultAddress,
         cid: vaultsDataReportCid,
         gateway: gateway,
       },
@@ -67,24 +69,21 @@ reportRead
 reportRead
   .command('proof-by-vault')
   .description('get proof by vault')
-  .argument('<vault>', 'vault address')
+  .option('-v, --vault <string>', 'vault address')
   .option('-g, --gateway', 'ipfs gateway url')
-  .action(async (vault, { gateway }) => {
+  .action(async ({ vault, gateway }) => {
+    const { vault: vaultAddress } = await chooseVaultAndGetDashboard(vault);
+
     const lazyOracleContract = await getLazyOracleContract();
     const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
       await callReadMethod(lazyOracleContract, 'latestReportData');
 
-    const { cacheUse } = program.opts();
-    const proof = await getVaultReportProof(
-      {
-        vault,
-        cid: vaultsDataReportCid,
-        gateway,
-      },
-      cacheUse,
-    );
-
     await fetchAndVerifyFile(vaultsDataReportCid, gateway);
+    const proof = await getReportProofByVault({
+      vault: vaultAddress,
+      cid: vaultsDataReportCid,
+      gateway,
+    });
 
     logInfo(proof);
   });
@@ -122,31 +121,4 @@ reportRead
       await callReadMethod(lazyOracleContract, 'latestReportData');
 
     await fetchAndVerifyFile(vaultsDataReportCid, url);
-  });
-
-reportRead
-  .command('make-leaf')
-  .description('make leaf')
-  .argument('<vault>', 'vault address')
-  .option('-g, --gateway', 'ipfs gateway url')
-  .action(async (vault, { gateway }) => {
-    const lazyOracleContract = await getLazyOracleContract();
-    const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
-      await callReadMethod(lazyOracleContract, 'latestReportData');
-
-    await fetchAndVerifyFile(vaultsDataReportCid, gateway);
-    const { cacheUse } = program.opts();
-    const report = await getVaultReport(
-      {
-        vault,
-        cid: vaultsDataReportCid,
-        gateway,
-      },
-      cacheUse,
-    );
-
-    const reportLeaf = getReportLeaf(report.data);
-    logInfo('local leaf', reportLeaf);
-    logInfo('ipfs leaf', report.leaf);
-    logInfo('ipfs merkle tree root', report.merkleTreeRoot);
   });

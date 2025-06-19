@@ -9,6 +9,7 @@ import {
   chooseVaultAndGetDashboard,
   getVaultInfoByDashboard,
   getVaultOverviewByDashboard,
+  getVaultRolesByDashboard,
 } from 'features';
 
 const vaultOperationsRead = vaultOperations
@@ -50,4 +51,14 @@ vaultOperationsRead
     const { contract } = await chooseVaultAndGetDashboard(vault);
 
     await getVaultOverviewByDashboard(contract);
+  });
+
+vaultOperationsRead
+  .command('roles')
+  .description('get vault roles')
+  .option('-v, --vault <string>', 'vault address')
+  .action(async ({ vault }: { vault: Address }) => {
+    const { contract } = await chooseVaultAndGetDashboard(vault);
+
+    await getVaultRolesByDashboard(contract);
   });

@@ -1,4 +1,5 @@
 import { Address } from 'viem';
+import { Option } from 'commander';
 
 import { getVaultViewerContract } from 'contracts';
 import { getAccount } from 'providers';
@@ -8,19 +9,32 @@ import {
   callReadMethod,
   callReadMethodSilent,
   logTable,
+  getCommandsJson,
+  logInfo,
 } from 'utils';
 
 import { vaultViewer } from './main.js';
 import { readCommandConfig } from './config.js';
 
+export const vaultViewerRead = vaultViewer
+  .command('read')
+  .alias('r')
+  .description('read commands');
+
+vaultViewerRead.addOption(new Option('-cmd2json'));
+vaultViewerRead.on('option:-cmd2json', function () {
+  logInfo(getCommandsJson(vaultViewerRead));
+  process.exit();
+});
+
 generateReadCommands(
   VaultViewerAbi,
   getVaultViewerContract,
-  vaultViewer,
+  vaultViewerRead,
   readCommandConfig,
 );
 
-vaultViewer
+vaultViewerRead
   .command('my')
   .description('get my vaults')
   .option('-s, --simple', 'simple output')
@@ -45,7 +59,7 @@ vaultViewer
     });
   });
 
-vaultViewer
+vaultViewerRead
   .command('my-bound')
   .description('get my vaults - bound')
   .argument('<from>', 'from - vault index')
@@ -74,7 +88,7 @@ vaultViewer
     });
   });
 
-vaultViewer
+vaultViewerRead
   .command('my-by-role')
   .description('get my vaults by role')
   .argument('<role>', 'role')
@@ -101,7 +115,7 @@ vaultViewer
     });
   });
 
-vaultViewer
+vaultViewerRead
   .command('my-by-role-bound')
   .description('get my vaults by role - bound')
   .argument('<from>', 'from - vault index')
@@ -138,7 +152,7 @@ vaultViewer
     },
   );
 
-vaultViewer
+vaultViewerRead
   .command('connected')
   .description('get vaults connected to vault hub')
   .option('-s, --simple', 'simple output')

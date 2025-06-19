@@ -1,3 +1,6 @@
 import { program } from 'command';
 
-export const report = program.command('report').description('report utilities');
+export const report = program
+  .command('report')
+  .alias('r')
+  .description('report utilities');
