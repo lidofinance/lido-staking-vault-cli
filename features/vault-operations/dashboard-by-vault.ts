@@ -8,7 +8,7 @@ import {
 import { getPublicClient } from 'providers';
 import { callReadMethodSilent } from 'utils';
 
-import { chooseVault } from './vaults-by-owner.js';
+import { chooseVault } from './vaults-by-role.js';
 
 export const getDashboardByVault = async (vault: Address) => {
   const vaultHub = await getVaultHubContract();
