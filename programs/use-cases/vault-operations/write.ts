@@ -17,11 +17,11 @@ import {
   mintSteth,
   burnShares,
   burnSteth,
+  checkVaultRole,
 } from 'features';
+import { getAccount } from 'providers';
 
 import { vaultOperations } from './main.js';
-
-// TODO: add check roles for operations
 
 export const vaultOperationsWrite = vaultOperations
   .command('write')
@@ -42,6 +42,9 @@ vaultOperationsWrite
   .action(async (ether: bigint, { vault }: { vault: Address }) => {
     const { contract, vault: vaultAddress } =
       await chooseVaultAndGetDashboard(vault);
+
+    const account = getAccount();
+    await checkVaultRole(contract, 'FUND_ROLE', account.address);
 
     const confirm = await confirmOperation(
       `Are you sure you want to fund the staking vault ${vaultAddress} with ${formatEther(ether)} ether?`,
@@ -74,6 +77,9 @@ vaultOperationsWrite
       const recipientAddress = await getRecipient(recipient);
       const { contract, vault: vaultAddress } =
         await chooseVaultAndGetDashboard(vault);
+
+      const account = getAccount();
+      await checkVaultRole(contract, 'WITHDRAW_ROLE', account.address);
 
       const confirm = await confirmOperation(
         `Are you sure you want to withdraw ${formatEther(ether)} from the staking vault ${vaultAddress} to ${recipientAddress}?`,
@@ -117,6 +123,9 @@ vaultOperationsWrite
       const { contract, vault: vaultAddress } =
         await chooseVaultAndGetDashboard(vault);
 
+      const account = getAccount();
+      await checkVaultRole(contract, 'MINT_ROLE', account.address);
+
       const confirm = await confirmOperation(
         `Are you sure you want to mint ${formatEther(amountOfShares)} shares to ${recipientAddress} in the staking vault ${vaultAddress}?`,
       );
@@ -151,6 +160,9 @@ vaultOperationsWrite
       const { contract, vault: vaultAddress } =
         await chooseVaultAndGetDashboard(vault);
 
+      const account = getAccount();
+      await checkVaultRole(contract, 'MINT_ROLE', account.address);
+
       await mintShares(
         contract,
         recipientAddress,
@@ -180,6 +192,9 @@ vaultOperationsWrite
       const { contract, vault: vaultAddress } =
         await chooseVaultAndGetDashboard(vault);
 
+      const account = getAccount();
+      await checkVaultRole(contract, 'MINT_ROLE', account.address);
+
       await mintSteth(contract, recipientAddress, amountOfSteth, vaultAddress);
     },
   );
@@ -202,6 +217,9 @@ vaultOperationsWrite
     const { contract, vault: vaultAddress } =
       await chooseVaultAndGetDashboard(vault);
 
+    const account = getAccount();
+    await checkVaultRole(contract, 'BURN_ROLE', account.address);
+
     await burnShares(contract, amountOfShares, vaultAddress, 'burnShares');
   });
 
@@ -219,6 +237,9 @@ vaultOperationsWrite
   .action(async (amountOfShares: bigint, { vault }: { vault: Address }) => {
     const { contract, vault: vaultAddress } =
       await chooseVaultAndGetDashboard(vault);
+
+    const account = getAccount();
+    await checkVaultRole(contract, 'BURN_ROLE', account.address);
 
     await burnSteth(contract, amountOfShares, vaultAddress);
   });
