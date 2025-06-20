@@ -103,7 +103,7 @@ vaultFactoryWrite
   );
 
 vaultFactoryWrite
-  .command('create-vault-with-dashboard-without-connecting-to-vault-hub')
+  .command('create-vault-without-connecting')
   .description('create vault contract with deposit 1 ETH')
   .argument('<defaultAdmin>', 'default admin address')
   .argument('<nodeOperator>', 'node operator address')

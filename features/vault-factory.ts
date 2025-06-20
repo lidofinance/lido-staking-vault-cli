@@ -87,6 +87,8 @@ export const createVault = async (
     confirmExpiry,
   } = payload;
 
+  const isNeedValue = methodName === 'createVaultWithDashboard';
+
   const result = await callWriteMethodWithReceipt({
     contract,
     methodName,
@@ -98,7 +100,7 @@ export const createVault = async (
       confirmExpiry,
       otherRoles,
     ],
-    value: parseEther('1'),
+    value: isNeedValue ? parseEther('1') : undefined,
   });
   if (!result) return;
   if (program.opts().populateTx) {
