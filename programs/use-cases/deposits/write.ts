@@ -1,4 +1,4 @@
-import { formatEther, type Address } from 'viem';
+import { formatEther, parseEther, type Address } from 'viem';
 import { Option } from 'commander';
 
 import {
@@ -106,7 +106,7 @@ depositsWrite
         contract: pdgContract,
         methodName: 'predeposit',
         payload: [vaultAddress, deposits, depositsY],
-        value: isNeedTopUp ? amountToTopUp : undefined,
+        value: isNeedTopUp ? parseEther(String(amountToTopUp)) : undefined,
       });
     },
   );
