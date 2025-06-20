@@ -20,7 +20,7 @@ import {
   makePDGProofByIndex,
   makePDGProofByIndexes,
   checkNOBalancePDGforDeposit,
-  getRecipient,
+  getAddress,
   checkNodeOperatorForDeposit,
   checkAndSpecifyNodeOperatorForTopUp,
   getGuarantor,
@@ -271,7 +271,7 @@ depositsWrite
         vaultContract,
         pdgContract,
       );
-      const recipientAddress = await getRecipient(recipient);
+      const recipientAddress = await getAddress(recipient, 'recipient');
 
       const confirm = await confirmOperation(
         `Are you sure you want to withdraw the node operator ${nodeOperator} balance ${formatEther(amount)} ETH to ${recipientAddress}?`,

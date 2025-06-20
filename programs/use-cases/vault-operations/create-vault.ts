@@ -1,15 +1,22 @@
+import { Address } from 'viem';
 import { program } from 'command';
 
-import { createVault, prepareCreateVaultPayload } from 'features';
+import {
+  createVault,
+  prepareCreateVaultPayload,
+  getAddress,
+  getConfirmExpiry,
+  getNodeOperatorFeeRate,
+} from 'features';
 import { RoleAssignment } from 'types';
 import {
   confirmCreateVaultParams,
   logResult,
   logInfo,
-  stringToBigInt,
   jsonToRoleAssignment,
   logCancel,
   logTable,
+  stringToNumber,
 } from 'utils';
 
 import { vaultOperationsWrite } from './write.js';
@@ -19,16 +26,23 @@ const vaultOperationsCreateVault = vaultOperationsWrite
   .description('creates a new StakingVault and Dashboard contracts');
 
 vaultOperationsCreateVault
-  .command('create-vault')
+  .command('create')
   .description('creates a new StakingVault and Dashboard contracts')
-  .argument('<defaultAdmin>', 'default admin address')
-  .argument('<nodeOperator>', 'node operator address')
-  .argument('<nodeOperatorManager>', 'node operator manager address')
-  .argument('<confirmExpiry>', 'confirm expiry', stringToBigInt)
-  .argument(
-    '<nodeOperatorFeeBP>',
+  .option('-da, --defaultAdmin <defaultAdmin>', 'default admin address')
+  .option('-no, --nodeOperator <nodeOperator>', 'node operator address')
+  .option(
+    '-nom, --nodeOperatorManager <nodeOperatorManager>',
+    'node operator manager address',
+  )
+  .option(
+    '-ce, --confirmExpiry <confirmExpiry>',
+    'confirm expiry',
+    stringToNumber,
+  )
+  .option(
+    '-nof , --nodeOperatorFeeRate <nodeOperatorFeeRate>',
     'Node operator fee, for e.g. 100 == 1%',
-    stringToBigInt,
+    stringToNumber,
   )
   .argument('[quantity]', 'quantity of vaults to create, default 1', '1')
   .option(
@@ -37,21 +51,46 @@ vaultOperationsCreateVault
     jsonToRoleAssignment,
   )
   .action(
-    async (
-      defaultAdmin: string,
-      nodeOperator: string,
-      nodeOperatorManager: string,
-      confirmExpiry: bigint,
-      nodeOperatorFeeBP: bigint,
-      quantity: string,
-      options: { roles: RoleAssignment[] },
-    ) => {
-      const createVaultData = prepareCreateVaultPayload({
+    async ({
+      defaultAdmin,
+      nodeOperator,
+      nodeOperatorManager,
+      confirmExpiry,
+      nodeOperatorFeeRate,
+      quantity,
+      options,
+    }: {
+      defaultAdmin: Address;
+      nodeOperator: Address;
+      nodeOperatorManager: Address;
+      confirmExpiry: number;
+      nodeOperatorFeeRate: number;
+      quantity: string;
+      options: { roles: RoleAssignment[] };
+    }) => {
+      const defaultAdminAddress = await getAddress(
         defaultAdmin,
+        'Default Admin',
+      );
+      const nodeOperatorAddress = await getAddress(
         nodeOperator,
+        'Node Operator',
+      );
+      const nodeOperatorManagerAddress = await getAddress(
         nodeOperatorManager,
-        confirmExpiry,
-        nodeOperatorFeeBP,
+        'Node Operator Manager',
+      );
+
+      const confirmExpiryValue = await getConfirmExpiry(confirmExpiry);
+      const nodeOperatorFeeRateValue =
+        await getNodeOperatorFeeRate(nodeOperatorFeeRate);
+
+      const createVaultData = prepareCreateVaultPayload({
+        defaultAdmin: defaultAdminAddress,
+        nodeOperator: nodeOperatorAddress,
+        nodeOperatorManager: nodeOperatorManagerAddress,
+        confirmExpiry: confirmExpiryValue,
+        nodeOperatorFeeRate: nodeOperatorFeeRateValue,
         quantity,
         options,
       });
@@ -94,18 +133,25 @@ vaultOperationsCreateVault
   );
 
 vaultOperationsCreateVault
-  .command('create-vault-without-connecting')
+  .command('create-without-connecting')
   .description(
     'creates a new StakingVault and Dashboard contracts without connecting to VaultHub',
   )
-  .argument('<defaultAdmin>', 'default admin address')
-  .argument('<nodeOperator>', 'node operator address')
-  .argument('<nodeOperatorManager>', 'node operator manager address')
-  .argument('<confirmExpiry>', 'confirm expiry', stringToBigInt)
-  .argument(
-    '<nodeOperatorFeeBP>',
+  .option('-da, --defaultAdmin <defaultAdmin>', 'default admin address')
+  .option('-no, --nodeOperator <nodeOperator>', 'node operator address')
+  .option(
+    '-nom, --nodeOperatorManager <nodeOperatorManager>',
+    'node operator manager address',
+  )
+  .option(
+    '-ce, --confirmExpiry <confirmExpiry>',
+    'confirm expiry',
+    stringToNumber,
+  )
+  .option(
+    '-nof , --nodeOperatorFeeRate <nodeOperatorFeeRate>',
     'Node operator fee, for e.g. 100 == 1%',
-    stringToBigInt,
+    stringToNumber,
   )
   .argument('[quantity]', 'quantity of vaults to create, default 1', '1')
   .option(
@@ -114,21 +160,46 @@ vaultOperationsCreateVault
     jsonToRoleAssignment,
   )
   .action(
-    async (
-      defaultAdmin: string,
-      nodeOperator: string,
-      nodeOperatorManager: string,
-      confirmExpiry: bigint,
-      nodeOperatorFeeBP: bigint,
-      quantity: string,
-      options: { roles: RoleAssignment[] },
-    ) => {
-      const createVaultData = prepareCreateVaultPayload({
+    async ({
+      defaultAdmin,
+      nodeOperator,
+      nodeOperatorManager,
+      confirmExpiry,
+      nodeOperatorFeeRate,
+      quantity,
+      options,
+    }: {
+      defaultAdmin: Address;
+      nodeOperator: Address;
+      nodeOperatorManager: Address;
+      confirmExpiry: number;
+      nodeOperatorFeeRate: number;
+      quantity: string;
+      options: { roles: RoleAssignment[] };
+    }) => {
+      const defaultAdminAddress = await getAddress(
         defaultAdmin,
+        'Default Admin',
+      );
+      const nodeOperatorAddress = await getAddress(
         nodeOperator,
+        'Node Operator',
+      );
+      const nodeOperatorManagerAddress = await getAddress(
         nodeOperatorManager,
-        confirmExpiry,
-        nodeOperatorFeeBP,
+        'Node Operator Manager',
+      );
+
+      const confirmExpiryValue = await getConfirmExpiry(confirmExpiry);
+      const nodeOperatorFeeRateValue =
+        await getNodeOperatorFeeRate(nodeOperatorFeeRate);
+
+      const createVaultData = prepareCreateVaultPayload({
+        defaultAdmin: defaultAdminAddress,
+        nodeOperator: nodeOperatorAddress,
+        nodeOperatorManager: nodeOperatorManagerAddress,
+        confirmExpiry: confirmExpiryValue,
+        nodeOperatorFeeRate: nodeOperatorFeeRateValue,
         quantity,
         options,
       });

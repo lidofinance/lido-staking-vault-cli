@@ -11,7 +11,7 @@ import {
 } from 'utils';
 import {
   chooseVaultAndGetDashboard,
-  getRecipient,
+  getAddress,
   mintShares,
   checkIsReportFresh,
   mintSteth,
@@ -74,7 +74,7 @@ vaultOperationsWrite
       ether: bigint,
       { vault, recipient }: { vault: Address; recipient: Address },
     ) => {
-      const recipientAddress = await getRecipient(recipient);
+      const recipientAddress = await getAddress(recipient, 'recipient');
       const { contract, vault: vaultAddress } =
         await chooseVaultAndGetDashboard(vault);
 
@@ -119,7 +119,7 @@ vaultOperationsWrite
       amountOfShares: bigint,
       { vault, recipient }: { vault: Address; recipient: Address },
     ) => {
-      const recipientAddress = await getRecipient(recipient);
+      const recipientAddress = await getAddress(recipient, 'recipient');
       const { contract, vault: vaultAddress } =
         await chooseVaultAndGetDashboard(vault);
 
@@ -156,7 +156,7 @@ vaultOperationsWrite
       amountOfWsteth: bigint,
       { vault, recipient }: { vault: Address; recipient: Address },
     ) => {
-      const recipientAddress = await getRecipient(recipient);
+      const recipientAddress = await getAddress(recipient, 'recipient');
       const { contract, vault: vaultAddress } =
         await chooseVaultAndGetDashboard(vault);
 
@@ -188,7 +188,7 @@ vaultOperationsWrite
       amountOfSteth: bigint,
       { vault, recipient }: { vault: Address; recipient: Address },
     ) => {
-      const recipientAddress = await getRecipient(recipient);
+      const recipientAddress = await getAddress(recipient, 'recipient');
       const { contract, vault: vaultAddress } =
         await chooseVaultAndGetDashboard(vault);
 
