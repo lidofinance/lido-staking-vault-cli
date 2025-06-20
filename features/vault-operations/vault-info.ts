@@ -86,12 +86,13 @@ export const getVaultInfoByDashboard = async (contract: DashboardContract) => {
     logInfo('Dashboard Base Info');
     logTable({
       data: [
+        ['Vault address', vault],
+        ['Dashboard address', contract.address],
+        ['Vault Hub address', vaultHub],
+        ['LIDO Locator address', lidoLocator],
         ['stETH address', steth],
         ['wstETH address', wsteth],
         ['ETH address', eth],
-        ['LIDO Locator address', lidoLocator],
-        ['Vault Hub address', vaultHub],
-        ['Vault address', vault],
         ['Reserve Ratio, BP', reserveRatioBP],
         ['Reserve Ratio, %', formatBP(reserveRatioBP)],
         ['Forced Rebalance Threshold, BP', forcedRebalanceThresholdBP],
