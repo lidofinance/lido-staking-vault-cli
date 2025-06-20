@@ -7,8 +7,6 @@ import {
   logResult,
   logInfo,
   callReadMethodSilent,
-  callWriteMethodWithReceipt,
-  confirmOperation,
 } from 'utils';
 
 type RoleName =
@@ -93,41 +91,17 @@ export const checkVaultRole = async (
   roleName: RoleName,
   address: Address,
 ) => {
+  const ownerRole = await callReadMethodSilent(contract, 'DEFAULT_ADMIN_ROLE');
+  const ownerMembers = await contract.read.getRoleMembers([ownerRole]);
+  if (ownerMembers.includes(address)) return true;
+
   const roleKeccak = await callReadMethodSilent(contract, roleName);
   const roleMembers = await contract.read.getRoleMembers([roleKeccak]);
 
   const hasRole = roleMembers.includes(address);
 
   if (!hasRole) {
-    logInfo(`Address ${address} does not have the ${roleName} role`);
-
-    const confirm = await confirmOperation(
-      `Are you sure you want to add the ${roleName} role to the ${address} address?`,
-    );
-    if (!confirm) throw new Error('Role is required');
-
-    const roleAdmin = await callReadMethodSilent(contract, 'getRoleAdmin', [
-      roleKeccak,
-    ]);
-    const roleAdminMembers = await callReadMethodSilent(
-      contract,
-      'getRoleMembers',
-      [roleAdmin],
-    );
-
-    if (!roleAdminMembers.includes(address)) {
-      throw new Error(
-        `You do not have permission to add this role ${roleName} to ${address}`,
-      );
-    }
-
-    await callWriteMethodWithReceipt({
-      contract,
-      methodName: 'grantRole',
-      payload: [roleKeccak, address],
-    });
-
-    logInfo(`Added the ${roleName} role to the ${address} address`);
+    throw new Error(`Address ${address} does not have the ${roleName} role`);
   }
 
   return hasRole;
