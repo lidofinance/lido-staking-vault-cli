@@ -21,6 +21,8 @@ import {
 
 import { vaultOperations } from './main.js';
 
+// TODO: add check roles for operations
+
 export const vaultOperationsWrite = vaultOperations
   .command('write')
   .aliases(['w'])
