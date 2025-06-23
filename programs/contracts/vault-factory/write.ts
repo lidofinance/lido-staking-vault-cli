@@ -1,3 +1,4 @@
+import { Address } from 'viem';
 import { program } from 'command';
 import { Option } from 'commander';
 
@@ -7,11 +8,11 @@ import {
   confirmCreateVaultParams,
   logResult,
   logInfo,
-  stringToBigInt,
   jsonToRoleAssignment,
   logCancel,
   getCommandsJson,
   logTable,
+  stringToNumber,
 } from 'utils';
 
 import { vaultFactory } from './main.js';
@@ -33,11 +34,11 @@ vaultFactoryWrite
   .argument('<defaultAdmin>', 'default admin address')
   .argument('<nodeOperator>', 'node operator address')
   .argument('<nodeOperatorManager>', 'node operator manager address')
-  .argument('<confirmExpiry>', 'confirm expiry', stringToBigInt)
+  .argument('<confirmExpiry>', 'confirm expiry', stringToNumber)
   .argument(
-    '<nodeOperatorFeeBP>',
-    'Node operator fee, for e.g. 100 == 1%',
-    stringToBigInt,
+    '<nodeOperatorFeeRate>',
+    'Node operator fee rate, for e.g. 100 == 1%',
+    stringToNumber,
   )
   .argument('[quantity]', 'quantity of vaults to create, default 1', '1')
   .option(
@@ -47,11 +48,11 @@ vaultFactoryWrite
   )
   .action(
     async (
-      defaultAdmin: string,
-      nodeOperator: string,
-      nodeOperatorManager: string,
-      confirmExpiry: bigint,
-      nodeOperatorFeeBP: bigint,
+      defaultAdmin: Address,
+      nodeOperator: Address,
+      nodeOperatorManager: Address,
+      confirmExpiry: number,
+      nodeOperatorFeeRate: number,
       quantity: string,
       options: { roles: RoleAssignment[] },
     ) => {
@@ -60,9 +61,9 @@ vaultFactoryWrite
         nodeOperator,
         nodeOperatorManager,
         confirmExpiry,
-        nodeOperatorFeeBP,
+        nodeOperatorFeeRate,
         quantity,
-        options,
+        roles: options.roles,
       });
       if (!createVaultData) return;
 
@@ -110,11 +111,11 @@ vaultFactoryWrite
   .argument('<defaultAdmin>', 'default admin address')
   .argument('<nodeOperator>', 'node operator address')
   .argument('<nodeOperatorManager>', 'node operator manager address')
-  .argument('<confirmExpiry>', 'confirm expiry', stringToBigInt)
+  .argument('<confirmExpiry>', 'confirm expiry', stringToNumber)
   .argument(
-    '<nodeOperatorFeeBP>',
-    'Node operator fee, for e.g. 100 == 1%',
-    stringToBigInt,
+    '<nodeOperatorFeeRate>',
+    'Node operator fee rate, for e.g. 100 == 1%',
+    stringToNumber,
   )
   .argument('[quantity]', 'quantity of vaults to create, default 1', '1')
   .option(
@@ -124,11 +125,11 @@ vaultFactoryWrite
   )
   .action(
     async (
-      defaultAdmin: string,
-      nodeOperator: string,
-      nodeOperatorManager: string,
-      confirmExpiry: bigint,
-      nodeOperatorFeeBP: bigint,
+      defaultAdmin: Address,
+      nodeOperator: Address,
+      nodeOperatorManager: Address,
+      confirmExpiry: number,
+      nodeOperatorFeeRate: number,
       quantity: string,
       options: { roles: RoleAssignment[] },
     ) => {
@@ -137,9 +138,9 @@ vaultFactoryWrite
         nodeOperator,
         nodeOperatorManager,
         confirmExpiry,
-        nodeOperatorFeeBP,
+        nodeOperatorFeeRate,
         quantity,
-        options,
+        roles: options.roles,
       });
       if (!createVaultData) return;
 
