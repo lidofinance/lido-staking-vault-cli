@@ -27,6 +27,9 @@ type FetchAprChartsDataArgs = {
   cacheUse?: boolean;
 };
 
+// Reports rework - adding inOutDelta
+const MIN_REPORT_TIMESTAMP = 1750699020;
+
 export const fetchAprChartsData = async ({
   cid,
   dashboard,
@@ -40,6 +43,7 @@ export const fetchAprChartsData = async ({
       vault,
       cid,
       limit,
+      minTimestamp: MIN_REPORT_TIMESTAMP,
       direction: 'asc',
     },
     cacheUse,

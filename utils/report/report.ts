@@ -197,7 +197,11 @@ export const getAllVaultsReports = async (
  * @returns Promise<VaultReport[]> — array from newest to oldest (default) or oldest to newest (if direction === 'asc')
  */
 export const getVaultReportHistory = async (
-  args: VaultReportArgs & { limit?: number; direction?: 'asc' | 'desc' },
+  args: VaultReportArgs & {
+    limit?: number;
+    direction?: 'asc' | 'desc';
+    minTimestamp?: number;
+  },
   cache = true,
 ): Promise<VaultReport[]> => {
   const {
@@ -205,6 +209,7 @@ export const getVaultReportHistory = async (
     gateway = IPFS_GATEWAY,
     bigNumberType = 'string',
     direction = 'desc',
+    minTimestamp,
   } = args;
   let cid = args.cid;
   const limit = args.limit ?? 20;
@@ -220,6 +225,9 @@ export const getVaultReportHistory = async (
         },
         cache,
       );
+      if (minTimestamp && report.timestamp < minTimestamp) {
+        break;
+      }
       history.push(report);
       if (!report.prevTreeCID || report.prevTreeCID === cid) break;
       cid = report.prevTreeCID;
