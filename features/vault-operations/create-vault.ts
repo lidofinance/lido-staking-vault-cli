@@ -12,7 +12,7 @@ const validateConfirmExpiry = (confirmExpiry: number) => {
   if (confirmExpiry > maxInHours)
     throw new Error(`Confirm expiry must be less than ${maxInHours}`);
 
-  if (confirmExpiry % 24 !== 0)
+  if (confirmExpiry % 1 !== 0)
     throw new Error('Confirm expiry must be a multiple of hours');
 };
 
