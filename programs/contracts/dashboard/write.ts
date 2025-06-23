@@ -677,7 +677,8 @@ dashboardWrite
     'accepts the ownership over the StakingVault transferred from VaultHub on disconnect and immediately transfers it to a new pending owner. This new owner will have to accept the ownership on the StakingVault contract',
   )
   .argument('<address>', 'dashboard address', stringToAddress)
-  .action(async (address: Address) => {
+  .argument('<newOwner>', 'new owner address', stringToAddress)
+  .action(async (address: Address, newOwner: Address) => {
     const contract = getDashboardContract(address);
     const vault = await callReadMethod(contract, 'stakingVault');
 
@@ -689,7 +690,7 @@ dashboardWrite
     await callWriteMethodWithReceipt({
       contract,
       methodName: 'abandonDashboard',
-      payload: [],
+      payload: [newOwner],
     });
   });
 
