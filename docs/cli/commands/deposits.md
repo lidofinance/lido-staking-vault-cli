@@ -190,7 +190,7 @@ All validators created through these commands use **0x02-type withdrawal credent
 - **Balance Verification**: Automatic checking of sufficient unlocked balance
 - **Role Authorization**: Strict verification of caller permissions
 - **Withdrawal Credentials Validation**: Ensures validators point to correct vault
-- **Confirmation Prompts**: User confirmation for all critical operations
+- **Confirmation Prompts**: User confirmation for all important operations
 
 ## Error Handling
 
@@ -201,4 +201,4 @@ The system includes comprehensive error checking for:
 - Unauthorized access attempts (wrong node operator/guarantor)
 - Invalid withdrawal credentials (not pointing to vault)
 - Missing or incorrect validator proofs from Beacon Chain
-- Vault health check failures (insufficient collateralization)
+- Vault health check failures

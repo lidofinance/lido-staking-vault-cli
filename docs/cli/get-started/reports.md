@@ -146,7 +146,7 @@ yarn start report w by-vaults-submit <vault1> <vault2> [...]
 
 - Processes multiple vaults efficiently
 - Progress bar shows update status
-- Can skip failures and continue
+- Can skip errors and continue
 
 ### Submit All
 
@@ -247,7 +247,7 @@ yarn start metrics r statistic
 - Vault not found in report indicates it's not tracked by oracle
 - Wait for next oracle update if data is stale
 
-### Transaction Failures
+### Transaction Errors
 
 **Oracle Submission Errors:**
 
@@ -257,7 +257,7 @@ yarn start metrics r statistic
 
 **Batch Operation Issues:**
 
-- Use `--skip-error` to continue past individual failures
+- Use `--skip-error` to continue past individual errors
 - Review which vaults failed and retry individually
 
 ## Best Practices
@@ -283,7 +283,7 @@ yarn start report r check-cid
 
 ## Integration with Other Commands
 
-Reports provide critical data for other CLI operations:
+Reports provide essential data for other CLI operations:
 
 ```bash
 # Complete vault monitoring workflow

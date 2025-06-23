@@ -121,7 +121,7 @@ Checks and displays the health status of a StakingVault.
 - Liability shares in stETH
 - Force rebalance threshold
 
-**Use Case:** Monitor vault solvency and determine if intervention is needed.
+**Use Case:** Monitor vault health status and determine if maintenance actions are needed.
 
 ### overview
 

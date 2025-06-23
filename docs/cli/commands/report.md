@@ -201,5 +201,5 @@ The system includes error handling for:
 - **IPFS Connectivity**: Failed fetches from IPFS gateways
 - **Missing Vault Data**: Vaults not found in oracle reports
 - **Invalid Proofs**: Corrupted or invalid Merkle proofs
-- **Transaction Failures**: Failed on-chain updates
+- **Transaction Errors**: Failed on-chain updates
 - **Network Issues**: Connection problems with Ethereum node
