@@ -36,12 +36,12 @@ vaultOperationsCreateVault
   )
   .option(
     '-ce, --confirmExpiry <confirmExpiry>',
-    'confirm expiry',
+    'confirm expiry in seconds',
     stringToNumber,
   )
   .option(
     '-nof , --nodeOperatorFeeRate <nodeOperatorFeeRate>',
-    'Node operator fee, for e.g. 100 == 1%',
+    'Node operator fee rate in basis points, for e.g. 100 == 1%',
     stringToNumber,
   )
   .argument('[quantity]', 'quantity of vaults to create, default 1', '1')
@@ -146,12 +146,12 @@ vaultOperationsCreateVault
   )
   .option(
     '-ce, --confirmExpiry <confirmExpiry>',
-    'confirm expiry',
+    'confirm expiry in seconds',
     stringToNumber,
   )
   .option(
     '-nof , --nodeOperatorFeeRate <nodeOperatorFeeRate>',
-    'Node operator fee, for e.g. 100 == 1%',
+    'Node operator fee rate in basis points, for e.g. 100 == 1%',
     stringToNumber,
   )
   .argument('[quantity]', 'quantity of vaults to create, default 1', '1')

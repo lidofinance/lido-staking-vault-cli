@@ -8,9 +8,13 @@ const validateConfirmExpiry = (confirmExpiry: number) => {
   const maxInHours = MAX_CONFIRM_EXPIRY / 3600;
 
   if (confirmExpiry < minInHours)
-    throw new Error(`Confirm expiry must be greater than ${minInHours}`);
+    throw new Error(
+      `Confirm expiry must be greater than ${minInHours} hours. Current value: ${confirmExpiry} hours (${confirmExpiry * 3600} seconds)`,
+    );
   if (confirmExpiry > maxInHours)
-    throw new Error(`Confirm expiry must be less than ${maxInHours}`);
+    throw new Error(
+      `Confirm expiry must be less than ${maxInHours} hours. Current value: ${confirmExpiry} hours (${confirmExpiry * 3600} seconds)`,
+    );
 
   if (confirmExpiry % 1 !== 0)
     throw new Error('Confirm expiry must be a multiple of hours');
@@ -24,15 +28,23 @@ const validateNodeOperatorFeeRate = (
     throw new Error('Node operator fee rate must be greater than 0');
 
   if (type === 'basis points' && nodeOperatorFeeRate > 10000)
-    throw new Error('Node operator fee rate must be less than 10000');
+    throw new Error(
+      `Node operator fee rate must be less than 10000. Current value: ${nodeOperatorFeeRate}`,
+    );
   if (type === 'percentage' && nodeOperatorFeeRate > 100)
-    throw new Error('Node operator fee rate must be less than 100');
+    throw new Error(
+      `Node operator fee rate must be less than 100. Current value: ${nodeOperatorFeeRate}`,
+    );
 
   if (type === 'basis points' && nodeOperatorFeeRate % 100 !== 0)
-    throw new Error('Node operator fee rate must be a multiple of 100');
+    throw new Error(
+      `Node operator fee rate must be a multiple of 100. Current value: ${nodeOperatorFeeRate}`,
+    );
 
   if (type === 'percentage' && nodeOperatorFeeRate % 1 !== 0)
-    throw new Error('Node operator fee rate must be a whole number');
+    throw new Error(
+      `Node operator fee rate must be a whole number. Current value: ${nodeOperatorFeeRate}`,
+    );
 };
 
 export const getConfirmExpiry = async (confirmExpiry?: number) => {
@@ -48,7 +60,7 @@ export const getConfirmExpiry = async (confirmExpiry?: number) => {
     return confirmExpiryValue.value * 3600;
   }
 
-  validateConfirmExpiry(confirmExpiry);
+  validateConfirmExpiry(confirmExpiry / 3600);
 
   return confirmExpiry;
 };
@@ -80,6 +92,8 @@ export const getNodeOperatorFeeRate = async (nodeOperatorFeeRate?: number) => {
 
     return nodeOperatorFeeRateValue.value * 100;
   }
+
+  validateNodeOperatorFeeRate(nodeOperatorFeeRate, 'basis points');
 
   return nodeOperatorFeeRate;
 };
