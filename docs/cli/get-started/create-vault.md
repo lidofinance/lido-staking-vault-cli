@@ -4,22 +4,43 @@ sidebar_position: 2
 
 # Creating a Vault
 
+Creates new StakingVault and Dashboard contracts with specified configuration.
+
 ```bash
-yarn start factory w create-vault <defaultAdmin> <nodeOperator> <nodeOperatorManager> <confirmExpiry> <nodeOperatorFeeBP> <quantity>
+yarn start vo w create-vault
 ```
 
-## Required
+**Sub-commands:**
 
-- `<defaultAdmin>`: The address of the default admin of the Dashboard contract
-- `<nodeOperator>`: The address of the node operator of the StakingVault
-- `<nodeOperatorManager>`: The address of the node operator manager in the Dashboard
-- `<confirmExpiry>`: Confirmation expiry in seconds; after this period, the confirmation expires and no longer counts
-- `<nodeOperatorFeeBP>`: The node operator fee in basis points
+- `create`: Creates vault and connects to VaultHub
+- `create-without-connecting`: Creates vault without VaultHub connection
 
-## Optional
+**Arguments:**
 
-- `<quantity>`: Quantity of vaults to create, default 1 (default: "1")
-- `-r, --roles <roleAssignmentJSON>`: Other roles to assign to the vault
+- `[quantity]`: Number of vaults to create (default: 1)
+
+**Options:**
+
+- `-da, --defaultAdmin <address>`: Default admin address
+- `-no, --nodeOperator <address>`: Node operator address
+- `-nom, --nodeOperatorManager <address>`: Node operator manager address
+- `-ce, --confirmExpiry <number>`: Confirmation expiry time
+- `-nof, --nodeOperatorFeeRate <number>`: Node operator fee rate (e.g., 100 = 1%)
+- `-r, --roles <json>`: Additional role assignments
+
+**Process:**
+
+- Validates all addresses and parameters
+- Displays creation confirmation with all settings
+- Deploys new StakingVault and Dashboard contracts
+- Assigns specified roles and permissions
+- Optionally connects to VaultHub
+
+**Returns:**
+
+- Vault contract address
+- Dashboard contract address
+- Transaction hash and block number
 
 **\<roleAssignmentJSON>**
 
@@ -28,10 +49,4 @@ yarn start factory w create-vault <defaultAdmin> <nodeOperator> <nodeOperatorMan
   "account": string as Address;
   "role": string as `0x${string}`;
 }, ...]'
-```
-
-## Example
-
-```bash
-yarn start factory w create-vault 0x 0x 0x 604800 100
 ```
