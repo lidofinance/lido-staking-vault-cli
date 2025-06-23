@@ -22,7 +22,7 @@ export const prepareCreateVaultPayload = (args: {
   nodeOperatorFeeRate: number;
   confirmExpiry: number;
   quantity: string;
-  options: { roles: RoleAssignment[] };
+  roles: RoleAssignment[];
 }) => {
   const {
     defaultAdmin,
@@ -31,11 +31,11 @@ export const prepareCreateVaultPayload = (args: {
     nodeOperatorFeeRate,
     confirmExpiry,
     quantity,
-    options,
+    roles,
   } = args;
 
   const qnt = parseInt(quantity);
-  const otherRoles = options.roles || [];
+  const otherRoles = roles || [];
 
   if (isNaN(qnt)) {
     logError('quantity must be a number');

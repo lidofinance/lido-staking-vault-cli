@@ -45,7 +45,7 @@ export const getConfirmExpiry = async (confirmExpiry?: number) => {
 
     validateConfirmExpiry(confirmExpiryValue.value);
 
-    return confirmExpiryValue.value;
+    return confirmExpiryValue.value * 3600;
   }
 
   validateConfirmExpiry(confirmExpiry);
@@ -78,7 +78,7 @@ export const getNodeOperatorFeeRate = async (nodeOperatorFeeRate?: number) => {
 
     validateNodeOperatorFeeRate(nodeOperatorFeeRateValue.value, 'percentage');
 
-    return nodeOperatorFeeRateValue.value / 100;
+    return nodeOperatorFeeRateValue.value * 100;
   }
 
   return nodeOperatorFeeRate;

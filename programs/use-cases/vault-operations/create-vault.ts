@@ -51,23 +51,24 @@ vaultOperationsCreateVault
     jsonToRoleAssignment,
   )
   .action(
-    async ({
-      defaultAdmin,
-      nodeOperator,
-      nodeOperatorManager,
-      confirmExpiry,
-      nodeOperatorFeeRate,
-      quantity,
-      options,
-    }: {
-      defaultAdmin: Address;
-      nodeOperator: Address;
-      nodeOperatorManager: Address;
-      confirmExpiry: number;
-      nodeOperatorFeeRate: number;
-      quantity: string;
-      options: { roles: RoleAssignment[] };
-    }) => {
+    async (
+      quantity: string,
+      {
+        defaultAdmin,
+        nodeOperator,
+        nodeOperatorManager,
+        confirmExpiry,
+        nodeOperatorFeeRate,
+        roles,
+      }: {
+        defaultAdmin: Address;
+        nodeOperator: Address;
+        nodeOperatorManager: Address;
+        confirmExpiry: number;
+        nodeOperatorFeeRate: number;
+        roles: RoleAssignment[];
+      },
+    ) => {
       const defaultAdminAddress = await getAddress(
         defaultAdmin,
         'Default Admin',
@@ -92,7 +93,7 @@ vaultOperationsCreateVault
         confirmExpiry: confirmExpiryValue,
         nodeOperatorFeeRate: nodeOperatorFeeRateValue,
         quantity,
-        options,
+        roles,
       });
       if (!createVaultData) return;
 
@@ -160,23 +161,24 @@ vaultOperationsCreateVault
     jsonToRoleAssignment,
   )
   .action(
-    async ({
-      defaultAdmin,
-      nodeOperator,
-      nodeOperatorManager,
-      confirmExpiry,
-      nodeOperatorFeeRate,
-      quantity,
-      options,
-    }: {
-      defaultAdmin: Address;
-      nodeOperator: Address;
-      nodeOperatorManager: Address;
-      confirmExpiry: number;
-      nodeOperatorFeeRate: number;
-      quantity: string;
-      options: { roles: RoleAssignment[] };
-    }) => {
+    async (
+      quantity: string,
+      {
+        defaultAdmin,
+        nodeOperator,
+        nodeOperatorManager,
+        confirmExpiry,
+        nodeOperatorFeeRate,
+        roles,
+      }: {
+        defaultAdmin: Address;
+        nodeOperator: Address;
+        nodeOperatorManager: Address;
+        confirmExpiry: number;
+        nodeOperatorFeeRate: number;
+        roles: RoleAssignment[];
+      },
+    ) => {
       const defaultAdminAddress = await getAddress(
         defaultAdmin,
         'Default Admin',
@@ -201,7 +203,7 @@ vaultOperationsCreateVault
         confirmExpiry: confirmExpiryValue,
         nodeOperatorFeeRate: nodeOperatorFeeRateValue,
         quantity,
-        options,
+        roles,
       });
       if (!createVaultData) return;
 
