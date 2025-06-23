@@ -250,7 +250,6 @@ Mints wstETH tokens (wrapped stETH) backed by the vault to a recipient.
 **Process:**
 
 - Verifies MINT_ROLE permission
-- Converts wstETH amount to underlying shares
 - Follows same health and capacity checks as mint-shares
 - Mints wstETH tokens to recipient
 
@@ -270,7 +269,6 @@ Mints stETH tokens (by amount, not shares) backed by the vault to a recipient.
 **Process:**
 
 - Verifies MINT_ROLE permission
-- Converts stETH amount to equivalent shares
 - Performs health and capacity validations
 - Mints stETH tokens to recipient
 
@@ -298,7 +296,6 @@ Burns stETH shares from the caller, reducing vault liability.
 
 - Caller must have BURN_ROLE for the vault
 - Sufficient stETH shares approved to the Dashboard contract
-- Vault must have sufficient liability to burn
 
 ### burn-steth
 
@@ -306,7 +303,7 @@ Burns stETH tokens (by amount) from the caller, reducing vault liability.
 
 **Arguments:**
 
-- `<amountOfShares>`: Amount of stETH tokens to burn
+- `<amountOfSteth>`: Amount of stETH tokens to burn
 
 **Options:**
 
@@ -315,7 +312,6 @@ Burns stETH tokens (by amount) from the caller, reducing vault liability.
 **Process:**
 
 - Verifies BURN_ROLE permission
-- Converts stETH amount to equivalent shares
 - Validates stETH approval and balance
 - Burns specified stETH amount
 
@@ -323,6 +319,29 @@ Burns stETH tokens (by amount) from the caller, reducing vault liability.
 
 - Caller must have BURN_ROLE for the vault
 - Sufficient stETH tokens approved to the Dashboard contract
+
+### burn-wsteth
+
+Burns wstETH tokens (by amount) from the caller, reducing vault liability.
+
+**Arguments:**
+
+- `<amountOfWsteth>`: Amount of wstETH tokens to burn
+
+**Options:**
+
+- `-v, --vault <address>`: Specify vault address
+
+**Process:**
+
+- Verifies BURN_ROLE permission
+- Validates wstETH approval and balance
+- Burns specified wstETH amount
+
+**Requirements:**
+
+- Caller must have BURN_ROLE for the vault
+- Sufficient wstETH tokens approved to the Dashboard contract
 
 ## Role-Based Access Control
 

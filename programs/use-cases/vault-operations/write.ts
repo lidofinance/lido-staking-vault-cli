@@ -18,6 +18,7 @@ import {
   burnShares,
   burnSteth,
   checkVaultRole,
+  checkAllowance,
 } from 'features';
 import { getAccount } from 'providers';
 
@@ -219,6 +220,7 @@ vaultOperationsWrite
 
     const account = getAccount();
     await checkVaultRole(contract, 'BURN_ROLE', account.address);
+    await checkAllowance(contract, amountOfShares, 'shares');
 
     await burnShares(contract, amountOfShares, vaultAddress, 'burnShares');
   });
@@ -228,18 +230,35 @@ vaultOperationsWrite
   .description(
     'Burns stETH shares from the sender backed by the vault. Expects stETH amount approved to this contract.',
   )
-  .argument(
-    '<amountOfShares>',
-    'amount of shares to burn (in stETH)',
-    etherToWei,
-  )
+  .argument('<amountOfSteth>', 'amount of stETH to burn (in stETH)', etherToWei)
   .option('-v, --vault <string>', 'vault address', stringToAddress)
-  .action(async (amountOfShares: bigint, { vault }: { vault: Address }) => {
+  .action(async (amountOfSteth: bigint, { vault }: { vault: Address }) => {
     const { contract, vault: vaultAddress } =
       await chooseVaultAndGetDashboard(vault);
 
     const account = getAccount();
     await checkVaultRole(contract, 'BURN_ROLE', account.address);
+    await checkAllowance(contract, amountOfSteth, 'steth');
 
-    await burnSteth(contract, amountOfShares, vaultAddress);
+    await burnSteth(contract, amountOfSteth, vaultAddress);
+  });
+
+vaultOperationsWrite
+  .command('burn-wsteth')
+  .description('burn wstETH tokens from the sender backed by the vault')
+  .argument(
+    '<amountOfWsteth>',
+    'amount of wstETH tokens to burn (in wstETH)',
+    etherToWei,
+  )
+  .option('-v, --vault <string>', 'vault address', stringToAddress)
+  .action(async (amountOfWsteth: bigint, { vault }: { vault: Address }) => {
+    const { contract, vault: vaultAddress } =
+      await chooseVaultAndGetDashboard(vault);
+
+    const account = getAccount();
+    await checkVaultRole(contract, 'BURN_ROLE', account.address);
+    await checkAllowance(contract, amountOfWsteth, 'wsteth');
+
+    await burnShares(contract, amountOfWsteth, vaultAddress, 'burnWstETH');
   });
