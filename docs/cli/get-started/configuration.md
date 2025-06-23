@@ -56,7 +56,7 @@ ACCOUNT_FILE_PASSWORD=your_secure_password
 - JSON file containing deployed contract addresses
 - Available configurations:
   - `deployed-hoodi-vaults-testnet-2.json`: Hoodi v2 testnet
-  - `deployed-hoodi-vaults-testnet-2.json`: Hoodi v1 testnet
+  - `deployed-hoodi-vaults-testnet.json`: Hoodi v1 testnet
   - Custom deployment files for other networks
 
 ### Wallet Configuration

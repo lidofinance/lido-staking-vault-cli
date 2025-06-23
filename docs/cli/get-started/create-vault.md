@@ -144,43 +144,6 @@ yarn start vo w create-vault create \
   }]'
 ```
 
-## Process Flow
-
-The vault creation process follows these steps:
-
-### 1. Parameter Validation
-
-- Validates all provided addresses
-- Checks confirm expiry range
-- Verifies node operator fee rate bounds
-- Parses and validates role assignments
-
-### 2. Configuration Display
-
-- Shows all vault parameters for review
-- Displays estimated gas costs
-- Lists role assignments and permissions
-
-### 3. User Confirmation
-
-- Prompts for final confirmation
-- Allows cancellation before deployment
-- Shows transaction details preview
-
-### 4. Contract Deployment
-
-- Deploys StakingVault contract
-- Deploys Dashboard contract
-- Sets up initial roles and permissions
-- Connects to VaultHub (if applicable)
-
-### 5. Result Display
-
-- Shows deployed contract addresses
-- Provides transaction hash and block number
-- Displays owner address
-- Logs all assigned roles
-
 ## Return Values
 
 After successful creation, the CLI returns:

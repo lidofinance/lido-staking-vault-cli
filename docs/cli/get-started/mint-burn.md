@@ -202,7 +202,8 @@ Before burning, ensure proper token approvals:
 
 ```bash
 # Check your token balances and approvals
-yarn start account r info
+yarn start account r get-steth-allowance <address>
+yarn start account r get-wsteth-allowance <address>
 
 # Approve stETH to Dashboard contract before burning
 # (Done via external wallet/contract interaction)
