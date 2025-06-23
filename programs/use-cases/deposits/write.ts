@@ -73,7 +73,7 @@ depositsWrite
       const pdgContract = await getPredepositGuaranteeContract();
       const vaultContract = getStakingVaultContract(vaultAddress);
 
-      await checkNodeOperatorForDeposit(vaultContract);
+      const nodeOperator = await checkNodeOperatorForDeposit(vaultContract);
 
       if (blsCheck)
         await checkBLSDeposits(pdgContract, vaultContract, deposits);
@@ -93,7 +93,7 @@ depositsWrite
 
       const { amountToTopUp, isNeedTopUp } = await checkNOBalancePDGforDeposit(
         pdgContract,
-        vaultAddress,
+        nodeOperator,
       );
 
       const confirm = await confirmOperation(

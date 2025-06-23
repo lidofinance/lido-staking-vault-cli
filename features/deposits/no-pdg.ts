@@ -14,6 +14,8 @@ export const checkNOBalancePDGforDeposit = async (
   pdgContract: PredepositGuaranteeContract,
   nodeOperator: Address,
 ) => {
+  const currentAccount = getAccount();
+
   const balance = await callReadMethodSilent(
     pdgContract,
     'nodeOperatorBalance',
@@ -24,6 +26,11 @@ export const checkNOBalancePDGforDeposit = async (
     'unlockedBalance',
     [nodeOperator],
   );
+  const nodeOperatorGuarantor = await callReadMethodSilent(
+    pdgContract,
+    'nodeOperatorGuarantor',
+    [nodeOperator],
+  );
   let amountToTopUp = 0n;
   let isNeedTopUp = false;
 
@@ -31,6 +38,15 @@ export const checkNOBalancePDGforDeposit = async (
     logInfo(
       `Node operator ${nodeOperator} has no unlocked balance in PDG to deposit`,
     );
+
+    if (
+      nodeOperatorGuarantor.toLocaleLowerCase() !==
+      currentAccount.address.toLocaleLowerCase()
+    ) {
+      throw new Error(
+        `You ${currentAccount.address} are not the guarantor ${nodeOperatorGuarantor} of the node operator ${nodeOperator}. You can't top up the balance.`,
+      );
+    }
 
     const isTopUp = await confirmOperation(
       `Do you want to top up NO balance in PDG?`,
