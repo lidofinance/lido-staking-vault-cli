@@ -128,7 +128,6 @@ export const getVaultInfoByDashboard = async (contract: DashboardContract) => {
           'Node Operator Disbursable Fee, ETH',
           formatEther(nodeOperatorDisbursableFee),
         ],
-        ['Node Operator Fee Recipient', nodeOperatorFeeRecipient],
         ['Rewards Adjustment amount, ETH', formatEther(rewardsAdjustment[0])],
         ['Rewards Adjustment latestTimestamp', rewardsAdjustment[1]],
         [
