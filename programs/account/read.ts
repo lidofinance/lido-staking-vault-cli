@@ -89,7 +89,11 @@ accountRead
       args: [address, parseEther(amount)],
     });
 
-    logInfo(tx);
+    logInfo({
+      to: address,
+      value: parseEther(amount),
+      data: tx,
+    });
   });
 
 accountRead
