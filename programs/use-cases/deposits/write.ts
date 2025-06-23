@@ -143,7 +143,9 @@ depositsWrite
 
 depositsWrite
   .command('prove-and-deposit')
-  .description('happy path shortcut for the node operator')
+  .description(
+    'shortcut for the node operator: prove, top up and deposit to proven validators',
+  )
   .argument('<indexes>', 'validator indexes', stringToNumberArray)
   .argument('<deposits>', 'deposits', parseDepositArray)
   .option('-v, --vault <string>', 'vault address', stringToAddress)
