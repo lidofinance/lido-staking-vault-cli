@@ -76,13 +76,13 @@ yarn start -h
 **VaultHub constants**
 
 ```bash
-yarn start hub r info
+yarn start vo r info
 ```
 
 **Count of all vaults**
 
 ```bash
-yarn start hub r v-count
+yarn start contracts hub r v-count
 ```
 
 ## Programs

@@ -77,7 +77,7 @@ export const getVaultInfoByDashboard = async (contract: DashboardContract) => {
       contract.read.MIN_CONFIRM_EXPIRY(),
     ]);
     const balance = await publicClient.getBalance({
-      address: contract.address,
+      address: vault,
     });
 
     hideSpinner();
