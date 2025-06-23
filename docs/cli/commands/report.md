@@ -1,5 +1,5 @@
 ---
-sidebar_position: 2
+sidebar_position: 5
 ---
 
 # Report
@@ -17,6 +17,11 @@ yarn start report -h
 ```
 
 ## API
+
+| Command   | Description    |
+| --------- | -------------- |
+| read (r)  | read commands  |
+| write (w) | write commands |
 
 ### Read
 
