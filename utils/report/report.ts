@@ -72,6 +72,9 @@ export const getVaultData = (report: Report, vault: Address): VaultReport => {
     slashing_reserve: '',
   };
 
+  // TODO: for old reports without extraValues
+  const extraData = report.extraValues?.[vault] || { inOutDelta: '0' };
+
   for (const [index, fieldName] of Object.entries(report.leafIndexToData)) {
     const value = match.value[Number(index)];
     if (value === undefined) {
@@ -84,6 +87,7 @@ export const getVaultData = (report: Report, vault: Address): VaultReport => {
 
   return {
     data,
+    extraData,
     leaf,
     refSlot: report.refSlot,
     blockNumber: Number(report.blockNumber),

@@ -1,6 +1,10 @@
 import { formatEther } from 'viem';
 
-import { DashboardContract, getStethContract } from 'contracts';
+import {
+  DashboardContract,
+  getStethContract,
+  getVaultHubContract,
+} from 'contracts';
 import { getPublicClient } from 'providers';
 import {
   fetchAndCalculateVaultHealth,
@@ -14,6 +18,7 @@ import {
   logVaultHealthBar,
   printError,
   calculateOverviewV2,
+  callReadMethodSilent,
 } from 'utils';
 
 export const getVaultOverviewByDashboard = async (
@@ -44,9 +49,15 @@ export const getVaultOverviewByDashboard = async (
       contract.read.locked(),
     ]);
     const stethContract = await getStethContract();
+    const vaultHubContract = await getVaultHubContract();
     const balance = await publicClient.getBalance({
       address: vault,
     });
+    const vaultObligation = await callReadMethodSilent(
+      vaultHubContract,
+      'vaultObligations',
+      [vault],
+    );
     const totalMintingCapacityStethWei =
       await stethContract.read.getPooledEthBySharesRoundUp([
         totalMintingCapacityShares,
@@ -63,6 +74,7 @@ export const getVaultOverviewByDashboard = async (
       nodeOperatorDisbursableFee,
       totalMintingCapacityStethWei,
       totalMintingCapacitySharesInWei: totalMintingCapacityShares,
+      unsettledLidoFees: vaultObligation.unsettledLidoFees,
     });
     hideSpinner();
 
@@ -102,6 +114,15 @@ export const getVaultOverviewByDashboard = async (
           'Remaining Minting Capacity, stETH',
           formatEther(overview.remainingMintingCapacitySteth),
         ],
+        [
+          'Unsettled Lido Fees, ETH',
+          formatEther(vaultObligation.unsettledLidoFees),
+        ],
+        [
+          'Settled Lido Fees, ETH',
+          formatEther(vaultObligation.settledLidoFees),
+        ],
+        ['Redemptions, ETH', formatEther(vaultObligation.redemptions)],
       ],
     });
 

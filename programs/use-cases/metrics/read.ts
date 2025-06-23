@@ -1,12 +1,11 @@
-import { Address, formatEther } from 'viem';
+import { formatEther } from 'viem';
 import { Option } from 'commander';
 import { program } from 'command';
 
-import { getDashboardContract, getLazyOracleContract } from 'contracts';
+import { getLazyOracleContract } from 'contracts';
 import {
   logInfo,
   getCommandsJson,
-  stringToAddress,
   getVaultReport,
   callReadMethod,
   getReportStatisticData,
@@ -21,6 +20,7 @@ import {
   stringToNumber,
   renderSimpleCharts,
 } from 'utils';
+import { chooseVaultAndGetDashboard } from 'features/vault-operations/dashboard-by-vault.js';
 
 import { metrics } from './main.js';
 
@@ -38,22 +38,21 @@ metricsRead.on('option:-cmd2json', function () {
 metricsRead
   .command('statistic')
   .description('get statistic data for last report')
-  .argument('<address>', 'dashboard address', stringToAddress)
+  .option('-v, --vault <string>', 'vault address')
   .option('-g, --gateway', 'ipfs gateway url')
-  .action(async (address: Address, { gateway }) => {
+  .action(async ({ vault, gateway }) => {
+    const { address: dashboardAddress, vault: vaultAddress } =
+      await chooseVaultAndGetDashboard(vault);
     const lazyOracleContract = await getLazyOracleContract();
     const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
       await callReadMethod(lazyOracleContract, 'latestReportData');
 
     await fetchAndVerifyFile(vaultsDataReportCid, gateway);
 
-    const dashboardContract = getDashboardContract(address);
-    const vault = await callReadMethod(dashboardContract, 'stakingVault');
-
     const { cacheUse } = program.opts();
     const reportCurrent = await getVaultReport(
       {
-        vault,
+        vault: vaultAddress,
         cid: vaultsDataReportCid,
         gateway,
       },
@@ -61,14 +60,14 @@ metricsRead
     );
     const reportPrevious = await getVaultPreviousReport(
       {
-        vault,
+        vault: vaultAddress,
         cid: vaultsDataReportCid,
         gateway,
       },
       cacheUse,
     );
     const statisticData = await getReportStatisticData({
-      dashboard: address,
+      dashboard: dashboardAddress,
       reports: { current: reportCurrent, previous: reportPrevious },
     });
 
@@ -104,10 +103,12 @@ metricsRead
 metricsRead
   .command('charts-apr')
   .description('get APR charts data for N last reports')
-  .argument('<address>', 'dashboard address', stringToAddress)
   .argument('<count>', 'count of reports', stringToNumber)
+  .option('-v, --vault <string>', 'vault address')
   .option('-s, --simplified', 'simplified charts')
-  .action(async (address: Address, count: number, { simplified }) => {
+  .action(async (count: number, { vault, simplified }) => {
+    const { address: dashboardAddress } =
+      await chooseVaultAndGetDashboard(vault);
     const lazyOracleContract = await getLazyOracleContract();
     const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
       await callReadMethod(lazyOracleContract, 'latestReportData');
@@ -115,7 +116,7 @@ metricsRead
 
     if (simplified) {
       await renderSimpleCharts({
-        dashboard: address,
+        dashboard: dashboardAddress,
         cid: vaultsDataReportCid,
         limit: count,
         cacheUse,
@@ -123,7 +124,7 @@ metricsRead
     } else {
       const chartsData = await fetchAprChartsData({
         cid: vaultsDataReportCid,
-        dashboard: address,
+        dashboard: dashboardAddress,
         limit: count,
         cacheUse,
       });
@@ -134,9 +135,11 @@ metricsRead
 metricsRead
   .command('charts-rewards')
   .description('get APR charts data for N last reports')
-  .argument('<address>', 'dashboard address', stringToAddress)
   .argument('<count>', 'count of reports', stringToNumber)
-  .action(async (address: Address, count: number) => {
+  .option('-v, --vault <string>', 'vault address')
+  .action(async (count: number, { vault }) => {
+    const { address: dashboardAddress } =
+      await chooseVaultAndGetDashboard(vault);
     const lazyOracleContract = await getLazyOracleContract();
     const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
       await callReadMethod(lazyOracleContract, 'latestReportData');
@@ -144,7 +147,7 @@ metricsRead
     const { cacheUse } = program.opts();
     const chartsData = await fetchRewardsChartsData({
       cid: vaultsDataReportCid,
-      dashboard: address,
+      dashboard: dashboardAddress,
       limit: count,
       cacheUse,
     });

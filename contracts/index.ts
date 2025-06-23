@@ -5,7 +5,6 @@ export * from './dashboard.js';
 export * from './steth.js';
 export * from './locator.js';
 export * from './token-manager.js';
-export * from './voting.js';
 export * from './vault-viewer.js';
 export * from './pdg.js';
 export * from './operator-grid.js';

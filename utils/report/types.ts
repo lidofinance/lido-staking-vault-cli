@@ -10,6 +10,10 @@ export type LeafDataFields = {
   slashing_reserve: string;
 };
 
+export type ExtraDataFields = {
+  inOutDelta: string;
+};
+
 export type Report = {
   format: 'standard-v1';
   leafEncoding: ['address', 'uint256', 'uint256', 'uint256', 'uint256'];
@@ -27,10 +31,14 @@ export type Report = {
   leafIndexToData: {
     [key: string]: keyof LeafDataFields;
   };
+  extraValues: {
+    [key: string]: ExtraDataFields;
+  };
 };
 
 export type VaultReport = {
   data: LeafDataFields;
+  extraData: ExtraDataFields;
   leaf: string;
   refSlot: number;
   blockNumber: number;
