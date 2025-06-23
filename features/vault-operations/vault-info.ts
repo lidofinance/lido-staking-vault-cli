@@ -122,6 +122,7 @@ export const getVaultInfoByDashboard = async (contract: DashboardContract) => {
         ['Withdrawable Value, ETH', formatEther(withdrawableValue)],
 
         ['Node Operator Fee Recipient', nodeOperatorFeeRecipient],
+        ['Node Operator Fee Rate, BP', nodeOperatorFeeRate],
         ['Node Operator Fee Rate, %', formatBP(nodeOperatorFeeRate)],
         [
           'Node Operator Disbursable Fee, ETH',
@@ -130,13 +131,6 @@ export const getVaultInfoByDashboard = async (contract: DashboardContract) => {
         ['Node Operator Fee Recipient', nodeOperatorFeeRecipient],
         ['Rewards Adjustment amount, ETH', formatEther(rewardsAdjustment[0])],
         ['Rewards Adjustment latestTimestamp', rewardsAdjustment[1]],
-
-        [
-          'Node Operator disbursable Fee, ETH',
-          formatEther(nodeOperatorDisbursableFee),
-        ],
-        ['Node Operator Fee, BP', nodeOperatorFeeRate],
-        ['Node Operator Fee, %', formatBP(nodeOperatorFeeRate)],
         [
           'Confirm Expiry',
           `${confirmExpiry} (${Number(confirmExpiry) / 3600} hours)`,
