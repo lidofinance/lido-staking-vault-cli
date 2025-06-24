@@ -9,11 +9,10 @@ export const getGrossStakingRewards = (
   previous: VaultReport,
 ) => {
   const grossStakingRewards =
-    BigInt(current.data.total_value_wei) -
-    BigInt(previous.data.total_value_wei) -
-    // TODO: change to in_out_delta
-    (BigInt(current.data.slashing_reserve) -
-      BigInt(previous.data.slashing_reserve));
+    BigInt(current.data.totalValueWei) -
+    BigInt(previous.data.totalValueWei) -
+    (BigInt(current.extraData.inOutDelta) -
+      BigInt(previous.extraData.inOutDelta));
 
   return grossStakingRewards;
 };
@@ -28,12 +27,11 @@ export const getNodeOperatorRewards = (
   return (grossStakingRewards * nodeOperatorFeeBP) / BASIS_POINTS_DENOMINATOR;
 };
 
-// TODO: get Lido Fees from the contract
-export const getDailyLidoFees = () => {
-  const prev_cumulativeLidoFees = 0n;
-  const current_cumulativeLidoFees = 0n;
-
-  return current_cumulativeLidoFees - prev_cumulativeLidoFees;
+export const getDailyLidoFees = (
+  current: VaultReport,
+  previous: VaultReport,
+) => {
+  return BigInt(current.data.fee) - BigInt(previous.data.fee);
 };
 
 export const getNetStakingRewards = (
@@ -47,7 +45,7 @@ export const getNetStakingRewards = (
     previous,
     nodeOperatorFeeBP,
   );
-  const dailyLidoFees = getDailyLidoFees();
+  const dailyLidoFees = getDailyLidoFees(current, previous);
 
   return grossStakingRewards - nodeOperatorRewards - dailyLidoFees;
 };
@@ -75,8 +73,7 @@ export const getNetStakingRewards = (
 //   grossStakingAPR = (grossStakingRewards * 100 * 31536000) / (averageTotalValue * periodSeconds)
 const getAverageTotalValue = (current: VaultReport, previous: VaultReport) => {
   return (
-    (BigInt(current.data.total_value_wei) +
-      BigInt(previous.data.total_value_wei)) /
+    (BigInt(current.data.totalValueWei) + BigInt(previous.data.totalValueWei)) /
     2n
   );
 };
@@ -204,7 +201,7 @@ export const reportMetrics = (args: ReportMetricsArgs) => {
     previous,
     nodeOperatorFeeRate,
   );
-  const dailyLidoFees = getDailyLidoFees();
+  const dailyLidoFees = getDailyLidoFees(current, previous);
   const netStakingRewards = getNetStakingRewards(
     current,
     previous,

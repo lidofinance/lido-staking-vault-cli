@@ -16,3 +16,5 @@ export const getStakingVaultContract = (
     client: getPublicClient(),
   });
 };
+
+export type StakingVaultContract = ReturnType<typeof getStakingVaultContract>;

@@ -31,8 +31,8 @@ export const prepareBottomLine = async (
       vaultAddress,
       blockNumberCurr: current.blockNumber,
       blockNumberPrev: previous.blockNumber,
-      liabilitySharesCurr: BigInt(current.data.liability_shares),
-      liabilitySharesPrev: BigInt(previous.data.liability_shares),
+      liabilitySharesCurr: BigInt(current.data.liabilityShares),
+      liabilitySharesPrev: BigInt(previous.data.liabilityShares),
     });
 
     const bottomLineValue = getBottomLine(
@@ -107,8 +107,8 @@ export const prepareEfficiency = async (
       vaultAddress,
       blockNumberCurr: current.blockNumber,
       blockNumberPrev: previous.blockNumber,
-      liabilitySharesCurr: BigInt(current.data.liability_shares),
-      liabilitySharesPrev: BigInt(previous.data.liability_shares),
+      liabilitySharesCurr: BigInt(current.data.liabilityShares),
+      liabilitySharesPrev: BigInt(previous.data.liabilityShares),
     });
 
     const value = getEfficiency(

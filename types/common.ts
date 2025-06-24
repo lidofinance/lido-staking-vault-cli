@@ -4,7 +4,7 @@ export interface VaultWithDashboard {
   defaultAdmin: Address;
   nodeOperator: Address;
   nodeOperatorManager: Address;
-  nodeOperatorFeeBP: bigint;
+  nodeOperatorFeeRate: bigint;
   confirmExpiry: bigint;
 }
 

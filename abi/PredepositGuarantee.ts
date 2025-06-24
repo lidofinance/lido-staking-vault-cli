@@ -1,4 +1,7 @@
+import { StakingVaultErrorsAbi } from './StakingVault.js';
+
 export const PredepositGuaranteeAbi = [
+  ...StakingVaultErrorsAbi,
   {
     inputs: [
       {

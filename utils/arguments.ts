@@ -31,6 +31,10 @@ export const stringToBigInt = (value: string) => {
   return BigInt(value);
 };
 
+export const stringToNumberArray = (value: string) => {
+  return value.split(',').map(Number);
+};
+
 export const etherToWei = (value: string) => {
   return parseEther(value, 'wei');
 };

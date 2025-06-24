@@ -3,11 +3,15 @@ import { Address, Hex } from 'viem';
 type BigNumberType = 'bigint' | 'string';
 
 export type LeafDataFields = {
-  vault_address: string;
-  total_value_wei: string;
+  vaultAddress: string;
+  totalValueWei: string;
   fee: string;
-  liability_shares: string;
-  slashing_reserve: string;
+  liabilityShares: string;
+  slashingReserve: string;
+};
+
+export type ExtraDataFields = {
+  inOutDelta: string;
 };
 
 export type Report = {
@@ -27,10 +31,14 @@ export type Report = {
   leafIndexToData: {
     [key: string]: keyof LeafDataFields;
   };
+  extraValues: {
+    [key: string]: ExtraDataFields;
+  };
 };
 
 export type VaultReport = {
   data: LeafDataFields;
+  extraData: ExtraDataFields;
   leaf: string;
   refSlot: number;
   blockNumber: number;

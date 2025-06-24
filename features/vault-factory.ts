@@ -1,4 +1,5 @@
-import { parseEventLogs, parseEther } from 'viem';
+import { Address, parseEventLogs, parseEther } from 'viem';
+
 import { RoleAssignment, VaultWithDashboard } from 'types';
 import { getVaultFactoryContract } from 'contracts';
 import { VaultFactoryAbi } from 'abi/index.js';
@@ -15,26 +16,26 @@ import {
 import { program } from 'command';
 
 export const prepareCreateVaultPayload = (args: {
-  defaultAdmin: string;
-  nodeOperator: string;
-  nodeOperatorManager: string;
-  nodeOperatorFeeBP: bigint;
-  confirmExpiry: bigint;
+  defaultAdmin: Address;
+  nodeOperator: Address;
+  nodeOperatorManager: Address;
+  nodeOperatorFeeRate: number;
+  confirmExpiry: number;
   quantity: string;
-  options: { roles: RoleAssignment[] };
+  roles: RoleAssignment[];
 }) => {
   const {
     defaultAdmin,
     nodeOperator,
     nodeOperatorManager,
-    nodeOperatorFeeBP,
+    nodeOperatorFeeRate,
     confirmExpiry,
     quantity,
-    options,
+    roles,
   } = args;
 
   const qnt = parseInt(quantity);
-  const otherRoles = options.roles || [];
+  const otherRoles = roles || [];
 
   if (isNaN(qnt)) {
     logError('quantity must be a number');
@@ -59,8 +60,8 @@ export const prepareCreateVaultPayload = (args: {
     defaultAdmin,
     nodeOperator,
     nodeOperatorManager,
-    confirmExpiry,
-    nodeOperatorFeeBP,
+    confirmExpiry: BigInt(confirmExpiry),
+    nodeOperatorFeeRate: BigInt(nodeOperatorFeeRate),
   } as VaultWithDashboard;
 
   return {
@@ -83,7 +84,7 @@ export const createVault = async (
     defaultAdmin,
     nodeOperator,
     nodeOperatorManager,
-    nodeOperatorFeeBP,
+    nodeOperatorFeeRate,
     confirmExpiry,
   } = payload;
 
@@ -96,7 +97,7 @@ export const createVault = async (
       defaultAdmin,
       nodeOperator,
       nodeOperatorManager,
-      nodeOperatorFeeBP,
+      nodeOperatorFeeRate,
       confirmExpiry,
       otherRoles,
     ],

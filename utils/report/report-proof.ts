@@ -56,7 +56,7 @@ export const getReportProofs = async (args: Omit<VaultReportArgs, 'vault'>) => {
   const vaultReports = report.values.map(
     (value) => getVaultData(report, value.value[0]).data,
   );
-  const vaults = vaultReports.map((vault) => vault.vault_address);
+  const vaults = vaultReports.map((vault) => vault.vaultAddress);
 
   const proofs = await Promise.all(
     vaults.map((vault) =>
