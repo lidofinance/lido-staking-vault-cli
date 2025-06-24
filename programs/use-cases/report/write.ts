@@ -72,7 +72,7 @@ reportWrite
 
       progressBar.start(vaults.length, 0);
       for (const [_index, vault] of vaults.entries()) {
-        const vaultReport = proofs.find((v) => v.data.vault_address === vault);
+        const vaultReport = proofs.find((v) => v.data.vaultAddress === vault);
         if (!vaultReport) {
           logError(`Vault ${vault} not found`);
           continue;
@@ -82,10 +82,10 @@ reportWrite
           methodName: 'updateVaultData',
           payload: [
             vault,
-            BigInt(vaultReport.data.total_value_wei),
+            BigInt(vaultReport.data.totalValueWei),
             BigInt(vaultReport.data.fee),
-            BigInt(vaultReport.data.liability_shares),
-            BigInt(vaultReport.data.slashing_reserve),
+            BigInt(vaultReport.data.liabilityShares),
+            BigInt(vaultReport.data.slashingReserve),
             vaultReport.proof,
           ],
           withSpinner: false,
@@ -134,11 +134,11 @@ reportWrite
             contract: lazyOracleContract,
             methodName: 'updateVaultData',
             payload: [
-              report.data.vault_address as Address,
-              BigInt(report.data.total_value_wei),
+              report.data.vaultAddress as Address,
+              BigInt(report.data.totalValueWei),
               BigInt(report.data.fee),
-              BigInt(report.data.liability_shares),
-              BigInt(report.data.slashing_reserve),
+              BigInt(report.data.liabilityShares),
+              BigInt(report.data.slashingReserve),
               report.proof,
             ],
             withSpinner: false,

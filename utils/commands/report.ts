@@ -34,10 +34,10 @@ export const submitReport = async ({
 
   const confirm = await confirmOperation(
     `Are you sure you want to submit report for vault ${vault}?
-        Total value wei: ${proof.data.total_value_wei}
+        Total value wei: ${proof.data.totalValueWei}
         Fee: ${proof.data.fee}
-        Liability shares: ${proof.data.liability_shares}
-        Slashing reserve: ${proof.data.slashing_reserve}
+        Liability shares: ${proof.data.liabilityShares}
+        Slashing reserve: ${proof.data.slashingReserve}
         `,
   );
   if (!confirm) {
@@ -50,10 +50,10 @@ export const submitReport = async ({
     methodName: 'updateVaultData',
     payload: [
       vault,
-      BigInt(proof.data.total_value_wei),
+      BigInt(proof.data.totalValueWei),
       BigInt(proof.data.fee),
-      BigInt(proof.data.liability_shares),
-      BigInt(proof.data.slashing_reserve),
+      BigInt(proof.data.liabilityShares),
+      BigInt(proof.data.slashingReserve),
       proof.proof,
     ],
   });

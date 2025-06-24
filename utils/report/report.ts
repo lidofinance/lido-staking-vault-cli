@@ -65,11 +65,11 @@ export const getVaultData = (report: Report, vault: Address): VaultReport => {
   if (!leaf) throw new Error('Leaf not found');
 
   const data: LeafDataFields = {
-    vault_address: '',
+    vaultAddress: '',
     fee: '',
-    total_value_wei: '',
-    liability_shares: '',
-    slashing_reserve: '',
+    totalValueWei: '',
+    liabilityShares: '',
+    slashingReserve: '',
   };
 
   // TODO: for old reports without extraValues

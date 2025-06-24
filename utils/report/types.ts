@@ -3,11 +3,11 @@ import { Address, Hex } from 'viem';
 type BigNumberType = 'bigint' | 'string';
 
 export type LeafDataFields = {
-  vault_address: string;
-  total_value_wei: string;
+  vaultAddress: string;
+  totalValueWei: string;
   fee: string;
-  liability_shares: string;
-  slashing_reserve: string;
+  liabilityShares: string;
+  slashingReserve: string;
 };
 
 export type ExtraDataFields = {

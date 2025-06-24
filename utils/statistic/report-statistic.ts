@@ -9,8 +9,8 @@ export const getGrossStakingRewards = (
   previous: VaultReport,
 ) => {
   const grossStakingRewards =
-    BigInt(current.data.total_value_wei) -
-    BigInt(previous.data.total_value_wei) -
+    BigInt(current.data.totalValueWei) -
+    BigInt(previous.data.totalValueWei) -
     (BigInt(current.extraData.inOutDelta) -
       BigInt(previous.extraData.inOutDelta));
 
@@ -73,8 +73,7 @@ export const getNetStakingRewards = (
 //   grossStakingAPR = (grossStakingRewards * 100 * 31536000) / (averageTotalValue * periodSeconds)
 const getAverageTotalValue = (current: VaultReport, previous: VaultReport) => {
   return (
-    (BigInt(current.data.total_value_wei) +
-      BigInt(previous.data.total_value_wei)) /
+    (BigInt(current.data.totalValueWei) + BigInt(previous.data.totalValueWei)) /
     2n
   );
 };

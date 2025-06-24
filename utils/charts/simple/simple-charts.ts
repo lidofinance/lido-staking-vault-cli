@@ -103,8 +103,8 @@ export const renderSimpleCharts = async ({
       vaultAddress: vault,
       blockNumberCurr: current.blockNumber,
       blockNumberPrev: previous.blockNumber,
-      liabilitySharesCurr: BigInt(current.data.liability_shares),
-      liabilitySharesPrev: BigInt(previous.data.liability_shares),
+      liabilitySharesCurr: BigInt(current.data.liabilityShares),
+      liabilitySharesPrev: BigInt(previous.data.liabilityShares),
     });
 
     grossStakingRewards.push(

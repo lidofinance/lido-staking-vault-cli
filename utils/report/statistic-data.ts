@@ -36,8 +36,8 @@ export const getReportStatisticData = async (args: StatisticDataArgs) => {
   const stEthLiabilityRebaseRewards = calculateRebaseReward({
     shareRatePrev,
     shareRateCurr,
-    sharesPrev: BigInt(reports.previous.data.liability_shares),
-    sharesCurr: BigInt(reports.current.data.liability_shares),
+    sharesPrev: BigInt(reports.previous.data.liabilityShares),
+    sharesCurr: BigInt(reports.current.data.liabilityShares),
   });
 
   const metrics = reportMetrics({
