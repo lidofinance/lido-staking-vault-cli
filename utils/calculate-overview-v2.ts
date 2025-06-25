@@ -6,37 +6,42 @@ type OverviewArgs = {
   totalValue: bigint;
   reserveRatioBP: number;
   liabilitySharesInStethWei: bigint;
-  liabilitySharesInWei: bigint;
   forceRebalanceThresholdBP: number;
   withdrawableEther: bigint;
   balance: bigint;
   locked: bigint;
   nodeOperatorDisbursableFee: bigint;
   totalMintingCapacityStethWei: bigint;
-  totalMintingCapacitySharesInWei: bigint;
   unsettledLidoFees: bigint;
 };
 
-const BASIS_POINTS_DENOMINATOR = 10_000n;
-const DECIMALS = 18n;
-const SCALING_FACTOR = 10n ** DECIMALS;
+const BASIS_POINTS = 10_000n;
 
 const bigIntMax = (...args: bigint[]) => args.reduce((a, b) => (a > b ? a : b));
 const bigIntMin = (...args: bigint[]) => args.reduce((a, b) => (a < b ? a : b));
+
+/**
+ * Performs division with rounding up (ceiling division) for bigint values
+ * @param numerator - The dividend
+ * @param denominator - The divisor
+ * @returns The result of division rounded up
+ */
+const ceilDiv = (numerator: bigint, denominator: bigint): bigint => {
+  const result = numerator / denominator;
+  return numerator % denominator === 0n ? result : result + 1n;
+};
 
 export const calculateOverviewV2 = (args: OverviewArgs) => {
   const {
     totalValue,
     reserveRatioBP,
     liabilitySharesInStethWei,
-    liabilitySharesInWei,
     forceRebalanceThresholdBP,
     withdrawableEther,
     balance,
     locked,
     nodeOperatorDisbursableFee,
     totalMintingCapacityStethWei,
-    totalMintingCapacitySharesInWei,
     unsettledLidoFees,
   } = args;
 
@@ -45,31 +50,26 @@ export const calculateOverviewV2 = (args: OverviewArgs) => {
     liabilitySharesInStethWei,
     forceRebalanceThresholdBP,
   });
-  const AvailableToWithdrawal = withdrawableEther;
+  const availableToWithdrawal = withdrawableEther;
   const idleCapital = balance;
   const totalLocked = locked + nodeOperatorDisbursableFee + unsettledLidoFees;
-  const RR =
-    (BigInt(reserveRatioBP) * SCALING_FACTOR) / BASIS_POINTS_DENOMINATOR; // RR with SCALING_FACTOR
-  const oneMinusRR = SCALING_FACTOR - RR; // (1 - RR) with SCALING_FACTOR
+  const RR = BigInt(reserveRatioBP);
+  const oneMinusRR = BASIS_POINTS - RR;
   const liabilityDivOneMinusRR =
     oneMinusRR === 0n
       ? 0n
-      : (liabilitySharesInStethWei * SCALING_FACTOR) / oneMinusRR;
+      : ceilDiv(liabilitySharesInStethWei * BASIS_POINTS, oneMinusRR);
 
   const collateral = bigIntMax(parseEther('1'), liabilityDivOneMinusRR);
-  const PendingUnlock =
+  const recentlyRepaid =
     liabilityDivOneMinusRR <= parseEther('1')
       ? bigIntMax(locked - parseEther('1'), 0n)
       : bigIntMax(locked - liabilityDivOneMinusRR, 0n);
-  const remainingMintingCapacityShares =
-    totalMintingCapacitySharesInWei - liabilitySharesInWei;
-  const remainingMintingCapacitySteth =
-    totalMintingCapacityStethWei - liabilitySharesInStethWei;
 
   const reservedByFormula =
     oneMinusRR === 0n
       ? 0n
-      : (liabilitySharesInStethWei * SCALING_FACTOR) / oneMinusRR -
+      : ceilDiv(liabilitySharesInStethWei * BASIS_POINTS, oneMinusRR) -
         liabilitySharesInStethWei;
   const reserved = bigIntMin(
     totalValue - liabilitySharesInStethWei,
@@ -81,23 +81,21 @@ export const calculateOverviewV2 = (args: OverviewArgs) => {
     totalMintingCapacityStethWei === 0n
       ? 0
       : Number(
-          ((liabilitySharesInStethWei * SCALING_FACTOR) /
+          ((liabilitySharesInStethWei * BASIS_POINTS) /
             totalMintingCapacityStethWei) *
             100n,
-        ) / Number(SCALING_FACTOR);
+        ) / Number(BASIS_POINTS);
 
   return {
     healthRatio,
     isHealthy,
-    AvailableToWithdrawal,
+    availableToWithdrawal,
     idleCapital,
     totalLocked,
     collateral,
-    PendingUnlock,
+    recentlyRepaid,
     utilizationRatio,
     reserved,
     totalMintingCapacityStethWei,
-    remainingMintingCapacitySteth,
-    remainingMintingCapacityShares,
   };
 };

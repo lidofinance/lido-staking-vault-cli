@@ -2,6 +2,7 @@ import { formatEther } from 'viem';
 
 import {
   DashboardContract,
+  getOperatorGridContract,
   getStethContract,
   getVaultHubContract,
 } from 'contracts';
@@ -29,6 +30,7 @@ export const getVaultOverviewByDashboard = async (
 
   try {
     const health = await fetchAndCalculateVaultHealth(contract);
+    const operatorGridContract = await getOperatorGridContract();
     const [
       vault,
       nodeOperatorFeeRate,
@@ -38,6 +40,8 @@ export const getVaultOverviewByDashboard = async (
       nodeOperatorDisbursableFee,
       totalValue,
       locked,
+      shareLimit,
+      remainingMintingCapacityShares,
     ] = await Promise.all([
       contract.read.stakingVault(),
       contract.read.nodeOperatorFeeRate(),
@@ -47,6 +51,8 @@ export const getVaultOverviewByDashboard = async (
       contract.read.nodeOperatorDisbursableFee(),
       contract.read.totalValue(),
       contract.read.locked(),
+      contract.read.shareLimit(),
+      contract.read.remainingMintingCapacityShares([0n]),
     ]);
     const stethContract = await getStethContract();
     const vaultHubContract = await getVaultHubContract();
@@ -58,24 +64,51 @@ export const getVaultOverviewByDashboard = async (
       'vaultObligations',
       [vault],
     );
-    const totalMintingCapacityStethWei =
-      await stethContract.read.getPooledEthBySharesRoundUp([
+    const tierInfo = await callReadMethodSilent(
+      operatorGridContract,
+      'vaultInfo',
+      [vault],
+    );
+    const isNoHaveGroup =
+      tierInfo[0] === '0xFFfFfFffFFfffFFfFFfFFFFFffFFFffffFfFFFfF';
+    const nodeOperatorGroup = await callReadMethodSilent(
+      operatorGridContract,
+      'group',
+      [tierInfo[0]],
+    );
+    const [
+      totalMintingCapacityStethWei,
+      shareLimitStethWei,
+      tierShareLimitStethWei,
+      groupShareLimitStethWei,
+      remainingMintingCapacityStethWei,
+    ] = await Promise.all([
+      stethContract.read.getPooledEthBySharesRoundUp([
         totalMintingCapacityShares,
-      ]);
+      ]),
+      stethContract.read.getPooledEthBySharesRoundUp([shareLimit]),
+      stethContract.read.getPooledEthBySharesRoundUp([tierInfo[2]]),
+      stethContract.read.getPooledEthBySharesRoundUp([
+        nodeOperatorGroup.shareLimit,
+      ]),
+      stethContract.read.getPooledEthBySharesRoundUp([
+        remainingMintingCapacityShares,
+      ]),
+    ]);
+
     const overview = calculateOverviewV2({
       totalValue,
       reserveRatioBP,
       liabilitySharesInStethWei: health.liabilitySharesInStethWei,
-      liabilitySharesInWei: health.liabilitySharesInWei,
       forceRebalanceThresholdBP: health.forceRebalanceThresholdBP,
       withdrawableEther: withdrawableValue,
       balance,
       locked,
       nodeOperatorDisbursableFee,
       totalMintingCapacityStethWei,
-      totalMintingCapacitySharesInWei: totalMintingCapacityShares,
       unsettledLidoFees: vaultObligation.unsettledLidoFees,
     });
+
     hideSpinner();
 
     logResult({});
@@ -88,6 +121,8 @@ export const getVaultOverviewByDashboard = async (
           'Force Rebalance Threshold',
           formatBP(health.forceRebalanceThresholdBP),
         ],
+        ['stVault Share Limit, stETH', formatEther(shareLimitStethWei)],
+        ['stVault Share Limit, Shares', formatEther(shareLimit)],
         ['Node Operator Fee Rate, %', formatBP(nodeOperatorFeeRate)],
         ['Utilization Ratio, %', formatRatio(overview.utilizationRatio)],
         ['Total Value, ETH', formatEther(totalValue)],
@@ -95,12 +130,13 @@ export const getVaultOverviewByDashboard = async (
         ['Liability, Shares', formatEther(health.liabilitySharesInWei)],
         [
           'Available To Withdrawal, ETH',
-          formatEther(overview.AvailableToWithdrawal),
+          formatEther(overview.availableToWithdrawal),
         ],
         ['Idle Capital, ETH', formatEther(overview.idleCapital)],
+        ['Locked, ETH', formatEther(locked)],
         ['Total Locked, ETH', formatEther(overview.totalLocked)],
         ['Collateral, ETH', formatEther(overview.collateral)],
-        ['Pending Unlock, ETH', formatEther(overview.PendingUnlock)],
+        ['Recently Repaid, ETH', formatEther(overview.recentlyRepaid)],
         [
           'Node Operator Disbursable Fee, ETH',
           formatEther(nodeOperatorDisbursableFee),
@@ -112,7 +148,11 @@ export const getVaultOverviewByDashboard = async (
         ],
         [
           'Remaining Minting Capacity, stETH',
-          formatEther(overview.remainingMintingCapacitySteth),
+          formatEther(remainingMintingCapacityStethWei),
+        ],
+        [
+          'Remaining Minting Capacity, Shares',
+          formatEther(remainingMintingCapacityShares),
         ],
         [
           'Unsettled Lido Fees, ETH',
@@ -123,6 +163,17 @@ export const getVaultOverviewByDashboard = async (
           formatEther(vaultObligation.settledLidoFees),
         ],
         ['Redemptions, ETH', formatEther(vaultObligation.redemptions)],
+        ['Tier ID', tierInfo[1]],
+        ['Tier Share Limit, stETH', formatEther(tierShareLimitStethWei)],
+        ['Tier Share Limit, Shares', formatEther(tierInfo[2])],
+        [
+          'Group Share Limit, stETH',
+          isNoHaveGroup ? 'N/A' : formatEther(groupShareLimitStethWei),
+        ],
+        [
+          'Group Share Limit, Shares',
+          isNoHaveGroup ? 'N/A' : formatEther(nodeOperatorGroup.shareLimit),
+        ],
       ],
     });
 
@@ -137,7 +188,7 @@ export const getVaultOverviewByDashboard = async (
     logVaultHealthBar(overview.healthRatio);
     console.info('\n');
   } catch (err) {
-    hideSpinner();
+    // hideSpinner();
     printError(err, 'Error when getting overview');
   }
 };
