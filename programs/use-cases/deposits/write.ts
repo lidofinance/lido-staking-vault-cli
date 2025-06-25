@@ -69,7 +69,9 @@ depositsWrite
       deposits: Deposit[],
       { vault, blsCheck }: { vault: Address; blsCheck: boolean },
     ) => {
-      const { vault: vaultAddress } = await chooseVaultAndGetDashboard(vault);
+      const { vault: vaultAddress } = await chooseVaultAndGetDashboard({
+        vault,
+      });
       const pdgContract = await getPredepositGuaranteeContract();
       const vaultContract = getStakingVaultContract(vaultAddress);
 
@@ -167,7 +169,9 @@ depositsWrite
       deposits: Deposit[],
       { vault }: { vault: Address },
     ) => {
-      const { vault: vaultAddress } = await chooseVaultAndGetDashboard(vault);
+      const { vault: vaultAddress } = await chooseVaultAndGetDashboard({
+        vault,
+      });
       const pdgContract = await getPredepositGuaranteeContract();
       const vaultContract = getStakingVaultContract(vaultAddress);
 
@@ -202,7 +206,7 @@ depositsWrite
   ...]'`,
   )
   .action(async (deposits: Deposit[], { vault }: { vault: Address }) => {
-    const { vault: vaultAddress } = await chooseVaultAndGetDashboard(vault);
+    const { vault: vaultAddress } = await chooseVaultAndGetDashboard({ vault });
     const pdgContract = await getPredepositGuaranteeContract();
     const vaultContract = getStakingVaultContract(vaultAddress);
 
@@ -225,30 +229,31 @@ depositsWrite
   .description('top up no balance')
   .argument('<amount>', 'amount in ETH', etherToWei)
   .option('-v, --vault <string>', 'vault address', stringToAddress)
-  .action(
-    async ({ amount }: { amount: bigint }, { vault }: { vault: Address }) => {
-      const pdgContract = await getPredepositGuaranteeContract();
-      const { vault: vaultAddress } = await chooseVaultAndGetDashboard(vault);
-      const vaultContract = getStakingVaultContract(vaultAddress);
+  .action(async (amount: bigint, { vault }: { vault: Address }) => {
+    const pdgContract = await getPredepositGuaranteeContract();
+    const { vault: vaultAddress } = await chooseVaultAndGetDashboard({
+      vault,
+      isNotMember: true,
+    });
+    const vaultContract = getStakingVaultContract(vaultAddress);
 
-      const nodeOperator = await checkAndSpecifyNodeOperatorForTopUp(
-        vaultContract,
-        pdgContract,
-      );
+    const nodeOperator = await checkAndSpecifyNodeOperatorForTopUp(
+      vaultContract,
+      pdgContract,
+    );
 
-      const confirm = await confirmOperation(
-        `Are you sure you want to top up the node operator ${nodeOperator} with ${formatEther(amount)} ETH?`,
-      );
-      if (!confirm) return;
+    const confirm = await confirmOperation(
+      `Are you sure you want to top up the node operator ${nodeOperator} with ${formatEther(amount)} ETH?`,
+    );
+    if (!confirm) return;
 
-      await callWriteMethodWithReceipt({
-        contract: pdgContract,
-        methodName: 'topUpNodeOperatorBalance',
-        payload: [nodeOperator],
-        value: amount,
-      });
-    },
-  );
+    await callWriteMethodWithReceipt({
+      contract: pdgContract,
+      methodName: 'topUpNodeOperatorBalance',
+      payload: [nodeOperator],
+      value: amount,
+    });
+  });
 
 depositsWrite
   .command('withdraw-no-balance')
@@ -266,7 +271,9 @@ depositsWrite
       { vault, recipient }: { vault: Address; recipient: Address },
     ) => {
       const pdgContract = await getPredepositGuaranteeContract();
-      const { vault: vaultAddress } = await chooseVaultAndGetDashboard(vault);
+      const { vault: vaultAddress } = await chooseVaultAndGetDashboard({
+        vault,
+      });
       const vaultContract = getStakingVaultContract(vaultAddress);
 
       const nodeOperator = await checkAndSpecifyNodeOperatorForTopUp(

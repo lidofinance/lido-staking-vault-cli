@@ -28,7 +28,7 @@ vaultOperationsRead
   .description('get vault info')
   .option('-v, --vault <string>', 'vault address')
   .action(async ({ vault }: { vault: Address }) => {
-    const { contract } = await chooseVaultAndGetDashboard(vault);
+    const { contract } = await chooseVaultAndGetDashboard({ vault });
 
     await getVaultInfoByDashboard(contract);
   });
@@ -38,7 +38,7 @@ vaultOperationsRead
   .description('get vault health')
   .option('-v, --vault <string>', 'vault address')
   .action(async ({ vault }: { vault: Address }) => {
-    const { contract } = await chooseVaultAndGetDashboard(vault);
+    const { contract } = await chooseVaultAndGetDashboard({ vault });
 
     await getVaultHealthByDashboard(contract);
   });
@@ -48,7 +48,7 @@ vaultOperationsRead
   .description('get vault overview')
   .option('-v, --vault <string>', 'vault address')
   .action(async ({ vault }: { vault: Address }) => {
-    const { contract } = await chooseVaultAndGetDashboard(vault);
+    const { contract } = await chooseVaultAndGetDashboard({ vault });
 
     await getVaultOverviewByDashboard(contract);
   });
@@ -58,7 +58,7 @@ vaultOperationsRead
   .description('get vault roles')
   .option('-v, --vault <string>', 'vault address')
   .action(async ({ vault }: { vault: Address }) => {
-    const { contract } = await chooseVaultAndGetDashboard(vault);
+    const { contract } = await chooseVaultAndGetDashboard({ vault });
 
     await getVaultRolesByDashboard(contract);
   });

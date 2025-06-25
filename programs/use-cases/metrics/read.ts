@@ -42,7 +42,7 @@ metricsRead
   .option('-g, --gateway', 'ipfs gateway url')
   .action(async ({ vault, gateway }) => {
     const { address: dashboardAddress, vault: vaultAddress } =
-      await chooseVaultAndGetDashboard(vault);
+      await chooseVaultAndGetDashboard({ vault });
     const lazyOracleContract = await getLazyOracleContract();
     const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
       await callReadMethod(lazyOracleContract, 'latestReportData');
@@ -107,8 +107,9 @@ metricsRead
   .option('-v, --vault <string>', 'vault address')
   .option('-s, --simplified', 'simplified charts')
   .action(async (count: number, { vault, simplified }) => {
-    const { address: dashboardAddress } =
-      await chooseVaultAndGetDashboard(vault);
+    const { address: dashboardAddress } = await chooseVaultAndGetDashboard({
+      vault,
+    });
     const lazyOracleContract = await getLazyOracleContract();
     const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
       await callReadMethod(lazyOracleContract, 'latestReportData');
@@ -138,8 +139,9 @@ metricsRead
   .argument('<count>', 'count of reports', stringToNumber)
   .option('-v, --vault <string>', 'vault address')
   .action(async (count: number, { vault }) => {
-    const { address: dashboardAddress } =
-      await chooseVaultAndGetDashboard(vault);
+    const { address: dashboardAddress } = await chooseVaultAndGetDashboard({
+      vault,
+    });
     const lazyOracleContract = await getLazyOracleContract();
     const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
       await callReadMethod(lazyOracleContract, 'latestReportData');

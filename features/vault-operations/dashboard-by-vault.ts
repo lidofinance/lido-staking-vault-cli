@@ -6,7 +6,7 @@ import {
   getVaultHubContract,
 } from 'contracts';
 import { getPublicClient } from 'providers';
-import { callReadMethodSilent } from 'utils';
+import { callReadMethodSilent, enterContractAddress } from 'utils';
 
 import { chooseVault } from './vaults-by-role.js';
 
@@ -31,14 +31,23 @@ export const getDashboardByVault = async (vault: Address) => {
   return dashboard.address;
 };
 
-export const chooseVaultAndGetDashboard = async (
-  vault?: Address,
-): Promise<{
+export const chooseVaultAndGetDashboard = async (args: {
+  vault?: Address;
+  isNotMember?: boolean;
+}): Promise<{
   address: Address;
   contract: DashboardContract;
   vault: Address;
 }> => {
-  const chosenVault = vault ?? (await chooseVault());
+  const { vault, isNotMember = false } = args;
+  let chosenVault: Address;
+
+  if (isNotMember) {
+    chosenVault = vault ?? (await enterContractAddress('stVault'));
+  } else {
+    chosenVault = vault ?? (await chooseVault());
+  }
+
   const dashboard = await getDashboardByVault(chosenVault);
   const dashboardContract = getDashboardContract(dashboard);
 

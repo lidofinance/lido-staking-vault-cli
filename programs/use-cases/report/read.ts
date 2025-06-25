@@ -45,7 +45,7 @@ reportRead
   .option('-v, --vault <string>', 'vault address')
   .option('-g, --gateway', 'ipfs gateway url')
   .action(async ({ vault, gateway }) => {
-    const { vault: vaultAddress } = await chooseVaultAndGetDashboard(vault);
+    const { vault: vaultAddress } = await chooseVaultAndGetDashboard({ vault });
 
     const lazyOracleContract = await getLazyOracleContract();
     const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
@@ -72,7 +72,7 @@ reportRead
   .option('-v, --vault <string>', 'vault address')
   .option('-g, --gateway', 'ipfs gateway url')
   .action(async ({ vault, gateway }) => {
-    const { vault: vaultAddress } = await chooseVaultAndGetDashboard(vault);
+    const { vault: vaultAddress } = await chooseVaultAndGetDashboard({ vault });
 
     const lazyOracleContract = await getLazyOracleContract();
     const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =

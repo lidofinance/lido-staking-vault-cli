@@ -37,7 +37,7 @@ reportWrite
   .option('-v, --vault <string>', 'vault address')
   .option('-g, --gateway', 'ipfs gateway url')
   .action(async ({ vault, gateway }) => {
-    const { vault: vaultAddress } = await chooseVaultAndGetDashboard(vault);
+    const { vault: vaultAddress } = await chooseVaultAndGetDashboard({ vault });
 
     await submitReport({ vault: vaultAddress, gateway });
   });

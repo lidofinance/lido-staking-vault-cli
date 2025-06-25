@@ -41,8 +41,9 @@ vaultOperationsWrite
   .argument('<ether>', 'amount of ether to be funded (in ETH)', etherToWei)
   .option('-v, --vault <string>', 'vault address', stringToAddress)
   .action(async (ether: bigint, { vault }: { vault: Address }) => {
-    const { contract, vault: vaultAddress } =
-      await chooseVaultAndGetDashboard(vault);
+    const { contract, vault: vaultAddress } = await chooseVaultAndGetDashboard({
+      vault,
+    });
 
     const account = getAccount();
     await checkVaultRole(contract, 'FUND_ROLE', account.address);
@@ -77,7 +78,7 @@ vaultOperationsWrite
     ) => {
       const recipientAddress = await getAddress(recipient, 'recipient');
       const { contract, vault: vaultAddress } =
-        await chooseVaultAndGetDashboard(vault);
+        await chooseVaultAndGetDashboard({ vault });
 
       const account = getAccount();
       await checkVaultRole(contract, 'WITHDRAW_ROLE', account.address);
@@ -122,7 +123,7 @@ vaultOperationsWrite
     ) => {
       const recipientAddress = await getAddress(recipient, 'recipient');
       const { contract, vault: vaultAddress } =
-        await chooseVaultAndGetDashboard(vault);
+        await chooseVaultAndGetDashboard({ vault });
 
       const account = getAccount();
       await checkVaultRole(contract, 'MINT_ROLE', account.address);
@@ -159,7 +160,7 @@ vaultOperationsWrite
     ) => {
       const recipientAddress = await getAddress(recipient, 'recipient');
       const { contract, vault: vaultAddress } =
-        await chooseVaultAndGetDashboard(vault);
+        await chooseVaultAndGetDashboard({ vault });
 
       const account = getAccount();
       await checkVaultRole(contract, 'MINT_ROLE', account.address);
@@ -191,7 +192,7 @@ vaultOperationsWrite
     ) => {
       const recipientAddress = await getAddress(recipient, 'recipient');
       const { contract, vault: vaultAddress } =
-        await chooseVaultAndGetDashboard(vault);
+        await chooseVaultAndGetDashboard({ vault });
 
       const account = getAccount();
       await checkVaultRole(contract, 'MINT_ROLE', account.address);
@@ -215,8 +216,9 @@ vaultOperationsWrite
     etherToWei,
   )
   .action(async (amountOfShares: bigint, { vault }: { vault: Address }) => {
-    const { contract, vault: vaultAddress } =
-      await chooseVaultAndGetDashboard(vault);
+    const { contract, vault: vaultAddress } = await chooseVaultAndGetDashboard({
+      vault,
+    });
 
     const account = getAccount();
     await checkVaultRole(contract, 'BURN_ROLE', account.address);
@@ -233,8 +235,9 @@ vaultOperationsWrite
   .argument('<amountOfSteth>', 'amount of stETH to burn (in stETH)', etherToWei)
   .option('-v, --vault <string>', 'vault address', stringToAddress)
   .action(async (amountOfSteth: bigint, { vault }: { vault: Address }) => {
-    const { contract, vault: vaultAddress } =
-      await chooseVaultAndGetDashboard(vault);
+    const { contract, vault: vaultAddress } = await chooseVaultAndGetDashboard({
+      vault,
+    });
 
     const account = getAccount();
     await checkVaultRole(contract, 'BURN_ROLE', account.address);
@@ -253,8 +256,9 @@ vaultOperationsWrite
   )
   .option('-v, --vault <string>', 'vault address', stringToAddress)
   .action(async (amountOfWsteth: bigint, { vault }: { vault: Address }) => {
-    const { contract, vault: vaultAddress } =
-      await chooseVaultAndGetDashboard(vault);
+    const { contract, vault: vaultAddress } = await chooseVaultAndGetDashboard({
+      vault,
+    });
 
     const account = getAccount();
     await checkVaultRole(contract, 'BURN_ROLE', account.address);

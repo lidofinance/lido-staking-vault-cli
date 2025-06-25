@@ -6,7 +6,9 @@ import { logCancel } from 'utils';
 import { textPrompt, confirmPrompt } from './default.js';
 
 export const enterContractAddress = async (name = 'contract') => {
-  return await textPrompt(`Enter ${name} address`, 'address');
+  const contract = await textPrompt(`Enter ${name} address`, 'address');
+
+  return contract.address as Address;
 };
 
 export const confirmContractAndAmount = async (
@@ -42,8 +44,7 @@ export const confirmFund = async (
   let amount: string | null = amountETH;
 
   if (!contractAddress) {
-    const answerAddress = await enterContractAddress(name);
-    contractAddress = answerAddress.address as Address;
+    contractAddress = await enterContractAddress(name);
 
     if (!contractAddress) program.error('Command cancelled', { exitCode: 1 });
   }
