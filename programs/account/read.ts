@@ -1,5 +1,5 @@
 import { Option } from 'commander';
-import { Address, encodeFunctionData, formatEther, parseEther } from 'viem';
+import { Address, formatEther } from 'viem';
 
 import { getStethContract, getWstethContract } from 'contracts';
 import { getWalletWithAccount, getPublicClient, getAccount } from 'providers';
@@ -75,28 +75,6 @@ accountRead
   });
 
 accountRead
-  .command('steth-allowance-populate-tx')
-  .alias('steth-allowance-tx')
-  .description('populate tx for steth allowance')
-  .argument('<address>', 'address to set allowance for', stringToAddress)
-  .argument('<amount>', 'amount of steth to allow')
-  .action(async (address: Address, amount: string) => {
-    const stethContract = await getStethContract();
-
-    const tx = encodeFunctionData({
-      abi: stethContract.abi,
-      functionName: 'approve',
-      args: [address, parseEther(amount)],
-    });
-
-    logInfo({
-      to: address,
-      value: parseEther(amount),
-      data: tx,
-    });
-  });
-
-accountRead
   .command('get-steth-allowance')
   .description('get steth allowance for an address')
   .argument('<address>', 'address to get allowance for', stringToAddress)
@@ -105,24 +83,6 @@ accountRead
     const stethContract = await getStethContract();
 
     await callReadMethod(stethContract, 'allowance', [accountAddress, address]);
-  });
-
-accountRead
-  .command('wsteth-allowance-populate-tx')
-  .alias('wsteth-allowance-tx')
-  .description('populate tx for wsteth allowance')
-  .argument('<address>', 'address to set allowance for', stringToAddress)
-  .argument('<amount>', 'amount of wsteth to allow (in wstETH)')
-  .action(async (address: Address, amount: string) => {
-    const wstethContract = await getWstethContract();
-
-    const tx = encodeFunctionData({
-      abi: wstethContract.abi,
-      functionName: 'approve',
-      args: [address, parseEther(amount)],
-    });
-
-    logInfo(tx);
   });
 
 accountRead

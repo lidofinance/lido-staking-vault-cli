@@ -1,4 +1,4 @@
-import { Address, formatEther, parseEther } from 'viem';
+import { Address, formatEther } from 'viem';
 import { generatePrivateKey } from 'viem/accounts';
 import { Option } from 'commander';
 import { Wallet } from 'ethers';
@@ -10,6 +10,7 @@ import {
   callWriteMethodWithReceipt,
   stringToAddress,
   confirmOperation,
+  etherToWei,
 } from 'utils';
 
 import { account } from './main.js';
@@ -50,21 +51,19 @@ accountWrite
   .command('steth-allowance')
   .description('set allowance for steth contract')
   .argument('<address>', 'address to set allowance for', stringToAddress)
-  .argument('<amount>', 'amount of steth to allow (in stETH)')
-  .action(async (address: Address, amount: string) => {
+  .argument('<amount>', 'amount of steth to allow (in stETH)', etherToWei)
+  .action(async (address: Address, amount: bigint) => {
     const stethContract = await getStethContract();
 
     const confirm = await confirmOperation(
-      `Are you sure you want to set allowance ${formatEther(
-        parseEther(amount),
-      )} for ${address}?`,
+      `Are you sure you want to set allowance ${formatEther(amount)} stETH for ${address}?`,
     );
     if (!confirm) return;
 
     await callWriteMethodWithReceipt({
       contract: stethContract,
       methodName: 'approve',
-      payload: [address, parseEther(amount)],
+      payload: [address, amount],
     });
   });
 
@@ -72,20 +71,18 @@ accountWrite
   .command('wsteth-allowance')
   .description('set allowance for wsteth contract')
   .argument('<address>', 'address to set allowance for', stringToAddress)
-  .argument('<amount>', 'amount of wsteth to allow')
-  .action(async (address: Address, amount: string) => {
+  .argument('<amount>', 'amount of wsteth to allow (in wstETH)', etherToWei)
+  .action(async (address: Address, amount: bigint) => {
     const wstethContract = await getWstethContract();
 
     const confirm = await confirmOperation(
-      `Are you sure you want to set allowance ${formatEther(
-        parseEther(amount),
-      )} for ${address}?`,
+      `Are you sure you want to set allowance ${formatEther(amount)} wstETH for ${address}?`,
     );
     if (!confirm) return;
 
     await callWriteMethodWithReceipt({
       contract: wstethContract,
       methodName: 'approve',
-      payload: [address, parseEther(amount)],
+      payload: [address, amount],
     });
   });
