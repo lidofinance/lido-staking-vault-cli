@@ -22,7 +22,7 @@ import {
   checkNOBalancePDGforDeposit,
   getAddress,
   checkNodeOperatorForDeposit,
-  checkAndSpecifyNodeOperatorForTopUp,
+  checkAndSpecifyNodeOperatorForTopUpOrWithdraw,
   getGuarantor,
 } from 'features';
 import { Deposit } from 'types';
@@ -237,9 +237,10 @@ depositsWrite
     });
     const vaultContract = getStakingVaultContract(vaultAddress);
 
-    const nodeOperator = await checkAndSpecifyNodeOperatorForTopUp(
+    const nodeOperator = await checkAndSpecifyNodeOperatorForTopUpOrWithdraw(
       vaultContract,
       pdgContract,
+      true,
     );
 
     const confirm = await confirmOperation(
@@ -273,12 +274,14 @@ depositsWrite
       const pdgContract = await getPredepositGuaranteeContract();
       const { vault: vaultAddress } = await chooseVaultAndGetDashboard({
         vault,
+        isNotMember: true,
       });
       const vaultContract = getStakingVaultContract(vaultAddress);
 
-      const nodeOperator = await checkAndSpecifyNodeOperatorForTopUp(
+      const nodeOperator = await checkAndSpecifyNodeOperatorForTopUpOrWithdraw(
         vaultContract,
         pdgContract,
+        false,
       );
       const recipientAddress = await getAddress(recipient, 'recipient');
 

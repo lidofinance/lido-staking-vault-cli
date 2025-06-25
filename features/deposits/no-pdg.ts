@@ -116,9 +116,10 @@ export const checkNodeOperatorForDeposit = async (
   return vaultNodeOperator;
 };
 
-export const checkAndSpecifyNodeOperatorForTopUp = async (
+export const checkAndSpecifyNodeOperatorForTopUpOrWithdraw = async (
   vault: StakingVaultContract,
   pdg: PredepositGuaranteeContract,
+  isTopUp: boolean,
 ) => {
   const currentAccount = getAccount();
   const vaultNodeOperator = await callReadMethodSilent(vault, 'nodeOperator');
@@ -145,7 +146,7 @@ export const checkAndSpecifyNodeOperatorForTopUp = async (
     );
 
     const confirm = await confirmOperation(
-      `Do you want to top up or withdraw the node operator ${vaultNodeOperator} balance?`,
+      `Do you want to ${isTopUp ? 'top up' : 'withdraw'} the node operator ${vaultNodeOperator} balance?`,
     );
     if (!confirm) throw new Error('Top up or withdraw is not confirmed');
 
