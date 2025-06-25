@@ -46,7 +46,8 @@ dashboardWrite.on('option:-cmd2json', function () {
 });
 
 dashboardWrite
-  .command('ownership')
+  .command('transfer-vault-ownership')
+  .alias('ownership')
   .description(
     'transfers the ownership of the underlying StakingVault from this contract to a new owner without disconnecting it from the hub',
   )
