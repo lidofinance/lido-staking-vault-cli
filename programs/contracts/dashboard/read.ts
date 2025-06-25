@@ -1,4 +1,4 @@
-import { Address } from 'viem';
+import { Address, Hex } from 'viem';
 import { Option } from 'commander';
 
 import { DashboardAbi } from 'abi';
@@ -7,6 +7,7 @@ import {
   getDashboardRoles,
   getDashboardHealth,
   getDashboardOverview,
+  type RoleName,
 } from 'features';
 import { getDashboardContract, getVaultHubContract } from 'contracts';
 import {
@@ -94,6 +95,46 @@ dashboardRead
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
     await getConfirmationsInfo(contract as any);
+  });
+
+dashboardRead
+  .command('confirming-roles')
+  .description('get confirming roles')
+  .argument('<address>', 'dashboard address', stringToAddress)
+  .action(async (address: Address) => {
+    const contract = getDashboardContract(address);
+    const confirmingRoles = await callReadMethodSilent(
+      contract,
+      'confirmingRoles',
+    );
+    const confirmingRolesNames: RoleName[] = [
+      'DEFAULT_ADMIN_ROLE',
+      'NODE_OPERATOR_MANAGER_ROLE',
+    ];
+    const roleValues: Hex[] = await Promise.all(
+      confirmingRolesNames.map((key) => (contract.read as any)[key]()),
+    );
+
+    const result = await Promise.all(
+      confirmingRoles.map(async (key) => {
+        const roleName = confirmingRolesNames.find(
+          (role) => roleValues[confirmingRolesNames.indexOf(role)] === key,
+        );
+        const accounts = await contract.read.getRoleMembers([key]);
+        return {
+          Role: roleName ?? 'Unknown',
+          Keccak: key,
+          Members: accounts.length > 0 ? accounts.join(', ') : 'None',
+        };
+      }),
+    );
+
+    logResult({
+      data: result.map(({ Role, Keccak, Members }) => [Role, Keccak, Members]),
+      params: {
+        head: ['Role', 'Keccak', 'Members'],
+      },
+    });
   });
 
 generateReadCommands(

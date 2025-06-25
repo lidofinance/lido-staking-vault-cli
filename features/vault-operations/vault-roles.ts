@@ -9,7 +9,7 @@ import {
   callReadMethodSilent,
 } from 'utils';
 
-type RoleName =
+export type RoleName =
   | 'DEFAULT_ADMIN_ROLE'
   | 'CHANGE_TIER_ROLE'
   | 'BURN_ROLE'

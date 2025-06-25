@@ -101,10 +101,6 @@ export const readCommandConfig: ReadProgramCommandConfig<typeof DashboardAbi> =
       description:
         'get the confirmation expiry for a given call data and confirmer',
     },
-    confirmingRoles: {
-      name: 'confirming-roles',
-      description: 'get confirming roles',
-    },
     getConfirmExpiry: {
       name: 'get-confirm-expiry',
       description: 'get the confirmation expiry',
