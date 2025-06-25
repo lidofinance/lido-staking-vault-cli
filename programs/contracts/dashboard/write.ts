@@ -70,7 +70,7 @@ dashboardWrite
   });
 
 dashboardWrite
-  .command('disconnect')
+  .command('voluntary-disconnect')
   .description('disconnects the staking vault from the vault hub')
   .argument('<address>', 'dashboard address', stringToAddress)
   .action(async (address: Address) => {
