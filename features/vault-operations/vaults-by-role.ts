@@ -42,19 +42,20 @@ export const chooseVault = async () => {
     getVaultsByNO(),
   ]);
 
-  const vaultsWithRole = [...vaultsByOwner, ...vaultsByNO].map((vault) => {
-    let title = vault;
-    const value = vault;
+  const uniqueVaults = [...new Set([...vaultsByOwner, ...vaultsByNO])];
+  const vaultsWithRole = uniqueVaults.map((vault) => {
+    let title = '';
 
     if (vaultsByNO.includes(vault)) {
-      title = `${vault} (Node Operator)`;
+      title = `Node Operator`;
     }
 
     if (vaultsByOwner.includes(vault)) {
-      title = `${vault} (Owner)`;
+      const separator = title.length > 0 ? ', ' : '';
+      title = `${title}${separator}Owner`;
     }
 
-    return { title, value };
+    return { title: `${vault} (${title})`, value: vault };
   });
 
   const vault = await selectPrompt('Choose a vault', 'address', vaultsWithRole);
