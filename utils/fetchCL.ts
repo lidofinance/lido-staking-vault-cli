@@ -2,6 +2,7 @@ import { RootHex, Slot } from '@lodestar/types';
 
 import { getConfig } from 'configs';
 import { printError } from 'utils';
+import { Hex } from 'viem';
 
 export type BlockId = RootHex | Slot | 'head' | 'genesis' | 'finalized';
 export type StateId =
@@ -12,6 +13,26 @@ export type StateId =
   | 'finalized'
   | 'justified';
 
+type ValidatorInfo = {
+  execution_optimistic: boolean;
+  finalized: boolean;
+  data: {
+    index: string;
+    balance: string;
+    status: string;
+    validator: {
+      pubkey: string;
+      withdrawal_credentials: string;
+      effective_balance: string;
+      slashed: boolean;
+      activation_eligibility_epoch: string;
+      activation_epoch: string;
+      exit_epoch: string;
+      withdrawable_epoch: string;
+    };
+  };
+};
+
 const endpoints = {
   genesis: 'eth/v1/beacon/genesis',
   beaconHeader: (blockId: BlockId): string =>
@@ -19,6 +40,8 @@ const endpoints = {
   beaconHeadersByParentRoot: (parentRoot: RootHex): string =>
     `eth/v1/beacon/headers?parent_root=${parentRoot}`,
   state: (stateId: StateId): string => `eth/v2/debug/beacon/states/${stateId}`,
+  validatorInfo: (validatorPubkey: Hex): string =>
+    `eth/v1/beacon/states/head/validators/${validatorPubkey}`,
 };
 
 export const SupportedFork = {
@@ -91,6 +114,24 @@ export const fetchBeaconHeaderByParentRoot = async (
   } catch (error) {
     printError(error, 'Error fetching beacon header by parent root');
 
+    throw error;
+  }
+};
+
+export const fetchValidatorInfo = async (
+  validatorPubkey: Hex,
+  clURL?: string,
+): Promise<ValidatorInfo> => {
+  const url = clURL || getConfig().CL_URL;
+
+  try {
+    const validatorInfoResp = await fetch(
+      `${url}${endpoints.validatorInfo(validatorPubkey)}`,
+    );
+
+    return validatorInfoResp.json();
+  } catch (error) {
+    printError(error, 'Error fetching validator info');
     throw error;
   }
 };

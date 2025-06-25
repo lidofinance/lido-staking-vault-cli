@@ -26,6 +26,7 @@ import {
   isValidBLSDeposit,
   expandBLSSignature,
   logTable,
+  fetchValidatorInfo,
 } from 'utils';
 import { Address, Hex } from 'viem';
 
@@ -299,6 +300,37 @@ predepositGuaranteeHelpers
       data: [
         ['Fork Version', forkVersion],
         ['Deposit Domain', toHex(result)],
+      ],
+    });
+  });
+
+predepositGuaranteeHelpers
+  .command('validator-info')
+  .description('get validator info')
+  .argument('<validator-pubkey>', 'validator pubkey')
+  .action(async (validatorPubkey: Hex) => {
+    if (!validatorPubkey) return;
+
+    const validatorInfo = await fetchValidatorInfo(validatorPubkey);
+    logTable({
+      data: [
+        ['Index', validatorInfo.data.index],
+        ['Balance', validatorInfo.data.balance],
+        ['Status', validatorInfo.data.status],
+        ['Pubkey', validatorInfo.data.validator.pubkey],
+        [
+          'Withdrawal Credentials',
+          validatorInfo.data.validator.withdrawal_credentials,
+        ],
+        ['Effective Balance', validatorInfo.data.validator.effective_balance],
+        ['Slashed', validatorInfo.data.validator.slashed],
+        [
+          'Activation Eligibility Epoch',
+          validatorInfo.data.validator.activation_eligibility_epoch,
+        ],
+        ['Activation Epoch', validatorInfo.data.validator.activation_epoch],
+        ['Exit Epoch', validatorInfo.data.validator.exit_epoch],
+        ['Withdrawable Epoch', validatorInfo.data.validator.withdrawable_epoch],
       ],
     });
   });
