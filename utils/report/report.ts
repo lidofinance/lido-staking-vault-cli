@@ -1,6 +1,6 @@
 import { Address } from 'viem';
 
-import { fetchIPFS, IPFS_GATEWAY, logInfo } from 'utils';
+import { fetchIPFS, IPFS_GATEWAY, logInfo, snakeToCamel } from 'utils';
 
 import type {
   VaultReport,
@@ -82,7 +82,8 @@ export const getVaultData = (report: Report, vault: Address): VaultReport => {
         `Missing value at index ${index} for field "${fieldName}"`,
       );
     }
-    data[fieldName] = value.toString();
+    const camelCaseFieldName = snakeToCamel(fieldName) as keyof LeafDataFields;
+    data[camelCaseFieldName] = value.toString();
   }
 
   return {
