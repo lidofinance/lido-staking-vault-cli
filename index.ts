@@ -7,12 +7,11 @@ import './programs/index.js';
 export * from './utils/index.js';
 
 const showTestnetWarning = () => {
+  console.info('\n🎉 Testnet-2 is officially launched!');
   console.info(
-    '\n⚠️ Heads-up! All Testnet data will not be available via Web UI on 25 Jun 2025 as part of migration to the stVaults',
+    '🌐 Web UI is updated and available at: https://vaults-hoodi-lidov3.testnet.fi/vaults',
   );
-  console.info(
-    '🔄 Testnet-1 CLI functionality will remain available in the testnet-1 branch.',
-  );
+  console.info('🔄 Testnet-1 is available on the testnet-1 branch.');
   console.info(
     '📄 Contracts info: https://docs.lido.fi/deployed-contracts/hoodi-lidov3/\n',
   );
