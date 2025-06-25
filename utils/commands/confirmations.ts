@@ -24,6 +24,7 @@ type FunctionArgsMap = {
   setConfirmExpiry: readonly [bigint];
   setNodeOperatorFeeBP: readonly [bigint];
   changeTier: readonly [Address, bigint, bigint];
+  transferVaultOwnership: readonly [Address];
 };
 
 // Type-safe function map
@@ -34,6 +35,8 @@ export const CONFIRM_METHODS_MAP = {
     formatBP(args[0]),
   changeTier: (args: FunctionArgsMap['changeTier']) =>
     `vault: ${args[0]}, tier: ${args[1]}, requested share limit: ${formatEther(args[2])} shares`,
+  transferVaultOwnership: (args: FunctionArgsMap['transferVaultOwnership']) =>
+    `new owner: ${args[0]}`,
 } as const;
 
 type FunctionName = keyof typeof CONFIRM_METHODS_MAP;
@@ -59,7 +62,10 @@ type ConfirmationContract = GetContractReturnType<
 >;
 
 export const formatConfirmationArgs = (
-  args: readonly [bigint] | readonly [Address, bigint, bigint],
+  args:
+    | readonly [bigint]
+    | readonly [Address, bigint, bigint]
+    | readonly [Address],
   functionName: FunctionName,
 ) => {
   switch (functionName) {
@@ -74,6 +80,10 @@ export const formatConfirmationArgs = (
     case 'changeTier':
       return CONFIRM_METHODS_MAP.changeTier(
         args as FunctionArgsMap['changeTier'],
+      );
+    case 'transferVaultOwnership':
+      return CONFIRM_METHODS_MAP.transferVaultOwnership(
+        args as FunctionArgsMap['transferVaultOwnership'],
       );
     default:
       throw new Error(`Unknown function: ${functionName}`);
