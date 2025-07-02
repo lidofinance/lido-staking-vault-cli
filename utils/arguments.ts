@@ -15,6 +15,18 @@ export const stringToBigIntArrayWei = (value: string) => {
   return value.split(',').map(etherToWei);
 };
 
+export const stringTo2dArray = (value: string): string[][] => {
+  const trimmed = value.replace(/^["']|["']$/g, '');
+  return trimmed
+    .split(',')
+    .map((group) => group.trim().split(/\s+/).filter(Boolean));
+};
+
+export const stringToArray = (value: string): string[] => {
+  const trimmed = value.replace(/^["']|["']$/g, '');
+  return trimmed.split(',');
+};
+
 export const stringToHexArray = (value: string) => {
   return value.split(',').map(toHex);
 };
