@@ -194,7 +194,7 @@ yarn start deposits w top-up <amount>
 **Example:**
 
 ```bash
-# Top up with 64 ETH (enough for 2 predeposits)
+# Top up with 2 ETH (enough for 2 predeposits)
 yarn start deposits w top-up 2 -v 0x1234567890123456789012345678901234567890
 
 # Interactive vault selection
