@@ -4,7 +4,7 @@ sidebar_position: 6
 
 # Validator Deposits
 
-This guide covers validator deposit operations in Lido Staking Vaults, including predeposits, validator proving, and full deposits to the Beacon Chain. These operations are essential for node operators to activate validators and start earning staking rewards.
+This guide covers validator deposit operations in Lido Staking Vaults, including predeposits, validator proving, and full deposits to the Beacon Chain.
 
 ## Overview
 
