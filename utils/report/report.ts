@@ -93,41 +93,8 @@ export const getVaultData = (report: Report, vault: Address): VaultReport => {
     refSlot: report.refSlot,
     blockNumber: Number(report.blockNumber),
     timestamp: report.timestamp,
-    proofsCID: report.proofsCID,
-    merkleTreeRoot: report.merkleTreeRoot,
     prevTreeCID: report.prevTreeCID,
   };
-};
-
-export const getVaultReportProof = async (
-  args: VaultReportArgs,
-  cache = true,
-) => {
-  const { vault, cid, gateway = IPFS_GATEWAY, bigNumberType = 'string' } = args;
-
-  const report = await fetchIPFS<Report>(
-    {
-      cid,
-      gateway,
-      bigNumberType,
-    },
-    cache,
-  );
-  const proofCID = report.proofsCID;
-
-  const data = await fetchIPFS<ReportProof>(
-    {
-      cid: proofCID,
-      gateway,
-      bigNumberType,
-    },
-    cache,
-  );
-
-  const proofByVault = data.proofs[vault];
-  if (!proofByVault) throw new Error('Proof not found');
-
-  return proofByVault;
 };
 
 export const getVaultReportProofByCid = async (
@@ -187,7 +154,6 @@ export const getAllVaultsReports = async (
 
   return {
     vaultReports,
-    proofsCID: report.proofsCID,
     prevTreeCID: report.prevTreeCID,
   };
 };

@@ -22,11 +22,9 @@ export type Report = {
     treeIndex: bigint;
     value: [Address, string, string, string, string];
   }[];
-  merkleTreeRoot: Hex;
   refSlot: number;
   timestamp: number;
   blockNumber: bigint;
-  proofsCID: string;
   prevTreeCID: string;
   leafIndexToData: {
     [key: string]: keyof LeafDataFields;
@@ -43,13 +41,10 @@ export type VaultReport = {
   refSlot: number;
   blockNumber: number;
   timestamp: number;
-  proofsCID: string;
   prevTreeCID: string;
-  merkleTreeRoot: string;
 };
 
 export type ReportProof = {
-  merkleTreeRoot: string;
   refSlot: number;
   proofs: {
     [key: string]: {

@@ -9,6 +9,7 @@ import {
   getVaultReport,
   logInfo,
   getReportProofByVault,
+  callReadMethodSilent,
 } from 'utils';
 import { getLazyOracleContract } from 'contracts';
 import { chooseVaultAndGetDashboard } from 'features';
@@ -39,6 +40,7 @@ reportRead
     logInfo(timestamp, root, cid);
   });
 
+// TODO: refactor logging
 reportRead
   .command('by-vault')
   .description('get report by vault')
@@ -49,7 +51,7 @@ reportRead
 
     const lazyOracleContract = await getLazyOracleContract();
     const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
-      await callReadMethod(lazyOracleContract, 'latestReportData');
+      await callReadMethodSilent(lazyOracleContract, 'latestReportData');
 
     await fetchAndVerifyFile(vaultsDataReportCid, gateway);
 
@@ -62,6 +64,12 @@ reportRead
       },
       cacheUse,
     );
+
+    logInfo({
+      vaultsDataTreeRoot: _vaultsDataTreeRoot,
+      vaultsDataTimestamp: _vaultsDataTimestamp,
+      vaultsDataReportCid,
+    });
 
     logInfo(report);
   });
@@ -76,7 +84,7 @@ reportRead
 
     const lazyOracleContract = await getLazyOracleContract();
     const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
-      await callReadMethod(lazyOracleContract, 'latestReportData');
+      await callReadMethodSilent(lazyOracleContract, 'latestReportData');
 
     await fetchAndVerifyFile(vaultsDataReportCid, gateway);
     const proof = await getReportProofByVault({
@@ -85,6 +93,11 @@ reportRead
       gateway,
     });
 
+    logInfo({
+      vaultsDataTreeRoot: _vaultsDataTreeRoot,
+      vaultsDataTimestamp: _vaultsDataTimestamp,
+      vaultsDataReportCid,
+    });
     logInfo(proof);
   });
 
@@ -95,7 +108,7 @@ reportRead
   .action(async ({ gateway }) => {
     const lazyOracleContract = await getLazyOracleContract();
     const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
-      await callReadMethod(lazyOracleContract, 'latestReportData');
+      await callReadMethodSilent(lazyOracleContract, 'latestReportData');
 
     await fetchAndVerifyFile(vaultsDataReportCid, gateway);
 
@@ -108,6 +121,11 @@ reportRead
       cacheUse,
     );
 
+    logInfo({
+      vaultsDataTreeRoot: _vaultsDataTreeRoot,
+      vaultsDataTimestamp: _vaultsDataTimestamp,
+      vaultsDataReportCid,
+    });
     logInfo(allVaultsReports);
   });
 
@@ -118,7 +136,12 @@ reportRead
   .action(async ({ url }) => {
     const lazyOracleContract = await getLazyOracleContract();
     const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
-      await callReadMethod(lazyOracleContract, 'latestReportData');
+      await callReadMethodSilent(lazyOracleContract, 'latestReportData');
 
+    logInfo({
+      vaultsDataTreeRoot: _vaultsDataTreeRoot,
+      vaultsDataTimestamp: _vaultsDataTimestamp,
+      vaultsDataReportCid,
+    });
     await fetchAndVerifyFile(vaultsDataReportCid, url);
   });
