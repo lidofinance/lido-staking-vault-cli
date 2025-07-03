@@ -45,7 +45,7 @@ predepositGuaranteeHelpers
   .aliases(['proof-check'])
   .option('-i, --index <index>', 'validator index', stringToNumber)
   .description(
-    'make predeposit proof by validator index and check by test contract',
+    'make predeposit proof by validator index and check by the PDG contract',
   )
   .action(async ({ index }: { index: number }) => {
     const validatorIndex = await confirmMakeProof(index);

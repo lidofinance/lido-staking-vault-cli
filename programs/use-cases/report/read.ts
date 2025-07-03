@@ -40,7 +40,6 @@ reportRead
     logInfo(timestamp, root, cid);
   });
 
-// TODO: refactor logging
 reportRead
   .command('by-vault')
   .description('get report by vault')

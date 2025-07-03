@@ -29,7 +29,11 @@ Deposits commands handle validator deposits for Lido Staking Vaults. They work w
 
 ### Read
 
-Currently no read commands are implemented for deposits.
+| Command                                     | Description                       |
+| ------------------------------------------- | --------------------------------- |
+| info                                        | get PredepositGuarantee base info |
+| roles                                       | get PredepositGuarantee roles     |
+| validator-status v-status\<validatorPubkey> | get validator status              |
 
 ### Write
 
