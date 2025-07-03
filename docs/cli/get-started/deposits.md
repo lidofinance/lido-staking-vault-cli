@@ -186,19 +186,19 @@ yarn start deposits w top-up <amount>
 
 **Arguments and Options:**
 
-| Argument/Option        | Description             | Format               |
-| ---------------------- | ----------------------- | -------------------- |
-| `<amount>`             | Amount in ETH to top up | Decimal (e.g., 32.0) |
-| `-v, --vault <string>` | Vault address           | 0x...                |
+| Argument/Option        | Description             | Format            |
+| ---------------------- | ----------------------- | ----------------- |
+| `<amount>`             | Amount in ETH to top up | Decimal (e.g., 1) |
+| `-v, --vault <string>` | Vault address           | 0x...             |
 
 **Example:**
 
 ```bash
-# Top up with 64 ETH (enough for 2 validators)
-yarn start deposits w top-up 64 -v 0x1234567890123456789012345678901234567890
+# Top up with 64 ETH (enough for 2 predeposits)
+yarn start deposits w top-up 2 -v 0x1234567890123456789012345678901234567890
 
 # Interactive vault selection
-yarn start deposits w top-up 32
+yarn start deposits w top-up 1
 ```
 
 ### Withdraw Node Operator Balance
