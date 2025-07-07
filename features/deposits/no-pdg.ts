@@ -195,3 +195,19 @@ export const getGuarantor = async (
     currentAccount: currentAccount.address,
   };
 };
+
+export const specifyNodeOperatorAddress = async () => {
+  const currentAccount = getAccount();
+
+  const confirm = await confirmOperation(
+    `Do you want to use your address to check the balance ${currentAccount.address}?`,
+  );
+  if (!confirm) {
+    const otherAddress = await addressPrompt('Enter the address', 'value');
+    if (!otherAddress.value) throw new Error('Invalid address');
+
+    return otherAddress.value;
+  }
+
+  return currentAccount.address;
+};
