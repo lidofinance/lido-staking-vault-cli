@@ -61,7 +61,7 @@ export const fetchBeaconHeader = async (stateId: StateId, clURL?: string) => {
 
   try {
     const beaconHeaderResp = await fetch(
-      `${url}${endpoints.beaconHeader(stateId)}`,
+      `${url.endsWith('/') ? url : url + '/'}${endpoints.beaconHeader(stateId)}`,
     );
 
     return beaconHeaderResp.json();
@@ -90,9 +90,12 @@ export const fetchBeaconState = async (
   }
 
   try {
-    const beaconStateResp = await fetch(`${url}${endpoints.state(stateId)}`, {
-      headers: { accept: 'application/octet-stream' },
-    });
+    const beaconStateResp = await fetch(
+      `${url.endsWith('/') ? url : url + '/'}${endpoints.state(stateId)}`,
+      {
+        headers: { accept: 'application/octet-stream' },
+      },
+    );
 
     const { headers } = beaconStateResp;
     const forkName = headers.get(
@@ -131,7 +134,7 @@ export const fetchBeaconHeaderByParentRoot = async (
 
   try {
     const beaconHeaderResp = await fetch(
-      `${url}${endpoints.beaconHeadersByParentRoot(parentRoot)}`,
+      `${url.endsWith('/') ? url : url + '/'}${endpoints.beaconHeadersByParentRoot(parentRoot)}`,
     );
 
     return beaconHeaderResp.json();
@@ -159,7 +162,7 @@ export const fetchValidatorInfo = async (
 
   try {
     const validatorInfoResp = await fetch(
-      `${url}${endpoints.validatorInfo(validatorPubkey)}`,
+      `${url.endsWith('/') ? url : url + '/'}${endpoints.validatorInfo(validatorPubkey)}`,
     );
 
     return validatorInfoResp.json();
