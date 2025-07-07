@@ -67,7 +67,7 @@ Analyzes the latest vault report and calculates comprehensive performance metric
 - **Net Staking Rewards**: Rewards after fees and expenses
 - **Gross Staking APR**: Annual percentage return before fees
 - **Net Staking APR**: Annual percentage return after fees
-- **Efficiency**: Ratio of net to gross staking performance
+- **Carry Spread**: Final stVault bottom line in %
 - **Bottom Line**: Final profit/loss after all adjustments
 
 **Use Case:** Get comprehensive performance overview for a specific reporting period.
@@ -89,7 +89,7 @@ Generates visual APR (Annual Percentage Rate) charts for historical vault perfor
 
 - **Gross Staking APR**: Raw staking performance over time
 - **Net Staking APR**: Performance after node operator fees
-- **Efficiency**: Ratio showing operational efficiency
+- **Carry Spread**: Final stVault bottom line in %
 - **Bottom Line**: Net profit/loss trend
 - **Lido APR**: Comparative Lido protocol performance
 
@@ -157,7 +157,7 @@ Displays visual charts focused on rewards distribution and flow analysis.
 
 - Monitor long-term performance trends
 - Identify optimization opportunities
-- Track operator efficiency
+- Track stVault carry spread
 - Analyze fee impact
 
 ### Reporting & Analysis
@@ -165,7 +165,7 @@ Displays visual charts focused on rewards distribution and flow analysis.
 - Generate performance reports
 - Compare vault performance
 - Analyze rewards distribution
-- Monitor efficiency metrics
+- Monitor carry spread metrics
 
 ### Development & Testing
 

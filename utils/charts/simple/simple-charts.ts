@@ -9,7 +9,7 @@ import {
   getGrossStakingAPR,
   getGrossStakingRewards,
   getNetStakingAPR,
-  getEfficiency,
+  getCarrySpread,
   getBottomLine,
   getRebaseRewardFromCache,
 } from 'utils';
@@ -17,7 +17,7 @@ import {
 import {
   logGrossStakingAPRChart,
   logNetStakingAPRChart,
-  logEfficiencyChart,
+  logCarrySpreadChart,
   logBottomLineChart,
 } from '../metrics.js';
 
@@ -69,7 +69,7 @@ export const renderSimpleCharts = async ({
   // Calculate metrics for each pair (current, previous)
   const grossStakingAPRPercent = [];
   const netStakingAPRPercent = [];
-  const efficiencyPercent = [];
+  const carrySpreadPercent = [];
   const bottomLine = [];
   // TODO: log chart
   // eslint-disable-next-line sonarjs/no-unused-collection
@@ -117,8 +117,8 @@ export const renderSimpleCharts = async ({
       getNetStakingAPR(current, previous, nodeOperatorFeeBPs[i] ?? 0n)
         .apr_percent,
     );
-    efficiencyPercent.push(
-      getEfficiency(
+    carrySpreadPercent.push(
+      getCarrySpread(
         current,
         previous,
         nodeOperatorFeeBPs[i] ?? 0n,
@@ -143,7 +143,7 @@ export const renderSimpleCharts = async ({
   logInfo('\n');
   logNetStakingAPRChart(netStakingAPRPercent, timeLabels);
   logInfo('\n');
-  logEfficiencyChart(efficiencyPercent, timeLabels);
+  logCarrySpreadChart(carrySpreadPercent, timeLabels);
   logInfo('\n');
   logBottomLineChart(bottomLine, timeLabels);
   logInfo('\n');

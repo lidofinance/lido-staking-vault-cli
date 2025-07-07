@@ -94,7 +94,7 @@ metricsRead
           'Net Staking APR, %',
           formatRatio(statisticData.netStakingAPR.apr_percent),
         ],
-        ['Efficiency, %', formatRatio(statisticData.efficiency.apr_percent)],
+        ['Carry Spread, %', formatRatio(statisticData.carrySpread.apr_percent)],
         ['Bottom Line, ETH', formatEther(statisticData.bottomLine)],
       ],
     });

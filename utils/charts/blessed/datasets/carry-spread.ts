@@ -3,7 +3,7 @@ import { LINE_COLORS } from '../constants.js';
 
 import { BuildChartArgs } from './types.js';
 
-export const buildEfficiencyChart = (args: BuildChartArgs) => {
+export const buildCarrySpreadChart = (args: BuildChartArgs) => {
   const { values, timestamp } = args;
 
   const y: number[] = [];
@@ -31,11 +31,11 @@ export const buildEfficiencyChart = (args: BuildChartArgs) => {
   return {
     range,
     dataset: {
-      title: 'Efficiency',
-      label: 'efficiency',
+      title: 'Carry Spread',
+      label: 'carrySpread',
       x: adaptiveLabels,
       y,
-      style: { line: LINE_COLORS.efficiency },
+      style: { line: LINE_COLORS.carrySpread },
     },
   };
 };

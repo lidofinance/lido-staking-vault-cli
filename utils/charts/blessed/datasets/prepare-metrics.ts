@@ -5,7 +5,7 @@ import {
   getBottomLine,
   getGrossStakingAPR,
   getNetStakingAPR,
-  getEfficiency,
+  getCarrySpread,
   calculateLidoAPR,
   getGrossStakingRewards,
   getNodeOperatorRewards,
@@ -90,12 +90,12 @@ export const prepareNetStakingAPR = async (
   return { values: netStakingAPRPercent, timestamp };
 };
 
-export const prepareEfficiency = async (
+export const prepareCarrySpread = async (
   history: VaultReport[],
   nodeOperatorFeeBPs: bigint[],
   vaultAddress: string,
 ) => {
-  const efficiencyPercent = [];
+  const carrySpreadPercent = [];
   const timestamp = [];
 
   for (let i = 1; i < history.length; i++) {
@@ -111,17 +111,17 @@ export const prepareEfficiency = async (
       liabilitySharesPrev: BigInt(previous.data.liabilityShares),
     });
 
-    const value = getEfficiency(
+    const value = getCarrySpread(
       current,
       previous,
       nodeOperatorFeeBPs[i] ?? 0n,
       stEthLiabilityRebaseRewards,
     );
 
-    efficiencyPercent.push(value.apr_percent);
+    carrySpreadPercent.push(value.apr_percent);
     timestamp.push(current.timestamp);
   }
-  return { values: efficiencyPercent, timestamp };
+  return { values: carrySpreadPercent, timestamp };
 };
 
 export const prepareLidoAPR = async (history: VaultReport[]) => {

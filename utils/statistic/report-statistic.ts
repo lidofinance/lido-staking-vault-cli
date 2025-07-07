@@ -50,7 +50,7 @@ export const getNetStakingRewards = (
   return grossStakingRewards - nodeOperatorRewards - dailyLidoFees;
 };
 
-// The APR metrics (Gross Staking APR, Net Staking APR, Efficiency) are calculated using the following general formula:
+// The APR metrics (Gross Staking APR, Net Staking APR, Carry Spread) are calculated using the following general formula:
 //
 // APR = (Numerator * 100 * SecondsInYear) / (AverageTotalValue * PeriodSeconds)
 //
@@ -58,7 +58,7 @@ export const getNetStakingRewards = (
 //   Numerator — the specific rewards or value for the metric:
 //     - For Gross Staking APR: grossStakingRewards
 //     - For Net Staking APR: netStakingRewards
-//     - For Efficiency: bottomLine
+//     - For Carry Spread: bottomLine
 //   AverageTotalValue — arithmetic mean of TVL at the start and end of the period
 //   PeriodSeconds — difference between end and start timestamps (in seconds)
 //   SecondsInYear = 31536000
@@ -153,7 +153,7 @@ export const getBottomLine = (
   return netStakingRewards - stEthLiabilityRebaseRewards;
 };
 
-export const getEfficiency = (
+export const getCarrySpread = (
   current: VaultReport,
   previous: VaultReport,
   nodeOperatorFeeBP: bigint,
@@ -220,7 +220,7 @@ export const reportMetrics = (args: ReportMetricsArgs) => {
     nodeOperatorFeeRate,
     stEthLiabilityRebaseRewards,
   );
-  const efficiency = getEfficiency(
+  const carrySpread = getCarrySpread(
     current,
     previous,
     nodeOperatorFeeRate,
@@ -235,6 +235,6 @@ export const reportMetrics = (args: ReportMetricsArgs) => {
     grossStakingAPR,
     netStakingAPR,
     bottomLine,
-    efficiency,
+    carrySpread,
   };
 };
