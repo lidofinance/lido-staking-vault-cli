@@ -8,10 +8,15 @@ import {
   logResult,
   showSpinner,
   printError,
+  callReadMethodSilent,
 } from 'utils';
 import { getPublicClient } from 'providers';
+import { reportFreshWarning } from 'features';
 
 export const getVaultInfoByDashboard = async (contract: DashboardContract) => {
+  const vault = await callReadMethodSilent(contract, 'stakingVault');
+  await reportFreshWarning(vault);
+
   const hideSpinner = showSpinner();
   const publicClient = getPublicClient();
 
@@ -22,7 +27,6 @@ export const getVaultInfoByDashboard = async (contract: DashboardContract) => {
       eth,
       lidoLocator,
       vaultHub,
-      vault,
       reserveRatioBP,
       forcedRebalanceThresholdBP,
       infraFeeBP,
@@ -50,7 +54,6 @@ export const getVaultInfoByDashboard = async (contract: DashboardContract) => {
       contract.read.ETH(),
       contract.read.LIDO_LOCATOR(),
       contract.read.VAULT_HUB(),
-      contract.read.stakingVault(),
 
       contract.read.reserveRatioBP(),
       contract.read.forcedRebalanceThresholdBP(),
