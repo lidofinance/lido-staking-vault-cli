@@ -47,6 +47,8 @@ Vault Operations commands manage the core functionality of Lido Staking Vaults i
 | mint-steth \<amountOfSteth>       | mints stETH tokens backed by the vault to a recipient                                                                   |
 | burn-shares burn\<amountOfShares> | Burns stETH shares from the sender backed by the vault. Expects corresponding amount of stETH approved to this contract |
 | burn-steth \<amountOfShares>      | Burns stETH shares from the sender backed by the vault. Expects stETH amount approved to this contract.                 |
+| burn-wsteth \<amountOfWsteth>     | Burns wstETH tokens from the sender backed by the vault. Expects wstETH amount approved to this contract.               |
+| disburse-node-operator-fee        | transfers the node operator's accrued fee to nodeOperatorFeeRecipient                                                   |
 | create-vault                      | creates a new StakingVault and Dashboard contracts                                                                      |
 
 ## Command Details
@@ -342,6 +344,29 @@ Burns wstETH tokens (by amount) from the caller, reducing vault liability.
 
 - Caller must have BURN_ROLE for the vault
 - Sufficient wstETH tokens approved to the Dashboard contract
+
+### disburse-node-operator-fee
+
+Transfers the node operator's accrued fee (if any) to the nodeOperatorFeeRecipient address.
+
+**Options:**
+
+- `-v, --vault <address>`: Specify vault address
+
+**Process:**
+
+- Checks if node operator has any disbursable fees
+- Displays confirmation with recipient address and fee amount
+- Transfers accrued fees to the nodeOperatorFeeRecipient
+
+**Requirements:**
+
+- Node operator must have accrued fees available for disbursement
+- nodeOperatorFeeRecipient must be properly configured
+
+**Returns:**
+
+- Transaction hash and confirmation of fee disbursement
 
 ## Role-Based Access Control
 
