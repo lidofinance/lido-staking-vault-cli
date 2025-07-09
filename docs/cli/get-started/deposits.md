@@ -49,6 +49,53 @@ yarn start deposits r validator-status <validatorPubkey>
 | ------------------- | ----------------------------- | -------------------------- |
 | `<validatorPubkey>` | Validator public key to check | 0x... (48-byte hex string) |
 
+### Check Node Operator Balance
+
+Get total, locked, and unlocked balances for the Node Operator in PDG:
+
+```bash
+yarn start deposits r no-balance
+```
+
+**Aliases:** `no-bal`
+
+**Example:**
+
+```bash
+# Check node operator balance
+yarn start deposits r no-balance
+
+# Using alias
+yarn start deposits r no-bal
+```
+
+This command shows:
+
+- **Total**: Total ETH balance for the node operator
+- **Locked**: ETH locked for predeposits
+- **Unlocked**: Available ETH that can be locked for predeposit or withdrawn
+
+### Check Node Operator Info
+
+Get comprehensive information about the Node Operator in PDG:
+
+```bash
+yarn start deposits r no-info
+```
+
+**Example:**
+
+```bash
+# Get full node operator information
+yarn start deposits r no-info
+```
+
+This command displays:
+
+- Balance information (total, locked, unlocked)
+- Depositor address (with indication if it's your address)
+- Guarantor address (with indication if it's your address)
+
 ## Write Operations
 
 ### Predeposit Validators
