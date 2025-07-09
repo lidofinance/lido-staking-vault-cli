@@ -44,24 +44,6 @@ export type VaultReport = {
   prevTreeCID: string;
 };
 
-export type ReportProof = {
-  refSlot: number;
-  proofs: {
-    [key: string]: {
-      id: number;
-      totalValueWei: bigint;
-      inOutDelta: bigint;
-      fee: bigint;
-      liabilityShares: bigint;
-      leaf: string;
-      proof: string[];
-    };
-  };
-  block_number: number;
-  timestamp: number;
-  prevTreeCID: string;
-};
-
 export type VaultReportArgs = {
   vault: Address;
   cid: string;

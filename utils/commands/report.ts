@@ -1,9 +1,9 @@
 import { Address } from 'viem';
+import { program } from 'command';
 
 import { getLazyOracleContract } from 'contracts';
 import {
   callReadMethod,
-  fetchAndVerifyFile,
   logCancel,
   callWriteMethodWithReceipt,
   confirmOperation,
@@ -23,14 +23,15 @@ export const submitReport = async ({
   const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
     await callReadMethod(lazyOracleContract, 'latestReportData');
 
-  await fetchAndVerifyFile(vaultsDataReportCid, gateway);
-
-  const proof = await getReportProofByVault({
-    vault,
-    cid: vaultsDataReportCid,
-    gateway,
-  });
-  await fetchAndVerifyFile(vaultsDataReportCid, gateway);
+  const { cacheUse } = program.opts();
+  const proof = await getReportProofByVault(
+    {
+      vault,
+      cid: vaultsDataReportCid,
+      gateway,
+    },
+    cacheUse,
+  );
 
   const confirm = await confirmOperation(
     `Are you sure you want to submit report for vault ${vault}?

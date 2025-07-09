@@ -10,7 +10,6 @@ import {
   callReadMethod,
   getReportStatisticData,
   getVaultPreviousReport,
-  fetchAndVerifyFile,
   logResult,
   formatRatio,
   fetchAprChartsData,
@@ -46,8 +45,6 @@ metricsRead
     const lazyOracleContract = await getLazyOracleContract();
     const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
       await callReadMethod(lazyOracleContract, 'latestReportData');
-
-    await fetchAndVerifyFile(vaultsDataReportCid, gateway);
 
     const { cacheUse } = program.opts();
     const reportCurrent = await getVaultReport(

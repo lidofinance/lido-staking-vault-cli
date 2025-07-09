@@ -9,7 +9,6 @@ import {
   logInfo,
   getCommandsJson,
   logError,
-  fetchAndVerifyFile,
   withInterruptHandling,
   submitReport,
   getReportProofByVaults,
@@ -54,7 +53,6 @@ reportWrite
       const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
         await callReadMethod(lazyOracleContract, 'latestReportData');
 
-      await fetchAndVerifyFile(vaultsDataReportCid, gateway);
       const proofs = await getReportProofByVaults({
         cid: vaultsDataReportCid,
         gateway,
@@ -110,8 +108,6 @@ reportWrite
       const lazyOracleContract = await getLazyOracleContract();
       const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
         await callReadMethod(lazyOracleContract, 'latestReportData');
-
-      await fetchAndVerifyFile(vaultsDataReportCid, gateway);
 
       const proofs = await getReportProofs({
         cid: vaultsDataReportCid,

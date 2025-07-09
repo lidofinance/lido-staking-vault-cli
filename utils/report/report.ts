@@ -6,7 +6,6 @@ import type {
   VaultReport,
   VaultReportArgs,
   Report,
-  ReportProof,
   LeafDataFields,
 } from './types.js';
 
@@ -95,43 +94,6 @@ export const getVaultData = (report: Report, vault: Address): VaultReport => {
     timestamp: report.timestamp,
     prevTreeCID: report.prevTreeCID,
   };
-};
-
-export const getVaultReportProofByCid = async (
-  args: VaultReportArgs,
-  cache = true,
-) => {
-  const { vault, cid, gateway = IPFS_GATEWAY, bigNumberType = 'string' } = args;
-  const proof = await fetchIPFS<ReportProof>(
-    {
-      cid,
-      gateway,
-      bigNumberType,
-    },
-    cache,
-  );
-
-  const proofByVault = proof.proofs[vault];
-  if (!proofByVault) throw new Error('Proof not found');
-
-  return proofByVault;
-};
-
-export const getAllVaultsReportProofs = async (
-  args: Omit<VaultReportArgs, 'vault'>,
-  cache = true,
-) => {
-  const { cid, gateway = IPFS_GATEWAY, bigNumberType = 'string' } = args;
-  const proof = await fetchIPFS<ReportProof>(
-    {
-      cid,
-      gateway,
-      bigNumberType,
-    },
-    cache,
-  );
-
-  return proof.proofs;
 };
 
 export const getAllVaultsReports = async (

@@ -1,14 +1,17 @@
 import { Address, Hex } from 'viem';
 import { StandardMerkleTree } from '@openzeppelin/merkle-tree';
 
-import { fetchIPFS, fetchIPFSDirect } from 'utils';
+import { fetchIPFS } from 'utils';
 import { Report, VaultReportArgs } from './types.js';
 import { getVaultData } from './report.js';
 
-export const getReportProofByVault = async (args: VaultReportArgs) => {
+export const getReportProofByVault = async (
+  args: VaultReportArgs,
+  cache = true,
+) => {
   const { vault } = args;
 
-  const IPFSReportData = await fetchIPFSDirect<Report>(args);
+  const IPFSReportData = await fetchIPFS<Report>(args, cache);
 
   const merkleTree = StandardMerkleTree.load({
     ...IPFSReportData,
@@ -41,18 +44,22 @@ type GetReportProofByVaultsArgs = Omit<VaultReportArgs, 'vault'> & {
 
 export const getReportProofByVaults = async (
   args: GetReportProofByVaultsArgs,
+  cache = true,
 ) => {
   const { vaults } = args;
 
   const proofs = await Promise.all(
-    vaults.map((vault) => getReportProofByVault({ ...args, vault })),
+    vaults.map((vault) => getReportProofByVault({ ...args, vault }, cache)),
   );
 
   return proofs;
 };
 
-export const getReportProofs = async (args: Omit<VaultReportArgs, 'vault'>) => {
-  const report = await fetchIPFS<Report>(args);
+export const getReportProofs = async (
+  args: Omit<VaultReportArgs, 'vault'>,
+  cache = true,
+) => {
+  const report = await fetchIPFS<Report>(args, cache);
   const vaultReports = report.values.map(
     (value) => getVaultData(report, value.value[0]).data,
   );
@@ -60,7 +67,7 @@ export const getReportProofs = async (args: Omit<VaultReportArgs, 'vault'>) => {
 
   const proofs = await Promise.all(
     vaults.map((vault) =>
-      getReportProofByVault({ ...args, vault: vault as Address }),
+      getReportProofByVault({ ...args, vault: vault as Address }, cache),
     ),
   );
 
