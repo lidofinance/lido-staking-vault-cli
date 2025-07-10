@@ -12,7 +12,7 @@ import {
   fetchIPFS,
 } from 'utils';
 import { getLazyOracleContract } from 'contracts';
-import { chooseVaultAndGetDashboard } from 'features';
+import { checkQuarantine, chooseVaultAndGetDashboard } from 'features';
 
 import { report } from './main.js';
 
@@ -48,6 +48,8 @@ reportRead
   .action(async ({ vault, gateway }) => {
     const { vault: vaultAddress } = await chooseVaultAndGetDashboard({ vault });
 
+    await checkQuarantine(vaultAddress);
+
     const lazyOracleContract = await getLazyOracleContract();
     const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
       await callReadMethodSilent(lazyOracleContract, 'latestReportData');
@@ -78,6 +80,8 @@ reportRead
   .option('-g, --gateway', 'ipfs gateway url')
   .action(async ({ vault, gateway }) => {
     const { vault: vaultAddress } = await chooseVaultAndGetDashboard({ vault });
+
+    await checkQuarantine(vaultAddress);
 
     const lazyOracleContract = await getLazyOracleContract();
     const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =

@@ -30,7 +30,7 @@ import {
   prepareBottomLine,
   formatTimestamp,
 } from 'utils';
-import { chooseVaultAndGetDashboard } from 'features/vault-operations/dashboard-by-vault.js';
+import { checkQuarantine, chooseVaultAndGetDashboard } from 'features';
 
 import { metrics } from './main.js';
 
@@ -53,6 +53,9 @@ metricsRead
   .action(async ({ vault, gateway }) => {
     const { address: dashboardAddress, vault: vaultAddress } =
       await chooseVaultAndGetDashboard({ vault });
+
+    await checkQuarantine(vaultAddress);
+
     const lazyOracleContract = await getLazyOracleContract();
     const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
       await callReadMethod(lazyOracleContract, 'latestReportData');
@@ -117,6 +120,9 @@ metricsRead
   .action(async (count: number, { vault, gateway }) => {
     const { contract: dashboardContract, vault: vaultAddress } =
       await chooseVaultAndGetDashboard({ vault });
+
+    await checkQuarantine(vaultAddress);
+
     const lazyOracleContract = await getLazyOracleContract();
     const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
       await callReadMethod(lazyOracleContract, 'latestReportData');
@@ -195,9 +201,13 @@ metricsRead
   .option('-v, --vault <string>', 'vault address')
   .option('-s, --simplified', 'simplified charts')
   .action(async (count: number, { vault, simplified }) => {
-    const { address: dashboardAddress } = await chooseVaultAndGetDashboard({
-      vault,
-    });
+    const { address: dashboardAddress, vault: vaultAddress } =
+      await chooseVaultAndGetDashboard({
+        vault,
+      });
+
+    await checkQuarantine(vaultAddress);
+
     const lazyOracleContract = await getLazyOracleContract();
     const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
       await callReadMethod(lazyOracleContract, 'latestReportData');
@@ -227,9 +237,13 @@ metricsRead
   .argument('<count>', 'count of reports', stringToNumber)
   .option('-v, --vault <string>', 'vault address')
   .action(async (count: number, { vault }) => {
-    const { address: dashboardAddress } = await chooseVaultAndGetDashboard({
-      vault,
-    });
+    const { address: dashboardAddress, vault: vaultAddress } =
+      await chooseVaultAndGetDashboard({
+        vault,
+      });
+
+    await checkQuarantine(vaultAddress);
+
     const lazyOracleContract = await getLazyOracleContract();
     const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
       await callReadMethod(lazyOracleContract, 'latestReportData');

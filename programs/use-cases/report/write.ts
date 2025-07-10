@@ -14,7 +14,7 @@ import {
   getReportProofByVaults,
   getReportProofs,
 } from 'utils';
-import { chooseVaultAndGetDashboard } from 'features';
+import { chooseVaultAndGetDashboard, checkQuarantine } from 'features';
 
 import { report } from './main.js';
 
@@ -37,6 +37,8 @@ reportWrite
   .option('-g, --gateway', 'ipfs gateway url')
   .action(async ({ vault, gateway }) => {
     const { vault: vaultAddress } = await chooseVaultAndGetDashboard({ vault });
+
+    await checkQuarantine(vaultAddress);
 
     await submitReport({ vault: vaultAddress, gateway });
   });
@@ -75,6 +77,9 @@ reportWrite
           logError(`Vault ${vault} not found`);
           continue;
         }
+
+        await checkQuarantine(vault);
+
         await callWriteMethodWithReceipt({
           contract: lazyOracleContract,
           methodName: 'updateVaultData',

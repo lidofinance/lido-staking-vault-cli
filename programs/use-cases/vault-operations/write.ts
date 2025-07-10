@@ -21,6 +21,7 @@ import {
   burnSteth,
   checkVaultRole,
   checkAllowance,
+  confirmQuarantine,
 } from 'features';
 import { getAccount } from 'providers';
 
@@ -46,6 +47,9 @@ vaultOperationsWrite
     const { contract, vault: vaultAddress } = await chooseVaultAndGetDashboard({
       vault,
     });
+
+    const quarantineConfirm = await confirmQuarantine(vaultAddress);
+    if (!quarantineConfirm) return;
 
     const account = getAccount();
     await checkVaultRole(contract, 'FUND_ROLE', account.address);
@@ -81,6 +85,9 @@ vaultOperationsWrite
       const recipientAddress = await getAddress(recipient, 'recipient');
       const { contract, vault: vaultAddress } =
         await chooseVaultAndGetDashboard({ vault });
+
+      const quarantineConfirm = await confirmQuarantine(vaultAddress);
+      if (!quarantineConfirm) return;
 
       const account = getAccount();
       await checkVaultRole(contract, 'WITHDRAW_ROLE', account.address);
@@ -127,6 +134,9 @@ vaultOperationsWrite
       const { contract, vault: vaultAddress } =
         await chooseVaultAndGetDashboard({ vault });
 
+      const quarantineConfirm = await confirmQuarantine(vaultAddress);
+      if (!quarantineConfirm) return;
+
       const account = getAccount();
       await checkVaultRole(contract, 'MINT_ROLE', account.address);
 
@@ -164,6 +174,9 @@ vaultOperationsWrite
       const { contract, vault: vaultAddress } =
         await chooseVaultAndGetDashboard({ vault });
 
+      const quarantineConfirm = await confirmQuarantine(vaultAddress);
+      if (!quarantineConfirm) return;
+
       const account = getAccount();
       await checkVaultRole(contract, 'MINT_ROLE', account.address);
 
@@ -196,6 +209,9 @@ vaultOperationsWrite
       const { contract, vault: vaultAddress } =
         await chooseVaultAndGetDashboard({ vault });
 
+      const quarantineConfirm = await confirmQuarantine(vaultAddress);
+      if (!quarantineConfirm) return;
+
       const account = getAccount();
       await checkVaultRole(contract, 'MINT_ROLE', account.address);
 
@@ -222,6 +238,9 @@ vaultOperationsWrite
       vault,
     });
 
+    const quarantineConfirm = await confirmQuarantine(vaultAddress);
+    if (!quarantineConfirm) return;
+
     const account = getAccount();
     await checkVaultRole(contract, 'BURN_ROLE', account.address);
     await checkAllowance(contract, amountOfShares, 'shares');
@@ -240,6 +259,9 @@ vaultOperationsWrite
     const { contract, vault: vaultAddress } = await chooseVaultAndGetDashboard({
       vault,
     });
+
+    const quarantineConfirm = await confirmQuarantine(vaultAddress);
+    if (!quarantineConfirm) return;
 
     const account = getAccount();
     await checkVaultRole(contract, 'BURN_ROLE', account.address);
@@ -262,6 +284,9 @@ vaultOperationsWrite
       vault,
     });
 
+    const quarantineConfirm = await confirmQuarantine(vaultAddress);
+    if (!quarantineConfirm) return;
+
     const account = getAccount();
     await checkVaultRole(contract, 'BURN_ROLE', account.address);
     await checkAllowance(contract, amountOfWsteth, 'wsteth');
@@ -279,6 +304,10 @@ vaultOperationsWrite
     const { contract, vault: vaultAddress } = await chooseVaultAndGetDashboard({
       vault,
     });
+
+    const quarantineConfirm = await confirmQuarantine(vaultAddress);
+    if (!quarantineConfirm) return;
+
     const nodeOperatorFeeRecipient = await callReadMethodSilent(
       contract,
       'nodeOperatorFeeRecipient',
