@@ -18,6 +18,17 @@ import {
   renderRewardsCharts,
   stringToNumber,
   renderSimpleCharts,
+  getVaultReportHistory,
+  prepareGrossStakingRewards,
+  prepareNodeOperatorRewards,
+  prepareNetStakingRewards,
+  callReadMethodSilent,
+  cache,
+  prepareGrossStakingAPR,
+  prepareNetStakingAPR,
+  prepareCarrySpread,
+  prepareBottomLine,
+  formatTimestamp,
 } from 'utils';
 import { chooseVaultAndGetDashboard } from 'features/vault-operations/dashboard-by-vault.js';
 
@@ -94,6 +105,86 @@ metricsRead
         ['Carry Spread, %', formatRatio(statisticData.carrySpread.apr_percent)],
         ['Bottom Line, ETH', formatEther(statisticData.bottomLine)],
       ],
+    });
+  });
+
+metricsRead
+  .command('statistic-by-reports')
+  .description('get statistic data for N last reports')
+  .argument('<count>', 'count of reports', stringToNumber)
+  .option('-v, --vault <string>', 'vault address')
+  .option('-g, --gateway', 'ipfs gateway url')
+  .action(async (count: number, { vault, gateway }) => {
+    const { contract: dashboardContract, vault: vaultAddress } =
+      await chooseVaultAndGetDashboard({ vault });
+    const lazyOracleContract = await getLazyOracleContract();
+    const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
+      await callReadMethod(lazyOracleContract, 'latestReportData');
+
+    const { cacheUse } = program.opts();
+    const history = await getVaultReportHistory(
+      {
+        vault: vaultAddress,
+        cid: vaultsDataReportCid,
+        limit: count,
+        direction: 'asc',
+        gateway,
+      },
+      cacheUse,
+    );
+
+    // Get nodeOperatorFeeBP for each report block with caching
+    const nodeOperatorFeeBPs: bigint[] = [];
+    for (const r of history) {
+      let fee = await cache.getNodeOperatorFeeRate(vault, r.blockNumber);
+      if (fee === null) {
+        fee = await callReadMethodSilent(
+          dashboardContract,
+          'nodeOperatorFeeRate',
+          {
+            blockNumber: BigInt(r.blockNumber),
+          },
+        );
+        await cache.setNodeOperatorFeeRate(vault, r.blockNumber, fee);
+      }
+      nodeOperatorFeeBPs.push(fee);
+    }
+    const [
+      grossStakingRewards,
+      nodeOperatorRewards,
+      netStakingRewards,
+      grossStakingAPR,
+      netStakingAPR,
+      carrySpread,
+      bottomLine,
+    ] = await Promise.all([
+      prepareGrossStakingRewards(history),
+      prepareNodeOperatorRewards(history, nodeOperatorFeeBPs),
+      prepareNetStakingRewards(history, nodeOperatorFeeBPs),
+      prepareGrossStakingAPR(history),
+      prepareNetStakingAPR(history, nodeOperatorFeeBPs),
+      prepareCarrySpread(history, nodeOperatorFeeBPs, vaultAddress),
+      prepareBottomLine(history, nodeOperatorFeeBPs, vaultAddress),
+    ]);
+
+    logResult({
+      data: [
+        ['Gross Staking Rewards, ETH', ...grossStakingRewards.values],
+        ['Node Operator Rewards, ETH', ...nodeOperatorRewards.values],
+        ['Net Staking Rewards, ETH', ...netStakingRewards.values],
+        ['Gross Staking APR, %', ...grossStakingAPR.values.map(formatRatio)],
+        ['Net Staking APR, %', ...netStakingAPR.values.map(formatRatio)],
+        ['Carry Spread, %', ...carrySpread.values.map(formatRatio)],
+        ['Bottom Line, WEI', ...bottomLine.values],
+      ],
+      params: {
+        head: [
+          'Metric',
+          ...grossStakingRewards.timestamp.map((ts) =>
+            formatTimestamp(ts, 'dd.mm hh:mm'),
+          ),
+        ],
+      },
     });
   });
 

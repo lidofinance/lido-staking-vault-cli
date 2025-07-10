@@ -12,6 +12,7 @@ import {
   getCarrySpread,
   getBottomLine,
   getRebaseRewardFromCache,
+  formatTimestamp,
 } from 'utils';
 
 import {
@@ -22,11 +23,6 @@ import {
 } from '../metrics.js';
 
 // TODO: Refactor this file
-
-const formatTimestamp = function (ts: number): string {
-  const d = new Date(ts * 1000);
-  return `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-};
 
 // Render simple charts for APR metrics
 export const renderSimpleCharts = async ({
@@ -136,7 +132,7 @@ export const renderSimpleCharts = async ({
       ),
     );
 
-    timeLabels.push(formatTimestamp(current.timestamp));
+    timeLabels.push(formatTimestamp(current.timestamp, 'dd.mm hh:mm'));
   }
 
   logGrossStakingAPRChart(grossStakingAPRPercent, timeLabels);

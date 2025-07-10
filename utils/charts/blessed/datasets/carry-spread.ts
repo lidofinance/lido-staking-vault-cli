@@ -1,4 +1,6 @@
-import { formatTimestamp, getAdaptiveLabels, getMinMax } from '../utils.js';
+import { formatTimestamp } from 'utils';
+
+import { getAdaptiveLabels, getMinMax } from '../utils.js';
 import { LINE_COLORS } from '../constants.js';
 
 import { BuildChartArgs } from './types.js';
@@ -11,8 +13,8 @@ export const buildCarrySpreadChart = (args: BuildChartArgs) => {
   const uniqueDays = new Set<string>();
 
   for (const [i, element] of values.entries()) {
-    y.push(element ?? 0);
-    const dayLabel = formatTimestamp(timestamp[i] ?? 0);
+    y.push(Number(element ?? 0));
+    const dayLabel = formatTimestamp(timestamp[i] ?? 0, 'dd.mm');
 
     if (!uniqueDays.has(dayLabel)) {
       x.push(dayLabel);

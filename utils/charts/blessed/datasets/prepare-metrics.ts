@@ -42,13 +42,13 @@ export const prepareBottomLine = async (
       stEthLiabilityRebaseRewards,
     );
 
-    bottomLine.push(Number(bottomLineValue));
+    bottomLine.push(String(bottomLineValue));
     timestamp.push(current.timestamp);
   }
   return { values: bottomLine, timestamp };
 };
 
-export const prepareGrossStakingAPR = async (history: VaultReport[]) => {
+export const prepareGrossStakingAPR = (history: VaultReport[]) => {
   const grossStakingAPRPercent = [];
   const timestamp = [];
 
@@ -65,7 +65,7 @@ export const prepareGrossStakingAPR = async (history: VaultReport[]) => {
   return { values: grossStakingAPRPercent, timestamp };
 };
 
-export const prepareNetStakingAPR = async (
+export const prepareNetStakingAPR = (
   history: VaultReport[],
   nodeOperatorFeeBPs: bigint[],
 ) => {
@@ -149,7 +149,7 @@ export const prepareLidoAPR = async (history: VaultReport[]) => {
   return { values: lidoAPR, timestamp };
 };
 
-export const prepareGrossStakingRewards = async (history: VaultReport[]) => {
+export const prepareGrossStakingRewards = (history: VaultReport[]) => {
   const grossStakingRewards = [];
   const timestamp = [];
 
@@ -160,13 +160,13 @@ export const prepareGrossStakingRewards = async (history: VaultReport[]) => {
 
     const value = getGrossStakingRewards(current, previous);
 
-    grossStakingRewards.push(Number(formatEther(value, 'gwei')));
+    grossStakingRewards.push(String(formatEther(value)));
     timestamp.push(current.timestamp);
   }
   return { values: grossStakingRewards, timestamp };
 };
 
-export const prepareNodeOperatorRewards = async (
+export const prepareNodeOperatorRewards = (
   history: VaultReport[],
   nodeOperatorFeeBPs: bigint[],
 ) => {
@@ -184,13 +184,13 @@ export const prepareNodeOperatorRewards = async (
       nodeOperatorFeeBPs[i] ?? 0n,
     );
 
-    nodeOperatorRewards.push(Number(formatEther(value, 'gwei')));
+    nodeOperatorRewards.push(String(formatEther(value)));
     timestamp.push(current.timestamp);
   }
   return { values: nodeOperatorRewards, timestamp };
 };
 
-export const prepareNetStakingRewards = async (
+export const prepareNetStakingRewards = (
   history: VaultReport[],
   nodeOperatorFeeBPs: bigint[],
 ) => {
@@ -208,7 +208,7 @@ export const prepareNetStakingRewards = async (
       nodeOperatorFeeBPs[i] ?? 0n,
     );
 
-    netStakingRewards.push(Number(formatEther(value, 'gwei')));
+    netStakingRewards.push(String(formatEther(value)));
     timestamp.push(current.timestamp);
   }
   return { values: netStakingRewards, timestamp };
