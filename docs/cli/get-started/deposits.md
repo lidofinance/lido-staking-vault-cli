@@ -197,6 +197,14 @@ yarn start deposits w prove-and-deposit '[12345, 12346, 12347]' '[{
 
 ### Full Beacon Chain Deposit
 
+:::warning
+
+There is a known issue with incremental validator deposits: if you top up a validator's balance in 1 ETH increments and reach exactly 32 ETH through multiple deposits, the validator may fail to activate. See [ethereum/consensus-specs#3049](https://github.com/ethereum/consensus-specs/issues/3049) for details.
+
+To avoid this, always deposit the remaining 31 ETH in a single transaction rather than splitting it into smaller amounts. This ensures proper validator activation without delays.
+
+:::
+
 Deposit the remaining 31 ETH to complete validator activation (total 32 ETH):
 
 ```bash
