@@ -67,8 +67,8 @@ export const fetchAprChartsData = async ({
     nodeOperatorFeeBPs.push(fee);
   }
 
-  const grossStakingAPR = await prepareGrossStakingAPR(history);
-  const netStakingAPR = await prepareNetStakingAPR(history, nodeOperatorFeeBPs);
+  const grossStakingAPR = prepareGrossStakingAPR(history);
+  const netStakingAPR = prepareNetStakingAPR(history, nodeOperatorFeeBPs);
   const carrySpread = await prepareCarrySpread(
     history,
     nodeOperatorFeeBPs,

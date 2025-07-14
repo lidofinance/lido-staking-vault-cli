@@ -74,15 +74,32 @@ export const getVaultData = (report: Report, vault: Address): VaultReport => {
   // TODO: for old reports without extraValues
   const extraData = report.extraValues?.[vault] || { inOutDelta: '0' };
 
-  for (const [index, fieldName] of Object.entries(report.leafIndexToData)) {
-    const value = match.value[Number(index)];
-    if (value === undefined) {
+  for (const [_key, _index] of Object.entries(report.leafIndexToData)) {
+    let index: number;
+    let fieldName: string;
+
+    // new report format
+    // leafIndexToData: { "vaultAddress": 0, ...
+    if (typeof _index === 'number') {
+      index = _index;
+      fieldName = _key;
+    }
+    // TODO: remove soon
+    // old report format
+    // leafIndexToData: { "0": "vaultAddress", ...
+    else {
+      index = Number(_key);
+      fieldName = _index;
+    }
+
+    const valueByIndex = match.value[index];
+    if (valueByIndex === undefined) {
       throw new Error(
         `Missing value at index ${index} for field "${fieldName}"`,
       );
     }
     const camelCaseFieldName = snakeToCamel(fieldName) as keyof LeafDataFields;
-    data[camelCaseFieldName] = value.toString();
+    data[camelCaseFieldName] = valueByIndex.toString();
   }
 
   return {

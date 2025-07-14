@@ -27,7 +27,7 @@ export type Report = {
   blockNumber: bigint;
   prevTreeCID: string;
   leafIndexToData: {
-    [key: string]: keyof LeafDataFields;
+    [key: string]: keyof LeafDataFields | number;
   };
   extraValues: {
     [key: string]: ExtraDataFields;
