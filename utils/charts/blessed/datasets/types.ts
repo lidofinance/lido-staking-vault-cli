@@ -1,4 +1,4 @@
 export type BuildChartArgs = {
-  values: string[];
+  values: string[] | number[];
   timestamp: number[];
 };
