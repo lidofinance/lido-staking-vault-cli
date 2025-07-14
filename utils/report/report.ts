@@ -84,6 +84,7 @@ export const getVaultData = (report: Report, vault: Address): VaultReport => {
       index = _index;
       fieldName = _key;
     }
+    // TODO: remove soon
     // old report format
     // leafIndexToData: { "0": "vaultAddress", ...
     else {
