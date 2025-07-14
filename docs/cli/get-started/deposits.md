@@ -199,9 +199,9 @@ yarn start deposits w prove-and-deposit '[12345, 12346, 12347]' '[{
 
 :::warning
 
-Due to a known issue with incremental validator deposits (specifically when making 1 ETH top-ups), your validator may fail to activate properly if it reaches an effective balance of exactly 32 ETH through multiple 1 ETH deposits. This problem is documented in [ethereum/consensus-specs#3049](https://github.com/ethereum/consensus-specs/issues/3049).
+There is a known issue with incremental validator deposits: if you top up a validator's balance in 1 ETH increments and reach exactly 32 ETH through multiple deposits, the validator may fail to activate. See [ethereum/consensus-specs#3049](https://github.com/ethereum/consensus-specs/issues/3049) for details.
 
-To ensure seamless validator activation, you must deposit the remaining 31 ETH in a single transaction. Avoid splitting the deposit or sending smaller top-ups that might delay or block activation.
+To avoid this, always deposit the remaining 31 ETH in a single transaction rather than splitting it into smaller amounts. This ensures proper validator activation without delays.
 
 :::
 
