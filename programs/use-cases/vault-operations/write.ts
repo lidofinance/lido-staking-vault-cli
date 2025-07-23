@@ -8,6 +8,8 @@ import {
   stringToAddress,
   confirmOperation,
   callWriteMethodWithReceipt,
+  callReadMethodSilent,
+  logError,
 } from 'utils';
 import {
   chooseVaultAndGetDashboard,
@@ -19,6 +21,7 @@ import {
   burnSteth,
   checkVaultRole,
   checkAllowance,
+  confirmQuarantine,
 } from 'features';
 import { getAccount } from 'providers';
 
@@ -44,6 +47,9 @@ vaultOperationsWrite
     const { contract, vault: vaultAddress } = await chooseVaultAndGetDashboard({
       vault,
     });
+
+    const quarantineConfirm = await confirmQuarantine(vaultAddress);
+    if (!quarantineConfirm) return;
 
     const account = getAccount();
     await checkVaultRole(contract, 'FUND_ROLE', account.address);
@@ -79,6 +85,9 @@ vaultOperationsWrite
       const recipientAddress = await getAddress(recipient, 'recipient');
       const { contract, vault: vaultAddress } =
         await chooseVaultAndGetDashboard({ vault });
+
+      const quarantineConfirm = await confirmQuarantine(vaultAddress);
+      if (!quarantineConfirm) return;
 
       const account = getAccount();
       await checkVaultRole(contract, 'WITHDRAW_ROLE', account.address);
@@ -125,6 +134,9 @@ vaultOperationsWrite
       const { contract, vault: vaultAddress } =
         await chooseVaultAndGetDashboard({ vault });
 
+      const quarantineConfirm = await confirmQuarantine(vaultAddress);
+      if (!quarantineConfirm) return;
+
       const account = getAccount();
       await checkVaultRole(contract, 'MINT_ROLE', account.address);
 
@@ -162,6 +174,9 @@ vaultOperationsWrite
       const { contract, vault: vaultAddress } =
         await chooseVaultAndGetDashboard({ vault });
 
+      const quarantineConfirm = await confirmQuarantine(vaultAddress);
+      if (!quarantineConfirm) return;
+
       const account = getAccount();
       await checkVaultRole(contract, 'MINT_ROLE', account.address);
 
@@ -194,6 +209,9 @@ vaultOperationsWrite
       const { contract, vault: vaultAddress } =
         await chooseVaultAndGetDashboard({ vault });
 
+      const quarantineConfirm = await confirmQuarantine(vaultAddress);
+      if (!quarantineConfirm) return;
+
       const account = getAccount();
       await checkVaultRole(contract, 'MINT_ROLE', account.address);
 
@@ -220,6 +238,9 @@ vaultOperationsWrite
       vault,
     });
 
+    const quarantineConfirm = await confirmQuarantine(vaultAddress);
+    if (!quarantineConfirm) return;
+
     const account = getAccount();
     await checkVaultRole(contract, 'BURN_ROLE', account.address);
     await checkAllowance(contract, amountOfShares, 'shares');
@@ -238,6 +259,9 @@ vaultOperationsWrite
     const { contract, vault: vaultAddress } = await chooseVaultAndGetDashboard({
       vault,
     });
+
+    const quarantineConfirm = await confirmQuarantine(vaultAddress);
+    if (!quarantineConfirm) return;
 
     const account = getAccount();
     await checkVaultRole(contract, 'BURN_ROLE', account.address);
@@ -260,9 +284,52 @@ vaultOperationsWrite
       vault,
     });
 
+    const quarantineConfirm = await confirmQuarantine(vaultAddress);
+    if (!quarantineConfirm) return;
+
     const account = getAccount();
     await checkVaultRole(contract, 'BURN_ROLE', account.address);
     await checkAllowance(contract, amountOfWsteth, 'wsteth');
 
     await burnShares(contract, amountOfWsteth, vaultAddress, 'burnWstETH');
+  });
+
+vaultOperationsWrite
+  .command('disburse-node-operator-fee')
+  .description(
+    'transfers the node-operator`s accrued fee (if any) to nodeOperatorFeeRecipient',
+  )
+  .option('-v, --vault <string>', 'vault address', stringToAddress)
+  .action(async ({ vault }: { vault: Address }) => {
+    const { contract, vault: vaultAddress } = await chooseVaultAndGetDashboard({
+      vault,
+    });
+
+    const quarantineConfirm = await confirmQuarantine(vaultAddress);
+    if (!quarantineConfirm) return;
+
+    const nodeOperatorFeeRecipient = await callReadMethodSilent(
+      contract,
+      'nodeOperatorFeeRecipient',
+    );
+    const nodeOperatorDisbursableFee = await callReadMethodSilent(
+      contract,
+      'nodeOperatorDisbursableFee',
+    );
+
+    if (nodeOperatorDisbursableFee === 0n) {
+      logError('The node operator has no disbursable fee');
+      return;
+    }
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to transfer the node operator fee to ${nodeOperatorFeeRecipient} (nodeOperatorFeeRecipient) from the staking vault ${vaultAddress}? The node operator disbursable fee is ${formatEther(nodeOperatorDisbursableFee)} ETH`,
+    );
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'disburseNodeOperatorFee',
+      payload: [],
+    });
   });

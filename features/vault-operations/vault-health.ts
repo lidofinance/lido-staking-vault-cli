@@ -1,16 +1,21 @@
 import { DashboardContract } from 'contracts';
+import { reportFreshWarning } from 'features';
 import {
   logTable,
   logInfo,
   logResult,
   formatBP,
   fetchAndCalculateVaultHealth,
+  callReadMethodSilent,
 } from 'utils';
 
 export const getVaultHealthByDashboard = async (
   contract: DashboardContract,
 ) => {
   try {
+    const vault = await callReadMethodSilent(contract, 'stakingVault');
+    await reportFreshWarning(vault);
+
     const {
       healthRatio,
       isHealthy,

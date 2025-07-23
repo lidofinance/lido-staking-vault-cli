@@ -59,12 +59,12 @@ export const fetchRewardsChartsData = async ({
     nodeOperatorFeeBPs.push(fee);
   }
 
-  const grossStakingRewards = await prepareGrossStakingRewards(history);
-  const nodeOperatorRewards = await prepareNodeOperatorRewards(
+  const grossStakingRewards = prepareGrossStakingRewards(history);
+  const nodeOperatorRewards = prepareNodeOperatorRewards(
     history,
     nodeOperatorFeeBPs,
   );
-  const netStakingRewards = await prepareNetStakingRewards(
+  const netStakingRewards = prepareNetStakingRewards(
     history,
     nodeOperatorFeeBPs,
   );

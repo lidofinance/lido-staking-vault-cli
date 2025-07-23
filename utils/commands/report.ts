@@ -1,9 +1,10 @@
 import { Address } from 'viem';
+import { program } from 'command';
 
-import { getLazyOracleContract } from 'contracts';
+import { getLazyOracleContract, getVaultHubContract } from 'contracts';
 import {
   callReadMethod,
-  fetchAndVerifyFile,
+  callReadMethodSilent,
   logCancel,
   callWriteMethodWithReceipt,
   confirmOperation,
@@ -20,17 +21,30 @@ export const submitReport = async ({
   gateway,
 }: SubmitReportArgs): Promise<void> => {
   const lazyOracleContract = await getLazyOracleContract();
+  const vaultHubContract = await getVaultHubContract();
+
   const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
     await callReadMethod(lazyOracleContract, 'latestReportData');
+  const isReportFresh = await callReadMethodSilent(
+    vaultHubContract,
+    'isReportFresh',
+    [vault],
+  );
 
-  await fetchAndVerifyFile(vaultsDataReportCid, gateway);
+  if (isReportFresh) {
+    logCancel('Report is fresh. You dont need to submit it again');
+    return;
+  }
 
-  const proof = await getReportProofByVault({
-    vault,
-    cid: vaultsDataReportCid,
-    gateway,
-  });
-  await fetchAndVerifyFile(vaultsDataReportCid, gateway);
+  const { cacheUse } = program.opts();
+  const proof = await getReportProofByVault(
+    {
+      vault,
+      cid: vaultsDataReportCid,
+      gateway,
+    },
+    cacheUse,
+  );
 
   const confirm = await confirmOperation(
     `Are you sure you want to submit report for vault ${vault}?

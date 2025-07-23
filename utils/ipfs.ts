@@ -22,14 +22,12 @@ export const fetchIPFS = async <T>(
   args: ReportFetchArgs,
   cache = true,
 ): Promise<T> => {
-  const { cid, gateway = IPFS_GATEWAY, bigNumberType = 'string' } = args;
-  const ipfsUrl = `${gateway}/${cid}`;
+  const { cid, gateway = IPFS_GATEWAY } = args;
 
-  logInfo('Fetching content from', ipfsUrl);
+  if (cache) return fetchIPFSWithCacheAndVerify<T>(cid, gateway);
 
-  if (cache) return fetchIPFSWithCache<T>({ cid, gateway, bigNumberType });
-
-  return fetchIPFSDirect<T>({ cid, gateway, bigNumberType });
+  const { json } = await fetchIPFSDirectAndVerify<T>(cid, gateway);
+  return json;
 };
 
 // Fetching content by CID through IPFS gateway
@@ -56,10 +54,13 @@ export const fetchIPFSDirect = async <T>(args: ReportFetchArgs): Promise<T> => {
 
 // Fetching buffer content by CID through IPFS gateway
 export const fetchIPFSBuffer = async (
-  cid: string,
-  gateway = IPFS_GATEWAY,
+  args: ReportFetchArgs,
 ): Promise<Uint8Array> => {
-  const response = await fetch(`${gateway}/${cid}`);
+  const { cid, gateway = IPFS_GATEWAY } = args;
+  const ipfsUrl = `${gateway}/${cid}`;
+  logInfo('Fetching content from', ipfsUrl);
+
+  const response = await fetch(ipfsUrl);
   if (!response.ok) {
     throw new Error(`Failed to fetch content: ${response.statusText}`);
   }
@@ -91,13 +92,13 @@ export const calculateIPFSAddCID = async (
 };
 
 // Downloading file from IPFS and checking its integrity
-export const fetchAndVerifyFile = async (
+export const fetchIPFSDirectAndVerify = async <T>(
   cid: string,
   gateway = IPFS_GATEWAY,
-): Promise<Uint8Array> => {
+): Promise<{ json: T; fileContent: Uint8Array }> => {
   const originalCID = CID.parse(cid);
 
-  const fileContent = await fetchIPFSBuffer(cid, gateway);
+  const fileContent = await fetchIPFSBuffer({ cid, gateway });
   const calculatedCID = await calculateIPFSAddCID(fileContent);
 
   if (!calculatedCID.equals(originalCID)) {
@@ -116,22 +117,28 @@ export const fetchAndVerifyFile = async (
       head: ['Type', 'CID'],
     },
   });
-  return fileContent;
+  const json = JSON.parse(new TextDecoder().decode(fileContent)) as T;
+  return {
+    fileContent,
+    json,
+  };
 };
 
-export const fetchIPFSWithCache = async <T>(
-  args: ReportFetchArgs,
+export const fetchIPFSWithCacheAndVerify = async <T>(
+  cid: string,
+  gateway = IPFS_GATEWAY,
 ): Promise<T> => {
-  const { cid, gateway = IPFS_GATEWAY, bigNumberType = 'string' } = args;
   await fs.mkdir(IPFS_CACHE_DIR, { recursive: true });
   const cacheFile = path.join(IPFS_CACHE_DIR, `${cid}.json`);
+
   try {
+    logInfo('Trying to get content from cache', cid);
     const data = await fs.readFile(cacheFile, 'utf-8');
     return JSON.parse(data) as T;
   } catch {
     // Not in cache, fetch from IPFS
-    const data = await fetchIPFSDirect<T>({ cid, gateway, bigNumberType });
-    await fs.writeFile(cacheFile, JSON.stringify(data), 'utf-8');
-    return data;
+    const { json } = await fetchIPFSDirectAndVerify<T>(cid, gateway);
+    await fs.writeFile(cacheFile, JSON.stringify(json), 'utf-8');
+    return json;
   }
 };

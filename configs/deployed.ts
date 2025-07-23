@@ -100,7 +100,7 @@ export const getDeployedAddress = (...contractKeys: string[]) => {
   const contract = contracts.find((contract) => contract);
 
   if (typeof contract === 'string') {
-    return contract as Address;
+    return contract;
   }
 
   if (!contract || typeof contract !== 'object') {

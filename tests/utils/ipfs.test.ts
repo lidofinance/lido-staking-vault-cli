@@ -77,7 +77,7 @@ describe('ipfs helpers', () => {
       ok: true,
       arrayBuffer: async () => buf,
     });
-    const res = await ipfs.fetchIPFSBuffer('abc');
+    const res = await ipfs.fetchIPFSBuffer({ cid: 'abc' });
     expect(global.fetch).toHaveBeenCalledWith('https://ipfs.io/ipfs/abc');
     expect(res).toEqual(new Uint8Array(buf));
   });
@@ -102,7 +102,7 @@ describe('ipfs helpers', () => {
       .spyOn(ipfs, 'fetchIPFSBuffer')
       .mockResolvedValueOnce(new Uint8Array([1]));
     jest.spyOn(ipfs, 'calculateIPFSAddCID').mockResolvedValueOnce(fakeCid);
-    const res = await ipfs.fetchAndVerifyFile(fakeCid.toString());
+    const res = await ipfs.fetchIPFSDirectAndVerify(fakeCid.toString());
     expect(res).toEqual(new Uint8Array([1]));
     expect(logTable).toHaveBeenCalled();
   });
@@ -115,8 +115,8 @@ describe('ipfs helpers', () => {
       .spyOn(ipfs, 'fetchIPFSBuffer')
       .mockResolvedValueOnce(new Uint8Array([1]));
     jest.spyOn(ipfs, 'calculateIPFSAddCID').mockResolvedValueOnce(other);
-    await expect(ipfs.fetchAndVerifyFile(fakeCid.toString())).rejects.toThrow(
-      'CID mismatch',
-    );
+    await expect(
+      ipfs.fetchIPFSDirectAndVerify(fakeCid.toString()),
+    ).rejects.toThrow('CID mismatch');
   });
 });

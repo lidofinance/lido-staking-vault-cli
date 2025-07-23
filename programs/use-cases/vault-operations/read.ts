@@ -10,6 +10,7 @@ import {
   getVaultInfoByDashboard,
   getVaultOverviewByDashboard,
   getVaultRolesByDashboard,
+  checkQuarantine,
 } from 'features';
 
 const vaultOperationsRead = vaultOperations
@@ -28,7 +29,11 @@ vaultOperationsRead
   .description('get vault info')
   .option('-v, --vault <string>', 'vault address')
   .action(async ({ vault }: { vault: Address }) => {
-    const { contract } = await chooseVaultAndGetDashboard({ vault });
+    const { contract, vault: vaultAddress } = await chooseVaultAndGetDashboard({
+      vault,
+    });
+
+    await checkQuarantine(vaultAddress);
 
     await getVaultInfoByDashboard(contract);
   });
@@ -38,7 +43,11 @@ vaultOperationsRead
   .description('get vault health')
   .option('-v, --vault <string>', 'vault address')
   .action(async ({ vault }: { vault: Address }) => {
-    const { contract } = await chooseVaultAndGetDashboard({ vault });
+    const { contract, vault: vaultAddress } = await chooseVaultAndGetDashboard({
+      vault,
+    });
+
+    await checkQuarantine(vaultAddress);
 
     await getVaultHealthByDashboard(contract);
   });
@@ -48,7 +57,11 @@ vaultOperationsRead
   .description('get vault overview')
   .option('-v, --vault <string>', 'vault address')
   .action(async ({ vault }: { vault: Address }) => {
-    const { contract } = await chooseVaultAndGetDashboard({ vault });
+    const { contract, vault: vaultAddress } = await chooseVaultAndGetDashboard({
+      vault,
+    });
+
+    await checkQuarantine(vaultAddress);
 
     await getVaultOverviewByDashboard(contract);
   });
@@ -58,7 +71,11 @@ vaultOperationsRead
   .description('get vault roles')
   .option('-v, --vault <string>', 'vault address')
   .action(async ({ vault }: { vault: Address }) => {
-    const { contract } = await chooseVaultAndGetDashboard({ vault });
+    const { contract, vault: vaultAddress } = await chooseVaultAndGetDashboard({
+      vault,
+    });
+
+    await checkQuarantine(vaultAddress);
 
     await getVaultRolesByDashboard(contract);
   });

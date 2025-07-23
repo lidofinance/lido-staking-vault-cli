@@ -8,14 +8,14 @@ import { getDashboardContract } from 'contracts';
 import { lineOpts, getMinMax } from './utils.js';
 import { LIMIT } from './constants.js';
 import {
-  prepareEfficiency,
+  prepareCarrySpread,
   prepareBottomLine,
   prepareGrossStakingAPR,
   prepareLidoAPR,
   prepareNetStakingAPR,
   buildLidoAPRChart,
   buildNetStakingAPRChart,
-  buildEfficiencyChart,
+  buildCarrySpreadChart,
   buildBottomLineChart,
   buildGrossStakingAPRChart,
 } from './datasets/index.js';
@@ -67,9 +67,9 @@ export const fetchAprChartsData = async ({
     nodeOperatorFeeBPs.push(fee);
   }
 
-  const grossStakingAPR = await prepareGrossStakingAPR(history);
-  const netStakingAPR = await prepareNetStakingAPR(history, nodeOperatorFeeBPs);
-  const efficiency = await prepareEfficiency(
+  const grossStakingAPR = prepareGrossStakingAPR(history);
+  const netStakingAPR = prepareNetStakingAPR(history, nodeOperatorFeeBPs);
+  const carrySpread = await prepareCarrySpread(
     history,
     nodeOperatorFeeBPs,
     vault,
@@ -83,14 +83,14 @@ export const fetchAprChartsData = async ({
 
   const grossStakingAPRChart = buildGrossStakingAPRChart(grossStakingAPR);
   const netStakingAPRChart = buildNetStakingAPRChart(netStakingAPR);
-  const efficiencyChart = buildEfficiencyChart(efficiency);
+  const carrySpreadChart = buildCarrySpreadChart(carrySpread);
   const bottomLineChart = buildBottomLineChart(bottomLine);
   const lidoAPRChart = buildLidoAPRChart(lidoAPR);
 
   return {
     grossStakingAPRChart,
     netStakingAPRChart,
-    efficiencyChart,
+    carrySpreadChart,
     bottomLineChart,
     lidoAPRChart,
   };
@@ -99,7 +99,7 @@ export const fetchAprChartsData = async ({
 export const renderAprCharts = ({
   grossStakingAPRChart,
   netStakingAPRChart,
-  efficiencyChart,
+  carrySpreadChart,
   bottomLineChart,
   lidoAPRChart,
 }: any) => {
@@ -143,10 +143,10 @@ export const renderAprCharts = ({
       1,
       contrib.line,
       lineOpts({
-        title: efficiencyChart.dataset.title,
-        label: efficiencyChart.dataset.label,
-        yLabel: efficiencyChart.dataset.yLabel,
-        range: efficiencyChart.range,
+        title: carrySpreadChart.dataset.title,
+        label: carrySpreadChart.dataset.label,
+        yLabel: carrySpreadChart.dataset.yLabel,
+        range: carrySpreadChart.range,
       }),
     ),
     grid.set(
@@ -196,7 +196,7 @@ export const renderAprCharts = ({
   const datasets = [
     grossStakingAPRChart.dataset,
     netStakingAPRChart.dataset,
-    efficiencyChart.dataset,
+    carrySpreadChart.dataset,
     bottomLineChart.dataset,
     lidoAPRChart.dataset,
     [netStakingAPRChart.dataset, lidoAPRChart.dataset],

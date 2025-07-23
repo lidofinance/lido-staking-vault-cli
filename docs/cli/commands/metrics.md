@@ -28,11 +28,12 @@ Metrics commands provide comprehensive analytics and reporting for Lido Staking 
 
 ### Read
 
-| Command                            | Description                            |
-| ---------------------------------- | -------------------------------------- |
-| statistic \<address>               | get statistic data for last report     |
-| charts-apr \<address> \<count>     | get APR charts data for N last reports |
-| charts-rewards \<address> \<count> | get APR charts data for N last reports |
+| Command                       | Description                                |
+| ----------------------------- | ------------------------------------------ |
+| statistic                     | get statistic data for last report         |
+| statistic-by-reports \<count> | get statistic data for N last reports      |
+| charts-apr \<count>           | get APR charts data for N last reports     |
+| charts-rewards \<count>       | get rewards charts data for N last reports |
 
 ### Write
 
@@ -44,12 +45,9 @@ Currently no write commands are implemented for metrics.
 
 Analyzes the latest vault report and calculates comprehensive performance metrics and statistics.
 
-**Arguments:**
-
-- `<address>`: Dashboard contract address
-
 **Options:**
 
+- `-v, --vault <string>`: Vault address
 - `-g, --gateway`: IPFS gateway URL for report data retrieval
 
 **Process:**
@@ -67,10 +65,42 @@ Analyzes the latest vault report and calculates comprehensive performance metric
 - **Net Staking Rewards**: Rewards after fees and expenses
 - **Gross Staking APR**: Annual percentage return before fees
 - **Net Staking APR**: Annual percentage return after fees
-- **Efficiency**: Ratio of net to gross staking performance
+- **Carry Spread**: Final stVault bottom line in %
 - **Bottom Line**: Final profit/loss after all adjustments
 
 **Use Case:** Get comprehensive performance overview for a specific reporting period.
+
+### statistic-by-reports
+
+Analyzes multiple historical vault reports and calculates comprehensive performance metrics for N last reports.
+
+**Arguments:**
+
+- `<count>`: Number of historical reports to analyze
+
+**Options:**
+
+- `-v, --vault <string>`: Vault address
+- `-g, --gateway`: IPFS gateway URL for report data retrieval
+
+**Process:**
+
+- Retrieves historical report data from LazyOracle contract
+- Fetches vault reports from IPFS for the specified count
+- Calculates performance metrics for each reporting period
+- Displays data in tabular format with timestamps
+
+**Metrics Calculated:**
+
+- **Gross Staking Rewards**: Total rewards earned from staking
+- **Node Operator Rewards**: Rewards allocated to node operators
+- **Net Staking Rewards**: Rewards after fees
+- **Gross Staking APR**: Annual percentage return before fees
+- **Net Staking APR**: Annual percentage return after fees
+- **Carry Spread**: Final stVault bottom line in %
+- **Bottom Line**: Final profit/loss after all adjustments
+
+**Use Case:** Compare performance metrics across multiple reporting periods and identify trends over time.
 
 ### charts-apr
 
@@ -78,18 +108,18 @@ Generates visual APR (Annual Percentage Rate) charts for historical vault perfor
 
 **Arguments:**
 
-- `<address>`: Dashboard contract address
 - `<count>`: Number of historical reports to include
 
 **Options:**
 
+- `-v, --vault <string>`: Vault address
 - `-s, --simplified`: Use simplified text-based charts instead of interactive charts
 
 **Chart Types:**
 
 - **Gross Staking APR**: Raw staking performance over time
 - **Net Staking APR**: Performance after node operator fees
-- **Efficiency**: Ratio showing operational efficiency
+- **Carry Spread**: Final stVault bottom line in %
 - **Bottom Line**: Net profit/loss trend
 - **Lido APR**: Comparative Lido protocol performance
 
@@ -108,8 +138,11 @@ Displays visual charts focused on rewards distribution and flow analysis.
 
 **Arguments:**
 
-- `<address>`: Dashboard contract address
 - `<count>`: Number of historical reports to analyze
+
+**Options:**
+
+- `-v, --vault <string>`: Vault address
 
 **Chart Types:**
 
@@ -157,7 +190,7 @@ Displays visual charts focused on rewards distribution and flow analysis.
 
 - Monitor long-term performance trends
 - Identify optimization opportunities
-- Track operator efficiency
+- Track stVault carry spread
 - Analyze fee impact
 
 ### Reporting & Analysis
@@ -165,7 +198,7 @@ Displays visual charts focused on rewards distribution and flow analysis.
 - Generate performance reports
 - Compare vault performance
 - Analyze rewards distribution
-- Monitor efficiency metrics
+- Monitor carry spread metrics
 
 ### Development & Testing
 

@@ -1,6 +1,5 @@
 import { readFileSync } from 'fs';
 import {
-  Address,
   createPublicClient,
   createWalletClient,
   http,
@@ -56,7 +55,7 @@ export const getAccount = () => {
     throw new Error(`Private key for ${id} chain is not set`);
   }
 
-  return privateKeyToAccount(privateKey as Address);
+  return privateKeyToAccount(privateKey);
 };
 
 export const getPublicClient = () => {

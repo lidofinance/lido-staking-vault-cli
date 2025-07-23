@@ -4,7 +4,7 @@ export const SECONDS_IN_YEAR = 365 * 24 * 60 * 60;
 export const LINE_COLORS = {
   grossStakingAPR: 'yellow',
   netStakingAPR: 'cyan',
-  efficiency: 'green',
+  carrySpread: 'green',
   bottomLine: 'magenta',
   lidoAPR: 'blue',
   grossStakingRewards: 'red',

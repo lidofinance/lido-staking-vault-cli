@@ -9,13 +9,12 @@ import {
   logInfo,
   getCommandsJson,
   logError,
-  fetchAndVerifyFile,
   withInterruptHandling,
   submitReport,
   getReportProofByVaults,
   getReportProofs,
 } from 'utils';
-import { chooseVaultAndGetDashboard } from 'features';
+import { chooseVaultAndGetDashboard, checkQuarantine } from 'features';
 
 import { report } from './main.js';
 
@@ -39,6 +38,8 @@ reportWrite
   .action(async ({ vault, gateway }) => {
     const { vault: vaultAddress } = await chooseVaultAndGetDashboard({ vault });
 
+    await checkQuarantine(vaultAddress);
+
     await submitReport({ vault: vaultAddress, gateway });
   });
 
@@ -54,7 +55,6 @@ reportWrite
       const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
         await callReadMethod(lazyOracleContract, 'latestReportData');
 
-      await fetchAndVerifyFile(vaultsDataReportCid, gateway);
       const proofs = await getReportProofByVaults({
         cid: vaultsDataReportCid,
         gateway,
@@ -77,6 +77,9 @@ reportWrite
           logError(`Vault ${vault} not found`);
           continue;
         }
+
+        await checkQuarantine(vault);
+
         await callWriteMethodWithReceipt({
           contract: lazyOracleContract,
           methodName: 'updateVaultData',
@@ -111,8 +114,6 @@ reportWrite
       const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
         await callReadMethod(lazyOracleContract, 'latestReportData');
 
-      await fetchAndVerifyFile(vaultsDataReportCid, gateway);
-
       const proofs = await getReportProofs({
         cid: vaultsDataReportCid,
         gateway,
@@ -134,7 +135,7 @@ reportWrite
             contract: lazyOracleContract,
             methodName: 'updateVaultData',
             payload: [
-              report.data.vaultAddress as Address,
+              report.data.vaultAddress,
               BigInt(report.data.totalValueWei),
               BigInt(report.data.fee),
               BigInt(report.data.liabilityShares),

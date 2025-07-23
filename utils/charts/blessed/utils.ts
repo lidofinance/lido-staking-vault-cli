@@ -9,12 +9,6 @@ import {
   XPADDING,
 } from './constants.js';
 
-export const formatTimestamp = (ts: number): string => {
-  const d = new Date(ts * 1000);
-  // dd.mm
-  return `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}`;
-};
-
 export const randomColor = () => {
   return [Math.random() * 255, Math.random() * 255, Math.random() * 255];
 };

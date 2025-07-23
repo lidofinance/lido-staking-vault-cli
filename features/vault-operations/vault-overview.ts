@@ -21,10 +21,14 @@ import {
   calculateOverviewV2,
   callReadMethodSilent,
 } from 'utils';
+import { reportFreshWarning } from 'features';
 
 export const getVaultOverviewByDashboard = async (
   contract: DashboardContract,
 ) => {
+  const vault = await callReadMethodSilent(contract, 'stakingVault');
+  await reportFreshWarning(vault);
+
   const hideSpinner = showSpinner();
   const publicClient = getPublicClient();
 
@@ -32,7 +36,6 @@ export const getVaultOverviewByDashboard = async (
     const health = await fetchAndCalculateVaultHealth(contract);
     const operatorGridContract = await getOperatorGridContract();
     const [
-      vault,
       nodeOperatorFeeRate,
       reserveRatioBP,
       totalMintingCapacityShares,
@@ -43,7 +46,6 @@ export const getVaultOverviewByDashboard = async (
       shareLimit,
       remainingMintingCapacityShares,
     ] = await Promise.all([
-      contract.read.stakingVault(),
       contract.read.nodeOperatorFeeRate(),
       contract.read.reserveRatioBP(),
       contract.read.totalMintingCapacityShares(),

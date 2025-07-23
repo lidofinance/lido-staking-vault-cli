@@ -9,24 +9,20 @@ import {
   getGrossStakingAPR,
   getGrossStakingRewards,
   getNetStakingAPR,
-  getEfficiency,
+  getCarrySpread,
   getBottomLine,
   getRebaseRewardFromCache,
+  formatTimestamp,
 } from 'utils';
 
 import {
   logGrossStakingAPRChart,
   logNetStakingAPRChart,
-  logEfficiencyChart,
+  logCarrySpreadChart,
   logBottomLineChart,
 } from '../metrics.js';
 
 // TODO: Refactor this file
-
-const formatTimestamp = function (ts: number): string {
-  const d = new Date(ts * 1000);
-  return `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-};
 
 // Render simple charts for APR metrics
 export const renderSimpleCharts = async ({
@@ -69,7 +65,7 @@ export const renderSimpleCharts = async ({
   // Calculate metrics for each pair (current, previous)
   const grossStakingAPRPercent = [];
   const netStakingAPRPercent = [];
-  const efficiencyPercent = [];
+  const carrySpreadPercent = [];
   const bottomLine = [];
   // TODO: log chart
   // eslint-disable-next-line sonarjs/no-unused-collection
@@ -117,8 +113,8 @@ export const renderSimpleCharts = async ({
       getNetStakingAPR(current, previous, nodeOperatorFeeBPs[i] ?? 0n)
         .apr_percent,
     );
-    efficiencyPercent.push(
-      getEfficiency(
+    carrySpreadPercent.push(
+      getCarrySpread(
         current,
         previous,
         nodeOperatorFeeBPs[i] ?? 0n,
@@ -136,14 +132,14 @@ export const renderSimpleCharts = async ({
       ),
     );
 
-    timeLabels.push(formatTimestamp(current.timestamp));
+    timeLabels.push(formatTimestamp(current.timestamp, 'dd.mm hh:mm'));
   }
 
   logGrossStakingAPRChart(grossStakingAPRPercent, timeLabels);
   logInfo('\n');
   logNetStakingAPRChart(netStakingAPRPercent, timeLabels);
   logInfo('\n');
-  logEfficiencyChart(efficiencyPercent, timeLabels);
+  logCarrySpreadChart(carrySpreadPercent, timeLabels);
   logInfo('\n');
   logBottomLineChart(bottomLine, timeLabels);
   logInfo('\n');

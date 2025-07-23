@@ -12,6 +12,10 @@ export type LeafDataFields = {
 
 export type ExtraDataFields = {
   inOutDelta: string;
+  prevFee: string;
+  infraFee: string;
+  liquidityFee: string;
+  reservationFee: string;
 };
 
 export type Report = {
@@ -22,14 +26,12 @@ export type Report = {
     treeIndex: bigint;
     value: [Address, string, string, string, string];
   }[];
-  merkleTreeRoot: Hex;
   refSlot: number;
   timestamp: number;
   blockNumber: bigint;
-  proofsCID: string;
   prevTreeCID: string;
   leafIndexToData: {
-    [key: string]: keyof LeafDataFields;
+    [key: string]: keyof LeafDataFields | number;
   };
   extraValues: {
     [key: string]: ExtraDataFields;
@@ -42,27 +44,6 @@ export type VaultReport = {
   leaf: string;
   refSlot: number;
   blockNumber: number;
-  timestamp: number;
-  proofsCID: string;
-  prevTreeCID: string;
-  merkleTreeRoot: string;
-};
-
-export type ReportProof = {
-  merkleTreeRoot: string;
-  refSlot: number;
-  proofs: {
-    [key: string]: {
-      id: number;
-      totalValueWei: bigint;
-      inOutDelta: bigint;
-      fee: bigint;
-      liabilityShares: bigint;
-      leaf: string;
-      proof: string[];
-    };
-  };
-  block_number: number;
   timestamp: number;
   prevTreeCID: string;
 };

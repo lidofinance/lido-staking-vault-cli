@@ -29,7 +29,13 @@ Deposits commands handle validator deposits for Lido Staking Vaults. They work w
 
 ### Read
 
-Currently no read commands are implemented for deposits.
+| Command                                     | Description                                                                                                 |
+| ------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| info                                        | get PredepositGuarantee base info                                                                           |
+| roles                                       | get PredepositGuarantee roles                                                                               |
+| validator-status v-status\<validatorPubkey> | get validator status                                                                                        |
+| no-balance (no-bal)                         | get total, locked & unlocked balances for the node operator in PDG                                          |
+| no-info                                     | get comprehensive info about the node operator in PDG including balances, depositor and guarantor addresses |
 
 ### Write
 
@@ -44,6 +50,76 @@ Currently no read commands are implemented for deposits.
 | set-no-guarantor (set-no-g)              | Set node operator guarantor address                                                                          |
 
 ## Command Details
+
+### info
+
+Retrieves comprehensive technical information about the PredepositGuarantee (PDG) contract including all system parameters and configuration.
+
+**Output:**
+
+- **CONTRACT_ADDRESS**: Deployed PDG contract address
+- **Role Identifiers**: DEFAULT_ADMIN_ROLE, RESUME_ROLE, PAUSE_ROLE
+- **System Constants**: BEACON_ROOTS, PREDEPOSIT_AMOUNT, PIVOT_SLOT
+- **Gindex Values**: GI_FIRST_VALIDATOR_CURR, GI_FIRST_VALIDATOR_PREV, GI_PUBKEY_WC_PARENT, GI_STATE_ROOT
+- **Version Support**: MAX_SUPPORTED_WC_VERSION, MIN_SUPPORTED_WC_VERSION
+- **State Information**: isPaused status and resumeSinceTimestamp
+
+### roles
+
+Displays detailed role assignments and access control configuration for the PredepositGuarantee contract with complete member listings.
+
+**Output:**
+
+- **Role Name**: Human-readable role identifier
+- **Keccak Hash**: Role identifier used in contract calls
+- **Members**: Comma-separated list of addresses holding the role (or "None" if empty)
+
+### validator-status
+
+Retrieves current status information for a specific validator registered in the PredepositGuarantee system.
+
+**Arguments:**
+
+- `<validatorPubkey>`: The BLS public key of the validator to check (hex format)
+
+**Output:**
+
+- **Validator Pubkey**: Hex-formatted validator public key
+- **Status**: Current stage with mapping (NONE=0, PREDEPOSITED=1, PROVEN=2, DISPROVEN=3, COMPENSATED=4)
+- **Staking Vault**: Associated StakingVault contract address
+- **Node Operator**: Node operator address responsible for this validator
+
+**Status Definitions:**
+
+- NONE (0): Validator not registered in PDG
+- PREDEPOSITED (1): 1 ETH predeposit completed, awaiting proof
+- PROVEN (2): Withdrawal credentials proven, ready for full deposit
+- DISPROVEN (3): Proof failed or invalid withdrawal credentials
+- COMPENSATED (4): Node operator compensated for failed validator
+
+### no-balance
+
+Retrieves current balance breakdown for a node operator in the PredepositGuarantee contract showing total, locked, and unlocked ETH amounts.
+
+**Output (Table Format):**
+
+- **Total**: Complete ETH balance held by the node operator in PDG
+- **Locked**: ETH currently locked for validator predeposits
+- **Unlocked**: ETH available for new predeposits or withdrawal
+
+**Balance Calculation:** Total = Locked + Unlocked.
+
+### no-info
+
+Provides comprehensive information about a node operator including balance details and role assignments with current account relationship indicators.
+
+**Output (Table Format):**
+
+- **Total**: Complete ETH balance
+- **Locked**: ETH locked for predeposits
+- **Unlocked**: ETH available for operations
+- **Depositor**: Address authorized to make deposits, with "(you)" if current account matches
+- **Guarantor**: Address providing balance management, with "(you)" if current account matches
 
 ### predeposit
 

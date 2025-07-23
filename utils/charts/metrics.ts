@@ -193,13 +193,13 @@ export const logBottomLineChart = function (
     pointSpacing,
   });
 };
-export const logEfficiencyChart = function (
+export const logCarrySpreadChart = function (
   values: number[],
   timeLabels?: string[],
   pointSpacing = 3,
 ) {
   logLineChart(values, {
-    label: 'Efficiency',
+    label: 'Carry Spread',
     valueLabel: '%',
     height: 15,
     width: 60,

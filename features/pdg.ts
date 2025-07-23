@@ -23,6 +23,8 @@ export const getPdgBaseInfo = async () => {
     const contract = await getPredepositGuaranteeContract();
     const [
       DEFAULT_ADMIN_ROLE,
+      RESUME_ROLE,
+      PAUSE_ROLE,
       BEACON_ROOTS,
       GI_FIRST_VALIDATOR_CURR,
       GI_FIRST_VALIDATOR_PREV,
@@ -36,6 +38,8 @@ export const getPdgBaseInfo = async () => {
       resumeSinceTimestamp,
     ] = await Promise.all([
       contract.read.DEFAULT_ADMIN_ROLE(),
+      contract.read.RESUME_ROLE(),
+      contract.read.PAUSE_ROLE(),
       contract.read.BEACON_ROOTS(),
       contract.read.GI_FIRST_VALIDATOR_CURR(),
       contract.read.GI_FIRST_VALIDATOR_PREV(),
@@ -55,8 +59,10 @@ export const getPdgBaseInfo = async () => {
 
     const payload = {
       CONTRACT_ADDRESS,
-      BEACON_ROOTS,
       DEFAULT_ADMIN_ROLE,
+      RESUME_ROLE,
+      PAUSE_ROLE,
+      BEACON_ROOTS,
       GI_FIRST_VALIDATOR_CURR,
       GI_FIRST_VALIDATOR_PREV,
       GI_PUBKEY_WC_PARENT,

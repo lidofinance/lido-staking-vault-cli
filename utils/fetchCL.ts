@@ -53,14 +53,23 @@ export const SupportedFork = {
 export const fetchBeaconHeader = async (stateId: StateId, clURL?: string) => {
   const url = clURL || getConfig().CL_URL;
 
+  if (!url) {
+    throw new Error(
+      'CL_URL is not set. CL_URL is required for fetching beacon header',
+    );
+  }
+
   try {
     const beaconHeaderResp = await fetch(
-      `${url}${endpoints.beaconHeader(stateId)}`,
+      `${url.endsWith('/') ? url : url + '/'}${endpoints.beaconHeader(stateId)}`,
     );
 
     return beaconHeaderResp.json();
   } catch (error) {
-    printError(error, 'Error fetching beacon header');
+    printError(
+      error,
+      `Error fetching beacon header. Used URL: ${url}, stateId: ${stateId}. Please check if the CL_URL environment variable is correct or try to use another CL.`,
+    );
     throw error;
   }
 };
@@ -74,10 +83,19 @@ export const fetchBeaconState = async (
 }> => {
   const url = clURL || getConfig().CL_URL;
 
+  if (!url) {
+    throw new Error(
+      'CL_URL is not set. CL_URL is required for fetching beacon state',
+    );
+  }
+
   try {
-    const beaconStateResp = await fetch(`${url}${endpoints.state(stateId)}`, {
-      headers: { accept: 'application/octet-stream' },
-    });
+    const beaconStateResp = await fetch(
+      `${url.endsWith('/') ? url : url + '/'}${endpoints.state(stateId)}`,
+      {
+        headers: { accept: 'application/octet-stream' },
+      },
+    );
 
     const { headers } = beaconStateResp;
     const forkName = headers.get(
@@ -94,7 +112,10 @@ export const fetchBeaconState = async (
 
     return { stateBodyBytes, forkName };
   } catch (error) {
-    printError(error, 'Error fetching beacon state');
+    printError(
+      error,
+      `Error fetching beacon state. Used URL: ${url}, stateId: ${stateId}. Please check if the CL_URL environment variable is correct or try to use another CL.`,
+    );
     throw error;
   }
 };
@@ -105,14 +126,23 @@ export const fetchBeaconHeaderByParentRoot = async (
 ) => {
   const url = clURL || getConfig().CL_URL;
 
+  if (!url) {
+    throw new Error(
+      'CL_URL is not set. CL_URL is required for fetching beacon header by parent root',
+    );
+  }
+
   try {
     const beaconHeaderResp = await fetch(
-      `${url}${endpoints.beaconHeadersByParentRoot(parentRoot)}`,
+      `${url.endsWith('/') ? url : url + '/'}${endpoints.beaconHeadersByParentRoot(parentRoot)}`,
     );
 
     return beaconHeaderResp.json();
   } catch (error) {
-    printError(error, 'Error fetching beacon header by parent root');
+    printError(
+      error,
+      `Error fetching beacon header by parent root. Used URL: ${url}, parentRoot: ${parentRoot}. Please check if the CL_URL environment variable is correct or try to use another CL.`,
+    );
 
     throw error;
   }
@@ -124,14 +154,23 @@ export const fetchValidatorInfo = async (
 ): Promise<ValidatorInfo> => {
   const url = clURL || getConfig().CL_URL;
 
+  if (!url) {
+    throw new Error(
+      'CL_URL is not set. CL_URL is required for fetching validator info',
+    );
+  }
+
   try {
     const validatorInfoResp = await fetch(
-      `${url}${endpoints.validatorInfo(validatorPubkey)}`,
+      `${url.endsWith('/') ? url : url + '/'}${endpoints.validatorInfo(validatorPubkey)}`,
     );
 
     return validatorInfoResp.json();
   } catch (error) {
-    printError(error, 'Error fetching validator info');
+    printError(
+      error,
+      `Error fetching validator info. Used URL: ${url}, validatorPubkey: ${validatorPubkey}. Please check if the CL_URL environment variable is correct or try to use another CL.`,
+    );
     throw error;
   }
 };

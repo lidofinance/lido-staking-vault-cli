@@ -888,3 +888,28 @@ dashboardWrite
       payload: [fee],
     });
   });
+
+dashboardWrite
+  .command('disburse-node-operator-fee')
+  .description(
+    'transfers the node-operator`s accrued fee (if any) to nodeOperatorFeeRecipient',
+  )
+  .argument('<address>', 'dashboard address', stringToAddress)
+  .action(async (address: Address) => {
+    const contract = getDashboardContract(address);
+    const nodeOperatorFeeRecipient = await callReadMethodSilent(
+      contract,
+      'nodeOperatorFeeRecipient',
+    );
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to transfer the node operator fee to ${nodeOperatorFeeRecipient}?`,
+    );
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'disburseNodeOperatorFee',
+      payload: [],
+    });
+  });

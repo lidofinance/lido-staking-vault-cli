@@ -6,7 +6,6 @@ import type {
   VaultReport,
   VaultReportArgs,
   Report,
-  ReportProof,
   LeafDataFields,
 } from './types.js';
 
@@ -73,17 +72,40 @@ export const getVaultData = (report: Report, vault: Address): VaultReport => {
   };
 
   // TODO: for old reports without extraValues
-  const extraData = report.extraValues?.[vault] || { inOutDelta: '0' };
+  const extraData = report.extraValues?.[vault] || {
+    inOutDelta: '0',
+    prevFee: '0',
+    infraFee: '0',
+    liquidityFee: '0',
+    reservationFee: '0',
+  };
 
-  for (const [index, fieldName] of Object.entries(report.leafIndexToData)) {
-    const value = match.value[Number(index)];
-    if (value === undefined) {
+  for (const [_key, _index] of Object.entries(report.leafIndexToData)) {
+    let index: number;
+    let fieldName: string;
+
+    // new report format
+    // leafIndexToData: { "vaultAddress": 0, ...
+    if (typeof _index === 'number') {
+      index = _index;
+      fieldName = _key;
+    }
+    // TODO: remove soon
+    // old report format
+    // leafIndexToData: { "0": "vaultAddress", ...
+    else {
+      index = Number(_key);
+      fieldName = _index;
+    }
+
+    const valueByIndex = match.value[index];
+    if (valueByIndex === undefined) {
       throw new Error(
         `Missing value at index ${index} for field "${fieldName}"`,
       );
     }
     const camelCaseFieldName = snakeToCamel(fieldName) as keyof LeafDataFields;
-    data[camelCaseFieldName] = value.toString();
+    data[camelCaseFieldName] = valueByIndex.toString();
   }
 
   return {
@@ -93,78 +115,8 @@ export const getVaultData = (report: Report, vault: Address): VaultReport => {
     refSlot: report.refSlot,
     blockNumber: Number(report.blockNumber),
     timestamp: report.timestamp,
-    proofsCID: report.proofsCID,
-    merkleTreeRoot: report.merkleTreeRoot,
     prevTreeCID: report.prevTreeCID,
   };
-};
-
-export const getVaultReportProof = async (
-  args: VaultReportArgs,
-  cache = true,
-) => {
-  const { vault, cid, gateway = IPFS_GATEWAY, bigNumberType = 'string' } = args;
-
-  const report = await fetchIPFS<Report>(
-    {
-      cid,
-      gateway,
-      bigNumberType,
-    },
-    cache,
-  );
-  const proofCID = report.proofsCID;
-
-  const data = await fetchIPFS<ReportProof>(
-    {
-      cid: proofCID,
-      gateway,
-      bigNumberType,
-    },
-    cache,
-  );
-
-  const proofByVault = data.proofs[vault];
-  if (!proofByVault) throw new Error('Proof not found');
-
-  return proofByVault;
-};
-
-export const getVaultReportProofByCid = async (
-  args: VaultReportArgs,
-  cache = true,
-) => {
-  const { vault, cid, gateway = IPFS_GATEWAY, bigNumberType = 'string' } = args;
-  const proof = await fetchIPFS<ReportProof>(
-    {
-      cid,
-      gateway,
-      bigNumberType,
-    },
-    cache,
-  );
-
-  const proofByVault = proof.proofs[vault];
-  if (!proofByVault) throw new Error('Proof not found');
-
-  return proofByVault;
-};
-
-export const getAllVaultsReportProofs = async (
-  args: Omit<VaultReportArgs, 'vault'>,
-  cache = true,
-) => {
-  const { cid, gateway = IPFS_GATEWAY, bigNumberType = 'string' } = args;
-  const proof = await fetchIPFS<ReportProof>(
-    {
-      cid,
-      gateway,
-      bigNumberType,
-    },
-    cache,
-  );
-
-  return proof.proofs;
 };
 
 export const getAllVaultsReports = async (
@@ -187,7 +139,6 @@ export const getAllVaultsReports = async (
 
   return {
     vaultReports,
-    proofsCID: report.proofsCID,
     prevTreeCID: report.prevTreeCID,
   };
 };
