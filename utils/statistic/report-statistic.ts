@@ -185,7 +185,7 @@ export const getCarrySpread = (
   };
 };
 
-type ReportMetricsArgs = {
+export type ReportMetricsArgs = {
   reports: { current: VaultReport; previous: VaultReport };
   nodeOperatorFeeRate: bigint;
   stEthLiabilityRebaseRewards: bigint;

@@ -1,4 +1,4 @@
-type CalculateHealthArgs = {
+export type CalculateHealthArgs = {
   totalValue: bigint;
   liabilitySharesInStethWei: bigint;
   forceRebalanceThresholdBP: number;
