@@ -12,6 +12,10 @@ export type LeafDataFields = {
 
 export type ExtraDataFields = {
   inOutDelta: string;
+  prevFee: string;
+  infraFee: string;
+  liquidityFee: string;
+  reservationFee: string;
 };
 
 export type Report = {

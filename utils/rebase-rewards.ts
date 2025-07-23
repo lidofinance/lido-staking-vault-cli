@@ -1,4 +1,4 @@
-type CalculateRebaseRewardArgs = {
+export type CalculateRebaseRewardArgs = {
   shareRatePrev: bigint;
   shareRateCurr: bigint;
   sharesPrev: bigint;

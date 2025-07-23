@@ -72,7 +72,13 @@ export const getVaultData = (report: Report, vault: Address): VaultReport => {
   };
 
   // TODO: for old reports without extraValues
-  const extraData = report.extraValues?.[vault] || { inOutDelta: '0' };
+  const extraData = report.extraValues?.[vault] || {
+    inOutDelta: '0',
+    prevFee: '0',
+    infraFee: '0',
+    liquidityFee: '0',
+    reservationFee: '0',
+  };
 
   for (const [_key, _index] of Object.entries(report.leafIndexToData)) {
     let index: number;
