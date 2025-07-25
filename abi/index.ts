@@ -12,3 +12,4 @@ export * from './OperatorGrid.js';
 export * from './WstEth.js';
 export * from './LazyOracle.js';
 export * from './AccessControlConfirmable.js';
+export * from './ValidatorConsolidationRequests.js';
