@@ -16,38 +16,81 @@ export type StateId =
 type ValidatorInfo = {
   execution_optimistic: boolean;
   finalized: boolean;
+  data: [
+    {
+      index: string;
+      balance: string;
+      status: string;
+      validator: {
+        pubkey: string;
+        withdrawal_credentials: string;
+        effective_balance: string;
+        slashed: boolean;
+        activation_eligibility_epoch: string;
+        activation_epoch: string;
+        exit_epoch: string;
+        withdrawable_epoch: string;
+      };
+    },
+  ];
+};
+
+type FinalityCheckpoints = {
+  execution_optimistic: boolean;
+  finalized: boolean;
   data: {
-    index: string;
-    balance: string;
-    status: string;
-    validator: {
-      pubkey: string;
-      withdrawal_credentials: string;
-      effective_balance: string;
-      slashed: boolean;
-      activation_eligibility_epoch: string;
-      activation_epoch: string;
-      exit_epoch: string;
-      withdrawable_epoch: string;
+    previous_justified: {
+      epoch: string;
+      root: string;
+    };
+    current_justified: {
+      epoch: string;
+      root: string;
+    };
+    finalized: {
+      epoch: string;
+      root: string;
     };
   };
 };
 
 const endpoints = {
+  finalityCheckpoints: 'eth/v1/beacon/states/head/finality_checkpoints',
   genesis: 'eth/v1/beacon/genesis',
   beaconHeader: (blockId: BlockId): string =>
     `eth/v1/beacon/headers/${blockId}`,
   beaconHeadersByParentRoot: (parentRoot: RootHex): string =>
     `eth/v1/beacon/headers?parent_root=${parentRoot}`,
   state: (stateId: StateId): string => `eth/v2/debug/beacon/states/${stateId}`,
-  validatorInfo: (validatorPubkey: Hex): string =>
-    `eth/v1/beacon/states/head/validators/${validatorPubkey}`,
+  validatorInfo: (validatorPubkeys: string): string =>
+    `eth/v1/beacon/states/head/validators${validatorPubkeys}`,
 };
 
 export const SupportedFork = {
   capella: 'capella',
   deneb: 'deneb',
   electra: 'electra',
+};
+
+export const finalityCheckpoints = async (
+  clURL?: string,
+): Promise<FinalityCheckpoints> => {
+  const url = clURL || getConfig().CL_URL;
+  if (!url) {
+    throw new Error('CL_URL is not set. CL_URL is required for fetching epoch');
+  }
+  try {
+    const epochResp = await fetch(
+      `${url.endsWith('/') ? url : url + '/'}${endpoints.finalityCheckpoints}`,
+    );
+    return epochResp.json();
+  } catch (error) {
+    printError(
+      error,
+      `Error fetching finality_сheckpoints. Used URL: ${url}. Please check if the CL_URL environment variable is correct or try to use another CL.`,
+    );
+    throw error;
+  }
 };
 
 export const fetchBeaconHeader = async (stateId: StateId, clURL?: string) => {
@@ -149,7 +192,7 @@ export const fetchBeaconHeaderByParentRoot = async (
 };
 
 export const fetchValidatorInfo = async (
-  validatorPubkey: Hex,
+  validatorPubkeys: Hex[],
   clURL?: string,
 ): Promise<ValidatorInfo> => {
   const url = clURL || getConfig().CL_URL;
@@ -162,7 +205,7 @@ export const fetchValidatorInfo = async (
 
   try {
     const validatorInfoResp = await fetch(
-      `${url.endsWith('/') ? url : url + '/'}${endpoints.validatorInfo(validatorPubkey)}`,
+      `${url.endsWith('/') ? url : url + '/'}${endpoints.validatorInfo('?id=' + validatorPubkeys.join(','))}`,
     );
 
     return validatorInfoResp.json();

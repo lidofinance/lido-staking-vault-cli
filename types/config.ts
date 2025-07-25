@@ -10,6 +10,7 @@ export interface Config {
   CHAIN_ID: number;
   TOKEN_MANAGER?: Address;
   VOTING?: Address;
+  VALIDATOR_CONSOLIDATION_REQUESTS?: Address;
 }
 
 export type Vote = readonly [
