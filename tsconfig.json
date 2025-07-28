@@ -3,6 +3,7 @@
     "declaration": true,
     "lib": ["DOM", "ES2022"],
     "target": "ESNext",
+    "moduleResolution": "NodeNext",
     "useDefineForClassFields": true, // Not enabled by default in `strict` mode unless we bump `target` to ES2022.
     "noFallthroughCasesInSwitch": true, // Not enabled by default in `strict` mode.
     "noImplicitReturns": true, // Not enabled by default in `strict` mode.
@@ -33,8 +34,7 @@
     "outDir": "dist",
     "sourceMap": true,
     "rootDir": ".",
-    "module": "ESNext",
-    "moduleResolution": "Node"
+    "module": "NodeNext"
   },
   "ts-node": {
     "swc": true,
