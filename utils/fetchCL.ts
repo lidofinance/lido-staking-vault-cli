@@ -13,7 +13,7 @@ export type StateId =
   | 'finalized'
   | 'justified';
 
-type ValidatorInfo = {
+export type ValidatorInfo = {
   execution_optimistic: boolean;
   finalized: boolean;
   data: [

@@ -1,19 +1,23 @@
 import {
-  logInfo,
   stringTo2dArray,
   stringToAddress,
   stringToArray,
   callWriteMethodWithReceipt,
-  callReadMethod,
+  callReadMethodSilent,
   fetchValidatorInfo,
   finalityCheckpoints,
 } from 'utils';
 import { validators } from './main.js';
 import { Address, Hex } from 'viem';
-import { getValidatorConsolidationRequestsContract } from 'contracts/validator-consolidation-requests.js';
+import {
+  getAccountWithDelegatedValidatorConsolidationRequestsContract,
+  getValidatorConsolidationRequestsContract,
+} from 'contracts/validator-consolidation-requests.js';
+import { getAccount, getWalletWithAccount } from 'providers';
+import { ValidatorInfo } from 'utils/fetchCL.js';
 import assert from 'assert';
 
-const feeIncrease = 20n;
+const feeIncreaseFactor = 20n;
 
 const validatorsWrite = validators
   .command('write')
@@ -37,100 +41,64 @@ validatorsWrite
   .argument('<staking_vault>', 'staking vault address', stringToAddress)
   .action(
     async (
-      sourcePubkeys: string[][],
-      targetPubkeys: string[],
+      sourcePubkeys: Hex[][],
+      targetPubkeys: Hex[],
       refundRecipient: Address,
       stakingVault: Address,
     ) => {
-      logInfo('account abstraction tx');
-      logInfo('sourcePubkeys:', sourcePubkeys);
-      logInfo('targetPubkeys:', targetPubkeys);
-      logInfo('refundRecipient:', refundRecipient);
-      logInfo('stakingVault:', stakingVault);
-
       const finalityCheckpointsInfo = await finalityCheckpoints();
       const finalizedEpoch = Number(
         finalityCheckpointsInfo.data.finalized.epoch,
       );
 
       // 1. check source pubkeys
-      const sourcePubkeysFlat = sourcePubkeys.flat() as Hex[];
+      const sourcePubkeysFlat = sourcePubkeys.flat();
       const sourceValidatorsInfo = await fetchValidatorInfo(sourcePubkeysFlat);
-      const activeValidators = sourceValidatorsInfo.data.filter(
-        (validator) => validator.status === 'active_ongoing',
-      );
-      assert(
-        activeValidators.length === sourcePubkeysFlat.length,
-        'All source pubkeys must be active',
-      );
+      await checkSourcePubkeys(sourceValidatorsInfo, finalizedEpoch);
 
-      const wrongWCSourceValidators = sourceValidatorsInfo.data.filter(
-        (validator) =>
-          validator.validator.withdrawal_credentials.startsWith('0x00'),
-      );
-      assert(
-        wrongWCSourceValidators.length === 0,
-        'All source pubkeys must have a withdrawal credentials starting with 0x01 or 0x02',
-      );
+      // 2. check target pubkeys
+      const targetValidatorsInfo = await fetchValidatorInfo(targetPubkeys);
+      await checkTargetPubkeys(targetValidatorsInfo);
 
-      const sourceValidatorsWithLess256Epochs =
-        sourceValidatorsInfo.data.filter(
-          (validator) =>
-            finalizedEpoch - Number(validator.validator.activation_epoch) < 256,
-        );
-      assert(
-        sourceValidatorsWithLess256Epochs.length === 0,
-        'All source pubkeys must have an activation epoch less than the finalized epoch by at least 256 epochs',
-      );
+      // 3. Request consolidation
+      const consolidationContract = getValidatorConsolidationRequestsContract();
 
       const totalBalance = sourceValidatorsInfo.data.reduce(
         (sum, validator) => sum + Number(validator.balance),
         0,
       );
-
-      // 2. check target pubkeys
-      const targetValidatorsInfo = await fetchValidatorInfo(
-        targetPubkeys as Hex[],
-      );
-      const activeTargetValidators = targetValidatorsInfo.data.filter(
-        (validator) => validator.status === 'active_ongoing',
-      );
-      assert(
-        activeTargetValidators.length === targetPubkeys.length,
-        'All target pubkeys must be active',
-      );
-
-      const wrongWCTargetValidators = targetValidatorsInfo.data.filter(
-        (validator) =>
-          !validator.validator.withdrawal_credentials.startsWith('0x02'),
-      );
-      assert(
-        wrongWCTargetValidators.length === 0,
-        'All target pubkeys must have a withdrawal credentials starting with 0x02',
-      );
-
-      // 3. Request consolidation
-      const consolidationContract = getValidatorConsolidationRequestsContract();
-
-      const feePerConsolidationRequest = await callReadMethod(
+      const feePerConsolidationRequest = await callReadMethodSilent(
         consolidationContract,
         'getConsolidationRequestFee',
       );
       const totalFee =
         (feePerConsolidationRequest *
           BigInt(sourcePubkeysFlat.length) *
-          (100n + feeIncrease)) /
+          (100n + feeIncreaseFactor)) /
         100n;
+      const walletClient = getWalletWithAccount();
 
+      const account = getAccount();
+      const accountWithDelegateedValidatorConsolidationRequestsContract =
+        getAccountWithDelegatedValidatorConsolidationRequestsContract(
+          account.address,
+        );
+
+      const authorization = await walletClient.signAuthorization({
+        account: account,
+        executor: 'self',
+        contractAddress: consolidationContract.address,
+      });
       const sourcePubkeysFlattened = sourcePubkeys.map(
         (group) => '0x' + group.map((p) => p.replace(/^0x/, '')).join(''),
       ) as Hex[];
       await callWriteMethodWithReceipt({
-        contract: consolidationContract,
+        contract: accountWithDelegateedValidatorConsolidationRequestsContract,
         methodName: 'addConsolidationRequestsEOA',
+        authorizationList: [authorization],
         payload: [
           sourcePubkeysFlattened,
-          targetPubkeys as Hex[],
+          targetPubkeys,
           refundRecipient,
           stakingVault,
           BigInt(totalBalance),
@@ -141,3 +109,60 @@ validatorsWrite
       });
     },
   );
+
+const checkSourcePubkeys = async (
+  sourceValidatorsInfo: ValidatorInfo,
+  finalizedEpoch: number,
+) => {
+  const notActiveValidators = sourceValidatorsInfo.data.filter(
+    (validator) => validator.status !== 'active_ongoing',
+  );
+  assert(
+    notActiveValidators.length === 0,
+    'All source pubkeys must be active. Wrong pubkeys:' +
+      notActiveValidators.map((v) => v.validator.pubkey).join(', '),
+  );
+
+  const wrongWCSourceValidators = sourceValidatorsInfo.data.filter(
+    (validator) =>
+      validator.validator.withdrawal_credentials.startsWith('0x00'),
+  );
+  assert(
+    wrongWCSourceValidators.length === 0,
+    'All source pubkeys must have a withdrawal credentials starting with 0x01 or 0x02. Wrong pubkeys:' +
+      wrongWCSourceValidators.map((v) => v.validator.pubkey).join(', '),
+  );
+
+  const sourceValidatorsWithLess256Epochs = sourceValidatorsInfo.data.filter(
+    (validator) =>
+      finalizedEpoch - Number(validator.validator.activation_epoch) < 256,
+  );
+  assert(
+    sourceValidatorsWithLess256Epochs.length === 0,
+    'All source pubkeys must have an activation epoch less than the finalized epoch by at least 256 epochs. Wrong pubkeys:' +
+      sourceValidatorsWithLess256Epochs
+        .map((v) => v.validator.pubkey)
+        .join(', '),
+  );
+};
+
+const checkTargetPubkeys = async (targetValidatorsInfo: ValidatorInfo) => {
+  const notActiveTargetValidators = targetValidatorsInfo.data.filter(
+    (validator) => validator.status !== 'active_ongoing',
+  );
+  assert(
+    notActiveTargetValidators.length === 0,
+    'All target pubkeys must be active. Wrong pubkeys:' +
+      notActiveTargetValidators.map((v) => v.validator.pubkey).join(', '),
+  );
+
+  const wrongWCTargetValidators = targetValidatorsInfo.data.filter(
+    (validator) =>
+      !validator.validator.withdrawal_credentials.startsWith('0x02'),
+  );
+  assert(
+    wrongWCTargetValidators.length === 0,
+    'All target pubkeys must have a withdrawal credentials starting with 0x02. Wrong pubkeys:' +
+      wrongWCTargetValidators.map((v) => v.validator.pubkey).join(', '),
+  );
+};

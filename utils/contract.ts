@@ -5,6 +5,7 @@ import {
   encodeFunctionData,
   Hex,
   Abi,
+  SignAuthorizationReturnType,
 } from 'viem';
 import { waitForTransactionReceipt } from 'viem/actions';
 import { program } from 'command';
@@ -40,6 +41,7 @@ export const callSimulateWriteMethod = async <
   methodName: M;
   payload: Writeable<GetFirst<Parameters<T['simulate'][M]>>> | never[];
   value?: bigint;
+  authorizationList: SignAuthorizationReturnType[];
   withSpinner?: boolean;
   skipError?: boolean;
 }): Promise<SimulateContractReturnType> => {
@@ -48,6 +50,7 @@ export const callSimulateWriteMethod = async <
     methodName,
     payload,
     value,
+    authorizationList,
     withSpinner = true,
     skipError = false,
   } = args;
@@ -64,6 +67,7 @@ export const callSimulateWriteMethod = async <
       account: getAccount(),
       chain: getChain(),
       value,
+      authorizationList,
     });
     hideSpinner();
 
@@ -86,6 +90,7 @@ export const callWriteMethod = async <
   methodName: M;
   payload: Writeable<GetFirst<Parameters<T['write'][M]>>> | never[];
   value?: bigint;
+  authorizationList: SignAuthorizationReturnType[];
   withSpinner?: boolean;
   silent?: boolean;
   skipError?: boolean;
@@ -95,6 +100,7 @@ export const callWriteMethod = async <
     methodName,
     payload,
     value,
+    authorizationList,
     withSpinner = true,
     silent = false,
     skipError = false,
@@ -105,6 +111,7 @@ export const callWriteMethod = async <
     methodName,
     payload,
     value,
+    authorizationList,
     withSpinner,
     skipError,
   });
@@ -129,6 +136,7 @@ export const callWriteMethod = async <
       account: getAccount(),
       chain: getChain(),
       value,
+      authorizationList,
     });
     hideSpinner();
 
@@ -268,6 +276,7 @@ export const callWriteMethodWithReceipt = async <
 >(args: {
   contract: T;
   methodName: M;
+  authorizationList: SignAuthorizationReturnType[];
   payload: Writeable<GetFirst<Parameters<T['write'][M]>>> | never[];
   value?: bigint;
   withSpinner?: boolean;
@@ -277,6 +286,7 @@ export const callWriteMethodWithReceipt = async <
   const {
     contract,
     methodName,
+    authorizationList,
     payload,
     value,
     withSpinner = true,
@@ -308,6 +318,7 @@ export const callWriteMethodWithReceipt = async <
     methodName,
     payload,
     value,
+    authorizationList,
     withSpinner,
     silent,
     skipError,
