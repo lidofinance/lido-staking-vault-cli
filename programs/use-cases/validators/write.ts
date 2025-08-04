@@ -6,14 +6,15 @@ import {
   callReadMethodSilent,
   fetchValidatorInfo,
   finalityCheckpoints,
+  logInfo,
 } from 'utils';
 import { validators } from './main.js';
-import { Address, Hex } from 'viem';
+import { Address, Hex, zeroAddress } from 'viem';
 import {
   getAccountWithDelegatedValidatorConsolidationRequestsContract,
   getValidatorConsolidationRequestsContract,
 } from 'contracts/validator-consolidation-requests.js';
-import { getAccount, getWalletWithAccount } from 'providers';
+import { getAccount, getPublicClient, getWalletWithAccount } from 'providers';
 import { ValidatorInfo } from 'utils/fetchCL.js';
 import assert from 'assert';
 
@@ -46,23 +47,25 @@ validatorsWrite
       refundRecipient: Address,
       stakingVault: Address,
     ) => {
+      const account = getAccount();
+      const walletClient = getWalletWithAccount();
+
       const finalityCheckpointsInfo = await finalityCheckpoints();
       const finalizedEpoch = Number(
         finalityCheckpointsInfo.data.finalized.epoch,
       );
 
-      // 1. check source pubkeys
+      // 1. Check source pubkeys
       const sourcePubkeysFlat = sourcePubkeys.flat();
       const sourceValidatorsInfo = await fetchValidatorInfo(sourcePubkeysFlat);
       await checkSourcePubkeys(sourceValidatorsInfo, finalizedEpoch);
 
-      // 2. check target pubkeys
+      // 2. Check target pubkeys
       const targetValidatorsInfo = await fetchValidatorInfo(targetPubkeys);
       await checkTargetPubkeys(targetValidatorsInfo);
 
-      // 3. Request consolidation
+      // 3. Collect consolidation data
       const consolidationContract = getValidatorConsolidationRequestsContract();
-
       const totalBalance = sourceValidatorsInfo.data.reduce(
         (sum, validator) => sum + Number(validator.balance),
         0,
@@ -76,14 +79,12 @@ validatorsWrite
           BigInt(sourcePubkeysFlat.length) *
           (100n + feeIncreaseFactor)) /
         100n;
-      const walletClient = getWalletWithAccount();
-
-      const account = getAccount();
       const accountWithDelegateedValidatorConsolidationRequestsContract =
         getAccountWithDelegatedValidatorConsolidationRequestsContract(
           account.address,
         );
 
+      // 4. Request consolidation
       const authorization = await walletClient.signAuthorization({
         account: account,
         executor: 'self',
@@ -92,7 +93,7 @@ validatorsWrite
       const sourcePubkeysFlattened = sourcePubkeys.map(
         (group) => '0x' + group.map((p) => p.replace(/^0x/, '')).join(''),
       ) as Hex[];
-      await callWriteMethodWithReceipt({
+      const result = await callWriteMethodWithReceipt({
         contract: accountWithDelegateedValidatorConsolidationRequestsContract,
         methodName: 'addConsolidationRequestsEOA',
         authorizationList: [authorization],
@@ -107,6 +108,35 @@ validatorsWrite
         withSpinner: false,
         silent: true,
       });
+      logInfo('consolidation request tx hash:', result);
+
+      // 5. Revoke authorization
+      const revokeAuthorization = await walletClient.signAuthorization({
+        account: account,
+        executor: 'self',
+        contractAddress: zeroAddress,
+      });
+      const revokeAuthorizationTxHash = await walletClient.sendTransaction({
+        account: account,
+        chain: null,
+        to: zeroAddress,
+        authorizationList: [revokeAuthorization],
+      });
+      logInfo('revoke authorization tx hash:', revokeAuthorizationTxHash);
+
+      const revokeAuthorizationTxReceipt =
+        await getPublicClient().waitForTransactionReceipt({
+          hash: revokeAuthorizationTxHash,
+        });
+      logInfo('revoke authorization tx receipt:', revokeAuthorizationTxReceipt);
+
+      const codeAfterRevokeAuthorization = await getPublicClient().getCode({
+        address: account.address,
+      });
+      assert(
+        codeAfterRevokeAuthorization === undefined,
+        'code after revokeAuthorization is not empty',
+      );
     },
   );
 
