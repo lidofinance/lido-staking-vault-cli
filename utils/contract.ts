@@ -41,7 +41,7 @@ export const callSimulateWriteMethod = async <
   methodName: M;
   payload: Writeable<GetFirst<Parameters<T['simulate'][M]>>> | never[];
   value?: bigint;
-  authorizationList: SignAuthorizationReturnType[];
+  authorizationList?: SignAuthorizationReturnType[];
   withSpinner?: boolean;
   skipError?: boolean;
 }): Promise<SimulateContractReturnType> => {
@@ -90,7 +90,7 @@ export const callWriteMethod = async <
   methodName: M;
   payload: Writeable<GetFirst<Parameters<T['write'][M]>>> | never[];
   value?: bigint;
-  authorizationList: SignAuthorizationReturnType[];
+  authorizationList?: SignAuthorizationReturnType[];
   withSpinner?: boolean;
   silent?: boolean;
   skipError?: boolean;
@@ -276,7 +276,7 @@ export const callWriteMethodWithReceipt = async <
 >(args: {
   contract: T;
   methodName: M;
-  authorizationList: SignAuthorizationReturnType[];
+  authorizationList?: SignAuthorizationReturnType[];
   payload: Writeable<GetFirst<Parameters<T['write'][M]>>> | never[];
   value?: bigint;
   withSpinner?: boolean;

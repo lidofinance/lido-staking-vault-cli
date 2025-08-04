@@ -212,7 +212,7 @@ export const fetchValidatorInfo = async (
   } catch (error) {
     printError(
       error,
-      `Error fetching validator info. Used URL: ${url}, validatorPubkey: ${validatorPubkey}. Please check if the CL_URL environment variable is correct or try to use another CL.`,
+      `Error fetching validator info. Used URL: ${url}, validatorPubkeys: ${validatorPubkeys}. Please check if the CL_URL environment variable is correct or try to use another CL.`,
     );
     throw error;
   }
