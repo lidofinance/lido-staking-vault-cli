@@ -5,8 +5,8 @@ import {
   http,
   WalletClient,
 } from 'viem';
+import { Keystore } from 'ox';
 import { privateKeyToAccount } from 'viem/accounts';
-import { Wallet } from 'ethers';
 
 import { envs, getConfig, getChainId, getElUrl, getChain } from 'configs';
 
@@ -35,11 +35,17 @@ const getPrivateKey = () => {
 
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const file = readFileSync(ACCOUNT_FILE, 'utf-8');
-    const fileContent = JSON.parse(file);
-    const privateKey = Wallet.fromEncryptedJsonSync(
-      JSON.stringify(fileContent),
-      ACCOUNT_FILE_PASSWORD,
-    ).privateKey;
+    const fileContent: Keystore.Keystore = JSON.parse(file);
+
+    const kdfType = fileContent.crypto.kdf;
+
+    const [key] = Keystore[kdfType]({
+      password: ACCOUNT_FILE_PASSWORD,
+      ...fileContent.crypto.kdfparams,
+      salt: `0x${fileContent.crypto.kdfparams.salt}`,
+      iv: `0x${fileContent.crypto.cipherparams.iv}`,
+    });
+    const privateKey = Keystore.decrypt(fileContent, key);
 
     return privateKey;
   }

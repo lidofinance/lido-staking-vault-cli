@@ -1,7 +1,7 @@
 import { Address, formatEther } from 'viem';
-import { generatePrivateKey } from 'viem/accounts';
+import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 import { Option } from 'commander';
-import { Wallet } from 'ethers';
+import { Keystore } from 'ox';
 
 import { getStethContract, getWstethContract } from 'contracts';
 import {
@@ -41,10 +41,18 @@ accountWrite
   .description('generate a new encrypted account')
   .argument('<password>', 'password for the encrypted account')
   .action(async (password: string) => {
-    const randomPrivateKey = Wallet.createRandom();
-    const encrypted = await randomPrivateKey.encrypt(password);
+    const randomPrivateKey = generatePrivateKey();
+    const account = privateKeyToAccount(randomPrivateKey);
+    const [key, opts] = Keystore.scrypt({
+      password,
+    });
+    const encrypted = Keystore.encrypt(randomPrivateKey, key, opts);
+    const encryptedWithAddress = {
+      address: account.address,
+      ...encrypted,
+    };
 
-    logInfo(`Encrypted account: ${encrypted}`);
+    logInfo(`Encrypted account: ${JSON.stringify(encryptedWithAddress)}`);
   });
 
 accountWrite
