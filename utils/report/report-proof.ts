@@ -67,7 +67,7 @@ export const getReportProofs = async (
 
   const proofs = await Promise.all(
     vaults.map((vault) =>
-      getReportProofByVault({ ...args, vault: vault }, cache),
+      getReportProofByVault({ ...args, vault: vault as `0x${string}` }, cache),
     ),
   );
 

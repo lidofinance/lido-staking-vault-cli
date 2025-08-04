@@ -61,7 +61,7 @@ export const getAccount = () => {
     throw new Error(`Private key for ${id} chain is not set`);
   }
 
-  return privateKeyToAccount(privateKey);
+  return privateKeyToAccount(privateKey as `0x${string}`);
 };
 
 export const getPublicClient = () => {

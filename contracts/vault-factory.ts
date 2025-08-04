@@ -4,7 +4,7 @@ import { getDeployedAddress, getElUrl, getChain } from 'configs';
 
 export const getVaultFactoryContract = () => {
   return getContract({
-    address: getDeployedAddress('stakingVaultFactory'),
+    address: getDeployedAddress('stakingVaultFactory') as `0x${string}`,
     abi: VaultFactoryAbi,
     client: createPublicClient({
       chain: getChain(),
