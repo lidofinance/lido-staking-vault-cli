@@ -18,7 +18,7 @@ export const checkAllowance = async (
   amount: bigint,
   token: 'steth' | 'wsteth' | 'shares',
 ) => {
-  const accountAddress = getAccount().address;
+  const accountAddress = (await getAccount()).address;
   const isShares = token === 'shares';
   let currentAmount = amount;
 

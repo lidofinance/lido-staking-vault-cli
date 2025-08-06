@@ -38,6 +38,7 @@
     "@chainsafe/ssz": "^1.0.2",
     "@lodestar/types": "^1.27.1",
     "@openzeppelin/merkle-tree": "^1.0.8",
+    "@walletconnect/sign-client": "^2.21.6",
     "blessed": "^0.1.81",
     "blessed-contrib": "^4.11.0",
     "blockstore-core": "^5.0.2",
@@ -53,6 +54,7 @@
     "multiformats": "^13.3.2",
     "ox": "^0.8.6",
     "prompts": "^2.4.2",
+    "qrcode-terminal": "^0.12.0",
     "viem": "^2.33.2"
   },
   "devDependencies": {
@@ -69,6 +71,7 @@
     "@types/log-update": "^3.1.0",
     "@types/node": "^22.14.1",
     "@types/prompts": "^2.4.9",
+    "@types/qrcode-terminal": "^0.12.2",
     "@typescript-eslint/eslint-plugin": "^5",
     "@typescript-eslint/parser": "^5.46.0",
     "eslint": "^8.46.0",

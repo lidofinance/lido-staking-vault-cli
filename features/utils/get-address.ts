@@ -4,7 +4,7 @@ import { getAccount } from 'providers';
 import { addressPrompt, confirmOperation } from 'utils';
 
 export const getAddress = async (address?: Address, name?: string) => {
-  const account = getAccount();
+  const account = await getAccount();
   const currentAddress = address ?? account.address;
   const isYourself = currentAddress === account.address;
 

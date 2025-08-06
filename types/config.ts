@@ -10,6 +10,7 @@ export interface Config {
   CHAIN_ID: number;
   TOKEN_MANAGER?: Address;
   VOTING?: Address;
+  WALLET_CONNECT_PROJECT_ID?: string;
 }
 
 export type Vote = readonly [

@@ -1,4 +1,5 @@
 import { readFileSync } from 'fs';
+import { program } from 'command';
 import {
   Address,
   createPublicClient,
@@ -6,10 +7,11 @@ import {
   http,
   WalletClient,
 } from 'viem';
-import { Keystore } from 'ox';
 import { privateKeyToAccount } from 'viem/accounts';
+import { Keystore } from 'ox';
 
 import { envs, getConfig, getChainId, getElUrl, getChain } from 'configs';
+import { createWalletConnectClient } from 'utils';
 
 const getPrivateKey = () => {
   const { PRIVATE_KEY, ACCOUNT_FILE, ACCOUNT_FILE_PASSWORD } = getConfig();
@@ -54,8 +56,19 @@ const getPrivateKey = () => {
   throw new Error('Private key or encrypted account file is not provided');
 };
 
-export const getAccount = () => {
+export const getAccount = async () => {
   const id = getChainId();
+
+  if (program.opts().walletConnect) {
+    const walletConnectClient = await getWalletConnectClient();
+
+    if (!walletConnectClient.account) {
+      throw new Error('Wallet connect account is not found');
+    }
+
+    return walletConnectClient.account;
+  }
+
   const privateKey = getPrivateKey();
 
   if (!privateKey) {
@@ -72,11 +85,17 @@ export const getPublicClient = () => {
   });
 };
 
-export const getWalletWithAccount = (): WalletClient => {
-  const account = getAccount();
+export const getWalletWithAccount = async (): Promise<WalletClient> => {
+  const account = await getAccount();
   return createWalletClient({
     account,
     chain: getChain(),
     transport: http(getElUrl()),
   });
+};
+
+export const getWalletConnectClient = async () => {
+  const walletConnectClient = await createWalletConnectClient();
+
+  return walletConnectClient;
 };
