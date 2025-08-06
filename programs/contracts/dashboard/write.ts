@@ -827,6 +827,31 @@ dashboardWrite
   });
 
 dashboardWrite
+  .command('set-node-operator-fee-recipient')
+  .alias('set-no-f-r')
+  .description('sets the node operator fee recipient')
+  .argument('<address>', 'dashboard address', stringToAddress)
+  .argument(
+    '<recipient>',
+    'address of the new node operator fee recipient',
+    stringToAddress,
+  )
+  .action(async (address: Address, recipient: Address) => {
+    const contract = getDashboardContract(address);
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to set the node operator fee recipient to ${recipient}?`,
+    );
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'setNodeOperatorFeeRecipient',
+      payload: [recipient],
+    });
+  });
+
+dashboardWrite
   .command('confirm-proposal')
   .description('Confirms a proposal')
   .argument('<address>', 'dashboard address', stringToAddress)

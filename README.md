@@ -1,6 +1,6 @@
 # Lido Staking Vault CLI
 
-A command-line interface (CLI) tool for managing lido staking vaults. Simplify your staking operations with intuitive commands and streamlined workflows.
+A command-line interface (CLI) tool for managing Lido staking vaults. Simplify your staking operations with intuitive commands and streamlined workflows.
 
 ## Changelog
 
@@ -15,12 +15,13 @@ For changes between versions see [Changelog](./CHANGELOG.md)
 - [Usage](#usage)
   - [Examples](#examples)
 - [Programs](#programs)
+- [Documentation](#documentation)
 - [License](#license)
 
 ## Features
 
 - **Easy Setup**: Quick installation and configuration to get you started.
-- **Vault Management**: Create, manage staking vaults with simple commands.
+- **Vault Management**: Create and manage staking vaults with simple commands.
 - **Monitoring**: Track vault metrics.
 
 ## Prerequisites
@@ -30,7 +31,7 @@ For changes between versions see [Changelog](./CHANGELOG.md)
 
 ## Installation
 
-### NPM
+### From Source
 
 ```bash
 git clone git@github.com:lidofinance/lido-staking-vault-cli.git
@@ -56,8 +57,8 @@ PRIVATE_KEY=0x
 # ACCOUNT_FILE_PASSWORD=1234
 ```
 
-If you plan to manage contracts the **privateKey** is required property for this type of operations.
-For using elLink in a right way be attentive to match rpc resolver link and its chain ID.
+If you plan to manage contracts, the **privateKey** is a required property for this type of operations.
+For using elLink in the right way, be attentive to match the RPC resolver link and its chain ID.
 
 ## Usage
 
@@ -87,19 +88,25 @@ yarn start contracts hub r v-count
 
 ## Programs
 
+- [Get Started](https://lidofinance.github.io/lido-staking-vault-cli/category/get-started)
 - [Account](https://lidofinance.github.io/lido-staking-vault-cli/commands/account)
-- [VaultHub](https://lidofinance.github.io/lido-staking-vault-cli/commands/vault-hub)
-- [VaultFactory](https://lidofinance.github.io/lido-staking-vault-cli/commands/vault-factory)
-- [Vault](https://lidofinance.github.io/lido-staking-vault-cli/commands/vault)
-- [Dashboard](https://lidofinance.github.io/lido-staking-vault-cli/commands/dashboard)
-- [PredepositGuarantee](https://lidofinance.github.io/lido-staking-vault-cli/commands/predeposit-guarantee)
-- [OperatorGrid](https://lidofinance.github.io/lido-staking-vault-cli/commands/operator-grid)
-- [VaultViewer](https://lidofinance.github.io/lido-staking-vault-cli/commands/vault-viewer)
+- [Vault Operations](https://lidofinance.github.io/lido-staking-vault-cli/commands/vault-operations)
+- [Deposits](https://lidofinance.github.io/lido-staking-vault-cli/commands/deposits)
+- [Metrics](https://lidofinance.github.io/lido-staking-vault-cli/commands/metrics)
 - [Report](https://lidofinance.github.io/lido-staking-vault-cli/commands/report)
+- [PredepositGuarantee Helpers](https://lidofinance.github.io/lido-staking-vault-cli/commands/pdg-helpers)
+- Contracts:
+  - [Dashboard](https://lidofinance.github.io/lido-staking-vault-cli/commands/contracts/dashboard)
+  - [OperatorGrid](https://lidofinance.github.io/lido-staking-vault-cli/commands/contracts/operator-grid)
+  - [PredepositGuarantee](https://lidofinance.github.io/lido-staking-vault-cli/commands/contracts/predeposit-guarantee)
+  - [VaultFactory](https://lidofinance.github.io/lido-staking-vault-cli/commands/contracts/vault-factory)
+  - [VaultHub](https://lidofinance.github.io/lido-staking-vault-cli/commands/contracts/vault-hub)
+  - [VaultViewer](https://lidofinance.github.io/lido-staking-vault-cli/commands/contracts/vault-viewer)
+  - [Vault](https://lidofinance.github.io/lido-staking-vault-cli/commands/contracts/vault)
 
 ## Documentation
 
-For additional information about available methods and functionality, refer to the [the documentation for the Lido Staking Vault CLI](https://lidofinance.github.io/lido-staking-vault-cli/).
+For additional information about available methods and functionality, refer to [the documentation for the Lido Staking Vault CLI](https://lidofinance.github.io/lido-staking-vault-cli/).
 
 ## License
 
