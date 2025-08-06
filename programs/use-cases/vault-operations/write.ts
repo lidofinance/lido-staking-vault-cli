@@ -333,3 +333,42 @@ vaultOperationsWrite
       payload: [],
     });
   });
+
+vaultOperationsWrite
+  .command('set-node-operator-fee-recipient')
+  .alias('set-no-f-r')
+  .description('sets the node operator fee recipient')
+  .option(
+    '-rec, --recipient <string>',
+    'address of the new node operator fee recipient',
+    stringToAddress,
+  )
+  .option('-v, --vault <string>', 'vault address', stringToAddress)
+  .action(
+    async ({ vault, recipient }: { vault: Address; recipient: Address }) => {
+      const { contract, vault: vaultAddress } =
+        await chooseVaultAndGetDashboard({
+          vault,
+        });
+
+      const account = getAccount();
+      await checkVaultRole(
+        contract,
+        'NODE_OPERATOR_MANAGER_ROLE',
+        account.address,
+      );
+
+      const recipientAddress = await getAddress(recipient, 'recipient');
+
+      const confirm = await confirmOperation(
+        `Are you sure you want to set the node operator fee recipient to ${recipientAddress} for the vault ${vaultAddress}?`,
+      );
+      if (!confirm) return;
+
+      await callWriteMethodWithReceipt({
+        contract,
+        methodName: 'setNodeOperatorFeeRecipient',
+        payload: [recipientAddress],
+      });
+    },
+  );
