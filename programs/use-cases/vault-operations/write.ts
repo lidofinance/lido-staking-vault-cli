@@ -351,7 +351,7 @@ vaultOperationsWrite
           vault,
         });
 
-      const account = getAccount();
+      const account = await getAccount();
       await checkVaultRole(
         contract,
         'NODE_OPERATOR_MANAGER_ROLE',
