@@ -62,7 +62,7 @@ export const fetchIPFSBuffer = async (
 
   const response = await fetch(ipfsUrl);
   if (!response.ok) {
-    throw new Error(`Failed to fetch content: ${response.statusText}`);
+    throw new Error(`Failed to fetch IPFS content: ${response.statusText}`);
   }
   const buffer = await response.arrayBuffer();
   return new Uint8Array(buffer);

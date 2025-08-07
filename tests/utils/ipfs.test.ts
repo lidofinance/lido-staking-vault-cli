@@ -51,12 +51,26 @@ beforeEach(() => {
 
 describe('ipfs helpers', () => {
   test('fetchIPFS parses JSON response', async () => {
+    const jsonData = '{"foo":1}';
+    const encoder = new TextEncoder();
+    const buffer = encoder.encode(jsonData).buffer;
+    const testCid = fakeCid.toString();
+
     (global as any).fetch.mockResolvedValueOnce({
       ok: true,
-      text: async () => '{"foo":1}',
+      text: async () => jsonData,
+      arrayBuffer: async () => buffer,
     });
-    const res = await ipfs.fetchIPFS<{ foo: number }>({ cid: '123' }, false);
-    expect(global.fetch).toHaveBeenCalledWith('https://ipfs.io/ipfs/123');
+
+    // Mock importer for calculateIPFSAddCID
+    importer.mockImplementationOnce(async function* () {
+      yield { cid: fakeCid };
+    });
+
+    const res = await ipfs.fetchIPFS<{ foo: number }>({ cid: testCid }, false);
+    expect(global.fetch).toHaveBeenCalledWith(
+      `https://ipfs.io/ipfs/${testCid}`,
+    );
     expect(res).toEqual({ foo: 1 });
     expect(logInfo).toHaveBeenCalled();
   });
@@ -98,12 +112,15 @@ describe('ipfs helpers', () => {
   });
 
   test('fetchAndVerifyFile verifies CID', async () => {
-    jest
-      .spyOn(ipfs, 'fetchIPFSBuffer')
-      .mockResolvedValueOnce(new Uint8Array([1]));
+    const jsonData = '{"test":123}';
+    const encoder = new TextEncoder();
+    const fileContent = encoder.encode(jsonData);
+
+    jest.spyOn(ipfs, 'fetchIPFSBuffer').mockResolvedValueOnce(fileContent);
     jest.spyOn(ipfs, 'calculateIPFSAddCID').mockResolvedValueOnce(fakeCid);
     const res = await ipfs.fetchIPFSDirectAndVerify(fakeCid.toString());
-    expect(res).toEqual(new Uint8Array([1]));
+    expect(res.fileContent).toEqual(fileContent);
+    expect(res.json).toEqual({ test: 123 });
     expect(logTable).toHaveBeenCalled();
   });
 
@@ -111,9 +128,11 @@ describe('ipfs helpers', () => {
     const other = CID.parse(
       'bafkreib3m4q5x2fr2di5m3lgvq4hzj4qkgjq2d0k8vh7y6xfxkrmwrkduy',
     );
-    jest
-      .spyOn(ipfs, 'fetchIPFSBuffer')
-      .mockResolvedValueOnce(new Uint8Array([1]));
+    const jsonData = '{"test":456}';
+    const encoder = new TextEncoder();
+    const fileContent = encoder.encode(jsonData);
+
+    jest.spyOn(ipfs, 'fetchIPFSBuffer').mockResolvedValueOnce(fileContent);
     jest.spyOn(ipfs, 'calculateIPFSAddCID').mockResolvedValueOnce(other);
     await expect(
       ipfs.fetchIPFSDirectAndVerify(fakeCid.toString()),

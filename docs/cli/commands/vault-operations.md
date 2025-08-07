@@ -38,18 +38,19 @@ Vault Operations commands manage the core functionality of Lido Staking Vaults i
 
 ### Write
 
-| Command                           | Description                                                                                                             |
-| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| fund \<ether>                     | fund vaults                                                                                                             |
-| withdraw \<eth>                   | withdraws ether from the staking vault to a recipient                                                                   |
-| mint-shares mint\<amountOfShares> | mints stETH tokens backed by the vault to a recipient                                                                   |
-| mint-wsteth \<amountOfWsteth>     | mints wstETH tokens backed by the vault to a recipient                                                                  |
-| mint-steth \<amountOfSteth>       | mints stETH tokens backed by the vault to a recipient                                                                   |
-| burn-shares burn\<amountOfShares> | Burns stETH shares from the sender backed by the vault. Expects corresponding amount of stETH approved to this contract |
-| burn-steth \<amountOfShares>      | Burns stETH shares from the sender backed by the vault. Expects stETH amount approved to this contract.                 |
-| burn-wsteth \<amountOfWsteth>     | Burns wstETH tokens from the sender backed by the vault. Expects wstETH amount approved to this contract.               |
-| disburse-node-operator-fee        | transfers the node operator's accrued fee to nodeOperatorFeeRecipient                                                   |
-| create-vault                      | creates a new StakingVault and Dashboard contracts                                                                      |
+| Command                                    | Description                                                                                                             |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| fund \<ether>                              | fund vaults                                                                                                             |
+| withdraw \<eth>                            | withdraws ether from the staking vault to a recipient                                                                   |
+| mint-shares mint\<amountOfShares>          | mints stETH tokens backed by the vault to a recipient                                                                   |
+| mint-wsteth \<amountOfWsteth>              | mints wstETH tokens backed by the vault to a recipient                                                                  |
+| mint-steth \<amountOfSteth>                | mints stETH tokens backed by the vault to a recipient                                                                   |
+| burn-shares burn\<amountOfShares>          | Burns stETH shares from the sender backed by the vault. Expects corresponding amount of stETH approved to this contract |
+| burn-steth \<amountOfShares>               | Burns stETH shares from the sender backed by the vault. Expects stETH amount approved to this contract.                 |
+| burn-wsteth \<amountOfWsteth>              | Burns wstETH tokens from the sender backed by the vault. Expects wstETH amount approved to this contract.               |
+| disburse-node-operator-fee                 | transfers the node operator's accrued fee to nodeOperatorFeeRecipient                                                   |
+| set-node-operator-fee-recipient set-no-f-r | sets the node operator fee recipient address                                                                            |
+| create-vault                               | creates a new StakingVault and Dashboard contracts                                                                      |
 
 ## Command Details
 
@@ -367,6 +368,32 @@ Transfers the node operator's accrued fee (if any) to the nodeOperatorFeeRecipie
 **Returns:**
 
 - Transaction hash and confirmation of fee disbursement
+
+### set-node-operator-fee-recipient (set-no-f-r)
+
+Sets the node operator fee recipient address for the vault. This address will receive node operator fees when they are disbursed.
+
+**Options:**
+
+- `-v, --vault <address>`: Specify vault address
+- `-rec, --recipient <address>`: Address of the new node operator fee recipient
+
+**Process:**
+
+- Verifies caller has NODE_OPERATOR_MANAGER_ROLE permission
+- Displays confirmation with new recipient address and vault
+- Updates the nodeOperatorFeeRecipient setting for the vault
+
+**Requirements:**
+
+- Caller must have NODE_OPERATOR_MANAGER_ROLE for the vault
+- Valid recipient address must be provided
+
+**Use Case:** Configure where node operator fees will be sent when disbursed.
+
+**Returns:**
+
+- Transaction hash and confirmation of recipient update
 
 ## Role-Based Access Control
 
