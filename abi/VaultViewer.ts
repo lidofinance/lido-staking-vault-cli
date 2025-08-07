@@ -2,8 +2,8 @@ export const VaultViewerAbi = [
   {
     inputs: [
       {
-        internalType: 'address payable',
-        name: '_vaultHubAddress',
+        internalType: 'address',
+        name: '_lidoLocator',
         type: 'address',
       },
     ],
@@ -51,6 +51,45 @@ export const VaultViewerAbi = [
     type: 'function',
   },
   {
+    inputs: [],
+    name: 'LAZY_ORACLE',
+    outputs: [
+      {
+        internalType: 'contract LazyOracle',
+        name: '',
+        type: 'address',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'LIDO_LOCATOR',
+    outputs: [
+      {
+        internalType: 'contract ILidoLocator',
+        name: '',
+        type: 'address',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'VAULT_HUB',
+    outputs: [
+      {
+        internalType: 'contract VaultHub',
+        name: '',
+        type: 'address',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
     inputs: [
       {
         internalType: 'address',
@@ -66,24 +105,31 @@ export const VaultViewerAbi = [
     name: 'getRoleMembers',
     outputs: [
       {
-        internalType: 'address',
-        name: 'owner',
-        type: 'address',
-      },
-      {
-        internalType: 'address',
-        name: 'nodeOperator',
-        type: 'address',
-      },
-      {
-        internalType: 'address',
-        name: 'depositor',
-        type: 'address',
-      },
-      {
-        internalType: 'address[][]',
-        name: 'members',
-        type: 'address[][]',
+        components: [
+          {
+            internalType: 'address',
+            name: 'vault',
+            type: 'address',
+          },
+          {
+            internalType: 'address',
+            name: 'owner',
+            type: 'address',
+          },
+          {
+            internalType: 'address',
+            name: 'nodeOperator',
+            type: 'address',
+          },
+          {
+            internalType: 'address[][]',
+            name: 'members',
+            type: 'address[][]',
+          },
+        ],
+        internalType: 'struct VaultViewer.VaultMembers',
+        name: 'roleMembers',
+        type: 'tuple',
       },
     ],
     stateMutability: 'view',
@@ -122,17 +168,12 @@ export const VaultViewerAbi = [
             type: 'address',
           },
           {
-            internalType: 'address',
-            name: 'depositor',
-            type: 'address',
-          },
-          {
             internalType: 'address[][]',
             name: 'members',
             type: 'address[][]',
           },
         ],
-        internalType: 'struct VaultViewer.VaultRoleMembers[]',
+        internalType: 'struct VaultViewer.VaultMembers[]',
         name: 'result',
         type: 'tuple[]',
       },
@@ -152,6 +193,11 @@ export const VaultViewerAbi = [
     outputs: [
       {
         components: [
+          {
+            internalType: 'address',
+            name: 'vaultAddress',
+            type: 'address',
+          },
           {
             components: [
               {
@@ -199,6 +245,11 @@ export const VaultViewerAbi = [
                 name: 'reservationFeeBP',
                 type: 'uint16',
               },
+              {
+                internalType: 'bool',
+                name: 'isBeaconDepositsManuallyPaused',
+                type: 'bool',
+              },
             ],
             internalType: 'struct VaultHub.VaultConnection',
             name: 'connection',
@@ -209,14 +260,19 @@ export const VaultViewerAbi = [
               {
                 components: [
                   {
-                    internalType: 'uint128',
+                    internalType: 'uint112',
                     name: 'totalValue',
-                    type: 'uint128',
+                    type: 'uint112',
                   },
                   {
-                    internalType: 'int128',
+                    internalType: 'int112',
                     name: 'inOutDelta',
-                    type: 'int128',
+                    type: 'int112',
+                  },
+                  {
+                    internalType: 'uint32',
+                    name: 'timestamp',
+                    type: 'uint32',
                   },
                 ],
                 internalType: 'struct VaultHub.Report',
@@ -234,19 +290,26 @@ export const VaultViewerAbi = [
                 type: 'uint96',
               },
               {
-                internalType: 'uint64',
-                name: 'reportTimestamp',
-                type: 'uint64',
-              },
-              {
-                internalType: 'int128',
+                components: [
+                  {
+                    internalType: 'int112',
+                    name: 'value',
+                    type: 'int112',
+                  },
+                  {
+                    internalType: 'int112',
+                    name: 'valueOnRefSlot',
+                    type: 'int112',
+                  },
+                  {
+                    internalType: 'uint32',
+                    name: 'refSlot',
+                    type: 'uint32',
+                  },
+                ],
+                internalType: 'struct RefSlotCache.Int112WithRefSlotCache',
                 name: 'inOutDelta',
-                type: 'int128',
-              },
-              {
-                internalType: 'uint96',
-                name: 'feeSharesCharged',
-                type: 'uint96',
+                type: 'tuple',
               },
             ],
             internalType: 'struct VaultHub.VaultRecord',
@@ -265,13 +328,40 @@ export const VaultViewerAbi = [
           },
           {
             internalType: 'uint256',
-            name: 'nodeOperatorFee',
+            name: 'nodeOperatorFeeRate',
             type: 'uint256',
           },
           {
             internalType: 'bool',
-            name: 'isOwnerDashboard',
+            name: 'isReportFresh',
             type: 'bool',
+          },
+          {
+            components: [
+              {
+                internalType: 'bool',
+                name: 'isActive',
+                type: 'bool',
+              },
+              {
+                internalType: 'uint256',
+                name: 'pendingTotalValueIncrease',
+                type: 'uint256',
+              },
+              {
+                internalType: 'uint256',
+                name: 'startTimestamp',
+                type: 'uint256',
+              },
+              {
+                internalType: 'uint256',
+                name: 'endTimestamp',
+                type: 'uint256',
+              },
+            ],
+            internalType: 'struct LazyOracle.QuarantineInfo',
+            name: 'quarantineInfo',
+            type: 'tuple',
           },
         ],
         internalType: 'struct VaultViewer.VaultData',
@@ -300,6 +390,11 @@ export const VaultViewerAbi = [
       {
         components: [
           {
+            internalType: 'address',
+            name: 'vaultAddress',
+            type: 'address',
+          },
+          {
             components: [
               {
                 internalType: 'address',
@@ -346,6 +441,11 @@ export const VaultViewerAbi = [
                 name: 'reservationFeeBP',
                 type: 'uint16',
               },
+              {
+                internalType: 'bool',
+                name: 'isBeaconDepositsManuallyPaused',
+                type: 'bool',
+              },
             ],
             internalType: 'struct VaultHub.VaultConnection',
             name: 'connection',
@@ -356,14 +456,19 @@ export const VaultViewerAbi = [
               {
                 components: [
                   {
-                    internalType: 'uint128',
+                    internalType: 'uint112',
                     name: 'totalValue',
-                    type: 'uint128',
+                    type: 'uint112',
                   },
                   {
-                    internalType: 'int128',
+                    internalType: 'int112',
                     name: 'inOutDelta',
-                    type: 'int128',
+                    type: 'int112',
+                  },
+                  {
+                    internalType: 'uint32',
+                    name: 'timestamp',
+                    type: 'uint32',
                   },
                 ],
                 internalType: 'struct VaultHub.Report',
@@ -381,19 +486,26 @@ export const VaultViewerAbi = [
                 type: 'uint96',
               },
               {
-                internalType: 'uint64',
-                name: 'reportTimestamp',
-                type: 'uint64',
-              },
-              {
-                internalType: 'int128',
+                components: [
+                  {
+                    internalType: 'int112',
+                    name: 'value',
+                    type: 'int112',
+                  },
+                  {
+                    internalType: 'int112',
+                    name: 'valueOnRefSlot',
+                    type: 'int112',
+                  },
+                  {
+                    internalType: 'uint32',
+                    name: 'refSlot',
+                    type: 'uint32',
+                  },
+                ],
+                internalType: 'struct RefSlotCache.Int112WithRefSlotCache',
                 name: 'inOutDelta',
-                type: 'int128',
-              },
-              {
-                internalType: 'uint96',
-                name: 'feeSharesCharged',
-                type: 'uint96',
+                type: 'tuple',
               },
             ],
             internalType: 'struct VaultHub.VaultRecord',
@@ -412,18 +524,50 @@ export const VaultViewerAbi = [
           },
           {
             internalType: 'uint256',
-            name: 'nodeOperatorFee',
+            name: 'nodeOperatorFeeRate',
             type: 'uint256',
           },
           {
             internalType: 'bool',
-            name: 'isOwnerDashboard',
+            name: 'isReportFresh',
             type: 'bool',
+          },
+          {
+            components: [
+              {
+                internalType: 'bool',
+                name: 'isActive',
+                type: 'bool',
+              },
+              {
+                internalType: 'uint256',
+                name: 'pendingTotalValueIncrease',
+                type: 'uint256',
+              },
+              {
+                internalType: 'uint256',
+                name: 'startTimestamp',
+                type: 'uint256',
+              },
+              {
+                internalType: 'uint256',
+                name: 'endTimestamp',
+                type: 'uint256',
+              },
+            ],
+            internalType: 'struct LazyOracle.QuarantineInfo',
+            name: 'quarantineInfo',
+            type: 'tuple',
           },
         ],
         internalType: 'struct VaultViewer.VaultData[]',
         name: 'vaultsData',
         type: 'tuple[]',
+      },
+      {
+        internalType: 'uint256',
+        name: 'leftover',
+        type: 'uint256',
       },
     ],
     stateMutability: 'view',
@@ -432,7 +576,7 @@ export const VaultViewerAbi = [
   {
     inputs: [
       {
-        internalType: 'contract IVault',
+        internalType: 'contract IStakingVault',
         name: 'vault',
         type: 'address',
       },
@@ -480,7 +624,7 @@ export const VaultViewerAbi = [
   {
     inputs: [
       {
-        internalType: 'contract IVault',
+        internalType: 'contract IStakingVault',
         name: 'vault',
         type: 'address',
       },
@@ -502,38 +646,6 @@ export const VaultViewerAbi = [
     type: 'function',
   },
   {
-    inputs: [],
-    name: 'vaultHub',
-    outputs: [
-      {
-        internalType: 'contract VaultHub',
-        name: '',
-        type: 'address',
-      },
-    ],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [
-      {
-        internalType: 'contract IStakingVault',
-        name: '_vault',
-        type: 'address',
-      },
-    ],
-    name: 'vaultState',
-    outputs: [
-      {
-        internalType: 'enum VaultViewer.VaultState',
-        name: '',
-        type: 'uint8',
-      },
-    ],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
     inputs: [
       {
         internalType: 'address',
@@ -544,7 +656,7 @@ export const VaultViewerAbi = [
     name: 'vaultsByOwner',
     outputs: [
       {
-        internalType: 'contract IVault[]',
+        internalType: 'contract IStakingVault[]',
         name: '',
         type: 'address[]',
       },
@@ -573,7 +685,7 @@ export const VaultViewerAbi = [
     name: 'vaultsByOwnerBound',
     outputs: [
       {
-        internalType: 'contract IVault[]',
+        internalType: 'contract IStakingVault[]',
         name: '',
         type: 'address[]',
       },
@@ -602,7 +714,7 @@ export const VaultViewerAbi = [
     name: 'vaultsByRole',
     outputs: [
       {
-        internalType: 'contract IVault[]',
+        internalType: 'contract IStakingVault[]',
         name: '',
         type: 'address[]',
       },
@@ -636,7 +748,7 @@ export const VaultViewerAbi = [
     name: 'vaultsByRoleBound',
     outputs: [
       {
-        internalType: 'contract IVault[]',
+        internalType: 'contract IStakingVault[]',
         name: '',
         type: 'address[]',
       },
@@ -654,7 +766,7 @@ export const VaultViewerAbi = [
     name: 'vaultsConnected',
     outputs: [
       {
-        internalType: 'contract IVault[]',
+        internalType: 'contract IStakingVault[]',
         name: '',
         type: 'address[]',
       },
@@ -678,7 +790,7 @@ export const VaultViewerAbi = [
     name: 'vaultsConnectedBound',
     outputs: [
       {
-        internalType: 'contract IVault[]',
+        internalType: 'contract IStakingVault[]',
         name: '',
         type: 'address[]',
       },
