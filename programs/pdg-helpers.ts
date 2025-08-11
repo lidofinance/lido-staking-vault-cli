@@ -26,7 +26,7 @@ import {
   logTable,
   callReadMethodSilent,
   stringToNumber,
-  fetchValidatorInfo,
+  fetchValidatorsInfo,
 } from 'utils';
 import { Address, Hex } from 'viem';
 
@@ -323,32 +323,27 @@ predepositGuaranteeHelpers
   .action(async (validatorPubkey: Hex) => {
     if (!validatorPubkey) return;
 
-    const validatorInfo = await fetchValidatorInfo([validatorPubkey]);
+    const validatorsInfo = await fetchValidatorsInfo([validatorPubkey]);
+    const validatorInfo = validatorsInfo.data[0];
     logTable({
       data: [
-        ['Index', validatorInfo.data[0].index],
-        ['Balance', validatorInfo.data[0].balance],
-        ['Status', validatorInfo.data[0].status],
-        ['Pubkey', validatorInfo.data[0].validator.pubkey],
+        ['Index', validatorInfo.index],
+        ['Balance', validatorInfo.balance],
+        ['Status', validatorInfo.status],
+        ['Pubkey', validatorInfo.validator.pubkey],
         [
           'Withdrawal Credentials',
-          validatorInfo.data[0].validator.withdrawal_credentials,
+          validatorInfo.validator.withdrawal_credentials,
         ],
-        [
-          'Effective Balance',
-          validatorInfo.data[0].validator.effective_balance,
-        ],
-        ['Slashed', validatorInfo.data[0].validator.slashed],
+        ['Effective Balance', validatorInfo.validator.effective_balance],
+        ['Slashed', validatorInfo.validator.slashed],
         [
           'Activation Eligibility Epoch',
-          validatorInfo.data[0].validator.activation_eligibility_epoch,
+          validatorInfo.validator.activation_eligibility_epoch,
         ],
-        ['Activation Epoch', validatorInfo.data[0].validator.activation_epoch],
-        ['Exit Epoch', validatorInfo.data[0].validator.exit_epoch],
-        [
-          'Withdrawable Epoch',
-          validatorInfo.data[0].validator.withdrawable_epoch,
-        ],
+        ['Activation Epoch', validatorInfo.validator.activation_epoch],
+        ['Exit Epoch', validatorInfo.validator.exit_epoch],
+        ['Withdrawable Epoch', validatorInfo.validator.withdrawable_epoch],
       ],
     });
   });

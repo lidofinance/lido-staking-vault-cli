@@ -135,7 +135,7 @@ reportWrite
             contract: lazyOracleContract,
             methodName: 'updateVaultData',
             payload: [
-              report.data.vaultAddress as `0x${string}`,
+              report.data.vaultAddress as Address,
               BigInt(report.data.totalValueWei),
               BigInt(report.data.fee),
               BigInt(report.data.liabilityShares),
