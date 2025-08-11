@@ -13,7 +13,7 @@ export type StateId =
   | 'finalized'
   | 'justified';
 
-export type ValidatorInfo = {
+export type ValidatorsInfo = {
   execution_optimistic: boolean;
   finalized: boolean;
   data: [
@@ -62,8 +62,8 @@ const endpoints = {
   beaconHeadersByParentRoot: (parentRoot: RootHex): string =>
     `eth/v1/beacon/headers?parent_root=${parentRoot}`,
   state: (stateId: StateId): string => `eth/v2/debug/beacon/states/${stateId}`,
-  validatorInfo: (validatorPubkeys: string): string =>
-    `eth/v1/beacon/states/head/validators${validatorPubkeys}`,
+  validatorsInfo: (validatorsPubkeys: string): string =>
+    `eth/v1/beacon/states/head/validators${validatorsPubkeys}`,
 };
 
 export const SupportedFork = {
@@ -191,10 +191,10 @@ export const fetchBeaconHeaderByParentRoot = async (
   }
 };
 
-export const fetchValidatorInfo = async (
+export const fetchValidatorsInfo = async (
   validatorPubkeys: Hex[],
   clURL?: string,
-): Promise<ValidatorInfo> => {
+): Promise<ValidatorsInfo> => {
   const url = clURL || getConfig().CL_URL;
 
   if (!url) {
@@ -204,11 +204,11 @@ export const fetchValidatorInfo = async (
   }
 
   try {
-    const validatorInfoResp = await fetch(
-      `${url.endsWith('/') ? url : url + '/'}${endpoints.validatorInfo('?id=' + validatorPubkeys.join(','))}`,
+    const validatorsInfoResp = await fetch(
+      `${url.endsWith('/') ? url : url + '/'}${endpoints.validatorsInfo('?id=' + validatorPubkeys.join(','))}`,
     );
 
-    return validatorInfoResp.json();
+    return validatorsInfoResp.json();
   } catch (error) {
     printError(
       error,
