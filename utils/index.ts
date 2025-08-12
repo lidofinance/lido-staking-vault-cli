@@ -31,4 +31,5 @@ export * from './statistic/index.js';
 export * from './consts.js';
 export * from './snake-to-camel.js';
 export * from './timestamp.js';
-export * from './validator-pubkeys.js';
+export * from './validators-checks.js';
+export * from './pubkeys-checks.js';
