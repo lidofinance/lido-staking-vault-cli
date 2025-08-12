@@ -100,6 +100,7 @@ Analyzes multiple historical vault reports and calculates comprehensive performa
 - **Net Staking APR**: Annual percentage return after fees
 - **Carry Spread**: Final stVault bottom line in %
 - **Bottom Line**: Final profit/loss after all adjustments
+- **Daily Lido Fees**: Protocol fees paid to Lido
 
 **Use Case:** Compare performance metrics across multiple reporting periods and identify trends over time.
 
