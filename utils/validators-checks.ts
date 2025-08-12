@@ -1,7 +1,7 @@
 import { ValidatorsInfo } from './fetchCL.js';
 import assert from 'assert';
 
-export const checkSourcePubkeys = async (
+export const checkSourceValidators = async (
   sourceValidatorsInfo: ValidatorsInfo,
   finalizedEpoch: number,
 ) => {
@@ -37,7 +37,7 @@ export const checkSourcePubkeys = async (
   );
 };
 
-export const checkTargetPubkeys = async (
+export const checkTargetValidators = async (
   targetValidatorsInfo: ValidatorsInfo,
 ) => {
   const notActiveTargetValidators = targetValidatorsInfo.data.filter(
