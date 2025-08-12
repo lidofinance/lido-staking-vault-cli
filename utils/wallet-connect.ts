@@ -173,6 +173,8 @@ const connectWalletConnect = async () => {
           'eth_accounts',
           'eth_sign',
           'eth_chainId',
+          'wallet_sendCalls',
+          'wallet_getCallsStatus',
         ],
         chains: [`eip155:${chain.id}`],
         events: ['chainChanged', 'accountsChanged'],
