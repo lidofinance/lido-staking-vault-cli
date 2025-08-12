@@ -10,6 +10,7 @@ import {
   getGrossStakingRewards,
   getNodeOperatorRewards,
   getNetStakingRewards,
+  getDailyLidoFees,
 } from 'utils';
 
 import { getRebaseRewardFromCache, getShareRateFromCache } from 'utils';
@@ -212,4 +213,21 @@ export const prepareNetStakingRewards = (
     timestamp.push(current.timestamp);
   }
   return { values: netStakingRewards, timestamp };
+};
+
+export const prepareDailyLidoFees = (history: VaultReport[]) => {
+  const dailyLidoFees = [];
+  const timestamp = [];
+
+  for (let i = 1; i < history.length; i++) {
+    const current = history[i];
+    const previous = history[i - 1];
+    if (!current || !previous) continue;
+
+    const value = getDailyLidoFees(current, previous);
+
+    dailyLidoFees.push(String(formatEther(value)));
+    timestamp.push(current.timestamp);
+  }
+  return { values: dailyLidoFees, timestamp };
 };

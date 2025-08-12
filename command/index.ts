@@ -17,3 +17,4 @@ program.option(
   '--no-cache-use',
   'do not use cache for fetching data from IPFS',
 );
+program.option('--csv <file>', 'write table output to CSV file');

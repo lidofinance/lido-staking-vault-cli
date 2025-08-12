@@ -28,6 +28,7 @@ import {
   prepareNetStakingAPR,
   prepareCarrySpread,
   prepareBottomLine,
+  prepareDailyLidoFees,
   formatTimestamp,
 } from 'utils';
 import { checkQuarantine, chooseVaultAndGetDashboard } from 'features';
@@ -163,6 +164,7 @@ metricsRead
       netStakingAPR,
       carrySpread,
       bottomLine,
+      dailyLidoFees,
     ] = await Promise.all([
       prepareGrossStakingRewards(history),
       prepareNodeOperatorRewards(history, nodeOperatorFeeBPs),
@@ -171,6 +173,7 @@ metricsRead
       prepareNetStakingAPR(history, nodeOperatorFeeBPs),
       prepareCarrySpread(history, nodeOperatorFeeBPs, vaultAddress),
       prepareBottomLine(history, nodeOperatorFeeBPs, vaultAddress),
+      prepareDailyLidoFees(history),
     ]);
 
     logResult({
@@ -182,6 +185,7 @@ metricsRead
         ['Net Staking APR, %', ...netStakingAPR.values.map(formatRatio)],
         ['Carry Spread, %', ...carrySpread.values.map(formatRatio)],
         ['Bottom Line, WEI', ...bottomLine.values],
+        ['Daily Lido Fees, ETH', ...dailyLidoFees.values],
       ],
       params: {
         head: [
@@ -190,6 +194,61 @@ metricsRead
             formatTimestamp(ts, 'dd.mm hh:mm'),
           ),
         ],
+      },
+    });
+  });
+
+metricsRead
+  .command('report-data')
+  .description('get report data for Vault from N last reports')
+  .argument('<count>', 'count of reports', stringToNumber)
+  .option('-v, --vault <string>', 'vault address')
+  .option('-g, --gateway', 'ipfs gateway url')
+  .action(async (count: number, { vault, gateway }) => {
+    const { vault: vaultAddress } = await chooseVaultAndGetDashboard({ vault });
+
+    await checkQuarantine(vaultAddress);
+
+    const lazyOracleContract = await getLazyOracleContract();
+    const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
+      await callReadMethod(lazyOracleContract, 'latestReportData');
+
+    const { cacheUse } = program.opts();
+    const history = await getVaultReportHistory(
+      {
+        vault: vaultAddress,
+        cid: vaultsDataReportCid,
+        limit: count,
+        direction: 'asc',
+        gateway,
+      },
+      cacheUse,
+    );
+
+    logResult({
+      data: [
+        ['Vault Address', ...history.map((r) => r.data.vaultAddress)],
+        ['Total Value, WEI', ...history.map((r) => r.data.totalValueWei)],
+        ['Fee, WEI', ...history.map((r) => r.data.fee)],
+        [
+          'Liability Shares, WEI',
+          ...history.map((r) => r.data.liabilityShares),
+        ],
+        [
+          'Slashing Reserve, WEI',
+          ...history.map((r) => r.data.slashingReserve),
+        ],
+        ['In/Out Delta, WEI', ...history.map((r) => r.extraData.inOutDelta)],
+        ['Prev Fee, WEI', ...history.map((r) => r.extraData.prevFee)],
+        ['Infra Fee, WEI', ...history.map((r) => r.extraData.infraFee)],
+        ['Liquidity Fee, WEI', ...history.map((r) => r.extraData.liquidityFee)],
+        [
+          'Reservation Fee, WEI',
+          ...history.map((r) => r.extraData.reservationFee),
+        ],
+      ],
+      params: {
+        head: ['Metric', ...history.map((r) => formatTimestamp(r.timestamp))],
       },
     });
   });
