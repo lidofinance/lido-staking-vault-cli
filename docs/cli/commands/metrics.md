@@ -28,13 +28,13 @@ Metrics commands provide comprehensive analytics and reporting for Lido Staking 
 
 ### Read
 
-| Command                      | Description                                |
-| ---------------------------- | ------------------------------------------ |
-| statistic                    | get statistic data for last report         |
-| statistic-by-reports <count> | get statistic data for N last reports      |
-| report-data <count>          | get report data for Vault from N reports   |
-| charts-apr <count>           | get APR charts data for N last reports     |
-| charts-rewards <count>       | get rewards charts data for N last reports |
+| Command                        | Description                                |
+| ------------------------------ | ------------------------------------------ |
+| statistic                      | get statistic data for last report         |
+| statistic-by-reports \<count\> | get statistic data for N last reports      |
+| report-data \<count\>          | get report data for Vault from N reports   |
+| charts-apr \<count\>           | get APR charts data for N last reports     |
+| charts-rewards \<count\>       | get rewards charts data for N last reports |
 
 ### Write
 
