@@ -28,12 +28,13 @@ Metrics commands provide comprehensive analytics and reporting for Lido Staking 
 
 ### Read
 
-| Command                       | Description                                |
-| ----------------------------- | ------------------------------------------ |
-| statistic                     | get statistic data for last report         |
-| statistic-by-reports \<count> | get statistic data for N last reports      |
-| charts-apr \<count>           | get APR charts data for N last reports     |
-| charts-rewards \<count>       | get rewards charts data for N last reports |
+| Command                        | Description                                |
+| ------------------------------ | ------------------------------------------ |
+| statistic                      | get statistic data for last report         |
+| statistic-by-reports \<count\> | get statistic data for N last reports      |
+| report-data \<count\>          | get report data for Vault from N reports   |
+| charts-apr \<count\>           | get APR charts data for N last reports     |
+| charts-rewards \<count\>       | get rewards charts data for N last reports |
 
 ### Write
 
@@ -99,8 +100,39 @@ Analyzes multiple historical vault reports and calculates comprehensive performa
 - **Net Staking APR**: Annual percentage return after fees
 - **Carry Spread**: Final stVault bottom line in %
 - **Bottom Line**: Final profit/loss after all adjustments
+- **Daily Lido Fees**: Protocol fees paid to Lido
 
 **Use Case:** Compare performance metrics across multiple reporting periods and identify trends over time.
+
+### report-data
+
+Retrieves raw report data for the vault from N last reports.
+
+**Arguments:**
+
+- `<count>`: Number of historical reports to include
+
+**Options:**
+
+- `-v, --vault <string>`: Vault address
+- `-g, --gateway`: IPFS gateway URL for report data retrieval
+
+**Output (tabular):**
+
+Header row contains `Metric` and corresponding timestamps. Rows include:
+
+- `Vault Address`
+- `Total Value, WEI`
+- `Fee, WEI`
+- `Liability Shares, WEI`
+- `Slashing Reserve, WEI`
+- `In/Out Delta, WEI`
+- `Prev Fee, WEI`
+- `Infra Fee, WEI`
+- `Liquidity Fee, WEI`
+- `Reservation Fee, WEI`
+
+**Use Case:** Export vault’s raw on-report values for further analysis and reconciliation.
 
 ### charts-apr
 
@@ -159,50 +191,23 @@ Displays visual charts focused on rewards distribution and flow analysis.
 
 **Use Case:** Monitor rewards flow and operator compensation over time.
 
-## Data Sources
+## Exporting Metrics to CSV
 
-### IPFS Integration
+Any table output produced by metrics commands can be exported to a CSV file using global flags.
 
-- **Report Storage**: Historical data stored on IPFS
-- **Decentralized Access**: Multiple gateway support
-- **Data Integrity**: Content-addressed storage verification
-- **Caching**: Local caching for performance optimization
+**Flags:**
 
-### Oracle Data
+- `--csv <file>`: write table output to a CSV file
 
-- **LazyOracle**: Latest report metadata
-- **Block-based Queries**: Historical contract state access
-- **Fee Rate Tracking**: Node operator fee history
-- **Share Rate Data**: stETH share rates
+**Examples:**
 
-## Performance Optimization
+Export statistics for last 24 reports:
 
-### Caching Strategy
+```bash
+yarn start metrics read statistic-by-reports 24 --vault <address> --csv ./stats.csv
+```
 
-- **Report Data**: Local storage of IPFS content
-- **Fee Rates**: Cached node operator fees by block
-- **Share Rates**: Cached stETH share rates
-- **Gateway Failover**: Multiple IPFS gateway support
+Notes:
 
-## Use Cases
-
-### Vault Management
-
-- Monitor long-term performance trends
-- Identify optimization opportunities
-- Track stVault carry spread
-- Analyze fee impact
-
-### Reporting & Analysis
-
-- Generate performance reports
-- Compare vault performance
-- Analyze rewards distribution
-- Monitor carry spread metrics
-
-### Development & Testing
-
-- Validate metric calculations
-- Test chart rendering
-- Debug performance issues
-- Analyze historical data patterns
+- Headers are included when present (e.g., timestamps in `statistic-by-reports` and `report-data`).
+- Big integer values are serialized as strings.
