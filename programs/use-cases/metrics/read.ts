@@ -118,7 +118,8 @@ metricsRead
   .argument('<count>', 'count of reports', stringToNumber)
   .option('-v, --vault <string>', 'vault address')
   .option('-g, --gateway', 'ipfs gateway url')
-  .action(async (count: number, { vault, gateway }) => {
+  .option('--no-utc', 'do not use UTC time zone')
+  .action(async (count: number, { vault, gateway, utc }) => {
     const { contract: dashboardContract, vault: vaultAddress } =
       await chooseVaultAndGetDashboard({ vault });
 
@@ -192,7 +193,7 @@ metricsRead
         head: [
           'Metric',
           ...grossStakingRewards.timestamp.map((ts) =>
-            formatTimestamp(ts, 'dd.mm hh:mm'),
+            formatTimestamp(ts, 'dd.mm hh:mm', utc ? 'UTC' : 'local'),
           ),
         ],
       },
@@ -205,7 +206,8 @@ metricsRead
   .argument('<count>', 'count of reports', stringToNumber)
   .option('-v, --vault <string>', 'vault address')
   .option('-g, --gateway', 'ipfs gateway url')
-  .action(async (count: number, { vault, gateway }) => {
+  .option('--no-utc', 'do not use UTC time zone')
+  .action(async (count: number, { vault, gateway, utc }) => {
     const { vault: vaultAddress } = await chooseVaultAndGetDashboard({ vault });
 
     await checkQuarantine(vaultAddress);
@@ -251,7 +253,12 @@ metricsRead
         ['CID', ...history.map((r) => r.cid)],
       ],
       params: {
-        head: ['Metric', ...history.map((r) => formatTimestamp(r.timestamp))],
+        head: [
+          'Metric',
+          ...history.map((r) =>
+            formatTimestamp(r.timestamp, 'dd.mm hh:mm', utc ? 'UTC' : 'local'),
+          ),
+        ],
       },
     });
   });

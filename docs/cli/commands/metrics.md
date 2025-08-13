@@ -83,6 +83,7 @@ Analyzes multiple historical vault reports and calculates comprehensive performa
 
 - `-v, --vault <string>`: Vault address
 - `-g, --gateway`: IPFS gateway URL for report data retrieval
+- `--no-utc`: format timestamps in local time instead of UTC
 
 **Process:**
 
@@ -90,6 +91,7 @@ Analyzes multiple historical vault reports and calculates comprehensive performa
 - Fetches vault reports from IPFS for the specified count
 - Calculates performance metrics for each reporting period
 - Displays data in tabular format with timestamps
+- Timestamps are UTC by default; use `--no-utc` to use local time
 
 **Metrics Calculated:**
 
@@ -116,6 +118,7 @@ Retrieves raw report data for the vault from N last reports.
 
 - `-v, --vault <string>`: Vault address
 - `-g, --gateway`: IPFS gateway URL for report data retrieval
+- `--no-utc`: format timestamps in local time instead of UTC
 
 **Output (tabular):**
 
@@ -131,6 +134,10 @@ Header row contains `Metric` and corresponding timestamps. Rows include:
 - `Infra Fee, WEI`
 - `Liquidity Fee, WEI`
 - `Reservation Fee, WEI`
+- `Timestamp`
+- `CID`
+
+Timestamps are UTC by default; use `--no-utc` to use local time.
 
 **Use Case:** Export vault’s raw on-report values for further analysis and reconciliation.
 
