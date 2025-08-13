@@ -11,14 +11,15 @@ import {
   logInfo,
 } from 'utils';
 import { consolidation } from './main.js';
-import { Address, Hex, hexToBigInt, zeroAddress } from 'viem';
+import { Address, custom, createWalletClient, Hex, hexToBigInt, zeroAddress } from 'viem';
 import { checkPubkeys } from 'utils/pubkeys-checks.js';
 import {
   revokeDelegate,
   requestConsolidation,
 } from 'features/consolidation.js';
 import { getDashboardContract, getVaultHubContract } from 'contracts';
-import { getAccount, getPublicClient, getWalletWithAccount } from 'providers';
+import { getAccount, getPublicClient, getWalletWithAccount, getWalletConnectClient } from 'providers';
+import { getChain } from 'configs/deployed.js';
 
 const CONSOLIDATION_REQUEST_PREDEPLOY_ADDRESS =
   '0x0000BBdDc7CE488642fb579F8B00f3a590007251';
@@ -210,5 +211,84 @@ consolidationWrite
           payload: [BigInt(totalBalance)],
         });
       }
+    },
+  );
+
+  consolidationWrite
+  .command('eoa-sendcalls')
+  .description(
+    'Make separate consolidation requests for each source pubkey, increase rewards adjustment',
+  )
+  .argument(
+    '<source_pubkeys>',
+    '2D array of source validator pubkeys: each inner list will be consolidated into a single target validator',
+    stringTo2dArray,
+  )
+  .argument(
+    '<target_pubkeys>',
+    'List of target validator public keys to consolidate into. One target pubkey per group of source pubkeys',
+    stringToHexArray,
+  )
+  .argument('<staking_vault>', 'staking vault address', stringToAddress)
+  .action(
+    async (
+      sourcePubkeys: Hex[][],
+      targetPubkeys: Hex[],
+      stakingVault: Address,
+    ) => {
+      const publicClient = getPublicClient();
+      //const walletClient = getWalletWithAccount();
+      const account = getAccount();
+
+      const walletClient = await getWalletConnectClient();
+
+      // 0. Input validation
+      const sourcePubkeysFlat = sourcePubkeys.flat();
+      checkPubkeys(sourcePubkeysFlat);
+      checkPubkeys(targetPubkeys);
+      if (sourcePubkeys.length !== targetPubkeys.length) {
+        throw new Error(
+          'sourcePubkeys and targetPubkeys must have the same length',
+        );
+      }
+      if (stakingVault === zeroAddress) {
+        throw new Error('stakingVault must be non-zero address');
+      }
+
+      // Get fee per request first
+      const { data } = await publicClient.call({
+        to: CONSOLIDATION_REQUEST_PREDEPLOY_ADDRESS,
+        data: '0x',
+        blockTag: 'latest',
+      });
+      if (!data) throw new Error('Fee read returned empty data');
+      const feePerRequest = hexToBigInt(data);
+
+
+      const calls = [];
+
+      for (const [pubkeyIndex, targetPubkey] of targetPubkeys.entries()) {
+        const sourcePubkeysGroup = sourcePubkeys[pubkeyIndex] ?? [];
+        for (const sourcePubkey of sourcePubkeysGroup) {
+          if (sourcePubkey == null || targetPubkey == null) {
+            throw new Error('sourcePubkey and targetPubkey must be defined');
+          }
+          const calldata =
+            `0x${sourcePubkey.slice(2)}${targetPubkey.slice(2)}` as Hex;
+          calls.push({
+            to: CONSOLIDATION_REQUEST_PREDEPLOY_ADDRESS as Address,
+            data: calldata,
+            value: feePerRequest,
+          });
+        }
+      }
+      logInfo('calls:', calls);
+
+      const result = await walletClient.sendCalls({
+        account: walletClient.account,
+        calls: calls,
+        experimental_fallback: true,
+      });
+      logInfo('sendCalls result:', result);
     },
   );

@@ -39,7 +39,7 @@ accountRead
       address = providedAddress;
     } else {
       // Use wallet address from config
-      const walletClient = getWalletWithAccount();
+      const walletClient = await getWalletWithAccount();
       const walletAddress = walletClient.account?.address;
 
       if (!walletAddress) {
@@ -79,7 +79,7 @@ accountRead
   .description('get steth allowance for an address')
   .argument('<address>', 'address to get allowance for', stringToAddress)
   .action(async (address: Address) => {
-    const accountAddress = getAccount().address;
+    const accountAddress = (await getAccount()).address;
     const stethContract = await getStethContract();
 
     await callReadMethod(stethContract, 'allowance', [accountAddress, address]);
@@ -90,7 +90,7 @@ accountRead
   .description('get wsteth allowance for an address')
   .argument('<address>', 'address to get allowance for', stringToAddress)
   .action(async (address: Address) => {
-    const accountAddress = getAccount().address;
+    const accountAddress = (await getAccount()).address;
     const wstethContract = await getWstethContract();
 
     await callReadMethod(wstethContract, 'allowance', [

@@ -87,7 +87,7 @@ depositsRead
   .command('no-info')
   .description('get info about the NO in PDG')
   .action(async () => {
-    const currentAccount = getAccount();
+    const currentAccount = await getAccount();
 
     const pdgContract = await getPredepositGuaranteeContract();
     const nodeOperator = await specifyNodeOperatorAddress();

@@ -4,7 +4,7 @@ import { getAccount } from 'providers';
 
 export const getVaultsByOwner = async () => {
   const contract = getVaultViewerContract();
-  const account = getAccount();
+  const account = await getAccount();
 
   const vaults = await callReadMethodSilent(contract, 'vaultsByOwner', [
     account.address,
@@ -14,7 +14,7 @@ export const getVaultsByOwner = async () => {
 };
 
 export const getVaultsByNO = async () => {
-  const account = getAccount();
+  const account = await getAccount();
   const contract = getVaultViewerContract();
   const vaults = await callReadMethodSilent(contract, 'vaultsConnected');
 

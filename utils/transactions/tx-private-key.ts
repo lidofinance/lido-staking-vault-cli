@@ -15,23 +15,8 @@ import { getChain } from 'configs';
 
 import { showSpinner, printError, logResult, logInfo } from 'utils';
 
-export type ReadContract = {
-  address: Address;
-  read: Record<string, (...args: any[]) => Promise<any>>;
-};
-
-export type PartialContract = ReadContract & {
-  simulate: Record<string, (...args: any[]) => Promise<any>>;
-  write: Record<string, (...args: any[]) => Promise<any>>;
-  abi: Abi;
-};
-
-type Writeable<T> = { -readonly [P in keyof T]: T[P] };
-type GetFirst<T extends unknown[]> = T extends [infer First, infer _Second]
-  ? First
-  : T extends any
-    ? []
-    : T;
+import { callWalletConnectWriteMethodWithReceipt } from './tx-wc.js';
+import { PartialContract, ReadContract, Writeable, GetFirst } from './types.js';
 
 export const callSimulateWriteMethod = async <
   T extends PartialContract,
@@ -64,7 +49,7 @@ export const callSimulateWriteMethod = async <
   try {
     const method = contract.simulate[methodName];
     const result = await method?.(payload, {
-      account: getAccount(),
+      account: await getAccount(),
       chain: getChain(),
       value,
       authorizationList,
@@ -133,7 +118,7 @@ export const callWriteMethod = async <
   try {
     const method = contract.write[methodName];
     const tx = await method?.(payload, {
-      account: getAccount(),
+      account: await getAccount(),
       chain: getChain(),
       value,
       authorizationList,
@@ -311,6 +296,18 @@ export const callWriteMethodWithReceipt = async <
 
     return { receipt: undefined as any, tx: data as any };
   }
+
+  if (program.opts().walletConnect) {
+    const data = await callWalletConnectWriteMethodWithReceipt({
+      contract,
+      methodName,
+      payload,
+      value,
+    });
+
+    return data;
+  }
+
   const publicClient = getPublicClient();
 
   const tx = await callWriteMethod({

@@ -40,7 +40,7 @@ vaultViewerRead
   .option('-s, --simple', 'simple output')
   .action(async ({ simple }: { simple: boolean }) => {
     const contract = getVaultViewerContract();
-    const account = getAccount();
+    const account = await getAccount();
 
     const vaults = await callReadMethodSilent(contract, 'vaultsByOwner', [
       account.address,
@@ -67,7 +67,7 @@ vaultViewerRead
   .option('-s, --simple', 'simple output')
   .action(async (from: bigint, to: bigint, { simple }: { simple: boolean }) => {
     const contract = getVaultViewerContract();
-    const account = getAccount();
+    const account = await getAccount();
 
     const [vaults] = await callReadMethod(contract, 'vaultsByOwnerBound', [
       account.address,
@@ -95,7 +95,7 @@ vaultViewerRead
   .option('-s, --simple', 'simple output')
   .action(async (role: Address, { simple }: { simple: boolean }) => {
     const contract = getVaultViewerContract();
-    const account = getAccount();
+    const account = await getAccount();
 
     const vaults = await callReadMethodSilent(contract, 'vaultsByRole', [
       role,
@@ -129,7 +129,7 @@ vaultViewerRead
       { simple }: { simple: boolean },
     ) => {
       const contract = getVaultViewerContract();
-      const account = getAccount();
+      const account = await getAccount();
 
       const [vaults] = await callReadMethod(contract, 'vaultsByRoleBound', [
         role,
