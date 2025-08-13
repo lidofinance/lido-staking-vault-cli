@@ -1,4 +1,4 @@
-import { type Abi, type Address } from 'viem';
+import { Hex, type Abi, type Address } from 'viem';
 
 export type ReadContract = {
   address: Address;
@@ -20,3 +20,31 @@ export type GetFirst<T extends unknown[]> = T extends [
   : T extends any
     ? []
     : T;
+
+export type PopulatedTx = { to: Address; value: bigint; data: Hex };
+
+export type BatchTxArgs<
+  T extends PartialContract,
+  M extends keyof T['write'] & string,
+> = {
+  contract: T;
+  methodName: M;
+  payloads: Writeable<GetFirst<Parameters<T['write'][M]>>>[]; // array of args per call
+  values?: bigint[]; // optional per-call values (defaults to 0)
+  withSpinner?: boolean;
+  silent?: boolean;
+  skipError?: boolean;
+};
+
+export type WriteTxArgs<
+  T extends PartialContract,
+  M extends keyof T['write'] & string,
+> = {
+  contract: T;
+  methodName: M;
+  payload: Writeable<GetFirst<Parameters<T['write'][M]>>> | never[];
+  value?: bigint;
+  withSpinner?: boolean;
+  silent?: boolean;
+  skipError?: boolean;
+};

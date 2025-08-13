@@ -3,30 +3,37 @@ import {
   SimulateContractReturnType,
   TransactionReceipt,
   encodeFunctionData,
-  Hex,
 } from 'viem';
 import { waitForTransactionReceipt } from 'viem/actions';
 import { program } from 'command';
+import cliProgress from 'cli-progress';
 
-import { getAccount, getPublicClient } from 'providers';
+import { getAccount, getPublicClient, getWalletWithAccount } from 'providers';
 import { getChain } from 'configs';
 
 import { showSpinner, printError, logResult, logInfo } from 'utils';
 
-import { callWalletConnectWriteMethodWithReceipt } from './tx-wc.js';
-import { PartialContract, ReadContract, Writeable, GetFirst } from './types.js';
+import {
+  callWalletConnectWriteBatchCalls,
+  callWalletConnectWriteBatchPayloads,
+  callWalletConnectWriteMethodWithReceipt,
+} from './tx-wc.js';
+import {
+  PartialContract,
+  ReadContract,
+  Writeable,
+  GetFirst,
+  PopulatedTx,
+  BatchTxArgs,
+  WriteTxArgs,
+} from './types.js';
 
 export const callSimulateWriteMethod = async <
   T extends PartialContract,
   M extends keyof T['simulate'] & string,
->(args: {
-  contract: T;
-  methodName: M;
-  payload: Writeable<GetFirst<Parameters<T['simulate'][M]>>> | never[];
-  value?: bigint;
-  withSpinner?: boolean;
-  skipError?: boolean;
-}): Promise<SimulateContractReturnType> => {
+>(
+  args: WriteTxArgs<T, M>,
+): Promise<SimulateContractReturnType> => {
   const {
     contract,
     methodName,
@@ -65,15 +72,9 @@ export const callSimulateWriteMethod = async <
 export const callWriteMethod = async <
   T extends PartialContract,
   M extends keyof T['write'] & string,
->(args: {
-  contract: T;
-  methodName: M;
-  payload: Writeable<GetFirst<Parameters<T['write'][M]>>> | never[];
-  value?: bigint;
-  withSpinner?: boolean;
-  silent?: boolean;
-  skipError?: boolean;
-}): Promise<Address> => {
+>(
+  args: WriteTxArgs<T, M>,
+): Promise<Address> => {
   const {
     contract,
     methodName,
@@ -224,7 +225,7 @@ export const isContractAddress = async (address: Address) => {
   return bytecode !== undefined && bytecode !== '0x';
 };
 
-export const populateWriteTx = async <
+export const populateWriteTx = <
   T extends PartialContract,
   M extends keyof T['write'] & string,
 >(args: {
@@ -232,7 +233,7 @@ export const populateWriteTx = async <
   methodName: M;
   payload: Writeable<GetFirst<Parameters<T['write'][M]>>> | never[];
   value?: bigint;
-}): Promise<{ to: Address; value: bigint; data: Hex }> => {
+}): PopulatedTx => {
   const { contract, methodName, payload, value } = args;
 
   return {
@@ -249,15 +250,9 @@ export const populateWriteTx = async <
 export const callWriteMethodWithReceipt = async <
   T extends PartialContract,
   M extends keyof T['write'] & string,
->(args: {
-  contract: T;
-  methodName: M;
-  payload: Writeable<GetFirst<Parameters<T['write'][M]>>> | never[];
-  value?: bigint;
-  withSpinner?: boolean;
-  silent?: boolean;
-  skipError?: boolean;
-}): Promise<{ receipt: TransactionReceipt; tx: Address }> => {
+>(
+  args: WriteTxArgs<T, M>,
+): Promise<{ receipt: TransactionReceipt; tx: Address }> => {
   const {
     contract,
     methodName,
@@ -267,8 +262,9 @@ export const callWriteMethodWithReceipt = async <
     silent = false,
     skipError = false,
   } = args;
+
   if (program.opts().populateTx) {
-    const data = await populateWriteTx({
+    const data = populateWriteTx({
       contract,
       methodName,
       payload,
@@ -343,4 +339,121 @@ export const callWriteMethodWithReceipt = async <
 
     throw err;
   }
+};
+
+export const callWriteMethodWithReceiptBatchCalls = async (args: {
+  calls: PopulatedTx[];
+  withSpinner?: boolean;
+  silent?: boolean;
+  skipError?: boolean;
+}) => {
+  const { calls, withSpinner = true, silent = false, skipError = false } = args;
+
+  if (program.opts().walletConnect) {
+    await callWalletConnectWriteBatchCalls({
+      calls,
+      withSpinner,
+      silent,
+      skipError,
+    });
+  }
+
+  const publicClient = getPublicClient();
+  const walletClient = await getWalletWithAccount();
+
+  if (!walletClient.account) {
+    throw new Error('No account found');
+  }
+
+  const simulateResult = await publicClient.simulateCalls({
+    account: walletClient.account,
+    calls,
+  });
+
+  if (simulateResult.results.some((r) => r.error)) {
+    throw new Error('Simulation failed');
+  }
+
+  for (const call of calls) {
+    const tx = await walletClient.sendTransaction({
+      account: walletClient.account,
+      chain: getChain(),
+      to: call.to,
+      data: call.data,
+      value: call.value,
+    });
+
+    const hideSpinner = withSpinner
+      ? showSpinner({
+          type: 'bouncingBar',
+          message: 'Waiting for transaction receipt...',
+        })
+      : () => {};
+
+    const receipt = await waitForTransactionReceipt(publicClient, {
+      hash: tx,
+      confirmations: 3,
+    });
+    hideSpinner();
+
+    !silent &&
+      logResult({
+        data: [
+          ['Call data', call.data],
+          ['Contract', call.to],
+          ['Transaction status', receipt.status],
+          ['Transaction block number', Number(receipt.blockNumber)],
+          ['Transaction gas used', Number(receipt.gasUsed)],
+        ],
+      });
+  }
+};
+
+export const callWriteMethodWithReceiptBatchPayloads = async <
+  T extends PartialContract,
+  M extends keyof T['write'] & string,
+>(
+  args: BatchTxArgs<T, M>,
+) => {
+  const {
+    contract,
+    methodName,
+    payloads,
+    values,
+    withSpinner = true,
+    silent = false,
+    skipError = false,
+  } = args;
+
+  if (program.opts().walletConnect) {
+    await callWalletConnectWriteBatchPayloads(args);
+
+    return;
+  }
+
+  const progressBar = new cliProgress.SingleBar(
+    {
+      format:
+        'Progress |{bar}| {percentage}% || {value}/{total} Vaults Updated',
+    },
+    cliProgress.Presets.shades_classic,
+  );
+
+  progressBar.start(payloads.length, 0);
+
+  for (const [index, payload] of payloads.entries()) {
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName,
+      payload,
+      value: values?.[index] ?? 0n,
+      withSpinner,
+      silent,
+      skipError,
+    });
+
+    progressBar.increment();
+  }
+
+  progressBar.stop();
 };
