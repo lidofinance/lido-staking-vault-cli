@@ -186,6 +186,7 @@ metricsRead
         ['Carry Spread, %', ...carrySpread.values.map(formatRatio)],
         ['Bottom Line, WEI', ...bottomLine.values],
         ['Daily Lido Fees, ETH', ...dailyLidoFees.values],
+        ['Timestamp', ...grossStakingRewards.timestamp],
       ],
       params: {
         head: [
@@ -246,6 +247,7 @@ metricsRead
           'Reservation Fee, WEI',
           ...history.map((r) => r.extraData.reservationFee),
         ],
+        ['Timestamp', ...history.map((r) => r.timestamp)],
       ],
       params: {
         head: ['Metric', ...history.map((r) => formatTimestamp(r.timestamp))],
