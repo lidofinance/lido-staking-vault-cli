@@ -248,6 +248,7 @@ metricsRead
           ...history.map((r) => r.extraData.reservationFee),
         ],
         ['Timestamp', ...history.map((r) => r.timestamp)],
+        ['CID', ...history.map((r) => r.cid)],
       ],
       params: {
         head: ['Metric', ...history.map((r) => formatTimestamp(r.timestamp))],

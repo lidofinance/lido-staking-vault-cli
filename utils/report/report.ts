@@ -23,7 +23,7 @@ export const getVaultReport = async (
     },
     cache,
   );
-  const vaultData = getVaultData(report, vault);
+  const vaultData = getVaultData(report, vault, cid);
 
   return vaultData;
 };
@@ -48,12 +48,16 @@ export const getVaultPreviousReport = async (
     gateway,
     bigNumberType,
   });
-  const vaultData = getVaultData(previousReport, vault);
+  const vaultData = getVaultData(previousReport, vault, cid);
 
   return vaultData;
 };
 
-export const getVaultData = (report: Report, vault: Address): VaultReport => {
+export const getVaultData = (
+  report: Report,
+  vault: Address,
+  cid: string,
+): VaultReport => {
   const match = report.values.find(
     (entry) => entry.value[0]?.toLowerCase() === vault.toLowerCase(),
   );
@@ -116,6 +120,7 @@ export const getVaultData = (report: Report, vault: Address): VaultReport => {
     blockNumber: Number(report.blockNumber),
     timestamp: report.timestamp,
     prevTreeCID: report.prevTreeCID,
+    cid,
   };
 };
 
@@ -134,7 +139,7 @@ export const getAllVaultsReports = async (
   );
 
   const vaultReports = report.values.map(
-    (value) => getVaultData(report, value.value[0]).data,
+    (value) => getVaultData(report, value.value[0], cid).data,
   );
 
   return {
