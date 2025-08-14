@@ -4,10 +4,17 @@ import {
   http,
   GetContractReturnType,
   WalletClient,
+  Address,
 } from 'viem';
 import { VaultHubAbi } from 'abi/index.js';
 import { getChain, getElUrl } from 'configs';
 import { getLocatorContract } from 'contracts';
+
+export type VaultConnection = {
+  vaultIndex: bigint;
+  owner: Address;
+  pendingDisconnect: boolean;
+};
 
 export const getVaultHubContract = async (): Promise<
   GetContractReturnType<typeof VaultHubAbi, WalletClient>

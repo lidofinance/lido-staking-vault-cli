@@ -2,27 +2,18 @@ import {
   stringTo2dArray,
   stringToAddress,
   stringToHexArray,
-  fetchValidatorsInfo,
-  finalityCheckpoints,
-  checkSourceValidators,
-  checkTargetValidators,
-  callReadMethod,
   callWriteMethodWithReceiptBatchCalls,
-  populateWriteTx,
-  PopulatedTx,
 } from 'utils';
+import { Address, Hex } from 'viem';
 import { consolidation } from './main.js';
-import { Address, Hex, hexToBigInt, zeroAddress } from 'viem';
-import { checkPubkeys } from 'utils/pubkeys-checks.js';
 import {
   revokeDelegate,
   requestConsolidation,
+  checkConsolidationInput,
+  checkValidators,
+  checkVaultConnection,
 } from 'features/consolidation.js';
-import { getDashboardContract, getVaultHubContract } from 'contracts';
-import { getPublicClient } from 'providers';
-
-const CONSOLIDATION_REQUEST_PREDEPLOY_ADDRESS =
-  '0x0000BBdDc7CE488642fb579F8B00f3a590007251';
+import { consolidationRequestsAndIncreaseRewardsAdjustment } from 'features/consolidation.js';
 
 const consolidationWrite = consolidation
   .command('write')
@@ -53,34 +44,16 @@ consolidationWrite
       refundRecipient: Address,
       stakingVault: Address,
     ) => {
-      // 0. Input validation
-      const sourcePubkeysFlat = sourcePubkeys.flat();
-      checkPubkeys(sourcePubkeysFlat);
-      checkPubkeys(targetPubkeys);
-      if (sourcePubkeys.length !== targetPubkeys.length) {
-        throw new Error(
-          'sourcePubkeys and targetPubkeys must have the same length',
-        );
-      }
-      if (refundRecipient === zeroAddress) {
-        throw new Error('refundRecipient must be non-zero address');
-      }
-      if (stakingVault === zeroAddress) {
-        throw new Error('stakingVault must be non-zero address');
-      }
-
-      // 1. Check source validators
-      const finalityCheckpointsInfo = await finalityCheckpoints();
-      const finalizedEpoch = Number(
-        finalityCheckpointsInfo.data.finalized.epoch,
+      await checkConsolidationInput(
+        sourcePubkeys,
+        targetPubkeys,
+        stakingVault,
+        refundRecipient,
       );
-      const sourceValidatorsInfo = await fetchValidatorsInfo(sourcePubkeysFlat);
-      await checkSourceValidators(sourceValidatorsInfo, finalizedEpoch);
-
-      // 2. Check target validators
-      const targetValidatorsInfo = await fetchValidatorsInfo(targetPubkeys);
-      await checkTargetValidators(targetValidatorsInfo);
-
+      const { sourceValidatorsInfo } = await checkValidators(
+        sourcePubkeys,
+        targetPubkeys,
+      );
       await requestConsolidation(
         sourcePubkeys,
         targetPubkeys,
@@ -98,7 +71,7 @@ consolidationWrite
   .action(async () => revokeDelegate());
 
 consolidationWrite
-  .command('eoa-transactions')
+  .command('eoa-calls')
   .description(
     'Make separate consolidation requests for each source pubkey, increase rewards adjustment',
   )
@@ -119,88 +92,19 @@ consolidationWrite
       targetPubkeys: Hex[],
       stakingVault: Address,
     ) => {
-      // 0. Input validation
-      const sourcePubkeysFlat = sourcePubkeys.flat();
-      checkPubkeys(sourcePubkeysFlat);
-      checkPubkeys(targetPubkeys);
-      if (sourcePubkeys.length !== targetPubkeys.length) {
-        throw new Error(
-          'sourcePubkeys and targetPubkeys must have the same length',
+      await checkConsolidationInput(sourcePubkeys, targetPubkeys, stakingVault);
+      const { sourceValidatorsInfo } = await checkValidators(
+        sourcePubkeys,
+        targetPubkeys,
+      );
+      const vaultConnection = await checkVaultConnection(stakingVault);
+      const populatedTxs =
+        await consolidationRequestsAndIncreaseRewardsAdjustment(
+          sourcePubkeys,
+          targetPubkeys,
+          sourceValidatorsInfo,
+          vaultConnection.owner,
         );
-      }
-      if (stakingVault === zeroAddress) {
-        throw new Error('stakingVault must be non-zero address');
-      }
-
-      // 1. Check source validators
-      const finalityCheckpointsInfo = await finalityCheckpoints();
-      const finalizedEpoch = Number(
-        finalityCheckpointsInfo.data.finalized.epoch,
-      );
-      const sourceValidatorsInfo = await fetchValidatorsInfo(sourcePubkeysFlat);
-      await checkSourceValidators(sourceValidatorsInfo, finalizedEpoch);
-
-      // 2. Check target validators
-      const targetValidatorsInfo = await fetchValidatorsInfo(targetPubkeys);
-      await checkTargetValidators(targetValidatorsInfo);
-
-      // 3. Onchain checks
-      const vaultHub = await getVaultHubContract();
-      const vaultConnection = await callReadMethod(
-        vaultHub,
-        'vaultConnection',
-        [stakingVault],
-      );
-      if (
-        vaultConnection.vaultIndex === 0n ||
-        vaultConnection.pendingDisconnect
-      ) {
-        throw new Error('Vault is not connected or is pending disconnect');
-      }
-
-      // 4. Get fee per request
-      const publicClient = getPublicClient();
-      const { data } = await publicClient.call({
-        to: CONSOLIDATION_REQUEST_PREDEPLOY_ADDRESS,
-        data: '0x',
-        blockTag: 'latest',
-      });
-      if (!data) throw new Error('Fee read returned empty data');
-      const feePerRequest = hexToBigInt(data);
-
-      // 5. Create populated transactions for consolidation requests
-      const populatedTxs: PopulatedTx[] = targetPubkeys.flatMap(
-        (targetPubkey, pubkeyIndex) => {
-          const sourcePubkeysGroup = sourcePubkeys[pubkeyIndex] ?? [];
-          return sourcePubkeysGroup.map((sourcePubkey) => {
-            const calldata =
-              `0x${sourcePubkey.slice(2)}${targetPubkey.slice(2)}` as Hex;
-            return {
-              to: CONSOLIDATION_REQUEST_PREDEPLOY_ADDRESS,
-              data: calldata,
-              value: feePerRequest,
-            };
-          });
-        },
-      );
-
-      // 6. Create populated transaction for increase rewards adjustment
-      const dashboardContract = getDashboardContract(vaultConnection.owner);
-      const totalBalance = sourceValidatorsInfo.data.reduce(
-        (sum, validator) => sum + Number(validator.balance),
-        0,
-      );
-      if (totalBalance > 0) {
-        populatedTxs.push(
-          populateWriteTx({
-            contract: dashboardContract,
-            methodName: 'increaseRewardsAdjustment',
-            payload: [BigInt(totalBalance)],
-          }),
-        );
-      }
-
-      // 7. Send transactions
       await callWriteMethodWithReceiptBatchCalls({
         calls: populatedTxs,
         withSpinner: true,
