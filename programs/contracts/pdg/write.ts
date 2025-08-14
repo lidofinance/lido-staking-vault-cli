@@ -456,7 +456,7 @@ pdgWrite
   .argument('<guarantor>', 'new guarantor address')
   .action(async (guarantor: Address) => {
     const pdgContract = await getPredepositGuaranteeContract();
-    const account = getAccount();
+    const account = await getAccount();
 
     const confirm = await confirmOperation(
       `Are you sure you want to set the node operator (${account.address}) guarantor to ${guarantor}?`,
@@ -477,7 +477,7 @@ pdgWrite
   .argument('<recipient>', 'recipient address')
   .action(async (recipient: Address) => {
     const pdgContract = await getPredepositGuaranteeContract();
-    const account = getAccount();
+    const account = await getAccount();
 
     const confirm = await confirmOperation(
       `Are you sure you want to claim the guarantor ${account.address} refund for ${recipient}?`,

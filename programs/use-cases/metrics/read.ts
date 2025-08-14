@@ -61,7 +61,7 @@ metricsRead
     const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
       await callReadMethod(lazyOracleContract, 'latestReportData');
 
-    const { cacheUse } = program.opts();
+    const { cacheUse, csv } = program.opts();
     const reportCurrent = await getVaultReport(
       {
         vault: vaultAddress,
@@ -109,6 +109,7 @@ metricsRead
         ['Carry Spread, %', formatRatio(statisticData.carrySpread.apr_percent)],
         ['Bottom Line, ETH', formatEther(statisticData.bottomLine)],
       ],
+      csvPath: csv,
     });
   });
 
@@ -129,7 +130,7 @@ metricsRead
     const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
       await callReadMethod(lazyOracleContract, 'latestReportData');
 
-    const { cacheUse } = program.opts();
+    const { cacheUse, csv } = program.opts();
     const history = await getVaultReportHistory(
       {
         vault: vaultAddress,
@@ -197,6 +198,7 @@ metricsRead
           ),
         ],
       },
+      csvPath: csv,
     });
   });
 

@@ -17,4 +17,5 @@ program.option(
   '--no-cache-use',
   'do not use cache for fetching data from IPFS',
 );
+program.option('--wallet-connect', 'use wallet connect to send transactions');
 program.option('--csv <file>', 'write table output to CSV file');

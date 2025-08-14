@@ -614,7 +614,7 @@ dashboardWrite
   .argument('<address>', 'dashboard address', stringToAddress)
   .argument('<validatorIndex...>', 'index of the validator to prove')
   .action(async (address: Address, validatorIndexes: string[]) => {
-    const account = getAccount();
+    const account = await getAccount();
     const contract = getDashboardContract(address);
     const vault = await callReadMethod(contract, 'stakingVault');
     const vaultContract = getStakingVaultContract(vault);

@@ -14,7 +14,7 @@ export const checkNOBalancePDGforDeposit = async (
   pdgContract: PredepositGuaranteeContract,
   nodeOperator: Address,
 ) => {
-  const currentAccount = getAccount();
+  const currentAccount = await getAccount();
 
   const balance = await callReadMethodSilent(
     pdgContract,
@@ -101,7 +101,7 @@ export const checkNOBalancePDGforDeposits = async (
 export const checkNodeOperatorForDeposit = async (
   vault: StakingVaultContract,
 ) => {
-  const currentAccount = getAccount();
+  const currentAccount = await getAccount();
   const vaultNodeOperator = await callReadMethodSilent(vault, 'nodeOperator');
 
   if (
@@ -121,7 +121,7 @@ export const checkAndSpecifyNodeOperatorForTopUpOrWithdraw = async (
   pdg: PredepositGuaranteeContract,
   isTopUp: boolean,
 ) => {
-  const currentAccount = getAccount();
+  const currentAccount = await getAccount();
   const vaultNodeOperator = await callReadMethodSilent(vault, 'nodeOperator');
   const noGuarantor = await callReadMethodSilent(pdg, 'nodeOperatorGuarantor', [
     vaultNodeOperator,
@@ -159,7 +159,7 @@ export const checkAndSpecifyNodeOperatorForTopUpOrWithdraw = async (
 export const getGuarantor = async (
   pdgContract: PredepositGuaranteeContract,
 ) => {
-  const currentAccount = getAccount();
+  const currentAccount = await getAccount();
   const balance = await callReadMethodSilent(
     pdgContract,
     'nodeOperatorBalance',
@@ -197,7 +197,7 @@ export const getGuarantor = async (
 };
 
 export const specifyNodeOperatorAddress = async () => {
-  const currentAccount = getAccount();
+  const currentAccount = await getAccount();
 
   const confirm = await confirmOperation(
     `Do you want to use your address to check the balance ${currentAccount.address}?`,

@@ -1,10 +1,11 @@
+import { Account } from 'viem';
+
 import { getStakingVaultContract, getVaultViewerContract } from 'contracts';
 import { callReadMethodSilent, selectPrompt } from 'utils';
 import { getAccount } from 'providers';
 
-export const getVaultsByOwner = async () => {
+const getVaultsByOwner = async (account: Account) => {
   const contract = getVaultViewerContract();
-  const account = getAccount();
 
   const vaults = await callReadMethodSilent(contract, 'vaultsByOwner', [
     account.address,
@@ -13,8 +14,7 @@ export const getVaultsByOwner = async () => {
   return vaults;
 };
 
-export const getVaultsByNO = async () => {
-  const account = getAccount();
+const getVaultsByNO = async (account: Account) => {
   const contract = getVaultViewerContract();
   const vaults = await callReadMethodSilent(contract, 'vaultsConnected');
 
@@ -37,10 +37,18 @@ export const getVaultsByNO = async () => {
 };
 
 export const chooseVault = async () => {
+  const account = await getAccount();
+
   const [vaultsByOwner, vaultsByNO] = await Promise.all([
-    getVaultsByOwner(),
-    getVaultsByNO(),
+    getVaultsByOwner(account),
+    getVaultsByNO(account),
   ]);
+
+  if (vaultsByOwner.length === 0 && vaultsByNO.length === 0) {
+    throw new Error(
+      `No vaults found for account ${account.address}. Please check your account address and try again.`,
+    );
+  }
 
   const uniqueVaults = [...new Set([...vaultsByOwner, ...vaultsByNO])];
   const vaultsWithRole = uniqueVaults.map((vault) => {

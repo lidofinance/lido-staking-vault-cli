@@ -98,7 +98,9 @@ export const checkVaultRole = async (
   const roleKeccak = await callReadMethodSilent(contract, roleName);
   const roleMembers = await contract.read.getRoleMembers([roleKeccak]);
 
-  const hasRole = roleMembers.includes(address);
+  const hasRole = roleMembers
+    .map((member) => member.toLowerCase())
+    .includes(address.toLowerCase());
 
   if (!hasRole) {
     throw new Error(`Address ${address} does not have the ${roleName} role`);
