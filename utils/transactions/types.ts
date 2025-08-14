@@ -1,4 +1,4 @@
-import { Hex, type Abi, type Address } from 'viem';
+import { Hex, SignAuthorizationReturnType, type Abi, type Address } from 'viem';
 
 export type ReadContract = {
   address: Address;
@@ -34,6 +34,7 @@ export type BatchTxArgs<
   withSpinner?: boolean;
   silent?: boolean;
   skipError?: boolean;
+  authorizationList?: SignAuthorizationReturnType[];
 };
 
 export type WriteTxArgs<
@@ -43,6 +44,7 @@ export type WriteTxArgs<
   contract: T;
   methodName: M;
   payload: Writeable<GetFirst<Parameters<T['write'][M]>>> | never[];
+  authorizationList?: SignAuthorizationReturnType[];
   value?: bigint;
   withSpinner?: boolean;
   silent?: boolean;

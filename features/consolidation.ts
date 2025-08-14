@@ -229,6 +229,5 @@ export const checkVaultConnection = async (
   if (vaultConnection.vaultIndex === 0n || vaultConnection.pendingDisconnect) {
     throw new Error('Vault is not connected or is pending disconnect');
   }
-
   return vaultConnection;
 };
