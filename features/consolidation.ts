@@ -24,8 +24,8 @@ export const requestConsolidation = async (
   stakingVault: Address,
   sourceValidatorsInfo: ValidatorsInfo,
 ) => {
-  const account = getAccount();
-  const walletClient = getWalletWithAccount();
+  const account = await getAccount();
+  const walletClient = await getWalletWithAccount();
 
   const consolidationContract = getValidatorConsolidationRequestsContract();
   const totalBalance = sourceValidatorsInfo.data.reduce(
@@ -75,8 +75,8 @@ export const requestConsolidation = async (
 };
 
 export const revokeDelegate = async () => {
-  const account = getAccount();
-  const walletClient = getWalletWithAccount();
+  const account = await getAccount();
+  const walletClient = await getWalletWithAccount();
 
   const revokeAuthorization = await walletClient.signAuthorization({
     account: account,

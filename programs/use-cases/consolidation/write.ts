@@ -8,7 +8,8 @@ import {
   checkTargetValidators,
   callReadMethod,
   callWriteMethodWithReceipt,
-  logInfo,
+  callWriteMethodWithReceiptBatchCalls,
+  PopulatedTx,
 } from 'utils';
 import { consolidation } from './main.js';
 import { Address, Hex, hexToBigInt, zeroAddress } from 'viem';
@@ -18,7 +19,7 @@ import {
   requestConsolidation,
 } from 'features/consolidation.js';
 import { getDashboardContract, getVaultHubContract } from 'contracts';
-import { getAccount, getPublicClient, getWalletWithAccount } from 'providers';
+import { getPublicClient } from 'providers';
 
 const CONSOLIDATION_REQUEST_PREDEPLOY_ADDRESS =
   '0x0000BBdDc7CE488642fb579F8B00f3a590007251';
@@ -118,10 +119,6 @@ consolidationWrite
       targetPubkeys: Hex[],
       stakingVault: Address,
     ) => {
-      const publicClient = getPublicClient();
-      const walletClient = getWalletWithAccount();
-      const account = getAccount();
-
       // 0. Input validation
       const sourcePubkeysFlat = sourcePubkeys.flat();
       checkPubkeys(sourcePubkeysFlat);
@@ -162,6 +159,7 @@ consolidationWrite
       }
 
       // 4. Get fee per request
+      const publicClient = getPublicClient();
       const { data } = await publicClient.call({
         to: CONSOLIDATION_REQUEST_PREDEPLOY_ADDRESS,
         data: '0x',
@@ -171,31 +169,26 @@ consolidationWrite
       const feePerRequest = hexToBigInt(data);
 
       // 5. Request consolidation
-      for (const [pubkeyIndex, targetPubkey] of targetPubkeys.entries()) {
-        const sourcePubkeysGroup = sourcePubkeys[pubkeyIndex] ?? [];
-        for (const sourcePubkey of sourcePubkeysGroup) {
-          if (sourcePubkey == null || targetPubkey == null) {
-            throw new Error('sourcePubkey and targetPubkey must be defined');
-          }
-
-          const calldata =
-            `0x${sourcePubkey.slice(2)}${targetPubkey.slice(2)}` as Hex;
-          const txHash = await walletClient.sendTransaction({
-            to: CONSOLIDATION_REQUEST_PREDEPLOY_ADDRESS,
-            data: calldata,
-            value: feePerRequest,
-            account: account,
-            chain: walletClient.chain,
+      const consolidationRequests: PopulatedTx[] = targetPubkeys.flatMap(
+        (targetPubkey, pubkeyIndex) => {
+          const sourcePubkeysGroup = sourcePubkeys[pubkeyIndex] ?? [];
+          return sourcePubkeysGroup.map((sourcePubkey) => {
+            const calldata =
+              `0x${sourcePubkey.slice(2)}${targetPubkey.slice(2)}` as Hex;
+            return {
+              to: CONSOLIDATION_REQUEST_PREDEPLOY_ADDRESS,
+              data: calldata,
+              value: feePerRequest,
+            };
           });
-
-          logInfo('consolidation request tx hash:', txHash);
-
-          const txReceipt = await publicClient.waitForTransactionReceipt({
-            hash: txHash,
-          });
-          logInfo('consolidation request tx receipt:', txReceipt);
-        }
-      }
+        },
+      );
+      await callWriteMethodWithReceiptBatchCalls({
+        calls: consolidationRequests,
+        withSpinner: true,
+        silent: false,
+        skipError: false,
+      });
 
       // 6. Increase rewards adjustment
       const dashboardContract = getDashboardContract(vaultConnection.owner);
