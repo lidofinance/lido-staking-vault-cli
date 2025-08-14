@@ -4,14 +4,14 @@ import Table, {
   type CrossTableRow,
   type TableConstructorOptions,
 } from 'cli-table3';
-import { program } from 'command';
-import fs from 'fs-extra';
 
 import { getColoredLog, HeadMessage, TABLE_PARAMS } from './constants.js';
+import { exportCsv } from '../csv-file.js';
 
 type CreateTableArgs = {
   data?: (VerticalTableRow | HorizontalTableRow | CrossTableRow)[];
   params?: TableConstructorOptions;
+  csvPath?: string;
 };
 
 export const createConsole = (
@@ -37,29 +37,8 @@ export const createConsole = (
   };
 };
 
-const formatCell = (v: unknown): string => {
-  if (typeof v === 'bigint') return v.toString();
-  if (v === null || v === undefined) return '';
-  return String(v);
-};
-
-const escapeCsv = (s: string, delimiter: string): string => {
-  const needsQuote =
-    s.includes(delimiter) ||
-    s.includes('"') ||
-    s.includes('\n') ||
-    s.includes('\r');
-  const escaped = s.replace(/"/g, '""');
-  return needsQuote ? `"${escaped}"` : escaped;
-};
-
-const rowsToCsv = (rows: string[][], delimiter: string): string =>
-  rows
-    .map((r) => r.map((c) => escapeCsv(c, delimiter)).join(delimiter))
-    .join('\n') + '\n';
-
 const createTable = (headMessage?: HeadMessage) => (args: CreateTableArgs) => {
-  const { data, params } = args;
+  const { data, params, csvPath } = args;
   if (headMessage)
     console.info(`\n${getColoredLog(headMessage, headMessage + ':')}`);
 
@@ -69,40 +48,12 @@ const createTable = (headMessage?: HeadMessage) => (args: CreateTableArgs) => {
   table.push(...data);
   console.info(table.toString());
 
-  // CSV export (optional via --csv)
-  try {
-    const opts: any = program?.opts?.() ?? {};
-    const csvPath: string | undefined = opts.csv;
-    if (!csvPath) return;
-
-    const delimiter: string = opts.csvDelimiter ?? ',';
-    const rows: string[][] = [];
-
-    // header
-    const head = (params as any)?.head as unknown[] | undefined;
-    if (Array.isArray(head)) rows.push(head.map(formatCell));
-
-    // body
-    for (const row of data as any[]) {
-      if (Array.isArray(row)) {
-        rows.push(row.map(formatCell));
-      } else if (row && typeof row === 'object') {
-        rows.push(Object.values(row).map(formatCell));
-      } else {
-        rows.push([formatCell(row)]);
-      }
-    }
-
-    const csv = rowsToCsv(rows, delimiter);
-    fs.ensureFileSync(csvPath);
-    if (opts.csvAppend) {
-      fs.appendFileSync(csvPath, csv);
-    } else {
-      fs.writeFileSync(csvPath, csv);
-    }
-  } catch (e) {
-    // don't break main output on CSV export error
-    console.error('CSV export error:', (e as Error).message);
+  if (csvPath) {
+    exportCsv({
+      head: params?.head ?? [],
+      data,
+      csvPath,
+    });
   }
 };
 
