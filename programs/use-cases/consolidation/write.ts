@@ -7,8 +7,8 @@ import {
   checkSourceValidators,
   checkTargetValidators,
   callReadMethod,
-  callWriteMethodWithReceipt,
   callWriteMethodWithReceiptBatchCalls,
+  populateWriteTx,
   PopulatedTx,
 } from 'utils';
 import { consolidation } from './main.js';
@@ -168,8 +168,8 @@ consolidationWrite
       if (!data) throw new Error('Fee read returned empty data');
       const feePerRequest = hexToBigInt(data);
 
-      // 5. Request consolidation
-      const consolidationRequests: PopulatedTx[] = targetPubkeys.flatMap(
+      // 5. Create populated transactions for consolidation requests
+      const populatedTxs: PopulatedTx[] = targetPubkeys.flatMap(
         (targetPubkey, pubkeyIndex) => {
           const sourcePubkeysGroup = sourcePubkeys[pubkeyIndex] ?? [];
           return sourcePubkeysGroup.map((sourcePubkey) => {
@@ -183,25 +183,29 @@ consolidationWrite
           });
         },
       );
-      await callWriteMethodWithReceiptBatchCalls({
-        calls: consolidationRequests,
-        withSpinner: true,
-        silent: false,
-        skipError: false,
-      });
 
-      // 6. Increase rewards adjustment
+      // 6. Create populated transaction for increase rewards adjustment
       const dashboardContract = getDashboardContract(vaultConnection.owner);
       const totalBalance = sourceValidatorsInfo.data.reduce(
         (sum, validator) => sum + Number(validator.balance),
         0,
       );
       if (totalBalance > 0) {
-        await callWriteMethodWithReceipt({
-          contract: dashboardContract,
-          methodName: 'increaseRewardsAdjustment',
-          payload: [BigInt(totalBalance)],
-        });
+        populatedTxs.push(
+          populateWriteTx({
+            contract: dashboardContract,
+            methodName: 'increaseRewardsAdjustment',
+            payload: [BigInt(totalBalance)],
+          }),
+        );
       }
+
+      // 7. Send transactions
+      await callWriteMethodWithReceiptBatchCalls({
+        calls: populatedTxs,
+        withSpinner: true,
+        silent: false,
+        skipError: false,
+      });
     },
   );
