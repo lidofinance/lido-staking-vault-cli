@@ -46,6 +46,7 @@ export type VaultReport = {
   blockNumber: number;
   timestamp: number;
   prevTreeCID: string;
+  cid: string;
 };
 
 export type VaultReportArgs = {
