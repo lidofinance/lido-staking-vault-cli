@@ -30,7 +30,7 @@ export const getReportProofByVault = async (
   if (vaultIndex < 0) {
     throw new Error(`Vault ${vault} not found in report`);
   }
-  const reportData = getVaultData(IPFSReportData, vault);
+  const reportData = getVaultData(IPFSReportData, vault, args.cid);
 
   return {
     ...reportData,
@@ -61,7 +61,7 @@ export const getReportProofs = async (
 ) => {
   const report = await fetchIPFS<Report>(args, cache);
   const vaultReports = report.values.map(
-    (value) => getVaultData(report, value.value[0]).data,
+    (value) => getVaultData(report, value.value[0], args.cid).data,
   );
   const vaults = vaultReports.map((vault) => vault.vaultAddress);
 
