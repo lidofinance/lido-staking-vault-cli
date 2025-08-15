@@ -68,12 +68,14 @@ consolidationWrite
 consolidationWrite
   .command('eoa-revoke-delegate')
   .description('Revoke delegate for the EOA using EIP-7702')
-  .action(async () => revokeDelegate());
+  .action(async () => {
+    await revokeDelegate();
+  });
 
 consolidationWrite
   .command('eoa-calls')
   .description(
-    'Make separate consolidation requests for each source pubkey, increase rewards adjustment',
+    'Make separate (or batch for WC) consolidation requests for each source pubkey, increase rewards adjustment',
   )
   .argument(
     '<source_pubkeys>',
