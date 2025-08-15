@@ -5,6 +5,7 @@ import {
   type GetContractReturnType,
   WalletClient,
   formatEther,
+  Abi,
 } from 'viem';
 
 import { getPublicClient } from 'providers';
@@ -15,7 +16,7 @@ import {
   logTable,
   selectProposalEvent,
 } from 'utils';
-import { DashboardAbi, AccessControlConfirmableAbi } from 'abi';
+import { AccessControlConfirmableAbi } from 'abi';
 
 const AVG_BLOCK_TIME_SEC = 12n;
 
@@ -92,6 +93,7 @@ export const formatConfirmationArgs = (
 
 export const getConfirmationsInfo = async <T extends ConfirmationContract>(
   contract: T,
+  abi: Abi,
 ) => {
   const publicClient = getPublicClient();
   const confirmExpire = await contract.read.getConfirmExpiry();
@@ -116,7 +118,7 @@ export const getConfirmationsInfo = async <T extends ConfirmationContract>(
     .reduce<Record<Hex, any>>((acc, log) => {
       const { args } = log;
       const decodedData = decodeFunctionData({
-        abi: DashboardAbi,
+        abi,
         data: args.data,
       }) as DecodedData;
 
@@ -176,7 +178,7 @@ export const getConfirmationsInfo = async <T extends ConfirmationContract>(
 export const confirmProposal = async <T extends ConfirmationContract>(
   contract: T,
 ) => {
-  const logsData = await getConfirmationsInfo(contract);
+  const logsData = await getConfirmationsInfo(contract, contract.abi);
   if (!logsData) return;
 
   if (Object.keys(logsData).length === 0) {

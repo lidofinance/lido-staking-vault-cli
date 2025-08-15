@@ -94,7 +94,7 @@ dashboardRead
   .argument('<address>', 'dashboard address', stringToAddress)
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
-    await getConfirmationsInfo(contract as any);
+    await getConfirmationsInfo(contract as any, contract.abi);
   });
 
 dashboardRead
