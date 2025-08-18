@@ -36,9 +36,9 @@ const validateNodeOperatorFeeRate = (
       `Node operator fee rate must be less than 100. Current value: ${nodeOperatorFeeRate}`,
     );
 
-  if (type === 'basis points' && nodeOperatorFeeRate % 100 !== 0)
+  if (type === 'basis points' && nodeOperatorFeeRate % 1 !== 0)
     throw new Error(
-      `Node operator fee rate must be a multiple of 100. Current value: ${nodeOperatorFeeRate}`,
+      `Node operator fee rate must be a whole number. Current value: ${nodeOperatorFeeRate}`,
     );
 
   if (type === 'percentage' && nodeOperatorFeeRate % 1 !== 0)
