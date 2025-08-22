@@ -33,6 +33,9 @@ export const jsonToPermit = (value: string) => {
 
 export const jsonFileToPubkeys = (value: string) => {
   const content = readFileSync(value, 'utf-8');
+  if (content.length === 0) {
+    throw new Error('File is empty');
+  }
   return JSON.parse(content) as Pubkeys;
 };
 

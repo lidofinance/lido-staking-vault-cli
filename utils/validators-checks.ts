@@ -14,13 +14,19 @@ export const checkSourceValidators = async (
       notActiveValidators.map((v) => v.validator.pubkey).join(', '),
   );
 
-  const wrongWCSourceValidators = sourceValidatorsInfoData.filter((validator) =>
-    validator.validator.withdrawal_credentials.startsWith('0x00'),
+  const correctWCSourceValidators = sourceValidatorsInfoData.filter(
+    (validator) =>
+      validator.validator.withdrawal_credentials.startsWith('0x01') ||
+      validator.validator.withdrawal_credentials.startsWith('0x02'),
   );
+
   assert(
-    wrongWCSourceValidators.length === 0,
+    sourceValidatorsInfoData.length === correctWCSourceValidators.length,
     'All source pubkeys must have a withdrawal credentials starting with 0x01 or 0x02. Wrong pubkeys:' +
-      wrongWCSourceValidators.map((v) => v.validator.pubkey).join(', '),
+      sourceValidatorsInfoData
+        .filter((validator) => !correctWCSourceValidators.includes(validator))
+        .map((v) => v.validator.pubkey)
+        .join(', '),
   );
 
   const sourceValidatorsWithLess256Epochs = sourceValidatorsInfoData.filter(
