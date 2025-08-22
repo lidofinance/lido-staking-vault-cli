@@ -59,3 +59,8 @@ export type Deposit = {
   amount: bigint;
   depositDataRoot: Hex;
 };
+
+export type Pubkeys = {
+  sourcePubkeys: Hex[][];
+  targetPubkeys: Hex[];
+};
