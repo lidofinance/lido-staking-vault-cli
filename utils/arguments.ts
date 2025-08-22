@@ -1,8 +1,9 @@
 import { program } from 'commander';
-import { Permit, RoleAssignment, Tier, Deposit } from 'types';
+import { Permit, RoleAssignment, Tier, Deposit, Pubkeys } from 'types';
 import { Address, isAddress, parseEther } from 'viem';
 
 import { toHex } from './proof/merkle-utils.js';
+import { readFileSync } from 'fs';
 
 const toCamelCase = (str: string): string =>
   str.replace(/_([a-z])/g, (_, char) => char.toUpperCase());
@@ -28,6 +29,11 @@ export const stringToHexArray = (value: string) => {
 
 export const jsonToPermit = (value: string) => {
   return JSON.parse(value) as Permit;
+};
+
+export const jsonFileToPubkeys = (value: string) => {
+  const content = readFileSync(value, 'utf-8');
+  return JSON.parse(content) as Pubkeys;
 };
 
 export const jsonToRoleAssignment = (value: string) => {

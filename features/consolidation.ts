@@ -21,6 +21,7 @@ import {
   ValidatorsInfo,
   showSpinner,
   logResult,
+  sleep,
 } from 'utils';
 import { getVaultHubContract } from 'contracts';
 import { waitForTransactionReceipt } from 'viem/actions';
@@ -268,10 +269,18 @@ export const checkValidators = async (
   const finalizedEpoch = Number(finalityCheckpointsInfo.data.finalized.epoch);
   const sourcePubkeysFlat = sourcePubkeys.flat();
   const sourceValidatorsInfo = await fetchValidatorsInfo(sourcePubkeysFlat);
-  await checkSourceValidators(sourceValidatorsInfo, finalizedEpoch);
+  if (sourceValidatorsInfo.data == null) {
+    throw new Error('sourceValidatorsInfo.data is null');
+  }
+  await checkSourceValidators(sourceValidatorsInfo.data, finalizedEpoch);
+
+  await sleep(1000); // to fight with too many requests issue
 
   const targetValidatorsInfo = await fetchValidatorsInfo(targetPubkeys);
-  await checkTargetValidators(targetValidatorsInfo);
+  if (targetValidatorsInfo.data == null) {
+    throw new Error('targetValidatorsInfo.data is null');
+  }
+  await checkTargetValidators(targetValidatorsInfo.data);
 
   return {
     sourceValidatorsInfo,
