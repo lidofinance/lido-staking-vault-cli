@@ -60,7 +60,4 @@ export type Deposit = {
   depositDataRoot: Hex;
 };
 
-export type Pubkeys = {
-  sourcePubkeys: Hex[][];
-  targetPubkeys: Hex[];
-};
+export type PubkeyMap = Record<Hex, Hex[]>;

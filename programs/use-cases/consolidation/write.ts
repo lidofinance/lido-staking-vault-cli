@@ -15,7 +15,8 @@ import {
   checkVaultConnection,
 } from 'features/consolidation.js';
 import { consolidationRequestsAndIncreaseRewardsAdjustment } from 'features/consolidation.js';
-import { Pubkeys } from 'types/common.js';
+import { PubkeyMap } from 'types/common.js';
+import { toHex } from 'utils/proof/merkle-utils.js';
 
 const consolidationWrite = consolidation
   .command('write')
@@ -52,15 +53,17 @@ consolidationWrite
         source_pubkeys,
         target_pubkeys,
         file,
-      }: { source_pubkeys: Hex[][]; target_pubkeys: Hex[]; file: Pubkeys },
+      }: { source_pubkeys: Hex[][]; target_pubkeys: Hex[]; file: PubkeyMap },
     ) => {
       if (!file && !(source_pubkeys && target_pubkeys)) {
         throw new Error(
           'Provide --file or both --source_pubkeys and --target_pubkeys',
         );
       }
-      const sourcePubkeys = file ? file.sourcePubkeys : (source_pubkeys ?? []);
-      const targetPubkeys = file ? file.targetPubkeys : (target_pubkeys ?? []);
+      const sourcePubkeys = file ? Object.values(file) : (source_pubkeys ?? []);
+      const targetPubkeys = file
+        ? Object.keys(file).map(toHex)
+        : (target_pubkeys ?? []);
 
       await checkConsolidationInput(
         sourcePubkeys,
@@ -118,15 +121,17 @@ consolidationWrite
         source_pubkeys,
         target_pubkeys,
         file,
-      }: { source_pubkeys: Hex[][]; target_pubkeys: Hex[]; file: Pubkeys },
+      }: { source_pubkeys: Hex[][]; target_pubkeys: Hex[]; file: PubkeyMap },
     ) => {
       if (!file && !(source_pubkeys && target_pubkeys)) {
         throw new Error(
           'Provide --file or both --source_pubkeys and --target_pubkeys',
         );
       }
-      const sourcePubkeys = file ? file.sourcePubkeys : (source_pubkeys ?? []);
-      const targetPubkeys = file ? file.targetPubkeys : (target_pubkeys ?? []);
+      const sourcePubkeys = file ? Object.values(file) : (source_pubkeys ?? []);
+      const targetPubkeys = file
+        ? Object.keys(file).map(toHex)
+        : (target_pubkeys ?? []);
 
       await checkConsolidationInput(sourcePubkeys, targetPubkeys, stakingVault);
       const { sourceValidatorsInfo } = await checkValidators(

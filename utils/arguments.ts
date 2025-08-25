@@ -1,5 +1,5 @@
 import { program } from 'commander';
-import { Permit, RoleAssignment, Tier, Deposit, Pubkeys } from 'types';
+import { Permit, RoleAssignment, Tier, Deposit, PubkeyMap } from 'types';
 import { Address, isAddress, parseEther } from 'viem';
 
 import { toHex } from './proof/merkle-utils.js';
@@ -36,7 +36,7 @@ export const jsonFileToPubkeys = (value: string) => {
   if (content.length === 0) {
     throw new Error('File is empty');
   }
-  return JSON.parse(content) as Pubkeys;
+  return JSON.parse(content) as PubkeyMap;
 };
 
 export const jsonToRoleAssignment = (value: string) => {
