@@ -42,7 +42,7 @@ consolidationWrite
   )
   .option(
     '-f, --file <file>',
-    'Path to a JSON file containing the source pubkeys and target pubkeys',
+    'Path to a JSON file containing the source pubkeys and target pubkeys in format: {"targetPubkey0": ["sourcePubkey0", "sourcePubkey1"], "targetPubkey1": ["sourcePubkey2", "sourcePubkey3"]}',
     jsonFileToPubkeys,
   )
   .action(
@@ -111,7 +111,7 @@ consolidationWrite
   )
   .option(
     '-f, --file <file>',
-    'Path to a JSON file containing the source pubkeys and target pubkeys',
+    'Path to a JSON file containing the source pubkeys and target pubkeys in format: {"targetPubkey0": ["sourcePubkey0", "sourcePubkey1"], "targetPubkey1": ["sourcePubkey2", "sourcePubkey3"]}',
     jsonFileToPubkeys,
   )
   .action(
