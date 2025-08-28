@@ -12,7 +12,6 @@ import {
   requestConsolidation,
   checkConsolidationInput,
   checkValidators,
-  checkVaultConnection,
 } from 'features/consolidation.js';
 import { consolidationRequestsAndIncreaseRewardsAdjustment } from 'features/consolidation.js';
 import { PubkeyMap } from 'types/common.js';
@@ -98,7 +97,7 @@ consolidationWrite
   .description(
     'Make separate (or batch for WC) consolidation requests for each source pubkey, increase rewards adjustment',
   )
-  .argument('<staking_vault>', 'staking vault address', stringToAddress)
+  .argument('<dashboard>', 'dashboard address', stringToAddress)
   .option(
     '-s, --source_pubkeys <source_pubkeys>',
     '2D array of source validator pubkeys: each inner list will be consolidated into a single target validator',
@@ -116,7 +115,7 @@ consolidationWrite
   )
   .action(
     async (
-      stakingVault: Address,
+      dashboard: Address,
       {
         source_pubkeys,
         target_pubkeys,
@@ -133,18 +132,17 @@ consolidationWrite
         ? Object.keys(file).map(toHex)
         : (target_pubkeys ?? []);
 
-      await checkConsolidationInput(sourcePubkeys, targetPubkeys, stakingVault);
+      await checkConsolidationInput(sourcePubkeys, targetPubkeys, dashboard);
       const { sourceValidatorsInfo } = await checkValidators(
         sourcePubkeys,
         targetPubkeys,
       );
-      const vaultConnection = await checkVaultConnection(stakingVault);
       const populatedTxs =
         await consolidationRequestsAndIncreaseRewardsAdjustment(
           sourcePubkeys,
           targetPubkeys,
           sourceValidatorsInfo,
-          vaultConnection.owner,
+          dashboard,
         );
       await callWriteMethodWithReceiptBatchCalls({
         calls: populatedTxs,
