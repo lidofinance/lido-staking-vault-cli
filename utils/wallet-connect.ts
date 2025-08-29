@@ -36,52 +36,58 @@ let cachedSession: any | null = null;
 
 // Create a wallet connect client
 export const createWalletConnectClient = async () => {
-  const chain = getChain();
+  try {
+    const chain = getChain();
 
-  // If the wallet connect client is already created, return it
-  if (cachedWalletConnectClient) {
+    // If the wallet connect client is already created, return it
+    if (cachedWalletConnectClient) {
+      return cachedWalletConnectClient;
+    }
+
+    const { session, accounts } = await connectWalletConnectWithRetry();
+    logInfo('Found accounts:', accounts.length);
+
+    // Get the address from the accounts
+    const address = accounts[0]?.split(':')[2] as Address;
+
+    // If no address is found, throw an error
+    if (!address) {
+      throw new Error('No address found. Check your wallet and try again.');
+    }
+
+    // Log the connected account
+    logInfo('Connected to WalletConnect with the following account:', address);
+    logInfo('Waiting for transaction...');
+
+    // Create an account object
+    const account: Account = {
+      address,
+      type: 'json-rpc',
+    };
+
+    // Create a wallet connect client
+    const walletConnectClient = createWalletClient({
+      account,
+      chain: getChain(),
+      transport: custom({
+        async request({ method, params }) {
+          return await cachedSignClient?.request({
+            topic: session.topic,
+            chainId: `eip155:${chain.id}`,
+            request: { method, params },
+          });
+        },
+      }),
+    });
+
+    // Cache the wallet connect client and account
+    cachedWalletConnectClient = walletConnectClient;
+
     return cachedWalletConnectClient;
+  } catch (error) {
+    logError('Error creating wallet connect client:', error);
+    throw error;
   }
-
-  const { session, accounts } = await connectWalletConnectWithRetry();
-
-  // Get the address from the accounts
-  const address = accounts[0]?.split(':')[2] as Address;
-
-  // If no address is found, throw an error
-  if (!address) {
-    throw new Error('No address found. Check your wallet and try again.');
-  }
-
-  // Log the connected account
-  logInfo('Connected to WalletConnect with the following account:', address);
-  logInfo('Waiting for transaction...');
-
-  // Create an account object
-  const account: Account = {
-    address,
-    type: 'json-rpc',
-  };
-
-  // Create a wallet connect client
-  const walletConnectClient = createWalletClient({
-    account,
-    chain: getChain(),
-    transport: custom({
-      async request({ method, params }) {
-        return await cachedSignClient?.request({
-          topic: session.topic,
-          chainId: `eip155:${chain.id}`,
-          request: { method, params },
-        });
-      },
-    }),
-  });
-
-  // Cache the wallet connect client and account
-  cachedWalletConnectClient = walletConnectClient;
-
-  return cachedWalletConnectClient;
 };
 
 export const connectWalletConnectWithRetry = async (
