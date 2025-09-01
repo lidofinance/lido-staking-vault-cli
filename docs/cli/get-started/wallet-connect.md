@@ -37,8 +37,8 @@ Notes:
 - The CLI initializes a WalletConnect session using your `WALLET_CONNECT_PROJECT_ID`.
 - It prints a WalletConnect URI and displays a QR code in the terminal.
 - You approve the session:
-  - scan the QR code with your mobile phone, and a wallet app that supports WalletConnect should be opened automatically.
-  - or copy and paste the WalletConnect URI into a desktop wallet application or multisig wallet that supports URI input.
+  - scan the QR code with your mobile phone, and a wallet app that supports WalletConnect should be opened automatically,
+  - or copy and paste the WalletConnect URI into a wallet application (e.g., multisig) that supports URI input.
 - The CLI simulates the transaction first, then requests your wallet to execute it.
 - You sign the trancation in the wallet.
 - For batches, the CLI uses `wallet_sendCalls` and waits for `wallet_getCallsStatus` when supported; otherwise it falls back to legacy sendTransaction per call.

@@ -20,7 +20,7 @@ EL_URL=https://your-execution-layer-endpoint
 DEPLOYED=deployed-hoodi-vaults-testnet-2.json
 
 # Wallet Configuration (Choose one method)
-# use provate key
+# use private key
 PRIVATE_KEY=0x1234567890abcdef...
 
 # OR use encrypted account file
