@@ -13,7 +13,6 @@ import {
   logInfo,
   callWriteMethodWithReceipt,
   checkPubkeys,
-  callReadMethod,
   PopulatedTx,
   fetchValidatorsInfo,
   ValidatorsInfo,
@@ -78,19 +77,12 @@ export const requestConsolidation = async (
 
   hideSpinner();
 
-  const hideConsolidationCallsFetchSpinner = showSpinner({
-    type: 'bouncingBar',
-    message: 'Waiting for consolidation calls to be fetched...',
-  });
-
   const [consolidationRequestEncodedCalls, adjustmentIncreaseEncodedCall] =
-    (await callReadMethod(
+    await callReadMethodSilent(
       consolidationContract,
       'getConsolidationRequestsAndAdjustmentIncreaseEncodedCalls',
       [sourcePubkeysFlattened, targetPubkeys, dashboard, totalBalance],
-    )) as [Hex[], Hex];
-
-  hideConsolidationCallsFetchSpinner();
+    );
 
   await callWriteMethodWithReceipt({
     contract: accountWithDelegatedValidatorConsolidationRequestsContract,
@@ -193,10 +185,6 @@ export const consolidationRequestsAndIncreaseRewardsAdjustment = async (
   const feePerRequest = hexToBigInt(data);
 
   // 2. Fetch consolidation request encoded calls and increase rewards adjustment encoded call.
-  const hideCalldataFetchSpinner = showSpinner({
-    type: 'bouncingBar',
-    message: 'Waiting for calldata to be fetched...',
-  });
   const sourcePubkeysFlattened = sourcePubkeys.map(
     (group) => '0x' + group.map((p) => p.replace(/^0x/, '')).join(''),
   ) as Hex[];
@@ -206,13 +194,11 @@ export const consolidationRequestsAndIncreaseRewardsAdjustment = async (
     0n,
   );
   const [consolidationRequestEncodedCalls, adjustmentIncreaseEncodedCall] =
-    (await callReadMethod(
+    await callReadMethodSilent(
       consolidationContract,
       'getConsolidationRequestsAndAdjustmentIncreaseEncodedCalls',
       [sourcePubkeysFlattened, targetPubkeys, dashboard, totalBalance],
-    )) as [Hex[], Hex];
-
-  hideCalldataFetchSpinner();
+    );
 
   // 3. Create populated transactions for consolidation requests
   const populatedTxs: PopulatedTx[] = consolidationRequestEncodedCalls.map(
@@ -255,7 +241,7 @@ export const checkConsolidationInput = async (
     throw new Error('refundRecipient must be non-zero address');
   }
   if (dashboard === zeroAddress) {
-    throw new Error('dashboard must be non-zero address');
+    throw new Error('dashboard address must be non-zero address');
   }
 };
 
