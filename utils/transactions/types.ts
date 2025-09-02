@@ -21,7 +21,7 @@ export type GetFirst<T extends unknown[]> = T extends [
     ? []
     : T;
 
-export type PopulatedTx = { to: Address; value: bigint; data: Hex };
+export type PopulatedTx = { to: Address; value?: bigint; data: Hex };
 
 export type BatchTxArgs<
   T extends PartialContract,

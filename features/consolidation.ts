@@ -1,8 +1,7 @@
-import { Hex, Address, zeroAddress, hexToBigInt, concat } from 'viem';
+import { Hex, Address, zeroAddress, hexToBigInt } from 'viem';
 
 import { getAccount, getPublicClient, getWalletWithAccount } from 'providers';
 import {
-  getDashboardContract,
   getValidatorConsolidationRequestsContract,
   getAccountWithDelegatedValidatorConsolidationRequestsContract,
 } from 'contracts';
@@ -14,22 +13,13 @@ import {
   logInfo,
   callWriteMethodWithReceipt,
   checkPubkeys,
-  callReadMethod,
-  populateWriteTx,
   PopulatedTx,
   fetchValidatorsInfo,
   ValidatorsInfo,
   showSpinner,
   logResult,
 } from 'utils';
-import { getVaultHubContract } from 'contracts';
 import { waitForTransactionReceipt } from 'viem/actions';
-
-export type VaultConnection = {
-  vaultIndex: bigint;
-  owner: Address;
-  pendingDisconnect: boolean;
-};
 
 // Consolidation requires a fee to ensure it gets executed reliably.
 // To increase the likelihood of completion, the fee is multiplied by FEE_INCREASE_FACTOR.
@@ -44,7 +34,7 @@ export const requestConsolidation = async (
   sourcePubkeys: Hex[][],
   targetPubkeys: Hex[],
   refundRecipient: Address,
-  stakingVault: Address,
+  dashboard: Address,
   sourceValidatorsInfo: ValidatorsInfo,
 ) => {
   const account = await getAccount();
@@ -87,16 +77,22 @@ export const requestConsolidation = async (
 
   hideSpinner();
 
+  const [consolidationRequestEncodedCalls, adjustmentIncreaseEncodedCall] =
+    await callReadMethodSilent(
+      consolidationContract,
+      'getConsolidationRequestsAndAdjustmentIncreaseEncodedCalls',
+      [sourcePubkeysFlattened, targetPubkeys, dashboard, totalBalance],
+    );
+
   await callWriteMethodWithReceipt({
     contract: accountWithDelegatedValidatorConsolidationRequestsContract,
     methodName: 'addConsolidationRequestsEOA',
     authorizationList: [authorization],
     payload: [
-      sourcePubkeysFlattened,
-      targetPubkeys,
+      consolidationRequestEncodedCalls,
+      adjustmentIncreaseEncodedCall,
+      dashboard,
       refundRecipient,
-      stakingVault,
-      totalBalance,
     ],
     value: totalFee,
   });
@@ -166,17 +162,16 @@ export const consolidationRequestsAndIncreaseRewardsAdjustment = async (
   sourcePubkeys: Hex[][],
   targetPubkeys: Hex[],
   sourceValidatorsInfo: ValidatorsInfo,
-  vaultConnectionOwner: Address, // dashboard contract address
+  dashboard: Address,
 ) => {
-  // 1. Get fee per request
   const publicClient = getPublicClient();
-  const dashboardContract = getDashboardContract(vaultConnectionOwner);
 
   const hideFeeSpinner = showSpinner({
     type: 'bouncingBar',
     message: 'Waiting for fee to be read...',
   });
 
+  // 1. Get fee per request
   const { data } = await publicClient.call({
     to: CONSOLIDATION_REQUEST_PREDEPLOY_ADDRESS,
     data: '0x',
@@ -187,46 +182,39 @@ export const consolidationRequestsAndIncreaseRewardsAdjustment = async (
   if (!data) throw new Error('Fee read returned empty data');
   const feePerRequest = hexToBigInt(data);
 
-  // 2. Create populated transactions for consolidation requests
-  const populatedTxs: PopulatedTx[] = targetPubkeys.flatMap(
-    (targetPubkey, pubkeyIndex) => {
-      const sourcePubkeysGroup = sourcePubkeys[pubkeyIndex];
-
-      if (!sourcePubkeysGroup?.length) return [];
-      if (!targetPubkey || targetPubkey.length !== 98) {
-        throw new Error(
-          `Invalid target pubkey at index ${pubkeyIndex}: ${targetPubkey}`,
-        );
-      }
-
-      return sourcePubkeysGroup.map((sourcePubkey) => {
-        if (!sourcePubkey || sourcePubkey.length !== 98) {
-          throw new Error(`Invalid source pubkey: ${sourcePubkey}`);
-        }
-        const calldata: Hex = concat([sourcePubkey, targetPubkey]);
-
-        return {
-          to: CONSOLIDATION_REQUEST_PREDEPLOY_ADDRESS,
-          data: calldata,
-          value: feePerRequest,
-        };
-      });
-    },
-  );
-
-  // 3. Create populated transaction for increase rewards adjustment
+  // 2. Fetch consolidation request encoded calls and increase rewards adjustment encoded call.
+  const sourcePubkeysFlattened = sourcePubkeys.map(
+    (group) => '0x' + group.map((p) => p.replace(/^0x/, '')).join(''),
+  ) as Hex[];
+  const consolidationContract = getValidatorConsolidationRequestsContract();
   const totalBalance = sourceValidatorsInfo.data.reduce(
     (sum, validator) => sum + BigInt(validator.balance),
     0n,
   );
-  if (totalBalance > 0n) {
-    populatedTxs.push(
-      populateWriteTx({
-        contract: dashboardContract,
-        methodName: 'increaseRewardsAdjustment',
-        payload: [totalBalance],
-      }),
+  const [consolidationRequestEncodedCalls, adjustmentIncreaseEncodedCall] =
+    await callReadMethodSilent(
+      consolidationContract,
+      'getConsolidationRequestsAndAdjustmentIncreaseEncodedCalls',
+      [sourcePubkeysFlattened, targetPubkeys, dashboard, totalBalance],
     );
+
+  // 3. Create populated transactions for consolidation requests
+  const populatedTxs: PopulatedTx[] = consolidationRequestEncodedCalls.map(
+    (call) => {
+      return {
+        to: CONSOLIDATION_REQUEST_PREDEPLOY_ADDRESS,
+        data: call,
+        value: feePerRequest,
+      };
+    },
+  );
+
+  // 4. Create populated transaction for increase rewards adjustment
+  if (totalBalance > 0n) {
+    populatedTxs.push({
+      to: dashboard,
+      data: adjustmentIncreaseEncodedCall,
+    });
   }
 
   return populatedTxs;
@@ -235,7 +223,7 @@ export const consolidationRequestsAndIncreaseRewardsAdjustment = async (
 export const checkConsolidationInput = async (
   sourcePubkeys: Hex[][],
   targetPubkeys: Hex[],
-  stakingVault: Address,
+  dashboard: Address,
   refundRecipient?: Address,
 ) => {
   const sourcePubkeysFlat = sourcePubkeys.flat();
@@ -250,8 +238,8 @@ export const checkConsolidationInput = async (
   if (refundRecipient != null && refundRecipient === zeroAddress) {
     throw new Error('refundRecipient must be non-zero address');
   }
-  if (stakingVault === zeroAddress) {
-    throw new Error('stakingVault must be non-zero address');
+  if (dashboard === zeroAddress) {
+    throw new Error('dashboard address must be non-zero address');
   }
 };
 
@@ -281,19 +269,4 @@ export const checkValidators = async (
     sourceValidatorsInfo,
     targetValidatorsInfo,
   };
-};
-
-export const checkVaultConnection = async (
-  stakingVault: Address,
-): Promise<VaultConnection> => {
-  const vaultHub = await getVaultHubContract();
-  const vaultConnection = await callReadMethod(vaultHub, 'vaultConnection', [
-    stakingVault,
-  ]);
-
-  if (vaultConnection.vaultIndex === 0n || vaultConnection.pendingDisconnect) {
-    throw new Error('Vault is not connected or is pending disconnect');
-  }
-
-  return vaultConnection;
 };
