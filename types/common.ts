@@ -59,3 +59,5 @@ export type Deposit = {
   amount: bigint;
   depositDataRoot: Hex;
 };
+
+export type PubkeyMap = Record<Hex, Hex[]>;

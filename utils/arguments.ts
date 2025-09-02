@@ -1,8 +1,9 @@
 import { program } from 'commander';
-import { Permit, RoleAssignment, Tier, Deposit } from 'types';
-import { Address, isAddress, parseEther } from 'viem';
+import { Permit, RoleAssignment, Tier, Deposit, PubkeyMap } from 'types';
+import { Address, isAddress, isHex, parseEther } from 'viem';
 
 import { toHex } from './proof/merkle-utils.js';
+import { readFileSync } from 'fs';
 
 const toCamelCase = (str: string): string =>
   str.replace(/_([a-z])/g, (_, char) => char.toUpperCase());
@@ -28,6 +29,36 @@ export const stringToHexArray = (value: string) => {
 
 export const jsonToPermit = (value: string) => {
   return JSON.parse(value) as Permit;
+};
+
+export const jsonFileToPubkeys = (value: string) => {
+  const content = readFileSync(value, 'utf-8');
+  if (content.length === 0) {
+    throw new Error('File is empty');
+  }
+  const parsed = JSON.parse(content);
+
+  if (typeof parsed !== 'object' || parsed === null) {
+    throw new Error('Invalid PubkeyMap format: not an object');
+  }
+
+  Object.entries(parsed).forEach(([key, value]) => {
+    if (!isHex(key)) {
+      throw new Error(`Invalid key: ${key}`);
+    }
+
+    if (!Array.isArray(value)) {
+      throw new Error(`Value for key ${key} is not an array`);
+    }
+
+    value.forEach((item) => {
+      if (!isHex(item)) {
+        throw new Error(`Invalid hex in array for key ${key}: ${item}`);
+      }
+    });
+  });
+
+  return parsed as PubkeyMap;
 };
 
 export const jsonToRoleAssignment = (value: string) => {

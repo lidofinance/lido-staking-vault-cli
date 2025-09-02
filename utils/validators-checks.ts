@@ -2,10 +2,10 @@ import { ValidatorsInfo } from './fetchCL.js';
 import assert from 'assert';
 
 export const checkSourceValidators = async (
-  sourceValidatorsInfo: ValidatorsInfo,
+  sourceValidatorsInfoData: ValidatorsInfo['data'],
   finalizedEpoch: number,
 ) => {
-  const notActiveValidators = sourceValidatorsInfo.data.filter(
+  const notActiveValidators = sourceValidatorsInfoData.filter(
     (validator) => validator.status !== 'active_ongoing',
   );
   assert(
@@ -14,17 +14,22 @@ export const checkSourceValidators = async (
       notActiveValidators.map((v) => v.validator.pubkey).join(', '),
   );
 
-  const wrongWCSourceValidators = sourceValidatorsInfo.data.filter(
+  const correctWCSourceValidators = sourceValidatorsInfoData.filter(
     (validator) =>
-      validator.validator.withdrawal_credentials.startsWith('0x00'),
-  );
-  assert(
-    wrongWCSourceValidators.length === 0,
-    'All source pubkeys must have a withdrawal credentials starting with 0x01 or 0x02. Wrong pubkeys:' +
-      wrongWCSourceValidators.map((v) => v.validator.pubkey).join(', '),
+      validator.validator.withdrawal_credentials.startsWith('0x01') ||
+      validator.validator.withdrawal_credentials.startsWith('0x02'),
   );
 
-  const sourceValidatorsWithLess256Epochs = sourceValidatorsInfo.data.filter(
+  assert(
+    sourceValidatorsInfoData.length === correctWCSourceValidators.length,
+    'All source pubkeys must have a withdrawal credentials starting with 0x01 or 0x02. Wrong pubkeys:' +
+      sourceValidatorsInfoData
+        .filter((validator) => !correctWCSourceValidators.includes(validator))
+        .map((v) => v.validator.pubkey)
+        .join(', '),
+  );
+
+  const sourceValidatorsWithLess256Epochs = sourceValidatorsInfoData.filter(
     (validator) =>
       finalizedEpoch - Number(validator.validator.activation_epoch) < 256,
   );
@@ -38,9 +43,9 @@ export const checkSourceValidators = async (
 };
 
 export const checkTargetValidators = async (
-  targetValidatorsInfo: ValidatorsInfo,
+  targetValidatorsInfoData: ValidatorsInfo['data'],
 ) => {
-  const notActiveTargetValidators = targetValidatorsInfo.data.filter(
+  const notActiveTargetValidators = targetValidatorsInfoData.filter(
     (validator) => validator.status !== 'active_ongoing',
   );
   assert(
@@ -49,7 +54,7 @@ export const checkTargetValidators = async (
       notActiveTargetValidators.map((v) => v.validator.pubkey).join(', '),
   );
 
-  const wrongWCTargetValidators = targetValidatorsInfo.data.filter(
+  const wrongWCTargetValidators = targetValidatorsInfoData.filter(
     (validator) =>
       !validator.validator.withdrawal_credentials.startsWith('0x02'),
   );
