@@ -36,7 +36,11 @@ export const jsonFileToPubkeys = (value: string) => {
   if (content.length === 0) {
     throw new Error('File is empty');
   }
-  return JSON.parse(content) as PubkeyMap;
+  try {
+    return JSON.parse(content) as PubkeyMap;
+  } catch (error) {
+    throw new Error('Invalid JSON file: ' + error);
+  }
 };
 
 export const jsonToRoleAssignment = (value: string) => {
