@@ -148,10 +148,8 @@ export const revokeDelegate = async () => {
     ],
   });
 
-  const codeAfterRevokeAuthorization = await publicClient.readContract({
+  const codeAfterRevokeAuthorization = await publicClient.getCode({
     address: account.address,
-    abi: [],
-    functionName: 'getCode',
   });
 
   const isNotRevoked = codeAfterRevokeAuthorization !== '0x';

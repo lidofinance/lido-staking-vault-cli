@@ -278,35 +278,6 @@ export const LazyOracleAbi = [
   {
     inputs: [
       {
-        internalType: 'address',
-        name: '_vault',
-        type: 'address',
-      },
-      {
-        internalType: 'uint256',
-        name: '_totalValue',
-        type: 'uint256',
-      },
-    ],
-    name: '_handleSanityChecks',
-    outputs: [
-      {
-        internalType: 'uint256',
-        name: 'totalValueWithoutQuarantine',
-        type: 'uint256',
-      },
-      {
-        internalType: 'int256',
-        name: 'inOutDeltaOnRefSlot',
-        type: 'int256',
-      },
-    ],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      {
         internalType: 'uint256',
         name: '_offset',
         type: 'uint256',
@@ -327,14 +298,14 @@ export const LazyOracleAbi = [
             type: 'address',
           },
           {
-            internalType: 'uint96',
-            name: 'vaultIndex',
-            type: 'uint96',
-          },
-          {
             internalType: 'uint256',
             name: 'balance',
             type: 'uint256',
+          },
+          {
+            internalType: 'int256',
+            name: 'inOutDelta',
+            type: 'int256',
           },
           {
             internalType: 'bytes32',
@@ -773,6 +744,19 @@ export const LazyOracleAbi = [
         internalType: 'struct LazyOracle.QuarantineInfo',
         name: '',
         type: 'tuple',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'vaultsCount',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
       },
     ],
     stateMutability: 'view',
