@@ -1,6 +1,6 @@
 import { program } from 'commander';
 import { Permit, RoleAssignment, Tier, Deposit, PubkeyMap } from 'types';
-import { Address, isAddress, parseEther } from 'viem';
+import { Address, isAddress, isHex, parseEther } from 'viem';
 
 import { toHex } from './proof/merkle-utils.js';
 import { readFileSync } from 'fs';
@@ -36,11 +36,29 @@ export const jsonFileToPubkeys = (value: string) => {
   if (content.length === 0) {
     throw new Error('File is empty');
   }
-  try {
-    return JSON.parse(content) as PubkeyMap;
-  } catch (error) {
-    throw new Error('Invalid JSON file: ' + error);
+  const parsed = JSON.parse(content);
+
+  if (typeof parsed !== 'object' || parsed === null) {
+    throw new Error('Invalid PubkeyMap format: not an object');
   }
+
+  Object.entries(parsed).forEach(([key, value]) => {
+    if (!isHex(key)) {
+      throw new Error(`Invalid key: ${key}`);
+    }
+
+    if (!Array.isArray(value)) {
+      throw new Error(`Value for key ${key} is not an array`);
+    }
+
+    value.forEach((item) => {
+      if (!isHex(item)) {
+        throw new Error(`Invalid hex in array for key ${key}: ${item}`);
+      }
+    });
+  });
+
+  return parsed as PubkeyMap;
 };
 
 export const jsonToRoleAssignment = (value: string) => {
