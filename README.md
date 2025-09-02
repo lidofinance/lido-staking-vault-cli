@@ -55,6 +55,11 @@ PRIVATE_KEY=0x
 # or encrypted file
 # ACCOUNT_FILE=wallets/account.json
 # ACCOUNT_FILE_PASSWORD=1234
+
+# WalletConnect (optional)
+# Note: WALLET_CONNECT_PROJECT_ID is NOT a secret. It is a public identifier
+# of the application using WalletConnect.
+WALLET_CONNECT_PROJECT_ID=ee928c025792b10a6daa97d85328c433
 ```
 
 If you plan to manage contracts, the **privateKey** is a required property for this type of operations.

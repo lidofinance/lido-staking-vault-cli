@@ -25,6 +25,11 @@ PRIVATE_KEY=0x1234567890abcdef...
 # OR use encrypted account file
 ACCOUNT_FILE=wallets/account.json
 ACCOUNT_FILE_PASSWORD=your_secure_password
+
+# WalletConnect (Optional)
+# WALLET_CONNECT_PROJECT_ID is NOT a secret. It is a public identifier
+# of the application that uses WalletConnect.
+WALLET_CONNECT_PROJECT_ID=ee928c025792b10a6daa97d85328c433
 ```
 
 ## Configuration Options
@@ -83,6 +88,16 @@ ACCOUNT_FILE_PASSWORD=your_secure_password
 - Uses encrypted keystore file
 - More secure than plain private keys
 - Compatible with standard Ethereum wallet formats
+
+#### Method 3: WalletConnect (Recommended for signing in external wallet)
+
+```env
+WALLET_CONNECT_PROJECT_ID=ee928c025792b10a6daa97d85328c433
+```
+
+- Works with mobile/desktop wallets via WalletConnect
+- WALLET_CONNECT_PROJECT_ID is a public app identifier (not a secret)
+- Enable in commands with the `--wallet-connect` flag
 
 ## Validation
 

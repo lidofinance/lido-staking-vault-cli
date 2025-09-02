@@ -1,36 +1,44 @@
+import { Hex, Address, zeroAddress, hexToBigInt, concat } from 'viem';
+
 import { getAccount, getPublicClient, getWalletWithAccount } from 'providers';
-import { Hex, Address, zeroAddress } from 'viem';
 import {
-  callReadMethodSilent,
-  logInfo,
-  callWriteMethodWithReceipt,
-  checkPubkeys,
-} from 'utils';
-import assert from 'assert';
-import {
+  getDashboardContract,
   getValidatorConsolidationRequestsContract,
   getAccountWithDelegatedValidatorConsolidationRequestsContract,
-} from 'contracts/validator-consolidation-requests.js';
-import { fetchValidatorsInfo, ValidatorsInfo } from 'utils/fetchCL.js';
-import { hexToBigInt } from 'viem';
-import { PopulatedTx } from 'utils/transactions/types.js';
-import {
-  callReadMethod,
-  populateWriteTx,
-} from 'utils/transactions/tx-private-key.js';
-import { getDashboardContract } from 'contracts/dashboard.js';
+} from 'contracts';
 import {
   finalityCheckpoints,
   checkSourceValidators,
   checkTargetValidators,
+  callReadMethodSilent,
+  logInfo,
+  callWriteMethodWithReceipt,
+  checkPubkeys,
+  callReadMethod,
+  populateWriteTx,
+  PopulatedTx,
+  fetchValidatorsInfo,
+  ValidatorsInfo,
+  showSpinner,
+  logResult,
 } from 'utils';
 import { getVaultHubContract } from 'contracts';
-import { VaultConnection } from 'contracts/vault-hub.js';
+import { waitForTransactionReceipt } from 'viem/actions';
+
+export type VaultConnection = {
+  vaultIndex: bigint;
+  owner: Address;
+  pendingDisconnect: boolean;
+};
 
 // Consolidation requires a fee to ensure it gets executed reliably.
 // To increase the likelihood of completion, the fee is multiplied by FEE_INCREASE_FACTOR.
 // Any unused portion of the fee will be refunded to the designated recipient.
 const FEE_INCREASE_FACTOR = 20n;
+
+// https://eips.ethereum.org/EIPS/eip-7251
+const CONSOLIDATION_REQUEST_PREDEPLOY_ADDRESS =
+  '0x0000BBdDc7CE488642fb579F8B00f3a590007251';
 
 export const requestConsolidation = async (
   sourcePubkeys: Hex[][],
@@ -41,38 +49,46 @@ export const requestConsolidation = async (
 ) => {
   const account = await getAccount();
   const walletClient = await getWalletWithAccount();
-
   const consolidationContract = getValidatorConsolidationRequestsContract();
+  const accountWithDelegatedValidatorConsolidationRequestsContract =
+    getAccountWithDelegatedValidatorConsolidationRequestsContract(
+      account.address,
+    );
+
   const totalBalance = sourceValidatorsInfo.data.reduce(
-    (sum, validator) => sum + Number(validator.balance),
-    0,
+    (sum, validator) => sum + BigInt(validator.balance),
+    0n,
   );
   const feePerConsolidationRequest = await callReadMethodSilent(
     consolidationContract,
     'getConsolidationRequestFee',
   );
 
-  const sourcePubkeysFlat = sourcePubkeys.flat();
+  const sourcePubkeysFlat: Hex[] = sourcePubkeys.flat();
   const totalFee =
     (feePerConsolidationRequest *
       BigInt(sourcePubkeysFlat.length) *
       (100n + FEE_INCREASE_FACTOR)) /
     100n;
-  const accountWithDelegateedValidatorConsolidationRequestsContract =
-    getAccountWithDelegatedValidatorConsolidationRequestsContract(
-      account.address,
-    );
+  const sourcePubkeysFlattened = sourcePubkeys.map(
+    (group) => '0x' + group.map((p) => p.replace(/^0x/, '')).join(''),
+  ) as Hex[];
+
+  const hideSpinner = showSpinner({
+    type: 'bouncingBar',
+    message: 'Waiting for delegated consolidation requests to be added...',
+  });
 
   const authorization = await walletClient.signAuthorization({
     account: account,
     executor: 'self',
     contractAddress: consolidationContract.address,
   });
-  const sourcePubkeysFlattened = sourcePubkeys.map(
-    (group) => '0x' + group.map((p) => p.replace(/^0x/, '')).join(''),
-  ) as Hex[];
-  const result = await callWriteMethodWithReceipt({
-    contract: accountWithDelegateedValidatorConsolidationRequestsContract,
+
+  hideSpinner();
+
+  await callWriteMethodWithReceipt({
+    contract: accountWithDelegatedValidatorConsolidationRequestsContract,
     methodName: 'addConsolidationRequestsEOA',
     authorizationList: [authorization],
     payload: [
@@ -80,73 +96,115 @@ export const requestConsolidation = async (
       targetPubkeys,
       refundRecipient,
       stakingVault,
-      BigInt(totalBalance),
+      totalBalance,
     ],
     value: totalFee,
-    withSpinner: false,
-    silent: true,
   });
-  logInfo('consolidation request tx hash:', result);
 };
 
 export const revokeDelegate = async () => {
   const account = await getAccount();
   const walletClient = await getWalletWithAccount();
+  const publicClient = getPublicClient();
+
+  const hideAuthorizationSpinner = showSpinner({
+    type: 'bouncingBar',
+    message: 'Waiting for authorization to be revoked...',
+  });
 
   const revokeAuthorization = await walletClient.signAuthorization({
     account: account,
     executor: 'self',
     contractAddress: zeroAddress,
   });
-  const revokeAuthorizationTxHash = await walletClient.sendTransaction({
+  hideAuthorizationSpinner();
+
+  const hideRevokeAuthorizationSpinner = showSpinner({
+    type: 'bouncingBar',
+    message: 'Waiting for revoke authorization transaction to be executed...',
+  });
+
+  const txHash = await walletClient.sendTransaction({
     account: account,
     to: zeroAddress,
     chain: walletClient.chain,
     authorizationList: [revokeAuthorization],
   });
-  logInfo('revoke authorization tx hash:', revokeAuthorizationTxHash);
+  hideRevokeAuthorizationSpinner();
 
-  const revokeAuthorizationTxReceipt =
-    await getPublicClient().waitForTransactionReceipt({
-      hash: revokeAuthorizationTxHash,
-    });
-  logInfo('revoke authorization tx receipt:', revokeAuthorizationTxReceipt);
+  logInfo('revoke authorization tx hash:', txHash);
 
-  const codeAfterRevokeAuthorization = await getPublicClient().getCode({
+  const receipt = await waitForTransactionReceipt(publicClient, {
+    hash: txHash,
+    confirmations: 3,
+  });
+
+  logResult({
+    data: [
+      ['Revoke authorization tx hash', txHash],
+      ['Revoke authorization tx status', receipt.status],
+      ['Revoke authorization tx block number', receipt.blockNumber],
+      ['Revoke authorization tx gas used', receipt.gasUsed],
+    ],
+  });
+
+  const codeAfterRevokeAuthorization = await publicClient.getCode({
     address: account.address,
   });
-  assert(
-    codeAfterRevokeAuthorization === undefined,
-    'code after revokeAuthorization is not empty',
-  );
+
+  const isNotRevoked = codeAfterRevokeAuthorization !== '0x';
+  if (isNotRevoked) {
+    throw new Error(
+      'Authorization is not revoked. Please call eoa-revoke-delegate command',
+    );
+  }
+
+  logInfo('Authorization revoked successfully');
 };
 
 export const consolidationRequestsAndIncreaseRewardsAdjustment = async (
   sourcePubkeys: Hex[][],
   targetPubkeys: Hex[],
   sourceValidatorsInfo: ValidatorsInfo,
-  vaultConnectionOwner: Address,
+  vaultConnectionOwner: Address, // dashboard contract address
 ) => {
-  const CONSOLIDATION_REQUEST_PREDEPLOY_ADDRESS =
-    '0x0000BBdDc7CE488642fb579F8B00f3a590007251';
-
   // 1. Get fee per request
   const publicClient = getPublicClient();
+  const dashboardContract = getDashboardContract(vaultConnectionOwner);
+
+  const hideFeeSpinner = showSpinner({
+    type: 'bouncingBar',
+    message: 'Waiting for fee to be read...',
+  });
+
   const { data } = await publicClient.call({
     to: CONSOLIDATION_REQUEST_PREDEPLOY_ADDRESS,
     data: '0x',
     blockTag: 'latest',
   });
+  hideFeeSpinner();
+
   if (!data) throw new Error('Fee read returned empty data');
   const feePerRequest = hexToBigInt(data);
 
   // 2. Create populated transactions for consolidation requests
   const populatedTxs: PopulatedTx[] = targetPubkeys.flatMap(
     (targetPubkey, pubkeyIndex) => {
-      const sourcePubkeysGroup = sourcePubkeys[pubkeyIndex] ?? [];
+      const sourcePubkeysGroup = sourcePubkeys[pubkeyIndex];
+
+      if (!sourcePubkeysGroup?.length) return [];
+      if (!targetPubkey || targetPubkey.length !== 98) {
+        throw new Error(
+          `Invalid target pubkey at index ${pubkeyIndex}: ${targetPubkey}`,
+        );
+      }
+
       return sourcePubkeysGroup.map((sourcePubkey) => {
-        const calldata =
-          `0x${sourcePubkey.slice(2)}${targetPubkey.slice(2)}` as Hex;
+        if (!sourcePubkey || sourcePubkey.length !== 98) {
+          throw new Error(`Invalid source pubkey: ${sourcePubkey}`);
+        }
+        const calldata: Hex = concat([sourcePubkey, targetPubkey]);
+
         return {
           to: CONSOLIDATION_REQUEST_PREDEPLOY_ADDRESS,
           data: calldata,
@@ -157,17 +215,16 @@ export const consolidationRequestsAndIncreaseRewardsAdjustment = async (
   );
 
   // 3. Create populated transaction for increase rewards adjustment
-  const dashboardContract = getDashboardContract(vaultConnectionOwner);
   const totalBalance = sourceValidatorsInfo.data.reduce(
-    (sum, validator) => sum + Number(validator.balance),
-    0,
+    (sum, validator) => sum + BigInt(validator.balance),
+    0n,
   );
-  if (totalBalance > 0) {
+  if (totalBalance > 0n) {
     populatedTxs.push(
       populateWriteTx({
         contract: dashboardContract,
         methodName: 'increaseRewardsAdjustment',
-        payload: [BigInt(totalBalance)],
+        payload: [totalBalance],
       }),
     );
   }
@@ -184,6 +241,7 @@ export const checkConsolidationInput = async (
   const sourcePubkeysFlat = sourcePubkeys.flat();
   checkPubkeys(sourcePubkeysFlat);
   checkPubkeys(targetPubkeys);
+
   if (sourcePubkeys.length !== targetPubkeys.length) {
     throw new Error(
       'sourcePubkeys and targetPubkeys must have the same length',
@@ -226,8 +284,10 @@ export const checkVaultConnection = async (
   const vaultConnection = await callReadMethod(vaultHub, 'vaultConnection', [
     stakingVault,
   ]);
+
   if (vaultConnection.vaultIndex === 0n || vaultConnection.pendingDisconnect) {
     throw new Error('Vault is not connected or is pending disconnect');
   }
+
   return vaultConnection;
 };

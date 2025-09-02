@@ -14,9 +14,8 @@ import { getChain } from 'configs';
 import { showSpinner, printError, logResult, logInfo } from 'utils';
 
 import {
-  callWalletConnectWriteBatchCalls,
-  callWalletConnectWriteBatchPayloads,
-  callWalletConnectWriteMethodWithReceipt,
+  callWCWriteMethodWithReceipt,
+  callWCWriteMethodWithReceiptPayloads,
 } from './tx-wc.js';
 import {
   PartialContract,
@@ -289,14 +288,21 @@ export const callWriteMethodWithReceipt = async <
   }
 
   if (program.opts().walletConnect) {
-    const data = await callWalletConnectWriteMethodWithReceipt({
-      contract,
-      methodName,
-      payload,
-      value,
+    const data = await callWCWriteMethodWithReceipt({
+      calls: [
+        populateWriteTx({
+          contract,
+          methodName,
+          payload,
+          value,
+        }),
+      ],
+      withSpinner,
+      silent,
+      skipError,
     });
 
-    return data;
+    return { receipt: data.receipt, tx: data.txHash };
   }
 
   const publicClient = getPublicClient();
@@ -357,12 +363,14 @@ export const callWriteMethodWithReceiptBatchCalls = async (args: {
   const { calls, withSpinner = true, silent = false, skipError = false } = args;
 
   if (program.opts().walletConnect) {
-    await callWalletConnectWriteBatchCalls({
+    await callWCWriteMethodWithReceipt({
       calls,
       withSpinner,
       silent,
       skipError,
     });
+
+    return;
   }
 
   const publicClient = getPublicClient();
@@ -433,7 +441,7 @@ export const callWriteMethodWithReceiptBatchPayloads = async <
   } = args;
 
   if (program.opts().walletConnect) {
-    await callWalletConnectWriteBatchPayloads(args);
+    await callWCWriteMethodWithReceiptPayloads(args);
 
     return;
   }
