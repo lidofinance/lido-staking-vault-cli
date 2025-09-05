@@ -77,22 +77,16 @@ export const requestConsolidation = async (
 
   hideSpinner();
 
-  const [consolidationRequestEncodedCalls, adjustmentIncreaseEncodedCall] =
-    await callReadMethodSilent(
-      consolidationContract,
-      'getConsolidationRequestsAndAdjustmentIncreaseEncodedCalls',
-      [sourcePubkeysFlattened, targetPubkeys, dashboard, totalBalance],
-    );
-
   await callWriteMethodWithReceipt({
     contract: accountWithDelegatedValidatorConsolidationRequestsContract,
-    methodName: 'addConsolidationRequestsEOA',
+    methodName: 'addConsolidationRequestsAndIncreaseRewardsAdjustment',
     authorizationList: [authorization],
     payload: [
-      consolidationRequestEncodedCalls,
-      adjustmentIncreaseEncodedCall,
-      dashboard,
+      sourcePubkeysFlattened,
+      targetPubkeys,
       refundRecipient,
+      dashboard,
+      totalBalance,
     ],
     value: totalFee,
   });

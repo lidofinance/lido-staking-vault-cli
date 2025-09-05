@@ -27,8 +27,8 @@ consolidationWrite
   .description(
     'Set the Lido Consolidation contract as the delegate for the EOA using EIP-7702, call its method to consolidate N validators, and then revoke the authorization.',
   )
+  .argument('<dashboard>', 'dashboard address', stringToAddress)
   .argument('<refund_recipient>', 'refund recipient address', stringToAddress)
-  .argument('<staking_vault>', 'staking vault address', stringToAddress)
   .option(
     '-s, --source_pubkeys <source_pubkeys>',
     '2D array of source validator pubkeys: each inner list will be consolidated into a single target validator',
@@ -46,8 +46,8 @@ consolidationWrite
   )
   .action(
     async (
+      dashboard: Address,
       refundRecipient: Address,
-      stakingVault: Address,
       {
         source_pubkeys,
         target_pubkeys,
@@ -67,7 +67,7 @@ consolidationWrite
       await checkConsolidationInput(
         sourcePubkeys,
         targetPubkeys,
-        stakingVault,
+        dashboard,
         refundRecipient,
       );
       const { sourceValidatorsInfo } = await checkValidators(
@@ -78,7 +78,7 @@ consolidationWrite
         sourcePubkeys,
         targetPubkeys,
         refundRecipient,
-        stakingVault,
+        dashboard,
         sourceValidatorsInfo,
       );
       await revokeDelegate();
@@ -93,7 +93,7 @@ consolidationWrite
   });
 
 consolidationWrite
-  .command('eoa-calls')
+  .command('calls')
   .description(
     'Make separate (or batch for WC) consolidation requests for each source pubkey, increase rewards adjustment',
   )

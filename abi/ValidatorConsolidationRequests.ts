@@ -44,7 +44,7 @@ export const validatorConsolidationRequestsAbi = [
         type: 'bytes',
       },
     ],
-    name: 'ConsolidationRequestAdditionFailed',
+    name: 'ConsolidationRequestFailed',
     type: 'error',
   },
   {
@@ -65,7 +65,7 @@ export const validatorConsolidationRequestsAbi = [
   },
   {
     inputs: [],
-    name: 'MalformedPubkeysArray',
+    name: 'MalformedSourcePubkeysArray',
     type: 'error',
   },
   {
@@ -92,11 +92,6 @@ export const validatorConsolidationRequestsAbi = [
   {
     inputs: [],
     name: 'NoConsolidationRequests',
-    type: 'error',
-  },
-  {
-    inputs: [],
-    name: 'NotDelegateCall',
     type: 'error',
   },
   {
@@ -155,44 +150,7 @@ export const validatorConsolidationRequestsAbi = [
         type: 'uint256',
       },
     ],
-    name: 'ConsolidationRequestsAdded',
-    type: 'event',
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: 'address',
-        name: 'sender',
-        type: 'address',
-      },
-      {
-        indexed: false,
-        internalType: 'bytes[]',
-        name: 'consolidationRequestEncodedCalls',
-        type: 'bytes[]',
-      },
-      {
-        indexed: false,
-        internalType: 'bytes',
-        name: 'adjustmentIncreaseEncodedCall',
-        type: 'bytes',
-      },
-      {
-        indexed: true,
-        internalType: 'address',
-        name: 'refundRecipient',
-        type: 'address',
-      },
-      {
-        indexed: false,
-        internalType: 'uint256',
-        name: 'excess',
-        type: 'uint256',
-      },
-    ],
-    name: 'ConsolidationRequestsAddedEOA',
+    name: 'ConsolidationRequestsAndRewardsAdjustmentIncreased',
     type: 'event',
   },
   {
@@ -222,29 +180,21 @@ export const validatorConsolidationRequestsAbi = [
     type: 'function',
   },
   {
-    inputs: [],
-    name: 'THIS',
-    outputs: [
-      {
-        internalType: 'address',
-        name: '',
-        type: 'address',
-      },
-    ],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
     inputs: [
       {
         internalType: 'bytes[]',
-        name: '_consolidationRequestEncodedCalls',
+        name: '_sourcePubkeys',
         type: 'bytes[]',
       },
       {
-        internalType: 'bytes',
-        name: '_adjustmentIncreaseEncodedCall',
-        type: 'bytes',
+        internalType: 'bytes[]',
+        name: '_targetPubkeys',
+        type: 'bytes[]',
+      },
+      {
+        internalType: 'address',
+        name: '_refundRecipient',
+        type: 'address',
       },
       {
         internalType: 'address',
@@ -252,78 +202,12 @@ export const validatorConsolidationRequestsAbi = [
         type: 'address',
       },
       {
-        internalType: 'address',
-        name: '_refundRecipient',
-        type: 'address',
-      },
-    ],
-    name: 'addConsolidationRequestsEOA',
-    outputs: [],
-    stateMutability: 'payable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      {
-        internalType: 'bytes[]',
-        name: '_sourcePubkeys',
-        type: 'bytes[]',
-      },
-      {
-        internalType: 'bytes[]',
-        name: '_targetPubkeys',
-        type: 'bytes[]',
-      },
-      {
-        internalType: 'address',
-        name: '_refundRecipient',
-        type: 'address',
-      },
-      {
-        internalType: 'address',
-        name: '_stakingVault',
-        type: 'address',
-      },
-      {
         internalType: 'uint256',
         name: '_adjustmentIncrease',
         type: 'uint256',
       },
     ],
-    name: 'addConsolidationRequestsEOA',
-    outputs: [],
-    stateMutability: 'payable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      {
-        internalType: 'bytes[]',
-        name: '_sourcePubkeys',
-        type: 'bytes[]',
-      },
-      {
-        internalType: 'bytes[]',
-        name: '_targetPubkeys',
-        type: 'bytes[]',
-      },
-      {
-        internalType: 'address',
-        name: '_refundRecipient',
-        type: 'address',
-      },
-      {
-        internalType: 'address',
-        name: '_stakingVault',
-        type: 'address',
-      },
-      {
-        internalType: 'uint256',
-        name: '_adjustmentIncrease',
-        type: 'uint256',
-      },
-    ],
-    name: 'addConsolidationRequestsMultisig',
+    name: 'addConsolidationRequestsAndIncreaseRewardsAdjustment',
     outputs: [],
     stateMutability: 'payable',
     type: 'function',
@@ -354,7 +238,7 @@ export const validatorConsolidationRequestsAbi = [
         type: 'bytes[]',
       },
       {
-        internalType: 'address payable',
+        internalType: 'address',
         name: '_dashboard',
         type: 'address',
       },
