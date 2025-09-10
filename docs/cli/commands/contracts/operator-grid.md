@@ -61,4 +61,4 @@ yarn start contracts operator-grid -h
 | register-tiers rt\<nodeOperator> \<tiers>                       | register new tiers                             |
 | alter-tiers at\<tierIds> \<tiers>                               | alters multiple tiers                          |
 | change-tier ct\<vault> \<tierId> \<requestedShareLimit>         | vault tier change with multi-role confirmation |
-| confirm-tier-change                                             | Confirms a tier change proposal                |
+| confirm-tier-change \<vault>                                    | Confirms a tier change proposal                |

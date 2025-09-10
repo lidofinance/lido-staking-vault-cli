@@ -51,7 +51,7 @@ Vault Operations commands manage the core functionality of Lido Staking Vaults i
 | disburse-node-operator-fee                 | transfers the node operator's accrued fee to nodeOperatorFeeRecipient                                                   |
 | set-node-operator-fee-recipient set-no-f-r | sets the node operator fee recipient address                                                                            |
 | change-tier-by-no ct-no \<tierId>          | vault tier change by node operator with multi-role confirmation                                                         |
-| change-tier ct \<tierId>                   | vault tier change with multi-role confirmation                                                                          |
+| change-tier ct \<tierId>                   | vault tier change by CHANGE_TIER_ROLE role with multi-role confirmation                                                 |
 | create-vault                               | creates a new StakingVault and Dashboard contracts                                                                      |
 
 ## Command Details
@@ -399,7 +399,7 @@ Sets the node operator fee recipient address for the vault. This address will re
 
 ### change-tier (ct)
 
-Changes the vault tier with multi-role confirmation.
+Changes the vault tier by CHANGE_TIER_ROLE role with multi-role confirmation.
 
 **Arguments:**
 
