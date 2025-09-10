@@ -403,7 +403,7 @@ Changes the vault tier with multi-role confirmation.
 
 **Arguments:**
 
-- `\<tierId>`: Tier ID to set for the vault
+- `<tierId>`: Tier ID to set for the vault
 
 **Options:**
 
@@ -427,7 +427,7 @@ Vault tier change initiated by the node operator with multi-role confirmation.
 
 **Arguments:**
 
-- `\<tierId>`: Tier ID to set for the vault
+- `<tierId>`: Tier ID to set for the vault
 
 **Options:**
 
