@@ -10,6 +10,7 @@ import {
   callWriteMethodWithReceipt,
   callReadMethodSilent,
   logError,
+  stringToBigInt,
 } from 'utils';
 import {
   chooseVaultAndGetDashboard,
@@ -26,6 +27,7 @@ import {
 import { getAccount } from 'providers';
 
 import { vaultOperations } from './main.js';
+import { getOperatorGridContract } from 'contracts';
 
 export const vaultOperationsWrite = vaultOperations
   .command('write')
@@ -369,6 +371,131 @@ vaultOperationsWrite
         contract,
         methodName: 'setNodeOperatorFeeRecipient',
         payload: [recipientAddress],
+      });
+    },
+  );
+
+vaultOperationsWrite
+  .command('change-tier-by-no')
+  .alias('ct-no')
+  .description(
+    'vault tier change by node operator with multi-role confirmation',
+  )
+  .argument('<tierId>', 'tier id', stringToBigInt)
+  .option(
+    '-r, --requestedShareLimit <string>',
+    'requested share limit (in shares)',
+    etherToWei,
+  )
+  .option('-v, --vault <string>', 'vault address', stringToAddress)
+  .action(
+    async (
+      tierId: bigint,
+      {
+        requestedShareLimit,
+        vault,
+      }: { requestedShareLimit: bigint; vault: Address },
+    ) => {
+      const { vault: vaultAddress, vaultContract } =
+        await chooseVaultAndGetDashboard({
+          vault,
+        });
+      const operatorGridContract = await getOperatorGridContract();
+
+      const vaultNodeOperator = await callReadMethodSilent(
+        vaultContract,
+        'nodeOperator',
+      );
+      const tierInfo = await callReadMethodSilent(
+        operatorGridContract,
+        'tier',
+        [tierId],
+      );
+      const tierShareLimit = tierInfo.shareLimit;
+      let currentShareLimit = tierShareLimit;
+
+      if (requestedShareLimit) {
+        const confirmShareLimit = await confirmOperation(
+          `Are you sure you want to request change share limit for vault ${vaultAddress} to ${formatEther(requestedShareLimit)} shares (requested tier share limit is ${formatEther(tierShareLimit)} shares)?`,
+        );
+        if (!confirmShareLimit) return;
+
+        currentShareLimit = requestedShareLimit;
+      }
+
+      const confirm = await confirmOperation(
+        `Are you sure you want to change the current tier to tier ID ${tierId} for vault ${vaultAddress} with share limit ${formatEther(currentShareLimit)} shares?`,
+      );
+      if (!confirm) return;
+
+      const account = await getAccount();
+      if (account.address !== vaultNodeOperator) {
+        throw new Error(
+          `You are not the node operator of the vault ${vaultAddress}`,
+        );
+      }
+
+      await callWriteMethodWithReceipt({
+        contract: operatorGridContract,
+        methodName: 'changeTier',
+        payload: [vaultAddress, tierId, currentShareLimit],
+      });
+    },
+  );
+
+vaultOperationsWrite
+  .command('change-tier')
+  .alias('ct')
+  .description('vault tier change with multi-role confirmation')
+  .argument('<tierId>', 'tier id', stringToBigInt)
+  .option(
+    '-r, --requestedShareLimit <string>',
+    'requested share limit (in shares)',
+    etherToWei,
+  )
+  .option('-v, --vault <string>', 'vault address', stringToAddress)
+  .action(
+    async (
+      tierId: bigint,
+      {
+        requestedShareLimit,
+        vault,
+      }: { requestedShareLimit: bigint; vault: Address },
+    ) => {
+      const { contract, vault: vaultAddress } =
+        await chooseVaultAndGetDashboard({
+          vault,
+        });
+      const operatorGridContract = await getOperatorGridContract();
+      const tierInfo = await callReadMethodSilent(
+        operatorGridContract,
+        'tier',
+        [tierId],
+      );
+      const tierShareLimit = tierInfo.shareLimit;
+
+      let currentShareLimit = tierShareLimit;
+      if (requestedShareLimit) {
+        const confirmShareLimit = await confirmOperation(
+          `Are you sure you want to request change share limit for vault ${vaultAddress} to ${formatEther(requestedShareLimit)} shares (requested tier share limit is ${formatEther(tierShareLimit)} shares)?`,
+        );
+        if (!confirmShareLimit) return;
+
+        currentShareLimit = requestedShareLimit;
+      }
+
+      const confirm = await confirmOperation(
+        `Are you sure you want to change the current tier to tier ID ${tierId} for vault ${vaultAddress} with share limit ${formatEther(currentShareLimit)} shares?`,
+      );
+      if (!confirm) return;
+
+      const account = await getAccount();
+      await checkVaultRole(contract, 'CHANGE_TIER_ROLE', account.address);
+
+      await callWriteMethodWithReceipt({
+        contract,
+        methodName: 'changeTier',
+        payload: [tierId, currentShareLimit],
       });
     },
   );
