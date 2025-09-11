@@ -147,7 +147,7 @@ operatorGridWrite
 
 operatorGridWrite
   .command('confirm-tier-change')
-  .description('Confirms a tier change proposal')
+  .description('Confirms a tier change proposal only for the Node Operator')
   .argument('<vault>', 'vault address')
   .action(async (vault: Address) => {
     const contract = await getOperatorGridContract();

@@ -54,11 +54,11 @@ yarn start contracts operator-grid -h
 
 ### Write
 
-| Command                                                         | Description                                    |
-| --------------------------------------------------------------- | ---------------------------------------------- |
-| register-group rg\<nodeOperator> \<shareLimit>                  | register a group                               |
-| update-group-share-limit update-sl\<nodeOperator> \<shareLimit> | update group share limit                       |
-| register-tiers rt\<nodeOperator> \<tiers>                       | register new tiers                             |
-| alter-tiers at\<tierIds> \<tiers>                               | alters multiple tiers                          |
-| change-tier ct\<vault> \<tierId> \<requestedShareLimit>         | vault tier change with multi-role confirmation |
-| confirm-tier-change \<vault>                                    | Confirms a tier change proposal                |
+| Command                                                         | Description                                                |
+| --------------------------------------------------------------- | ---------------------------------------------------------- |
+| register-group rg\<nodeOperator> \<shareLimit>                  | register a group                                           |
+| update-group-share-limit update-sl\<nodeOperator> \<shareLimit> | update group share limit                                   |
+| register-tiers rt\<nodeOperator> \<tiers>                       | register new tiers                                         |
+| alter-tiers at\<tierIds> \<tiers>                               | alters multiple tiers                                      |
+| change-tier ct\<vault> \<tierId> \<requestedShareLimit>         | vault tier change with multi-role confirmation             |
+| confirm-tier-change \<vault>                                    | Confirms a tier change proposal only for the Node Operator |
