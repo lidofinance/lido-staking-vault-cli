@@ -38,7 +38,8 @@ export const simulateWCWriteTx = async (args: {
     });
 
     if (simulateResult.results.some((r) => r.error)) {
-      throw new Error('Simulation failed');
+      const error = simulateResult.results.find((r) => r.error)?.error;
+      printError(error, 'Simulation failed');
     }
     hideSpinner();
 
