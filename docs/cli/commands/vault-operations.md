@@ -50,6 +50,8 @@ Vault Operations commands manage the core functionality of Lido Staking Vaults i
 | burn-wsteth \<amountOfWsteth>              | Burns wstETH tokens from the sender backed by the vault. Expects wstETH amount approved to this contract.               |
 | disburse-node-operator-fee                 | transfers the node operator's accrued fee to nodeOperatorFeeRecipient                                                   |
 | set-node-operator-fee-recipient set-no-f-r | sets the node operator fee recipient address                                                                            |
+| change-tier-by-no ct-no \<tierId>          | vault tier change by node operator with multi-role confirmation                                                         |
+| change-tier ct \<tierId>                   | vault tier change by CHANGE_TIER_ROLE role with multi-role confirmation                                                 |
 | create-vault                               | creates a new StakingVault and Dashboard contracts                                                                      |
 
 ## Command Details
@@ -394,6 +396,55 @@ Sets the node operator fee recipient address for the vault. This address will re
 **Returns:**
 
 - Transaction hash and confirmation of recipient update
+
+### change-tier (ct)
+
+Changes the vault tier by CHANGE_TIER_ROLE role with multi-role confirmation.
+
+**Arguments:**
+
+- `<tierId>`: Tier ID to set for the vault
+
+**Options:**
+
+- `-v, --vault <address>`: Specify vault address
+- `-r, --requestedShareLimit <shares>`: Requested share limit (in shares)
+
+**Process:**
+
+- Reads the target tier information and share limit
+- Uses requested share limit if provided; otherwise uses tier default
+- Displays confirmation with tier ID and share limit
+- Submits tier change for multi-role confirmation
+
+**Requirements:**
+
+- Caller must have CHANGE_TIER_ROLE for the vault
+
+### change-tier-by-no (ct-no)
+
+Vault tier change initiated by the node operator with multi-role confirmation.
+
+**Arguments:**
+
+- `<tierId>`: Tier ID to set for the vault
+
+**Options:**
+
+- `-v, --vault <address>`: Specify vault address
+- `-r, --requestedShareLimit <shares>`: Requested share limit (in shares)
+
+**Process:**
+
+- Validates caller is the vault's node operator
+- Reads the target tier information and share limit
+- Uses requested share limit if provided; otherwise uses tier default
+- Displays confirmation with tier ID and share limit
+- Submits tier change via Operator Grid for confirmation
+
+**Requirements:**
+
+- Caller must be the vault's node operator
 
 ## Role-Based Access Control
 

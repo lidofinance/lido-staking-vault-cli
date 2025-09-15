@@ -11,6 +11,7 @@ import {
   getCommandsJson,
   stringToBigIntArray,
   confirmProposal,
+  etherToWei,
 } from 'utils';
 import { Tier } from 'types';
 
@@ -32,7 +33,7 @@ operatorGridWrite
   .alias('rg')
   .description('register a group')
   .argument('<nodeOperator>', 'node operator address')
-  .argument('<shareLimit>', 'share limit', stringToBigInt)
+  .argument('<shareLimit>', 'share limit (in shares)', etherToWei)
   .action(async (nodeOperator: Address, shareLimit: bigint) => {
     const operatorGridContract = await getOperatorGridContract();
 
@@ -53,7 +54,7 @@ operatorGridWrite
   .alias('update-sl')
   .description('update group share limit')
   .argument('<nodeOperator>', 'node operator address')
-  .argument('<shareLimit>', 'share limit', stringToBigInt)
+  .argument('<shareLimit>', 'share limit (in shares)', etherToWei)
   .action(async (nodeOperator: Address, shareLimit: bigint) => {
     const operatorGridContract = await getOperatorGridContract();
     const group = await callReadMethod(operatorGridContract, 'group', [
@@ -122,7 +123,11 @@ operatorGridWrite
   .description('vault tier change with multi-role confirmation')
   .argument('<vault>', 'vault address')
   .argument('<tierId>', 'tier id', stringToBigInt)
-  .argument('<requestedShareLimit>', 'requested share limit', stringToBigInt)
+  .argument(
+    '<requestedShareLimit>',
+    'requested share limit (in shares)',
+    etherToWei,
+  )
   .action(
     async (vault: Address, tierId: bigint, requestedShareLimit: bigint) => {
       const operatorGridContract = await getOperatorGridContract();
@@ -142,10 +147,11 @@ operatorGridWrite
 
 operatorGridWrite
   .command('confirm-tier-change')
-  .description('Confirms a tier change proposal')
-  .action(async () => {
+  .description('Confirms a tier change proposal only for the Node Operator')
+  .argument('<vault>', 'vault address')
+  .action(async (vault: Address) => {
     const contract = await getOperatorGridContract();
-    const log = await confirmProposal(contract as any);
+    const log = await confirmProposal(contract as any, vault);
 
     if (!log) return;
 

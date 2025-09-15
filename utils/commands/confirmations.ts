@@ -23,7 +23,7 @@ const AVG_BLOCK_TIME_SEC = 12n;
 // Define argument types for each function
 type FunctionArgsMap = {
   setConfirmExpiry: readonly [bigint];
-  setNodeOperatorFeeBP: readonly [bigint];
+  setNodeOperatorFeeRate: readonly [bigint];
   changeTier: readonly [Address, bigint, bigint];
   transferVaultOwnership: readonly [Address];
 };
@@ -32,7 +32,7 @@ type FunctionArgsMap = {
 export const CONFIRM_METHODS_MAP = {
   setConfirmExpiry: (args: FunctionArgsMap['setConfirmExpiry']) =>
     `${Number(args[0]) / 3600} hours`,
-  setNodeOperatorFeeBP: (args: FunctionArgsMap['setNodeOperatorFeeBP']) =>
+  setNodeOperatorFeeRate: (args: FunctionArgsMap['setNodeOperatorFeeRate']) =>
     formatBP(args[0]),
   changeTier: (args: FunctionArgsMap['changeTier']) =>
     `vault: ${args[0]}, tier: ${args[1]}, requested share limit: ${formatEther(args[2])} shares`,
@@ -74,9 +74,9 @@ export const formatConfirmationArgs = (
       return CONFIRM_METHODS_MAP.setConfirmExpiry(
         args as FunctionArgsMap['setConfirmExpiry'],
       );
-    case 'setNodeOperatorFeeBP':
-      return CONFIRM_METHODS_MAP.setNodeOperatorFeeBP(
-        args as FunctionArgsMap['setNodeOperatorFeeBP'],
+    case 'setNodeOperatorFeeRate':
+      return CONFIRM_METHODS_MAP.setNodeOperatorFeeRate(
+        args as FunctionArgsMap['setNodeOperatorFeeRate'],
       );
     case 'changeTier':
       return CONFIRM_METHODS_MAP.changeTier(
@@ -175,8 +175,31 @@ export const getConfirmationsInfo = async <T extends ConfirmationContract>(
   return logsData;
 };
 
+const filterLogsByVault = (logsData: LogsData, vault?: Address): LogsData => {
+  if (!vault) return logsData;
+
+  const entries = Object.entries(logsData).filter(([, info]) => {
+    const { decodedData } = info;
+    switch (decodedData.functionName) {
+      case 'changeTier':
+      case 'transferVaultOwnership': {
+        const argVault = decodedData.args[0];
+        return argVault.toLowerCase() === vault.toLowerCase();
+      }
+      default:
+        return false;
+    }
+  });
+
+  return entries.reduce<LogsData>((acc, [key, value]) => {
+    acc[key as Hex] = value;
+    return acc;
+  }, {} as LogsData);
+};
+
 export const confirmProposal = async <T extends ConfirmationContract>(
   contract: T,
+  vault?: Address,
 ) => {
   const logsData = await getConfirmationsInfo(contract, contract.abi);
   if (!logsData) return;
@@ -185,11 +208,18 @@ export const confirmProposal = async <T extends ConfirmationContract>(
     console.error('No proposals found');
     return;
   }
-  const answer = await selectProposalEvent(logsData);
+  const filteredLogsData = filterLogsByVault(logsData, vault);
+
+  if (Object.keys(filteredLogsData).length === 0) {
+    console.error('No proposals found for the specified vault');
+    return;
+  }
+
+  const answer = await selectProposalEvent(filteredLogsData);
   if (!answer || !answer.event) {
     return;
   }
-  const log = logsData[answer.event];
+  const log = filteredLogsData[answer.event];
   if (!log) {
     console.error('No proposal found');
     return;

@@ -13,7 +13,7 @@ WalletConnect is an open protocol to connect dApps with wallets. In this CLI, Wa
 - WalletConnect Cloud project ID
 - Configured CLI environment (.env):
 
-```bash
+```env
 # Required for chain/config
 CHAIN_ID=...
 EL_URL=https://...
@@ -24,7 +24,9 @@ DEPLOYED=configs/deployed-....json
 # VOTING=0x...
 
 # WalletConnect
-WALLET_CONNECT_PROJECT_ID=<your_wc_project_id>
+# WALLET_CONNECT_PROJECT_ID is NOT a secret. It is a public identifier
+# of the application that uses WalletConnect.
+WALLET_CONNECT_PROJECT_ID=ee928c025792b10a6daa97d85328c433
 ```
 
 Notes:
@@ -35,9 +37,12 @@ Notes:
 ### How it works (overview)
 
 - The CLI initializes a WalletConnect session using your `WALLET_CONNECT_PROJECT_ID`.
-- It prints a WC URI and displays a QR code in the terminal.
-- You open your wallet, scan the QR (or open the URI), and approve the session.
+- It prints a WalletConnect URI and displays a QR code in the terminal.
+- You approve the session:
+  - scan the QR code with your mobile phone, and a wallet app that supports WalletConnect should be opened automatically,
+  - or copy and paste the WalletConnect URI into a wallet application (e.g., multisig) that supports URI input.
 - The CLI simulates the transaction first, then requests your wallet to execute it.
+- You sign the trancation in the wallet.
 - For batches, the CLI uses `wallet_sendCalls` and waits for `wallet_getCallsStatus` when supported; otherwise it falls back to legacy sendTransaction per call.
 
 Default connection behavior:
@@ -59,10 +64,11 @@ yarn start <command> <subcommand> w <batch-method> --wallet-connect
 
 After you run a command with `--wallet-connect`:
 
-- The CLI shows the URI and a QR code
-- Approve the session in your wallet
-- Confirm the transaction in the wallet when prompted
-- The CLI will print the tx hash and wait for confirmations
+- The CLI shows the URI and QR code.
+- Approve the session in your wallet (via scanning QR code or copy-pasting URI).
+- CLI may ask for additional actions (e.g., select a vault, confirm amount or address, etc.).
+- Confirm the transaction in the wallet when prompted.
+- The CLI will print the tx hash and wait for confirmations.
 
 ### Example (illustrative)
 

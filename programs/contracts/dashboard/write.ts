@@ -938,3 +938,32 @@ dashboardWrite
       payload: [],
     });
   });
+
+dashboardWrite
+  .command('change-tier')
+  .alias('ct')
+  .description('vault tier change with multi-role confirmation')
+  .argument('<address>', 'dashboard address', stringToAddress)
+  .argument('<tierId>', 'tier id', stringToBigInt)
+  .argument(
+    '<requestedShareLimit>',
+    'requested share limit (in shares)',
+    etherToWei,
+  )
+  .action(
+    async (address: Address, tierId: bigint, requestedShareLimit: bigint) => {
+      const contract = getDashboardContract(address);
+      const vault = await callReadMethod(contract, 'stakingVault');
+
+      const confirm = await confirmOperation(
+        `Are you sure you want to change the current tier to tier ID ${tierId} for vault ${vault} with share limit ${formatEther(requestedShareLimit)} shares?`,
+      );
+      if (!confirm) return;
+
+      await callWriteMethodWithReceipt({
+        contract,
+        methodName: 'changeTier',
+        payload: [tierId, requestedShareLimit],
+      });
+    },
+  );

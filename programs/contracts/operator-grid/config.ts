@@ -46,16 +46,6 @@ export const readCommandConfig: ReadProgramCommandConfig<
       },
     },
   },
-  vaultInfo: {
-    name: 'vault-info',
-    description: 'get vault limits',
-    arguments: {
-      vaultAddr: {
-        name: 'vault-address',
-        description: 'vault address',
-      },
-    },
-  },
   tiersCount: {
     name: 'tiers-count',
     description: 'get a tiers count',
