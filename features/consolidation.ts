@@ -1,4 +1,4 @@
-import { Hex, Address, zeroAddress, hexToBigInt } from 'viem';
+import { Hex, Address, zeroAddress, hexToBigInt, parseGwei } from 'viem';
 
 import { getPublicClient } from 'providers';
 import { getValidatorConsolidationRequestsContract } from 'contracts';
@@ -48,7 +48,7 @@ export const consolidationRequestsAndIncreaseRewardsAdjustment = async (
   ) as Hex[];
   const consolidationContract = getValidatorConsolidationRequestsContract();
   const totalBalance = sourceValidatorsInfo.data.reduce(
-    (sum, validator) => sum + BigInt(validator.balance),
+    (sum, validator) => sum + parseGwei(validator.balance),
     0n,
   );
   const [adjustmentIncreaseEncodedCall, consolidationRequestEncodedCalls] =
