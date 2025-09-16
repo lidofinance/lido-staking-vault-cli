@@ -1,9 +1,13 @@
 import { OperatorGridErrorsAbi } from './OperatorGrid.js';
 import { VaultHubErrorsAbi } from './VaultHub.js';
+import { DashboardErrorsAbi } from './Dashboard.js';
+import { StakingVaultErrorsAbi } from './StakingVault.js';
 
 export const VaultFactoryAbi = [
   ...VaultHubErrorsAbi,
   ...OperatorGridErrorsAbi,
+  ...DashboardErrorsAbi,
+  ...StakingVaultErrorsAbi,
   {
     inputs: [
       {

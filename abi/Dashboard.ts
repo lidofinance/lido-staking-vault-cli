@@ -2,36 +2,7 @@ import { StakingVaultErrorsAbi } from './StakingVault.js';
 import { OperatorGridErrorsAbi } from './OperatorGrid.js';
 import { VaultHubErrorsAbi } from './VaultHub.js';
 
-export const DashboardAbi = [
-  ...StakingVaultErrorsAbi,
-  ...OperatorGridErrorsAbi,
-  ...VaultHubErrorsAbi,
-  {
-    inputs: [
-      {
-        internalType: 'address',
-        name: '_stETH',
-        type: 'address',
-      },
-      {
-        internalType: 'address',
-        name: '_wstETH',
-        type: 'address',
-      },
-      {
-        internalType: 'address',
-        name: '_vaultHub',
-        type: 'address',
-      },
-      {
-        internalType: 'address',
-        name: '_lidoLocator',
-        type: 'address',
-      },
-    ],
-    stateMutability: 'nonpayable',
-    type: 'constructor',
-  },
+export const DashboardErrorsAbi = [
   {
     inputs: [],
     name: 'AccessControlBadConfirmation',
@@ -217,6 +188,39 @@ export const DashboardAbi = [
     inputs: [],
     name: 'ZeroConfirmingRoles',
     type: 'error',
+  },
+] as const;
+
+export const DashboardAbi = [
+  ...DashboardErrorsAbi,
+  ...StakingVaultErrorsAbi,
+  ...OperatorGridErrorsAbi,
+  ...VaultHubErrorsAbi,
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: '_stETH',
+        type: 'address',
+      },
+      {
+        internalType: 'address',
+        name: '_wstETH',
+        type: 'address',
+      },
+      {
+        internalType: 'address',
+        name: '_vaultHub',
+        type: 'address',
+      },
+      {
+        internalType: 'address',
+        name: '_lidoLocator',
+        type: 'address',
+      },
+    ],
+    stateMutability: 'nonpayable',
+    type: 'constructor',
   },
   {
     anonymous: false,
