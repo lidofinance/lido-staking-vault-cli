@@ -750,8 +750,14 @@ dashboardWrite
     'requested new share limit for the vault (in shares)',
     etherToWei,
   )
+  .option('-f, --fund', 'optional fund the vault with 1 ETH', false)
   .action(
-    async (address: Address, tier: bigint, requestedShareLimit: bigint) => {
+    async (
+      address: Address,
+      tier: bigint,
+      requestedShareLimit: bigint,
+      { fund }: { fund: boolean },
+    ) => {
       const contract = getDashboardContract(address);
       const vault = await callReadMethod(contract, 'stakingVault');
 
@@ -765,6 +771,7 @@ dashboardWrite
         contract,
         methodName: 'connectAndAcceptTier',
         payload: [tier, requestedShareLimit],
+        value: fund ? parseEther('1') : undefined,
       });
     },
   );
