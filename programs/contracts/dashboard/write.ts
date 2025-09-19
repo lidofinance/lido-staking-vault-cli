@@ -878,10 +878,16 @@ dashboardWrite
 
     if (!log) return;
 
+    // ChangeTier event from OperatorGrid has 3 args (vault, tierId, shareLimit), but we need only 2 (tierId, shareLimit)
+    let args: any = log.decodedData.args;
+    if (args && args.length === 3) {
+      args = [args[1], args[2]];
+    }
+
     await callWriteMethodWithReceipt({
       contract,
       methodName: log.decodedData.functionName as any,
-      payload: log.decodedData.args as any,
+      payload: args,
     });
   });
 
