@@ -2,7 +2,11 @@ import { Address, Hex, parseEther, formatEther } from 'viem';
 import { Option } from 'commander';
 
 import { getAccount } from 'providers';
-import { getDashboardContract, getStakingVaultContract } from 'contracts';
+import {
+  getDashboardContract,
+  getOperatorGridContract,
+  getStakingVaultContract,
+} from 'contracts';
 import {
   mintShares,
   burnShares,
@@ -864,7 +868,13 @@ dashboardWrite
   .argument('<address>', 'dashboard address', stringToAddress)
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
-    const log = await confirmProposal(contract as any);
+    const vault = await callReadMethodSilent(contract, 'stakingVault');
+    const operatorGridContract = await getOperatorGridContract();
+    const log = await confirmProposal({
+      contract: contract as any,
+      vault,
+      additionalContracts: [operatorGridContract],
+    });
 
     if (!log) return;
 

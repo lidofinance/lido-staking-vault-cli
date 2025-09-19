@@ -32,6 +32,7 @@ yarn start contracts dashboard -h
 | roles \<address>                                      | get dashboard roles                                                                                       |
 | health \<address>                                     | get vault health info                                                                                     |
 | dashboard-address-by-vault dashboard-by-vault\<vault> | get dashboard address by vault                                                                            |
+| vault-by-dashboard \<dashboard>                       | get vault address by dashboard                                                                            |
 | confirmations-log \<address>                          | get pending confirmations                                                                                 |
 | BURN_ROLE \<address>                                  | Calls the read-only function "BURN_ROLE" on the contract.                                                 |
 | CHANGE_TIER_ROLE \<address>                           | Calls the read-only function "CHANGE_TIER_ROLE" on the contract.                                          |

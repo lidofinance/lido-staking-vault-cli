@@ -1,6 +1,10 @@
 import { Address } from 'viem';
 import { Option } from 'commander';
-import { getOperatorGridContract } from 'contracts';
+import {
+  getDashboardContract,
+  getOperatorGridContract,
+  getVaultHubContract,
+} from 'contracts';
 import {
   callWriteMethodWithReceipt,
   confirmOperation,
@@ -12,6 +16,7 @@ import {
   stringToBigIntArray,
   confirmProposal,
   etherToWei,
+  callReadMethodSilent,
 } from 'utils';
 import { Tier } from 'types';
 
@@ -151,7 +156,19 @@ operatorGridWrite
   .argument('<vault>', 'vault address')
   .action(async (vault: Address) => {
     const contract = await getOperatorGridContract();
-    const log = await confirmProposal(contract as any, vault);
+
+    const vaultHub = await getVaultHubContract();
+    const vaultConnection = await callReadMethodSilent(
+      vaultHub,
+      'vaultConnection',
+      [vault],
+    );
+    const dashboardContract = getDashboardContract(vaultConnection.owner);
+    const log = await confirmProposal({
+      contract: contract as any,
+      vault,
+      additionalContracts: [dashboardContract],
+    });
 
     if (!log) return;
 

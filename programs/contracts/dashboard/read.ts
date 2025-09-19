@@ -18,6 +18,7 @@ import {
   stringToAddress,
   callReadMethodSilent,
   getConfirmationsInfo,
+  logTable,
 } from 'utils';
 
 import { dashboard } from './main.js';
@@ -89,12 +90,59 @@ dashboardRead
   });
 
 dashboardRead
+  .command('vault-by-dashboard')
+  .description('get vault address by dashboard')
+  .argument('<dashboard>', 'dashboard address', stringToAddress)
+  .action(async (dashboard: Address) => {
+    const dashboardContract = getDashboardContract(dashboard);
+    const vault = await callReadMethodSilent(dashboardContract, 'stakingVault');
+
+    logResult({
+      data: [['Vault Address', vault]],
+    });
+  });
+
+dashboardRead
   .command('confirmations-log')
   .description('get pending confirmations')
   .argument('<address>', 'dashboard address', stringToAddress)
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
-    await getConfirmationsInfo(contract as any, contract.abi);
+    const confirmations = await getConfirmationsInfo(
+      contract as any,
+      contract.abi,
+    );
+
+    if (!confirmations) return console.error('No confirmations found');
+
+    logResult({});
+    Object.entries(confirmations).forEach(
+      (
+        [data, { member, role, expiryTimestamp, expiryDate, decodedData }],
+        idx,
+      ) => {
+        console.info(`\nEvent ${idx + 1}`);
+        logTable({
+          data: [
+            ['Member', member],
+            ['Role', role],
+            [
+              'Expiry Timestamp',
+              `${expiryTimestamp.toString()} (${expiryDate})`,
+            ],
+            ['Data', data],
+          ],
+        });
+
+        console.info('Decoded data:');
+        logTable({
+          data: [
+            ['Function', decodedData.functionName],
+            ['Argument', decodedData.args[0]],
+          ],
+        });
+      },
+    );
   });
 
 dashboardRead
