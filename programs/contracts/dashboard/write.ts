@@ -878,9 +878,10 @@ dashboardWrite
 
     if (!log) return;
 
+    const isChangeTier = log.decodedData.functionName === 'changeTier';
     // ChangeTier event from OperatorGrid has 3 args (vault, tierId, shareLimit), but we need only 2 (tierId, shareLimit)
     let args: any = log.decodedData.args;
-    if (args && args.length === 3) {
+    if (isChangeTier && args && args.length === 3) {
       args = [args[1], args[2]];
     }
 
