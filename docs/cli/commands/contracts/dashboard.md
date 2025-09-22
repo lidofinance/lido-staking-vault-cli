@@ -35,7 +35,6 @@ yarn start contracts dashboard -h
 | vault-by-dashboard \<dashboard>                       | get vault address by dashboard                                                                            |
 | confirmations-log \<address>                          | get pending confirmations                                                                                 |
 | BURN_ROLE \<address>                                  | Calls the read-only function "BURN_ROLE" on the contract.                                                 |
-| CHANGE_TIER_ROLE \<address>                           | Calls the read-only function "CHANGE_TIER_ROLE" on the contract.                                          |
 | DEFAULT_ADMIN_ROLE \<address>                         | Calls the read-only function "DEFAULT_ADMIN_ROLE" on the contract.                                        |
 | ETH \<address>                                        | Calls the read-only function "ETH" on the contract.                                                       |
 | FUND_ON_RECEIVE_FLAG_SLOT \<address>                  | Calls the read-only function "FUND_ON_RECEIVE_FLAG_SLOT" on the contract.                                 |
@@ -48,10 +47,8 @@ yarn start contracts dashboard -h
 | NODE_OPERATOR_MANAGER_ROLE \<address>                 | Calls the read-only function "NODE_OPERATOR_MANAGER_ROLE" on the contract.                                |
 | NODE_OPERATOR_REWARDS_ADJUST_ROLE \<address>          | Calls the read-only function "NODE_OPERATOR_REWARDS_ADJUST_ROLE" on the contract.                         |
 | PAUSE_BEACON_CHAIN_DEPOSITS_ROLE \<address>           | Calls the read-only function "PAUSE_BEACON_CHAIN_DEPOSITS_ROLE" on the contract.                          |
-| PDG_COMPENSATE_PREDEPOSIT_ROLE \<address>             | Calls the read-only function "PDG_COMPENSATE_PREDEPOSIT_ROLE" on the contract.                            |
 | PDG_PROVE_VALIDATOR_ROLE \<address>                   | Calls the read-only function "PDG_PROVE_VALIDATOR_ROLE" on the contract.                                  |
 | REBALANCE_ROLE \<address>                             | Calls the read-only function "REBALANCE_ROLE" on the contract.                                            |
-| RECOVER_ASSETS_ROLE \<address>                        | Calls the read-only function "RECOVER_ASSETS_ROLE" on the contract.                                       |
 | REQUEST_VALIDATOR_EXIT_ROLE \<address>                | Calls the read-only function "REQUEST_VALIDATOR_EXIT_ROLE" on the contract.                               |
 | RESUME_BEACON_CHAIN_DEPOSITS_ROLE \<address>          | Calls the read-only function "RESUME_BEACON_CHAIN_DEPOSITS_ROLE" on the contract.                         |
 | STETH \<address>                                      | Calls the read-only function "STETH" on the contract.                                                     |

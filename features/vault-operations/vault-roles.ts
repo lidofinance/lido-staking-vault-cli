@@ -11,7 +11,6 @@ import {
 
 export type RoleName =
   | 'DEFAULT_ADMIN_ROLE'
-  | 'CHANGE_TIER_ROLE'
   | 'BURN_ROLE'
   | 'FUND_ROLE'
   | 'MINT_ROLE'
@@ -20,14 +19,13 @@ export type RoleName =
   | 'NODE_OPERATOR_REWARDS_ADJUST_ROLE'
   | 'PAUSE_BEACON_CHAIN_DEPOSITS_ROLE'
   | 'RESUME_BEACON_CHAIN_DEPOSITS_ROLE'
-  | 'PDG_COMPENSATE_PREDEPOSIT_ROLE'
   | 'PDG_PROVE_VALIDATOR_ROLE'
   | 'REBALANCE_ROLE'
-  | 'RECOVER_ASSETS_ROLE'
   | 'REQUEST_VALIDATOR_EXIT_ROLE'
   | 'TRIGGER_VALIDATOR_WITHDRAWAL_ROLE'
   | 'UNGUARANTEED_BEACON_CHAIN_DEPOSIT_ROLE'
-  | 'VOLUNTARY_DISCONNECT_ROLE';
+  | 'VOLUNTARY_DISCONNECT_ROLE'
+  | 'VAULT_CONFIGURATION_ROLE';
 
 export const getVaultRolesByDashboard = async (contract: DashboardContract) => {
   const hideSpinner = showSpinner();
@@ -35,7 +33,6 @@ export const getVaultRolesByDashboard = async (contract: DashboardContract) => {
   try {
     const roleKeys: RoleName[] = [
       'DEFAULT_ADMIN_ROLE',
-      'CHANGE_TIER_ROLE',
       'BURN_ROLE',
       'FUND_ROLE',
       'MINT_ROLE',
@@ -44,14 +41,13 @@ export const getVaultRolesByDashboard = async (contract: DashboardContract) => {
       'NODE_OPERATOR_REWARDS_ADJUST_ROLE',
       'PAUSE_BEACON_CHAIN_DEPOSITS_ROLE',
       'RESUME_BEACON_CHAIN_DEPOSITS_ROLE',
-      'PDG_COMPENSATE_PREDEPOSIT_ROLE',
       'PDG_PROVE_VALIDATOR_ROLE',
       'REBALANCE_ROLE',
-      'RECOVER_ASSETS_ROLE',
       'REQUEST_VALIDATOR_EXIT_ROLE',
       'TRIGGER_VALIDATOR_WITHDRAWAL_ROLE',
       'UNGUARANTEED_BEACON_CHAIN_DEPOSIT_ROLE',
       'VOLUNTARY_DISCONNECT_ROLE',
+      'VAULT_CONFIGURATION_ROLE',
     ];
 
     const roleValues: Hex[] = await Promise.all(

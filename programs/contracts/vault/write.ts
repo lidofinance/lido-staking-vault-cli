@@ -69,9 +69,11 @@ vaultWrite
 // TODO: get more details
 vaultWrite
   .command('no-deposit-beacon')
-  .description('deposit to beacon chain')
+  .description(
+    'performs deposit to the beacon chain using ether from available balance',
+  )
   .argument('<address>', 'vault address', stringToAddress)
-  .argument('<amountOfDeposit>', 'amount of deposits', stringToBigInt)
+  .argument('<amountOfDeposit>', 'amount of deposit (in gwei)', stringToBigInt)
   .argument('<pubkey>', 'pubkey')
   .argument('<signature>', 'signature')
   .argument('<depositDataRoot>', 'depositDataRoot')
@@ -85,14 +87,12 @@ vaultWrite
     ) => {
       const contract = getStakingVaultContract(vault);
 
-      const payload = [
-        {
-          pubkey,
-          signature,
-          amount: amountOfDeposit,
-          depositDataRoot,
-        },
-      ];
+      const payload = {
+        pubkey,
+        signature,
+        amount: amountOfDeposit,
+        depositDataRoot,
+      };
 
       const confirm = await confirmOperation(
         `Are you sure you want to deposit ${amountOfDeposit} to beacon chain for the staking vault ${vault}?`,
@@ -107,24 +107,28 @@ vaultWrite
     },
   );
 
-// TODO: get more details
 vaultWrite
   .command('no-val-exit')
-  .description('request to exit validator')
+  .description(
+    'requests node operator to exit validators from the beacon chain. It does not directly trigger exits - node operators must monitor for these events and handle the exits',
+  )
   .argument('<address>', 'vault address', stringToAddress)
-  .argument('<validatorPublicKey>', 'validator public key')
-  .action(async (address: Address, validatorPublicKey: Address) => {
+  .argument(
+    '<validatorPublicKeys>',
+    'concatenated validator public keys, each 48 bytes long',
+  )
+  .action(async (address: Address, validatorPublicKeys: Hex) => {
     const contract = getStakingVaultContract(address);
 
     const confirm = await confirmOperation(
-      `Are you sure you want to request to exit validator ${validatorPublicKey} for the staking vault ${address}?`,
+      `Are you sure you want to request to exit validator ${validatorPublicKeys} for the staking vault ${address}?`,
     );
     if (!confirm) return;
 
     await callWriteMethodWithReceipt({
       contract,
       methodName: 'requestValidatorExit',
-      payload: [validatorPublicKey],
+      payload: [validatorPublicKeys],
     });
   });
 

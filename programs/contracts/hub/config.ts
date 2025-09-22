@@ -112,10 +112,10 @@ export const readCommandConfig: ReadProgramCommandConfig<typeof VaultHubAbi> = {
       },
     },
   },
-  rebalanceShortfall: {
-    name: 'rebalance-shortfall',
+  healthShortfallShares: {
+    name: 'health-shortfall-shares',
     description:
-      'get amount to rebalance or UINT256_MAX if it`s impossible to make the vault healthy using rebalance',
+      'get calculated shares amount to make the vault healthy using rebalance',
     arguments: {
       _vault: {
         name: 'vault',
@@ -134,9 +134,9 @@ export const readCommandConfig: ReadProgramCommandConfig<typeof VaultHubAbi> = {
       },
     },
   },
-  vaultObligations: {
-    name: 'v-obligations',
-    description: 'get the obligations struct for the given vault',
+  obligations: {
+    name: 'obligations',
+    description: "get the vault's current obligations toward the protocol",
     arguments: {
       _vault: {
         name: 'vault',
@@ -155,19 +155,9 @@ export const readCommandConfig: ReadProgramCommandConfig<typeof VaultHubAbi> = {
       },
     },
   },
-  badDebtToInternalizeAsOfLastRefSlot: {
+  badDebtToInternalize: {
     name: 'bad-debt',
     description:
       'get the amount of bad debt to be internalized to become the protocol loss',
-  },
-  inOutDeltaAsOfLastRefSlot: {
-    name: 'in-out-delta',
-    description: 'get the inOutDelta of the vault as of the last refSlot',
-    arguments: {
-      _vault: {
-        name: 'vault',
-        description: 'vault address',
-      },
-    },
   },
 };

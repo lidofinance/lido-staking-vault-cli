@@ -1,5 +1,5 @@
 import { program } from 'commander';
-import { Permit, RoleAssignment, Tier, Deposit } from 'types';
+import { Permit, RoleAssignment, Tier, Deposit, ValidatorTopUp } from 'types';
 import { Address, isAddress, parseEther } from 'viem';
 
 import { toHex } from './proof/merkle-utils.js';
@@ -80,6 +80,24 @@ export const parseDepositArray = (str: string): Deposit[] => {
   });
 
   return camelCased;
+};
+
+export const parseValidatorTopUpArray = (str: string): ValidatorTopUp[] => {
+  const trimmed = str.trim();
+  if (!trimmed) {
+    return [];
+  }
+
+  const parsed = JSON.parse(trimmed, (key, value) => {
+    if (key === '') return value;
+    if (key === 'amount') return BigInt(value);
+    if (typeof value === 'string') {
+      return toHex(value);
+    }
+    return value;
+  });
+
+  return parsed;
 };
 
 export const stringToAddress = (value: string): Address => {

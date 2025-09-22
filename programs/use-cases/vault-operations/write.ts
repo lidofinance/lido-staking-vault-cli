@@ -490,7 +490,11 @@ vaultOperationsWrite
       if (!confirm) return;
 
       const account = await getAccount();
-      await checkVaultRole(contract, 'CHANGE_TIER_ROLE', account.address);
+      await checkVaultRole(
+        contract,
+        'VAULT_CONFIGURATION_ROLE',
+        account.address,
+      );
 
       await callWriteMethodWithReceipt({
         contract,

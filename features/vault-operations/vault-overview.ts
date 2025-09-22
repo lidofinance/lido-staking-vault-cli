@@ -63,7 +63,7 @@ export const getVaultOverviewByDashboard = async (
     });
     const vaultObligation = await callReadMethodSilent(
       vaultHubContract,
-      'vaultObligations',
+      'obligations',
       [vault],
     );
     const tierInfo = await callReadMethodSilent(
@@ -108,7 +108,7 @@ export const getVaultOverviewByDashboard = async (
       locked,
       nodeOperatorDisbursableFee,
       totalMintingCapacityStethWei,
-      unsettledLidoFees: vaultObligation.unsettledLidoFees,
+      unsettledLidoFees: vaultObligation[1],
     });
 
     hideSpinner();
@@ -156,15 +156,8 @@ export const getVaultOverviewByDashboard = async (
           'Remaining Minting Capacity, Shares',
           formatEther(remainingMintingCapacityShares),
         ],
-        [
-          'Unsettled Lido Fees, ETH',
-          formatEther(vaultObligation.unsettledLidoFees),
-        ],
-        [
-          'Settled Lido Fees, ETH',
-          formatEther(vaultObligation.settledLidoFees),
-        ],
-        ['Redemptions, ETH', formatEther(vaultObligation.redemptions)],
+        ['Unsettled Lido Fees, ETH', formatEther(vaultObligation[1])],
+        ['Shares to Burn, Shares', formatEther(vaultObligation[0])],
         ['Tier ID', tierInfo[1]],
         ['Tier Share Limit, stETH', formatEther(tierShareLimitStethWei)],
         ['Tier Share Limit, Shares', formatEther(tierInfo[2])],

@@ -354,64 +354,38 @@ dashboardWrite
 dashboardWrite
   .command('recover-erc20')
   .description(
-    'recovers ERC20 tokens or ether from the dashboard contract to sender',
+    'Recovers ERC20 tokens or ether from the dashboard contract to the recipient',
   )
   .argument('<address>', 'dashboard address', stringToAddress)
   .argument(
     '<token>',
-    'Address of the token to recover or 0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee for ether',
+    'address of the token to recover or 0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee for ether (EIP-7528)',
+    stringToAddress,
   )
-  .argument('<recipient>', 'Address of the recovery recipient', stringToAddress)
-  .argument('<amount>', 'amount of ether to recover (in ETH)')
+  .argument(
+    '<amount>',
+    'amount of tokens or ether to recover (in ETH)',
+    etherToWei,
+  )
+  .argument('<recipient>', 'address of the recovery recipient', stringToAddress)
   .action(
     async (
       address: Address,
       token: Address,
+      amount: bigint,
       recipient: Address,
-      amount: string,
     ) => {
       const contract = getDashboardContract(address);
 
       const confirm = await confirmOperation(
-        `Are you sure you want to recover ${amount} ${token} from the dashboard contract ${address} to ${recipient}?`,
+        `Are you sure you want to recover the token ${token} with amount ${formatEther(amount)} from the dashboard contract ${address} to ${recipient}?`,
       );
       if (!confirm) return;
 
       await callWriteMethodWithReceipt({
         contract,
         methodName: 'recoverERC20',
-        payload: [token, recipient, parseEther(amount)],
-      });
-    },
-  );
-
-dashboardWrite
-  .command('recover-erc721')
-  .description(
-    'Transfers a given token_id of an ERC721-compatible NFT (defined by the token contract address)',
-  )
-  .argument('<address>', 'dashboard address', stringToAddress)
-  .argument('<token>', 'an ERC721-compatible token')
-  .argument('<tokenId>', 'token id to recover')
-  .argument('<recipient>', 'Address of the recovery recipient', stringToAddress)
-  .action(
-    async (
-      address: Address,
-      token: Address,
-      tokenId: string,
-      recipient: Address,
-    ) => {
-      const contract = getDashboardContract(address);
-
-      const confirm = await confirmOperation(
-        `Are you sure you want to recover the token ${token} with id ${tokenId} from the dashboard contract ${address} to ${recipient}?`,
-      );
-      if (!confirm) return;
-
-      await callWriteMethodWithReceipt({
-        contract,
-        methodName: 'recoverERC721',
-        payload: [token, BigInt(tokenId), recipient],
+        payload: [token, recipient, amount],
       });
     },
   );
@@ -537,34 +511,6 @@ dashboardWrite
       contract,
       methodName: 'revokeRoles',
       payload: [roleAssignment],
-    });
-  });
-
-dashboardWrite
-  .command('compensate-disproven-predeposit')
-  .alias('compensate')
-  .description(
-    'Compensates ether of disproven validator`s predeposit from PDG to the recipient',
-  )
-  .argument('<address>', 'dashboard address', stringToAddress)
-  .argument('<pubkey>', 'validator that was proven invalid in PDG')
-  .argument(
-    '<recipient>',
-    'address to receive the `PDG.PREDEPOSIT_AMOUNT`',
-    stringToAddress,
-  )
-  .action(async (address: Address, pubkey: Address, recipient: Address) => {
-    const contract = getDashboardContract(address);
-
-    const confirm = await confirmOperation(
-      `Are you sure you want to compensate the disproven predeposit from the Predeposit Guarantee contract ${contract} with validator public key ${pubkey} to ${recipient}?`,
-    );
-    if (!confirm) return;
-
-    await callWriteMethodWithReceipt({
-      contract,
-      methodName: 'compensateDisprovenPredepositFromPDG',
-      payload: [pubkey, recipient],
     });
   });
 
@@ -991,3 +937,24 @@ dashboardWrite
       });
     },
   );
+
+dashboardWrite
+  .command('update-share-limit')
+  .description('requests a change of share limit on the OperatorGrid')
+  .argument('<address>', 'dashboard address', stringToAddress)
+  .argument('<shareLimit>', 'share limit', stringToBigInt)
+  .action(async (address: Address, shareLimit: bigint) => {
+    const contract = getDashboardContract(address);
+    const vault = await callReadMethod(contract, 'stakingVault');
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to request a change of share limit on the OperatorGrid for the vault ${vault} to ${shareLimit}?`,
+    );
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'updateShareLimit',
+      payload: [shareLimit],
+    });
+  });

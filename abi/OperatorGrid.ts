@@ -93,6 +93,22 @@ export const OperatorGridErrorsAbi = [
     type: 'error',
   },
   {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: 'valueBP',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: 'maxValueBP',
+        type: 'uint256',
+      },
+    ],
+    name: 'InvalidBasisPoints',
+    type: 'error',
+  },
+  {
     inputs: [],
     name: 'InvalidInitialization',
     type: 'error',
@@ -209,6 +225,11 @@ export const OperatorGridErrorsAbi = [
   },
   {
     inputs: [],
+    name: 'ShareLimitAlreadySet',
+    type: 'error',
+  },
+  {
+    inputs: [],
     name: 'TierAlreadySet',
     type: 'error',
   },
@@ -225,6 +246,26 @@ export const OperatorGridErrorsAbi = [
   {
     inputs: [],
     name: 'TierNotInOperatorGroup',
+    type: 'error',
+  },
+  {
+    inputs: [],
+    name: 'VaultAlreadySyncedWithTier',
+    type: 'error',
+  },
+  {
+    inputs: [],
+    name: 'VaultInJail',
+    type: 'error',
+  },
+  {
+    inputs: [],
+    name: 'VaultInJailAlreadySet',
+    type: 'error',
+  },
+  {
+    inputs: [],
+    name: 'VaultNotConnected',
     type: 'error',
   },
   {
@@ -573,6 +614,25 @@ export const OperatorGridAbi = [
       },
     ],
     name: 'TierUpdated',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'vault',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        internalType: 'bool',
+        name: 'isInJail',
+        type: 'bool',
+      },
+    ],
+    name: 'VaultJailStatusUpdated',
     type: 'event',
   },
   {
@@ -1018,6 +1078,25 @@ export const OperatorGridAbi = [
   {
     inputs: [
       {
+        internalType: 'address',
+        name: '_vault',
+        type: 'address',
+      },
+    ],
+    name: 'isVaultInJail',
+    outputs: [
+      {
+        internalType: 'bool',
+        name: '',
+        type: 'bool',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
         internalType: 'uint256',
         name: '_index',
         type: 'uint256',
@@ -1076,6 +1155,11 @@ export const OperatorGridAbi = [
         internalType: 'uint256',
         name: '_amount',
         type: 'uint256',
+      },
+      {
+        internalType: 'bool',
+        name: '_overrideLimits',
+        type: 'bool',
       },
     ],
     name: 'onMintedShares',
@@ -1203,6 +1287,24 @@ export const OperatorGridAbi = [
   {
     inputs: [
       {
+        internalType: 'address',
+        name: '_vault',
+        type: 'address',
+      },
+      {
+        internalType: 'bool',
+        name: '_isInJail',
+        type: 'bool',
+      },
+    ],
+    name: 'setVaultJailStatus',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
         internalType: 'bytes4',
         name: 'interfaceId',
         type: 'bytes4',
@@ -1217,6 +1319,25 @@ export const OperatorGridAbi = [
       },
     ],
     stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: '_vault',
+        type: 'address',
+      },
+    ],
+    name: 'syncTier',
+    outputs: [
+      {
+        internalType: 'bool',
+        name: '',
+        type: 'bool',
+      },
+    ],
+    stateMutability: 'nonpayable',
     type: 'function',
   },
   {
@@ -1308,6 +1429,58 @@ export const OperatorGridAbi = [
     ],
     name: 'updateGroupShareLimit',
     outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: '_vault',
+        type: 'address',
+      },
+      {
+        internalType: 'uint256',
+        name: '_infraFeeBP',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: '_liquidityFeeBP',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: '_reservationFeeBP',
+        type: 'uint256',
+      },
+    ],
+    name: 'updateVaultFees',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: '_vault',
+        type: 'address',
+      },
+      {
+        internalType: 'uint256',
+        name: '_requestedShareLimit',
+        type: 'uint256',
+      },
+    ],
+    name: 'updateVaultShareLimit',
+    outputs: [
+      {
+        internalType: 'bool',
+        name: '',
+        type: 'bool',
+      },
+    ],
     stateMutability: 'nonpayable',
     type: 'function',
   },

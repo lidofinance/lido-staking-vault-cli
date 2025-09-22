@@ -13,6 +13,8 @@ import {
   stringToNumberArray,
   stringToNumber,
   etherToWei,
+  stringToBigIntArray,
+  parseValidatorTopUpArray,
 } from 'utils';
 import {
   chooseVaultAndGetDashboard,
@@ -25,7 +27,7 @@ import {
   checkAndSpecifyNodeOperatorForTopUpOrWithdraw,
   getGuarantor,
 } from 'features';
-import { Deposit } from 'types';
+import { Deposit, ValidatorTopUp } from 'types';
 import {
   getPredepositGuaranteeContract,
   getStakingVaultContract,
@@ -116,7 +118,9 @@ depositsWrite
 depositsWrite
   .command('proof-and-prove')
   .aliases(['prove'])
-  .description('make proof and prove')
+  .description(
+    'permissionless method to prove correct Withdrawal Credentials for the validator and to send the activation deposit',
+  )
   .option('-i, --index <index>', 'validator index', stringToNumber)
   .action(async ({ index }: { index: number }) => {
     const pdgContract = await getPredepositGuaranteeContract();
@@ -129,7 +133,7 @@ depositsWrite
 
     await callWriteMethodWithReceipt({
       contract: pdgContract,
-      methodName: 'proveValidatorWC',
+      methodName: 'proveWCAndActivateValidator',
       payload: [
         {
           proof,
@@ -144,29 +148,21 @@ depositsWrite
   });
 
 depositsWrite
-  .command('prove-and-deposit')
+  .command('prove-and-top-up')
   .description(
-    'shortcut for the node operator: prove, top up and deposit to proven validators',
+    'prove validators to unlock NO balance, activate the validators from stash, and optionally top up NO balance',
   )
   .argument('<indexes>', 'validator indexes', stringToNumberArray)
-  .argument('<deposits>', 'deposits', parseDepositArray)
-  .option('-v, --vault <string>', 'vault address', stringToAddress)
-  .addHelpText(
-    'after',
-    `Deposit format:
-  '[{
-    "pubkey": "...",
-    "signature": "...",
-    "amount": "...",
-    "deposit_data_root": "..."
-  }
-  {second deposit}
-  ...]'`,
+  .argument(
+    '<amounts>',
+    'array of amounts to top up NO balance',
+    stringToBigIntArray,
   )
+  .option('-v, --vault <string>', 'vault address', stringToAddress)
   .action(
     async (
       indexes: number[],
-      deposits: Deposit[],
+      amounts: bigint[],
       { vault }: { vault: Address },
     ) => {
       const { vault: vaultAddress } = await chooseVaultAndGetDashboard({
@@ -182,30 +178,33 @@ depositsWrite
 
       await callWriteMethodWithReceipt({
         contract: pdgContract,
-        methodName: 'proveAndDeposit',
-        payload: [witnesses, deposits, vaultAddress],
+        methodName: 'proveWCAndTopUpValidators',
+        payload: [witnesses, amounts],
       });
     },
   );
 
 depositsWrite
-  .command('deposit-to-beacon-chain')
+  .command('top-up-existing-validators')
+  .aliases(['top-up-val'])
   .description('deposits ether to proven validators from staking vault')
-  .argument('<deposits>', 'deposits', parseDepositArray)
+  .argument(
+    '<topUps>',
+    'array of ValidatorTopUp structs with pubkey and amounts',
+    parseValidatorTopUpArray,
+  )
   .option('-v, --vault <string>', 'vault address', stringToAddress)
   .addHelpText(
     'after',
-    `Deposit format:
+    `ValidatorTopUp format:
   '[{
     "pubkey": "...",
-    "signature": "...",
     "amount": "...",
-    "deposit_data_root": "..."
   }
-  {second deposit}
+  {second topUp}
   ...]'`,
   )
-  .action(async (deposits: Deposit[], { vault }: { vault: Address }) => {
+  .action(async (topUps: ValidatorTopUp[], { vault }: { vault: Address }) => {
     const { vault: vaultAddress } = await chooseVaultAndGetDashboard({ vault });
     const pdgContract = await getPredepositGuaranteeContract();
     const vaultContract = getStakingVaultContract(vaultAddress);
@@ -213,20 +212,20 @@ depositsWrite
     await checkNodeOperatorForDeposit(vaultContract);
 
     const confirm = await confirmOperation(
-      `Are you sure you want to deposit ${deposits.length} deposits to the vault ${vaultAddress}?`,
+      `Are you sure you want to top up ${topUps.length} validators with ${topUps.map((topUp) => formatEther(topUp.amount)).join(', ')} ETH?`,
     );
     if (!confirm) return;
 
     await callWriteMethodWithReceipt({
       contract: pdgContract,
-      methodName: 'depositToBeaconChain',
-      payload: [vaultAddress, deposits],
+      methodName: 'topUpExistingValidators',
+      payload: [topUps],
     });
   });
 
 depositsWrite
-  .command('top-up')
-  .description('top up no balance')
+  .command('top-up-no')
+  .description('top up Node Operator balance')
   .argument('<amount>', 'amount in ETH', etherToWei)
   .option('-v, --vault <string>', 'vault address', stringToAddress)
   .action(async (amount: bigint, { vault }: { vault: Address }) => {
@@ -258,7 +257,7 @@ depositsWrite
 
 depositsWrite
   .command('withdraw-no-balance')
-  .description('withdraw node operator balance')
+  .description('withdraw Node Operator balance')
   .argument('<amount>', 'amount in ETH', etherToWei)
   .option('-v, --vault <string>', 'vault address', stringToAddress)
   .option(
@@ -301,7 +300,7 @@ depositsWrite
 depositsWrite
   .command('set-no-guarantor')
   .aliases(['set-no-g'])
-  .description('set node operator guarantor')
+  .description('set Node Operator guarantor')
   .action(async () => {
     const pdgContract = await getPredepositGuaranteeContract();
 

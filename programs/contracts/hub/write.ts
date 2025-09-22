@@ -38,27 +38,6 @@ VaultHubWrite.on('option:-cmd2json', function () {
   process.exit();
 });
 
-VaultHubWrite.command('set-allowed-codehash')
-  .description(
-    'Set if a vault proxy codehash is allowed to be connected to the hub',
-  )
-  .argument('<codehash>', 'codehash vault proxy codehash')
-  .argument('<allowed>', 'allowed')
-  .action(async (codehash: Address, allowed: boolean) => {
-    const contract = await getVaultHubContract();
-
-    const confirm = await confirmOperation(
-      `Are you sure you want to set the vault proxy codehash ${codehash} to ${allowed}?`,
-    );
-    if (!confirm) return;
-
-    await callWriteMethodWithReceipt({
-      contract,
-      methodName: 'setAllowedCodehash',
-      payload: [codehash, Boolean(allowed)],
-    });
-  });
-
 VaultHubWrite.command('v-connect')
   .description('connects a vault to the hub (vault master role needed)')
   .argument('<address>', 'vault address', stringToAddress)
@@ -78,25 +57,6 @@ VaultHubWrite.command('v-connect')
       contract,
       methodName: 'connectVault',
       payload: [address],
-    });
-  });
-
-VaultHubWrite.command('v-update-share-limit')
-  .description('updates share limit for the vault')
-  .argument('<address>', 'vault address', stringToAddress)
-  .argument('<shareLimit>', 'share limit', stringToBigInt)
-  .action(async (address: Address, shareLimit: bigint) => {
-    const contract = await getVaultHubContract();
-
-    const confirm = await confirmOperation(
-      `Are you sure you want to update the share limit for the vault ${address} to ${shareLimit}?`,
-    );
-    if (!confirm) return;
-
-    await callWriteMethodWithReceipt({
-      contract,
-      methodName: 'updateShareLimit',
-      payload: [address, shareLimit],
     });
   });
 
@@ -265,44 +225,6 @@ VaultHubWrite.command('v-force-validator-exit')
         contract,
         methodName: 'forceValidatorExit',
         payload: [vaultAddress, validatorPubkey, refundRecipient],
-      });
-    },
-  );
-
-VaultHubWrite.command('update-vault-fees')
-  .description(
-    'updates fees for the vault. msg.sender must have VAULT_MASTER_ROLE',
-  )
-  .argument('<vaultAddress>', 'vault address', stringToAddress)
-  .argument('<infraFeeBP>', 'new infra fee in basis points', stringToBigInt)
-  .argument(
-    '<liquidityFeeBP>',
-    'new liquidity fee in basis points',
-    stringToBigInt,
-  )
-  .argument(
-    '<reservationFeeBP>',
-    'new reservation fee in basis points',
-    stringToBigInt,
-  )
-  .action(
-    async (
-      vaultAddress: Address,
-      infraFeeBP: bigint,
-      liquidityFeeBP: bigint,
-      reservationFeeBP: bigint,
-    ) => {
-      const contract = await getVaultHubContract();
-
-      const confirm = await confirmOperation(
-        `Are you sure you want to update the fees for the vault ${vaultAddress} to ${infraFeeBP}, ${liquidityFeeBP}, ${reservationFeeBP}?`,
-      );
-      if (!confirm) return;
-
-      await callWriteMethodWithReceipt({
-        contract,
-        methodName: 'updateVaultFees',
-        payload: [vaultAddress, infraFeeBP, liquidityFeeBP, reservationFeeBP],
       });
     },
   );
@@ -538,28 +460,6 @@ VaultHubWrite.command('prove-unknown-validator-to-pdg')
     }
   });
 
-VaultHubWrite.command('compensate-disproven-predeposit-from-pdg')
-  .description('compensates disproven predeposit from PDG to the recipient')
-  .argument('<vaultAddress>', 'vault address', stringToAddress)
-  .argument('<validatorPubkey>', 'validator pubkey')
-  .argument('<recipient>', 'recipient address', stringToAddress)
-  .action(
-    async (vaultAddress: Address, validatorPubkey: Hex, recipient: Address) => {
-      const contract = await getVaultHubContract();
-
-      const confirm = await confirmOperation(
-        `Are you sure you want to compensate disproven predeposit from PDG to the recipient ${recipient} for validator ${validatorPubkey} in vault ${vaultAddress}?`,
-      );
-      if (!confirm) return;
-
-      await callWriteMethodWithReceipt({
-        contract,
-        methodName: 'compensateDisprovenPredepositFromPDG',
-        payload: [vaultAddress, validatorPubkey, recipient],
-      });
-    },
-  );
-
 VaultHubWrite.command('socialize-bad-debt')
   .description(
     'transfer the bad debt from the donor vault to the acceptor vault. msg.sender must have BAD_DEBT_MASTER_ROLE',
@@ -631,20 +531,20 @@ VaultHubWrite.command('internalize-bad-debt')
 
 VaultHubWrite.command('settle-vault-obligations')
   .description(
-    'allows permissionless full or partial settlement of unsettled obligations on the vault',
+    'allows anyone to settle any outstanding Lido fees for a vault, sending them to the treasury. Requires the fresh report',
   )
   .argument('<vaultAddress>', 'vault address', stringToAddress)
   .action(async (vaultAddress: Address) => {
     const contract = await getVaultHubContract();
 
     const confirm = await confirmOperation(
-      `Are you sure you want to settle the obligations of the vault ${vaultAddress}?`,
+      `Are you sure you want to settle the Lido fees of the vault ${vaultAddress}?`,
     );
     if (!confirm) return;
 
     await callWriteMethodWithReceipt({
       contract,
-      methodName: 'settleVaultObligations',
+      methodName: 'settleLidoFees',
       payload: [vaultAddress],
     });
   });
