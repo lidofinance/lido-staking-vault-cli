@@ -1,4 +1,4 @@
-import { formatEther, Hex } from 'viem';
+import { Address, formatEther, Hex } from 'viem';
 import { Option } from 'commander';
 
 import {
@@ -6,6 +6,7 @@ import {
   getPdgRoles,
   getValidatorStatus,
   specifyNodeOperatorAddress,
+  chooseVaultAndGetDashboard,
 } from 'features';
 import { getPredepositGuaranteeContract } from 'contracts';
 import { getAccount } from 'providers';
@@ -15,6 +16,7 @@ import {
   getCommandsJson,
   logInfo,
   logResult,
+  stringToAddress,
 } from 'utils';
 
 import { deposits } from './main.js';
@@ -122,6 +124,31 @@ depositsRead
         ['Unlocked', `${formatEther(unlockedBalance)} ETH`],
         ['Depositor', `${depositor} ${isYourselfDepositor ? '(you)' : ''}`],
         ['Guarantor', `${guarantor} ${isYourselfGuarantor ? '(you)' : ''}`],
+      ],
+    });
+  });
+
+depositsRead
+  .command('pending-predeposits')
+  .aliases(['pd'])
+  .description(
+    'get the current amount of ether that is predeposited to a given vault',
+  )
+  .option('-v, --vault <string>', 'vault address', stringToAddress)
+  .action(async ({ vault }: { vault: Address }) => {
+    const { vault: vaultAddress } = await chooseVaultAndGetDashboard({
+      vault,
+    });
+    const contract = await getPredepositGuaranteeContract();
+    const pendingPredeposits = await callReadMethodSilent(
+      contract,
+      'pendingPredeposits',
+      [vaultAddress],
+    );
+
+    logResult({
+      data: [
+        ['Pending Predeposits amount, ETH', formatEther(pendingPredeposits)],
       ],
     });
   });

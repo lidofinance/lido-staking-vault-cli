@@ -25,7 +25,8 @@ export type RoleName =
   | 'TRIGGER_VALIDATOR_WITHDRAWAL_ROLE'
   | 'UNGUARANTEED_BEACON_CHAIN_DEPOSIT_ROLE'
   | 'VOLUNTARY_DISCONNECT_ROLE'
-  | 'VAULT_CONFIGURATION_ROLE';
+  | 'VAULT_CONFIGURATION_ROLE'
+  | 'COLLECT_VAULT_ERC20_ROLE';
 
 export const getVaultRolesByDashboard = async (contract: DashboardContract) => {
   const hideSpinner = showSpinner();
@@ -48,6 +49,7 @@ export const getVaultRolesByDashboard = async (contract: DashboardContract) => {
       'UNGUARANTEED_BEACON_CHAIN_DEPOSIT_ROLE',
       'VOLUNTARY_DISCONNECT_ROLE',
       'VAULT_CONFIGURATION_ROLE',
+      'COLLECT_VAULT_ERC20_ROLE',
     ];
 
     const roleValues: Hex[] = await Promise.all(

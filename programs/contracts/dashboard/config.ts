@@ -122,4 +122,34 @@ export const readCommandConfig: ReadProgramCommandConfig<typeof DashboardAbi> =
       name: 'supports-interface',
       description: 'get supports interface by id',
     },
+    healthShortfallShares: {
+      name: 'health-shortfall-shares',
+      description:
+        'get the amount of shares to rebalance to restore vault healthiness or to cover redemptions',
+    },
+    minimalReserve: {
+      name: 'minimal-reserve',
+      description:
+        'get the amount of ether that is locked on the vault only as a reserve',
+    },
+    obligations: {
+      name: 'obligations',
+      description:
+        'get the amount of shares to burn to restore vault healthiness or to cover redemptions and the amount of outstanding Lido fees',
+    },
+    nodeOperatorFeeRecipient: {
+      name: 'node-operator-fee-recipient',
+      description: 'get the address of the node operator fee recipient',
+    },
+    maxLockableValue: {
+      name: 'max-lockable-value',
+      description:
+        'get the max total lockable amount of ether for the vault (excluding the Lido and node operator fees)',
+    },
+    latestReport: {
+      name: 'latest-report',
+      aliases: ['lr'],
+      description:
+        'get the latest report data containing the total value and in-out delta',
+    },
   };

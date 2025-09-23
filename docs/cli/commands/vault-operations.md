@@ -52,6 +52,7 @@ Vault Operations commands manage the core functionality of Lido Staking Vaults i
 | set-node-operator-fee-recipient set-no-f-r | sets the node operator fee recipient address                                                                            |
 | change-tier-by-no ct-no \<tierId>          | vault tier change by node operator with multi-role confirmation                                                         |
 | change-tier ct \<tierId>                   | vault tier change by VAULT_CONFIGURATION_ROLE role with multi-role confirmation                                         |
+| sync-tier st                               | requests a sync of tier on the OperatorGrid with multi-role confirmation                                                |
 | create-vault                               | creates a new StakingVault and Dashboard contracts                                                                      |
 
 ## Command Details
@@ -446,6 +447,29 @@ Vault tier change initiated by the node operator with multi-role confirmation.
 
 - Caller must be the vault's node operator
 
+### sync-tier (st)
+
+Requests a sync of tier on the OperatorGrid with multi-role confirmation.
+
+**Options:**
+
+- `-v, --vault <address>`: Specify vault address
+
+**Process:**
+
+- Displays confirmation with vault address
+- Submits sync tier request to the vault contract
+- Requires both vault owner and node operator confirmations to complete
+
+**Requirements:**
+
+- Caller must have appropriate permissions for the vault
+- Both vault owner (via this function) AND node operator confirmations are required
+- First call returns false (pending), second call with both confirmations completes the sync
+- Confirmations expire after the configured period (default: 1 day)
+
+**Use Case:** Synchronize vault tier configuration when changes need to be applied from the OperatorGrid system.
+
 ## Role-Based Access Control
 
 All vault operations use role-based permissions:
@@ -464,6 +488,7 @@ The system includes automatic safety validations:
 - **Report Freshness**: Validates oracle data is current
 - **Capacity Limits**: Prevents over-minting beyond vault collateral
 - **Balance Validations**: Verifies sufficient funds/approvals
+- **Quarantine Checks**: Warns when vault capital is quarantined
 - **Confirmation Prompts**: Requires user confirmation for all operations
 
 ## Error Handling

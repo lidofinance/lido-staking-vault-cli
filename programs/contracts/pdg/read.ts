@@ -1,7 +1,13 @@
 import { Option } from 'commander';
-import { Hex } from 'viem';
+import { Address, formatEther, Hex } from 'viem';
 
-import { generateReadCommands, getCommandsJson, logInfo } from 'utils';
+import {
+  callReadMethodSilent,
+  generateReadCommands,
+  getCommandsJson,
+  logInfo,
+  logResult,
+} from 'utils';
 import { getPredepositGuaranteeContract } from 'contracts';
 import { PredepositGuaranteeAbi } from 'abi';
 import { getPdgBaseInfo, getPdgRoles, getValidatorStatus } from 'features';
@@ -41,6 +47,28 @@ pdgRead
   .argument('<validatorPubkey>', 'validator pubkey')
   .action(async (validatorPubkey: Hex) => {
     await getValidatorStatus(validatorPubkey);
+  });
+
+pdgRead
+  .command('pending-predeposits')
+  .aliases(['pd'])
+  .description(
+    'get the current amount of ether that is predeposited to a given vault',
+  )
+  .argument('<vault>', 'vault address')
+  .action(async (vault: Address) => {
+    const contract = await getPredepositGuaranteeContract();
+    const pendingPredeposits = await callReadMethodSilent(
+      contract,
+      'pendingPredeposits',
+      [vault],
+    );
+
+    logResult({
+      data: [
+        ['Pending Predeposits amount, ETH', formatEther(pendingPredeposits)],
+      ],
+    });
   });
 
 generateReadCommands(

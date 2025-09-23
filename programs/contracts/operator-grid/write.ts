@@ -1,4 +1,4 @@
-import { Address } from 'viem';
+import { Address, formatEther } from 'viem';
 import { Option } from 'commander';
 import {
   getDashboardContract,
@@ -138,7 +138,7 @@ operatorGridWrite
       const operatorGridContract = await getOperatorGridContract();
 
       const confirm = await confirmOperation(
-        `Are you sure you want to request change tier ${tierId} for vault ${vault} with requested share limit ${requestedShareLimit}?`,
+        `Are you sure you want to request change tier ${tierId} for vault ${vault} with requested share limit ${formatEther(requestedShareLimit)}?`,
       );
       if (!confirm) return;
 
@@ -149,6 +149,51 @@ operatorGridWrite
       });
     },
   );
+
+operatorGridWrite
+  .command('sync-tier')
+  .alias('st')
+  .description('syncs vault tier with current tier params')
+  .argument('<vault>', 'vault address')
+  .action(async (vault: Address) => {
+    const operatorGridContract = await getOperatorGridContract();
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to sync the tier of the vault ${vault}?`,
+    );
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt({
+      contract: operatorGridContract,
+      methodName: 'syncTier',
+      payload: [vault],
+    });
+  });
+
+operatorGridWrite
+  .command('update-vault-share-limit')
+  .alias('usl')
+  .description('update vault share limit')
+  .argument('<vault>', 'vault address')
+  .argument(
+    '<requestedShareLimit>',
+    'requested share limit (in shares)',
+    etherToWei,
+  )
+  .action(async (vault: Address, requestedShareLimit: bigint) => {
+    const operatorGridContract = await getOperatorGridContract();
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to update the share limit of the vault ${vault} to ${formatEther(requestedShareLimit)}?`,
+    );
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt({
+      contract: operatorGridContract,
+      methodName: 'updateVaultShareLimit',
+      payload: [vault, requestedShareLimit],
+    });
+  });
 
 operatorGridWrite
   .command('confirm-tier-change')

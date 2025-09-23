@@ -1,4 +1,4 @@
-import { Address, Hex, parseEther } from 'viem';
+import { Address, formatEther, Hex, parseEther } from 'viem';
 import { Option } from 'commander';
 import { getStakingVaultContract } from 'contracts';
 import {
@@ -8,6 +8,7 @@ import {
   etherToWei,
   getCommandsJson,
   logInfo,
+  parseDeposit,
   stringToAddress,
   stringToBigInt,
   stringToBigIntArrayWei,
@@ -15,6 +16,7 @@ import {
 } from 'utils';
 
 import { vault } from './main.js';
+import { Deposit } from 'types';
 
 const vaultWrite = vault
   .command('write')
@@ -66,7 +68,6 @@ vaultWrite
     });
   });
 
-// TODO: get more details
 vaultWrite
   .command('no-deposit-beacon')
   .description(
@@ -103,6 +104,77 @@ vaultWrite
         contract,
         methodName: 'depositToBeaconChain',
         payload: [payload],
+      });
+    },
+  );
+
+vaultWrite
+  .command('stage')
+  .description('puts aside some ether from the balance to deposit it later')
+  .argument('<address>', 'vault address', stringToAddress)
+  .argument('<amount>', 'amount of ether (in ETH)', etherToWei)
+  .action(async (vault: Address, amount: bigint) => {
+    const contract = getStakingVaultContract(vault);
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to stage ${formatEther(amount)} ETH for the staking vault ${vault}?`,
+    );
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'stage',
+      payload: [amount],
+    });
+  });
+
+vaultWrite
+  .command('unstage')
+  .description(
+    'returns the ether staged for deposits back to available balance',
+  )
+  .argument('<address>', 'vault address', stringToAddress)
+  .argument('<amount>', 'amount of ether (in ETH)', etherToWei)
+  .action(async (vault: Address, amount: bigint) => {
+    const contract = getStakingVaultContract(vault);
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to unstage ${formatEther(amount)} ETH for the staking vault ${vault}?`,
+    );
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'unstage',
+      payload: [amount],
+    });
+  });
+
+vaultWrite
+  .command('deposit-from-staged')
+  .description(
+    'performs deposits to the beacon chain using the staged and available ether.',
+  )
+  .argument('<address>', 'vault address', stringToAddress)
+  .argument('<deposit>', 'deposit to deposit', parseDeposit)
+  .argument(
+    '<additionalAmount>',
+    'additional amount to deposit',
+    stringToBigInt,
+  )
+  .action(
+    async (vault: Address, deposit: Deposit, additionalAmount: bigint) => {
+      const contract = getStakingVaultContract(vault);
+
+      const confirm = await confirmOperation(
+        `Are you sure you want to deposit ${formatEther(deposit.amount)} ETH for the staking vault ${vault}?`,
+      );
+      if (!confirm) return;
+
+      await callWriteMethodWithReceipt({
+        contract,
+        methodName: 'depositFromStaged',
+        payload: [deposit, additionalAmount],
       });
     },
   );
@@ -291,3 +363,42 @@ vaultWrite
       payload: [],
     });
   });
+
+vaultWrite
+  .command('collect-erc20')
+  .description(
+    'collects ERC20 tokens from vault contract balance to the recipient',
+  )
+  .argument('<address>', 'vault address', stringToAddress)
+  .argument(
+    '<token>',
+    'address of the token to recover or 0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee for ether (EIP-7528)',
+    stringToAddress,
+  )
+  .argument(
+    '<amount>',
+    'amount of tokens or ether to recover (in ETH)',
+    etherToWei,
+  )
+  .argument('<recipient>', 'address of the recovery recipient', stringToAddress)
+  .action(
+    async (
+      address: Address,
+      token: Address,
+      amount: bigint,
+      recipient: Address,
+    ) => {
+      const contract = getStakingVaultContract(address);
+
+      const confirm = await confirmOperation(
+        `Are you sure you want to recover the token ${token} with amount ${formatEther(amount)} from the dashboard contract ${address} to ${recipient}?`,
+      );
+      if (!confirm) return;
+
+      await callWriteMethodWithReceipt({
+        contract,
+        methodName: 'collectERC20',
+        payload: [token, recipient, amount],
+      });
+    },
+  );

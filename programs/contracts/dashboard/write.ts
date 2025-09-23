@@ -354,7 +354,7 @@ dashboardWrite
 dashboardWrite
   .command('recover-erc20')
   .description(
-    'Recovers ERC20 tokens or ether from the dashboard contract to the recipient',
+    'recovers ERC20 tokens or ether from the dashboard contract to the recipient',
   )
   .argument('<address>', 'dashboard address', stringToAddress)
   .argument(
@@ -391,6 +391,45 @@ dashboardWrite
   );
 
 dashboardWrite
+  .command('collect-erc20-from-vault')
+  .description(
+    'collects ERC20 tokens from vault contract balance to the recipient',
+  )
+  .argument('<address>', 'dashboard address', stringToAddress)
+  .argument(
+    '<token>',
+    'address of the token to recover or 0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee for ether (EIP-7528)',
+    stringToAddress,
+  )
+  .argument(
+    '<amount>',
+    'amount of tokens or ether to recover (in ETH)',
+    etherToWei,
+  )
+  .argument('<recipient>', 'address of the recovery recipient', stringToAddress)
+  .action(
+    async (
+      address: Address,
+      token: Address,
+      amount: bigint,
+      recipient: Address,
+    ) => {
+      const contract = getDashboardContract(address);
+
+      const confirm = await confirmOperation(
+        `Are you sure you want to recover the token ${token} with amount ${formatEther(amount)} from the dashboard contract ${address} to ${recipient}?`,
+      );
+      if (!confirm) return;
+
+      await callWriteMethodWithReceipt({
+        contract,
+        methodName: 'collectERC20FromVault',
+        payload: [token, recipient, amount],
+      });
+    },
+  );
+
+dashboardWrite
   .command('deposit-pause')
   .description('Pauses beacon chain deposits on the staking vault.')
   .argument('<address>', 'dashboard address', stringToAddress)
@@ -412,7 +451,7 @@ dashboardWrite
 
 dashboardWrite
   .command('deposit-resume')
-  .description('Mass-grants multiple roles to multiple accounts.')
+  .description('resumes deposits to beacon chain')
   .argument('<address>', 'dashboard address', stringToAddress)
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
@@ -432,7 +471,7 @@ dashboardWrite
 
 dashboardWrite
   .command('role-grant')
-  .description('Mass-revokes multiple roles from multiple accounts.')
+  .description('mass-grants multiple roles to multiple accounts.')
   .argument('<address>', 'dashboard address', stringToAddress)
   .argument(
     '<roleAssignmentJSON>',
@@ -474,7 +513,7 @@ dashboardWrite
 
 dashboardWrite
   .command('role-revoke')
-  .description('Resumes beacon chain deposits on the staking vault.')
+  .description('mass-revokes multiple roles from multiple accounts')
   .argument('<address>', 'dashboard address', stringToAddress)
   .argument(
     '<roleAssignmentJSON>',
@@ -518,7 +557,7 @@ dashboardWrite
   .command('unguaranteed-deposit-to-beacon-chain')
   .alias('unguaranteed-deposit')
   .description(
-    'Withdraws ether from vault and deposits directly to provided validators bypassing the default PDG process',
+    'withdraws ether from vault and deposits directly to provided validators bypassing the default PDG process',
   )
   .argument('<address>', 'dashboard address', stringToAddress)
   .argument(
@@ -559,7 +598,7 @@ dashboardWrite
   .command('prove-unknown-validators-to-pdg')
   .alias('prove-unknown-validators')
   .description(
-    'Proves validators with correct vault WC if they are unknown to PDG',
+    'proves validators with correct vault WC if they are unknown to PDG',
   )
   .argument('<address>', 'dashboard address', stringToAddress)
   .argument('<validatorIndex...>', 'index of the validator to prove')
@@ -937,6 +976,34 @@ dashboardWrite
       });
     },
   );
+
+dashboardWrite
+  .command('sync-tier')
+  .alias('st')
+  .description('requests a sync of tier on the OperatorGrid')
+  .argument('<address>', 'dashboard address', stringToAddress)
+  .addHelpText(
+    'after',
+    `Tier sync confirmation logic:
+     - Both vault owner (via this function) AND node operator confirmations are required
+     - First call returns false (pending), second call with both confirmations completes the sync
+     - Confirmations expire after the configured period (default: 1 day)`,
+  )
+  .action(async (address: Address) => {
+    const contract = getDashboardContract(address);
+    const vault = await callReadMethod(contract, 'stakingVault');
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to sync the tier of the vault ${vault}?`,
+    );
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'syncTier',
+      payload: [],
+    });
+  });
 
 dashboardWrite
   .command('update-share-limit')

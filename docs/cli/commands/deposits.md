@@ -36,18 +36,19 @@ Deposits commands handle validator deposits for Lido Staking Vaults. They work w
 | validator-status v-status\<validatorPubkey> | get validator status                                                                                        |
 | no-balance (no-bal)                         | get total, locked & unlocked balances for the node operator in PDG                                          |
 | no-info                                     | get comprehensive info about the node operator in PDG including balances, depositor and guarantor addresses |
+| pending-predeposits pd                      | get the current amount of ether that is predeposited to a given vault                                       |
 
 ### Write
 
-| Command                                  | Description                                                                                                  |
-| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| predeposit \<deposits>                   | Deposits node operator's validators with PREDEPOSIT_AMOUNT ether from StakingVault and locks up NO's balance |
-| proof-and-prove (prove)                  | Create proof for a validator and prove its withdrawal credentials                                            |
-| prove-and-deposit \<indexes> \<deposits> | Shortcut for the node operator: prove, top up and deposit to proven validators                               |
-| deposit-to-beacon-chain \<deposits>      | Deposits ether to proven validators from staking vault to the Ethereum Beacon Chain                          |
-| top-up \<amount>                         | Top up node operator balance in the PDG contract                                                             |
-| withdraw-no-balance \<amount>            | Withdraw node operator balance from the PDG contract                                                         |
-| set-no-guarantor (set-no-g)              | Set node operator guarantor address                                                                          |
+| Command                                           | Description                                                                                                  |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| predeposit \<deposits>                            | Deposits node operator's validators with PREDEPOSIT_AMOUNT ether from StakingVault and locks up NO's balance |
+| proof-and-prove (prove)                           | Create proof for a validator and prove its withdrawal credentials                                            |
+| prove-and-top-up \<indexes> \<amounts>            | Prove validators to unlock NO balance, activate validators from stash, and optionally top up NO balance      |
+| top-up-existing-validators (top-up-val) \<topUps> | Deposits ether to proven validators from staking vault                                                       |
+| top-up-no \<amount>                               | Top up node operator balance in the PDG contract                                                             |
+| withdraw-no-balance \<amount>                     | Withdraw node operator balance from the PDG contract                                                         |
+| set-no-guarantor (set-no-g)                       | Set node operator guarantor address                                                                          |
 
 ## Command Details
 
@@ -121,6 +122,20 @@ Provides comprehensive information about a node operator including balance detai
 - **Depositor**: Address authorized to make deposits, with "(you)" if current account matches
 - **Guarantor**: Address providing balance management, with "(you)" if current account matches
 
+### pending-predeposits (pd)
+
+Retrieves the current amount of ether that is predeposited to a given vault.
+
+**Options:**
+
+- `-v, --vault <address>`: Specify vault address (interactive selection if not provided)
+
+**Output:**
+
+- **Pending Predeposits amount, ETH**: Amount of ETH currently predeposited to the vault
+
+**Use Case:** Monitor how much ETH is currently in predeposit state for a specific vault, helping track pending validator activations.
+
 ### predeposit
 
 Initiates the predeposit process for validators within a StakingVault. This command is the first step in the two-phase deposit process designed to prevent frontrunning attacks.
@@ -170,36 +185,69 @@ Creates and submits a cryptographic proof that a validator with the given index 
 
 **Technical Details:** Uses Beacon Chain state proofs to cryptographically verify that a validator's withdrawal credentials are properly set to the StakingVault contract address.
 
-### prove-and-deposit
+### prove-and-top-up
 
-A convenience command that combines the proving process with the final deposit in a single transaction. This is particularly useful for node operators managing multiple validators.
+Proves validators to unlock node operator balance, activates validators from stash, and optionally tops up Node Operator balance.
 
 **Arguments:**
 
 - `<indexes>`: Array of validator indexes to prove on the Beacon Chain
-- `<deposits>`: Array of deposit data corresponding to the validators
+- `<amounts>`: Array of amounts to top up node operator balance (in wei)
+
+**Options:**
+
+- `-v, --vault <address>`: Specify vault address (interactive selection if not provided)
 
 **Process:**
 
-1. Generates proofs for all specified validator indexes
-2. Validates withdrawal credentials for each validator
-3. Performs the final 31 ETH deposit to complete the 32 ETH stake
-4. All operations are batched into a single transaction
-
-### deposit-to-beacon-chain
-
-Completes the validator deposit process by sending the remaining 31 ETH to proven validators, bringing them to the full 32 ETH required for activation on the Beacon Chain.
+1. Validates caller is the node operator for the vault
+2. Generates proofs for all specified validator indexes
+3. Validates withdrawal credentials for each validator
+4. Activates validators from stash state
+5. Tops up node operator balance with specified amounts
 
 **Requirements:**
 
-- Validators must be successfully proven first via `proof-and-prove`
+- Caller must be the node operator of the vault
+- Valid validator indexes that can be proven
+
+### top-up-existing-validators (top-up-val)
+
+Deposits ether to proven validators from staking vault.
+
+**Arguments:**
+
+- `<topUps>`: Array of ValidatorTopUp structs with pubkey and amounts
+
+**Options:**
+
+- `-v, --vault <address>`: Specify vault address (interactive selection if not provided)
+
+**ValidatorTopUp Format:**
+
+```json
+[
+  {
+    "pubkey": "validator_public_key_hex",
+    "amount": "amount_in_wei"
+  }
+]
+```
+
+**Process:**
+
+1. Validates caller is the node operator for the vault
+2. Confirms top-up operation with user
+3. Transfers specified amounts to validators via PredepositGuarantee contract
+
+**Requirements:**
+
 - Caller must be the node operator of the StakingVault
+- Validators must be in proven state
 - Sufficient ETH balance must be available in the vault
-- Vault must be properly connected to VaultHub
+- Valid validator public keys and amounts
 
-**Process:** Transfers the final portion of the stake from the StakingVault to the Ethereum Deposit Contract, completing the validator activation process.
-
-### top-up
+### top-up-no
 
 Adds ETH to the node operator's balance in the PredepositGuarantee contract. This is required when the node operator doesn't have sufficient unlocked balance for predeposits.
 
@@ -209,7 +257,14 @@ Adds ETH to the node operator's balance in the PredepositGuarantee contract. Thi
 
 **Options:**
 
-- `-v, --vault <address>`: Specify StakingVault address
+- `-v, --vault <address>`: Specify StakingVault address (interactive selection if not provided)
+
+**Process:**
+
+1. Determines the node operator for the specified vault
+2. Validates caller permissions (node operator or guarantor)
+3. Confirms the top-up operation
+4. Transfers ETH to increase node operator balance in PDG
 
 **Access Control:** Can be called by either the node operator or their designated guarantor.
 

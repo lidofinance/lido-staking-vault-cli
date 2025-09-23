@@ -79,4 +79,25 @@ export const readCommandConfig: ReadProgramCommandConfig<
     name: 'get-confirm-expiry',
     description: 'get confirm expiry',
   },
+  isVaultInJail: {
+    name: 'is-vault-in-jail',
+    description: 'get if vault is in jail',
+    arguments: {
+      _vault: {
+        name: 'vault',
+        description: 'vault address',
+      },
+    },
+  },
+  vaultInfo: {
+    hidden: true,
+    name: 'vault-info',
+    description: 'get vault limits',
+    arguments: {
+      _vault: {
+        name: 'vault',
+        description: 'vault address',
+      },
+    },
+  },
 };
