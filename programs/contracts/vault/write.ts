@@ -259,10 +259,14 @@ vaultWrite
       const contract = getStakingVaultContract(address);
       const concatenatedPubkeys = pubkeys.join('') as `0x${string}`;
 
+      const gweiAmounts = amounts.map((amount) =>
+        parseEther(formatEther(amount), 'gwei'),
+      );
+
       await callWriteMethodWithReceipt({
         contract,
         methodName: 'triggerValidatorWithdrawals',
-        payload: [concatenatedPubkeys, amounts, refundRecipient],
+        payload: [concatenatedPubkeys, gweiAmounts, refundRecipient],
       });
     },
   );

@@ -387,10 +387,14 @@ VaultHubWrite.command('trigger-validator-withdrawals')
         [BigInt(amounts.length)],
       );
 
+      const gweiAmounts = amounts.map((amount) =>
+        parseEther(formatEther(amount), 'gwei'),
+      );
+
       await callWriteMethodWithReceipt({
         contract,
         methodName: 'triggerValidatorWithdrawals',
-        payload: [address, mergedPubkeys, amounts.map(BigInt), recipient],
+        payload: [address, mergedPubkeys, gweiAmounts, recipient],
         value: fee,
       });
     },

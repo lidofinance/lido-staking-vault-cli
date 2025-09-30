@@ -323,7 +323,7 @@ dashboardWrite
     const vault = await callReadMethod(contract, 'stakingVault');
 
     const confirm = await confirmOperation(
-      `Are you sure you want to rebalance the vault ${vault} with ${formatEther(ether)} ether?`,
+      `Are you sure you want to rebalance the vault ${vault} with ${formatEther(ether)} ether by transferring?`,
     );
     if (!confirm) return;
 
@@ -331,6 +331,7 @@ dashboardWrite
       contract,
       methodName: 'rebalanceVaultWithEther',
       payload: [ether],
+      value: ether,
     });
   });
 
