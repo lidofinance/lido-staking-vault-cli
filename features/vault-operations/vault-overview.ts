@@ -2,6 +2,7 @@ import { formatEther } from 'viem';
 
 import {
   DashboardContract,
+  getLazyOracleContract,
   getOperatorGridContract,
   getStethContract,
   getVaultHubContract,
@@ -20,6 +21,8 @@ import {
   printError,
   calculateOverviewV2,
   callReadMethodSilent,
+  getVaultReport,
+  callReadMethod,
 } from 'utils';
 import { reportFreshWarning } from 'features';
 
@@ -33,6 +36,12 @@ export const getVaultOverviewByDashboard = async (
   const publicClient = getPublicClient();
 
   try {
+    const lazyOracleContract = await getLazyOracleContract();
+    const [_timestamp, _refSlot, _treeRoot, cid] = await callReadMethod(
+      lazyOracleContract,
+      'latestReportData',
+    );
+    const report = await getVaultReport({ vault, cid });
     const health = await fetchAndCalculateVaultHealth(contract);
     const operatorGridContract = await getOperatorGridContract();
     const [
@@ -45,6 +54,7 @@ export const getVaultOverviewByDashboard = async (
       locked,
       shareLimit,
       remainingMintingCapacityShares,
+      minimalReserve,
     ] = await Promise.all([
       contract.read.nodeOperatorFeeRate(),
       contract.read.reserveRatioBP(),
@@ -55,6 +65,7 @@ export const getVaultOverviewByDashboard = async (
       contract.read.locked(),
       contract.read.shareLimit(),
       contract.read.remainingMintingCapacityShares([0n]),
+      contract.read.minimalReserve(),
     ]);
     const stethContract = await getStethContract();
     const vaultHubContract = await getVaultHubContract();
@@ -84,6 +95,7 @@ export const getVaultOverviewByDashboard = async (
       tierShareLimitStethWei,
       groupShareLimitStethWei,
       remainingMintingCapacityStethWei,
+      lastReportLiabilityInStethWei,
     ] = await Promise.all([
       stethContract.read.getPooledEthBySharesRoundUp([
         totalMintingCapacityShares,
@@ -95,6 +107,9 @@ export const getVaultOverviewByDashboard = async (
       ]),
       stethContract.read.getPooledEthBySharesRoundUp([
         remainingMintingCapacityShares,
+      ]),
+      stethContract.read.getPooledEthBySharesRoundUp([
+        BigInt(report.data.liabilityShares),
       ]),
     ]);
 
@@ -109,6 +124,8 @@ export const getVaultOverviewByDashboard = async (
       nodeOperatorDisbursableFee,
       totalMintingCapacityStethWei,
       unsettledLidoFees: vaultObligation[1],
+      minimalReserve,
+      lastReportLiabilityInStethWei,
     });
 
     hideSpinner();

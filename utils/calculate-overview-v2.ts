@@ -1,5 +1,3 @@
-import { parseEther } from 'viem';
-
 import { calculateHealth } from './health/calculate-health.js';
 
 type OverviewArgs = {
@@ -13,6 +11,8 @@ type OverviewArgs = {
   nodeOperatorDisbursableFee: bigint;
   totalMintingCapacityStethWei: bigint;
   unsettledLidoFees: bigint;
+  minimalReserve: bigint;
+  lastReportLiabilityInStethWei: bigint;
 };
 
 const BASIS_POINTS = 10_000n;
@@ -43,6 +43,8 @@ export const calculateOverviewV2 = (args: OverviewArgs) => {
     nodeOperatorDisbursableFee,
     totalMintingCapacityStethWei,
     unsettledLidoFees,
+    minimalReserve,
+    lastReportLiabilityInStethWei,
   } = args;
 
   const { healthRatio, isHealthy } = calculateHealth({
@@ -60,11 +62,11 @@ export const calculateOverviewV2 = (args: OverviewArgs) => {
       ? 0n
       : ceilDiv(liabilitySharesInStethWei * BASIS_POINTS, oneMinusRR);
 
-  const collateral = bigIntMax(parseEther('1'), liabilityDivOneMinusRR);
-  const recentlyRepaid =
-    liabilityDivOneMinusRR <= parseEther('1')
-      ? bigIntMax(locked - parseEther('1'), 0n)
-      : bigIntMax(locked - liabilityDivOneMinusRR, 0n);
+  const collateral = bigIntMax(minimalReserve, liabilityDivOneMinusRR);
+  const recentlyRepaid = bigIntMax(
+    lastReportLiabilityInStethWei - liabilitySharesInStethWei,
+    0n,
+  );
 
   const reservedByFormula =
     oneMinusRR === 0n
