@@ -20,9 +20,8 @@ import {
   logVaultHealthBar,
   printError,
   calculateOverviewV2,
-  callReadMethodSilent,
   getVaultReport,
-  callReadMethod,
+  callReadMethodSilent,
 } from 'utils';
 import { reportFreshWarning } from 'features';
 
@@ -37,7 +36,7 @@ export const getVaultOverviewByDashboard = async (
 
   try {
     const lazyOracleContract = await getLazyOracleContract();
-    const [_timestamp, _refSlot, _treeRoot, cid] = await callReadMethod(
+    const [_timestamp, _refSlot, _treeRoot, cid] = await callReadMethodSilent(
       lazyOracleContract,
       'latestReportData',
     );
