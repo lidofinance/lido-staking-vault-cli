@@ -247,7 +247,7 @@ export const VaultViewerAbi = [
               },
               {
                 internalType: 'bool',
-                name: 'isBeaconDepositsManuallyPaused',
+                name: 'beaconChainDepositsPauseIntent',
                 type: 'bool',
               },
             ],
@@ -463,7 +463,7 @@ export const VaultViewerAbi = [
               },
               {
                 internalType: 'bool',
-                name: 'isBeaconDepositsManuallyPaused',
+                name: 'beaconChainDepositsPauseIntent',
                 type: 'bool',
               },
             ],

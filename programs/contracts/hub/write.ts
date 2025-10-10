@@ -45,11 +45,19 @@ VaultHubWrite.command('v-connect')
     const contract = await getVaultHubContract();
     const operatorGridContract = await getOperatorGridContract();
 
-    const [shareLimit, reserveRatio, reserveRatioThreshold, treasuryFeeBP] =
-      await callReadMethod(operatorGridContract, 'vaultInfo', [address]);
+    const [
+      _nodeOperator,
+      _tierId,
+      shareLimit,
+      reserveRatioBP,
+      forcedRebalanceThresholdBP,
+      infraFeeBP,
+      liquidityFeeBP,
+      reservationFeeBP,
+    ] = await callReadMethod(operatorGridContract, 'vaultTierInfo', [address]);
 
     const confirm = await confirmOperation(
-      `Are you sure you want to connect the vault ${address} with share limit ${shareLimit}, reserve ratio ${reserveRatio}, reserve ratio threshold ${reserveRatioThreshold}, treasury fee ${treasuryFeeBP}?`,
+      `Are you sure you want to connect the vault ${address} with share limit ${shareLimit}, reserve ratio ${reserveRatioBP}, reserve ratio threshold ${forcedRebalanceThresholdBP}, treasury fee ${infraFeeBP}, liquidity fee ${liquidityFeeBP}, reservation fee ${reservationFeeBP}?`,
     );
     if (!confirm) return;
 

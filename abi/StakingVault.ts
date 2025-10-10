@@ -142,7 +142,7 @@ export const StakingVaultErrorsAbi = [
   },
   {
     inputs: [],
-    name: 'PubkeyLengthDoesNotMatchAmountLength',
+    name: 'RenouncementNotAllowed',
     type: 'error',
   },
   {

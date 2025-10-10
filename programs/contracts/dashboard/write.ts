@@ -1,7 +1,6 @@
 import { Address, Hex, parseEther, formatEther } from 'viem';
 import { Option } from 'commander';
 
-import { getAccount } from 'providers';
 import {
   getDashboardContract,
   getOperatorGridContract,
@@ -33,6 +32,7 @@ import {
   stringToHexArray,
   etherToWei,
   type ValidatorWitness,
+  stringToNumber,
 } from 'utils';
 import { RoleAssignment, Deposit } from 'types';
 
@@ -608,7 +608,6 @@ dashboardWrite
   .argument('<address>', 'dashboard address', stringToAddress)
   .argument('<validatorIndex...>', 'index of the validator to prove')
   .action(async (address: Address, validatorIndexes: string[]) => {
-    const account = await getAccount();
     const contract = getDashboardContract(address);
     const vault = await callReadMethod(contract, 'stakingVault');
     const vaultContract = getStakingVaultContract(vault);
@@ -616,18 +615,12 @@ dashboardWrite
 
     const payload: ValidatorWitness[] = [];
 
-    const PDG_PROVE_VALIDATOR_ROLE = await callReadMethodSilent(
-      contract,
-      'PDG_PROVE_VALIDATOR_ROLE',
-    );
-    const hasRole = await callReadMethodSilent(contract, 'hasRole', [
-      PDG_PROVE_VALIDATOR_ROLE,
-      account.address,
-    ]);
+    const pdgPolicy = await callReadMethodSilent(contract, 'pdgPolicy');
+    const isAllowed = pdgPolicy === 2;
 
-    if (!hasRole) {
+    if (!isAllowed) {
       throw new Error(
-        `You do not have role (PDG_PROVE_VALIDATOR_ROLE - ${PDG_PROVE_VALIDATOR_ROLE}) to prove validators to PDG`,
+        `Dashboard PDG policy is not set to allow proving unknown validators to PDG`,
       );
     }
 
@@ -771,59 +764,28 @@ dashboardWrite
   );
 
 dashboardWrite
-  .command('increase-rewards-adjustment')
-  .description(
-    'increases rewards adjustment to correct fee calculation due to non-rewards ether on CL',
-  )
+  .command('set-pdg-policy')
+  .description('set the PDG policy')
   .argument('<address>', 'dashboard address', stringToAddress)
-  .argument(
-    '<amount>',
-    'amount to increase the rewards adjustment by (in ETH)',
-    etherToWei,
-  )
-  .action(async (address: Address, amount: bigint) => {
+  .argument('<policy>', 'policy to set the PDG policy to', stringToNumber)
+  .action(async (address: Address, policy: number) => {
     const contract = getDashboardContract(address);
 
+    const PDG_POLICY = {
+      0: 'STRICT',
+      1: 'ALLOW_PROVE',
+      2: 'ALLOW_DEPOSIT_AND_PROVE',
+    };
+
     const confirm = await confirmOperation(
-      `Are you sure you want to increase the rewards adjustment by ${formatEther(amount)} ETH?`,
+      `Are you sure you want to set the PDG policy to ${policy} (${PDG_POLICY[policy as keyof typeof PDG_POLICY]})?`,
     );
     if (!confirm) return;
 
     await callWriteMethodWithReceipt({
       contract,
-      methodName: 'increaseRewardsAdjustment',
-      payload: [amount],
-    });
-  });
-
-dashboardWrite
-  .command('set-rewards-adjustment')
-  .description(
-    'set `rewardsAdjustment` to a new proposed value if `confirmingRoles()` agree',
-  )
-  .argument('<address>', 'dashboard address', stringToAddress)
-  .argument(
-    '<amount>',
-    'amount to set the accrued rewards adjustment to (in ETH)',
-    etherToWei,
-  )
-  .action(async (address: Address, amount: bigint) => {
-    const contract = getDashboardContract(address);
-    const currentAdjustment = await callReadMethod(
-      contract,
-      'rewardsAdjustment',
-    );
-
-    const confirm = await confirmOperation(
-      `Are you sure you want to set the rewards adjustment to ${formatEther(amount)} ETH?
-      Current adjustment: ${formatEther(currentAdjustment[0])} ETH`,
-    );
-    if (!confirm) return;
-
-    await callWriteMethodWithReceipt({
-      contract,
-      methodName: 'setRewardsAdjustment',
-      payload: [amount, currentAdjustment[0]],
+      methodName: 'setPDGPolicy',
+      payload: [policy],
     });
   });
 
@@ -847,7 +809,7 @@ dashboardWrite
 
     await callWriteMethodWithReceipt({
       contract,
-      methodName: 'setNodeOperatorFeeRecipient',
+      methodName: 'setFeeRecipient',
       payload: [recipient],
     });
   });
@@ -923,7 +885,7 @@ dashboardWrite
 
     await callWriteMethodWithReceipt({
       contract,
-      methodName: 'setNodeOperatorFeeRate',
+      methodName: 'setFeeRate',
       payload: [fee],
     });
   });
@@ -938,7 +900,7 @@ dashboardWrite
     const contract = getDashboardContract(address);
     const nodeOperatorFeeRecipient = await callReadMethodSilent(
       contract,
-      'nodeOperatorFeeRecipient',
+      'feeRecipient',
     );
 
     const confirm = await confirmOperation(
@@ -948,7 +910,7 @@ dashboardWrite
 
     await callWriteMethodWithReceipt({
       contract,
-      methodName: 'disburseNodeOperatorFee',
+      methodName: 'disburseFee',
       payload: [],
     });
   });

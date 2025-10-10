@@ -169,7 +169,7 @@ pdgWrite
 
       await callWriteMethodWithReceipt({
         contract: pdgContract,
-        methodName: 'proveWCAndActivateValidator',
+        methodName: 'proveWCAndActivate',
         payload: [
           {
             proof,
@@ -206,7 +206,7 @@ pdgWrite
 
     await callWriteMethodWithReceipt({
       contract: pdgContract,
-      methodName: 'proveWCAndTopUpValidators',
+      methodName: 'proveWCActivateAndTopUpValidators',
       payload: [witnesses, amounts],
     });
   });

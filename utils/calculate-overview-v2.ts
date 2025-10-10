@@ -4,11 +4,11 @@ type OverviewArgs = {
   totalValue: bigint;
   reserveRatioBP: number;
   liabilitySharesInStethWei: bigint;
-  forceRebalanceThresholdBP: number;
+  forcedRebalanceThresholdBP: number;
   withdrawableEther: bigint;
   balance: bigint;
   locked: bigint;
-  nodeOperatorDisbursableFee: bigint;
+  nodeOperatorAccruedFee: bigint;
   totalMintingCapacityStethWei: bigint;
   unsettledLidoFees: bigint;
   minimalReserve: bigint;
@@ -36,11 +36,11 @@ export const calculateOverviewV2 = (args: OverviewArgs) => {
     totalValue,
     reserveRatioBP,
     liabilitySharesInStethWei,
-    forceRebalanceThresholdBP,
+    forcedRebalanceThresholdBP,
     withdrawableEther,
     balance,
     locked,
-    nodeOperatorDisbursableFee,
+    nodeOperatorAccruedFee,
     totalMintingCapacityStethWei,
     unsettledLidoFees,
     minimalReserve,
@@ -50,11 +50,11 @@ export const calculateOverviewV2 = (args: OverviewArgs) => {
   const { healthRatio, isHealthy } = calculateHealth({
     totalValue,
     liabilitySharesInStethWei,
-    forceRebalanceThresholdBP,
+    forcedRebalanceThresholdBP,
   });
   const availableToWithdrawal = withdrawableEther;
   const idleCapital = balance;
-  const totalLocked = locked + nodeOperatorDisbursableFee + unsettledLidoFees;
+  const totalLocked = locked + nodeOperatorAccruedFee + unsettledLidoFees;
   const RR = BigInt(reserveRatioBP);
   const oneMinusRR = BASIS_POINTS - RR;
   const liabilityDivOneMinusRR =

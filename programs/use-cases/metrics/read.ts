@@ -155,13 +155,14 @@ metricsRead
     for (const r of history) {
       let fee = await cache.getNodeOperatorFeeRate(vault, r.blockNumber);
       if (fee === null) {
-        fee = await callReadMethodSilent(
+        const feeRate = await callReadMethodSilent(
           dashboardContract,
-          'nodeOperatorFeeRate',
+          'feeRate',
           {
             blockNumber: BigInt(r.blockNumber),
           },
         );
+        fee = BigInt(feeRate);
         await cache.setNodeOperatorFeeRate(vault, r.blockNumber, fee);
       }
       nodeOperatorFeeBPs.push(fee);

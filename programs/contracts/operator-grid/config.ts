@@ -89,9 +89,9 @@ export const readCommandConfig: ReadProgramCommandConfig<
       },
     },
   },
-  vaultInfo: {
+  vaultTierInfo: {
     hidden: true,
-    name: 'vault-info',
+    name: 'vault-tier-info',
     description: 'get vault limits',
     arguments: {
       _vault: {

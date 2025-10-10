@@ -22,6 +22,7 @@ import {
   calculateOverviewV2,
   getVaultReport,
   callReadMethodSilent,
+  VaultReport,
 } from 'utils';
 import { reportFreshWarning } from 'features';
 
@@ -34,38 +35,45 @@ export const getVaultOverviewByDashboard = async (
   const hideSpinner = showSpinner();
   const publicClient = getPublicClient();
 
+  let report: VaultReport | null = null;
+
   try {
     const lazyOracleContract = await getLazyOracleContract();
     const [_timestamp, _refSlot, _treeRoot, cid] = await callReadMethodSilent(
       lazyOracleContract,
       'latestReportData',
     );
-    const report = await getVaultReport({ vault, cid });
+    report = await getVaultReport({ vault, cid });
+  } catch (error) {
+    logInfo('No report found');
+  }
+
+  try {
     const health = await fetchAndCalculateVaultHealth(contract);
     const operatorGridContract = await getOperatorGridContract();
     const [
-      nodeOperatorFeeRate,
-      reserveRatioBP,
+      vaultConnection,
       totalMintingCapacityShares,
       withdrawableValue,
-      nodeOperatorDisbursableFee,
       totalValue,
       locked,
-      shareLimit,
       remainingMintingCapacityShares,
       minimalReserve,
+      nodeOperatorFeeRate,
+      nodeOperatorAccruedFee,
     ] = await Promise.all([
-      contract.read.nodeOperatorFeeRate(),
-      contract.read.reserveRatioBP(),
+      contract.read.vaultConnection(),
       contract.read.totalMintingCapacityShares(),
       contract.read.withdrawableValue(),
-      contract.read.nodeOperatorDisbursableFee(),
       contract.read.totalValue(),
       contract.read.locked(),
-      contract.read.shareLimit(),
       contract.read.remainingMintingCapacityShares([0n]),
       contract.read.minimalReserve(),
+      contract.read.feeRate(),
+      contract.read.accruedFee(),
     ]);
+
+    const { reserveRatioBP, shareLimit } = vaultConnection;
     const stethContract = await getStethContract();
     const vaultHubContract = await getVaultHubContract();
     const balance = await publicClient.getBalance({
@@ -78,7 +86,7 @@ export const getVaultOverviewByDashboard = async (
     );
     const tierInfo = await callReadMethodSilent(
       operatorGridContract,
-      'vaultInfo',
+      'vaultTierInfo',
       [vault],
     );
     const isNoHaveGroup =
@@ -107,20 +115,22 @@ export const getVaultOverviewByDashboard = async (
       stethContract.read.getPooledEthBySharesRoundUp([
         remainingMintingCapacityShares,
       ]),
-      stethContract.read.getPooledEthBySharesRoundUp([
-        BigInt(report.data.liabilityShares),
-      ]),
+      report
+        ? stethContract.read.getPooledEthBySharesRoundUp([
+            BigInt(report.data.liabilityShares),
+          ])
+        : 0n,
     ]);
 
     const overview = calculateOverviewV2({
       totalValue,
       reserveRatioBP,
       liabilitySharesInStethWei: health.liabilitySharesInStethWei,
-      forceRebalanceThresholdBP: health.forceRebalanceThresholdBP,
+      forcedRebalanceThresholdBP: health.forcedRebalanceThresholdBP,
       withdrawableEther: withdrawableValue,
       balance,
       locked,
-      nodeOperatorDisbursableFee,
+      nodeOperatorAccruedFee,
       totalMintingCapacityStethWei,
       unsettledLidoFees: vaultObligation[1],
       minimalReserve,
@@ -137,7 +147,7 @@ export const getVaultOverviewByDashboard = async (
         ['Reserve Ratio, %', formatBP(reserveRatioBP)],
         [
           'Force Rebalance Threshold',
-          formatBP(health.forceRebalanceThresholdBP),
+          formatBP(health.forcedRebalanceThresholdBP),
         ],
         ['stVault Share Limit, stETH', formatEther(shareLimitStethWei)],
         ['stVault Share Limit, Shares', formatEther(shareLimit)],
@@ -155,10 +165,7 @@ export const getVaultOverviewByDashboard = async (
         ['Total Locked, ETH', formatEther(overview.totalLocked)],
         ['Collateral, ETH', formatEther(overview.collateral)],
         ['Recently Repaid, ETH', formatEther(overview.recentlyRepaid)],
-        [
-          'Node Operator Disbursable Fee, ETH',
-          formatEther(nodeOperatorDisbursableFee),
-        ],
+        ['Node Operator Accrued Fee, ETH', formatEther(nodeOperatorAccruedFee)],
         ['Reserved, ETH', formatEther(overview.reserved)],
         [
           'Total Minting Capacity, stETH',
@@ -192,7 +199,7 @@ export const getVaultOverviewByDashboard = async (
       totalValue: totalValue,
       stETHLiability: health.liabilitySharesInStethWei,
       reserveRatioBP: reserveRatioBP,
-      forceRebalanceThresholdBP: health.forceRebalanceThresholdBP,
+      forcedRebalanceThresholdBP: health.forcedRebalanceThresholdBP,
       stETHTotalMintingCapacity: totalMintingCapacityStethWei,
     });
     console.info('\n');

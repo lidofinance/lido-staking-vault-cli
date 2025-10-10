@@ -129,10 +129,10 @@ depositsRead
   });
 
 depositsRead
-  .command('pending-predeposits')
+  .command('pending-activations')
   .aliases(['pd'])
   .description(
-    'get the current amount of ether that is predeposited to a given vault',
+    'get the amount of ether that is pending as predeposits but not proved yet',
   )
   .option('-v, --vault <string>', 'vault address', stringToAddress)
   .action(async ({ vault }: { vault: Address }) => {
@@ -140,15 +140,15 @@ depositsRead
       vault,
     });
     const contract = await getPredepositGuaranteeContract();
-    const pendingPredeposits = await callReadMethodSilent(
+    const pendingActivations = await callReadMethodSilent(
       contract,
-      'pendingPredeposits',
+      'pendingActivations',
       [vaultAddress],
     );
 
     logResult({
       data: [
-        ['Pending Predeposits amount, ETH', formatEther(pendingPredeposits)],
+        ['Pending Activations amount, ETH', formatEther(pendingActivations)],
       ],
     });
   });

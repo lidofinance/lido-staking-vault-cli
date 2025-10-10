@@ -1492,7 +1492,7 @@ export const OperatorGridAbi = [
         type: 'address',
       },
     ],
-    name: 'vaultInfo',
+    name: 'vaultTierInfo',
     outputs: [
       {
         internalType: 'address',

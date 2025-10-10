@@ -312,26 +312,26 @@ vaultOperationsWrite
 
     const nodeOperatorFeeRecipient = await callReadMethodSilent(
       contract,
-      'nodeOperatorFeeRecipient',
+      'feeRecipient',
     );
-    const nodeOperatorDisbursableFee = await callReadMethodSilent(
+    const nodeOperatorAccruedFee = await callReadMethodSilent(
       contract,
-      'nodeOperatorDisbursableFee',
+      'accruedFee',
     );
 
-    if (nodeOperatorDisbursableFee === 0n) {
-      logError('The node operator has no disbursable fee');
+    if (nodeOperatorAccruedFee === 0n) {
+      logError('The node operator has no accrued fee');
       return;
     }
 
     const confirm = await confirmOperation(
-      `Are you sure you want to transfer the node operator fee to ${nodeOperatorFeeRecipient} (nodeOperatorFeeRecipient) from the staking vault ${vaultAddress}? The node operator disbursable fee is ${formatEther(nodeOperatorDisbursableFee)} ETH`,
+      `Are you sure you want to transfer the node operator fee to ${nodeOperatorFeeRecipient} (nodeOperatorFeeRecipient) from the staking vault ${vaultAddress}? The node operator accrued fee is ${formatEther(nodeOperatorAccruedFee)} ETH`,
     );
     if (!confirm) return;
 
     await callWriteMethodWithReceipt({
       contract,
-      methodName: 'disburseNodeOperatorFee',
+      methodName: 'disburseFee',
       payload: [],
     });
   });
@@ -369,7 +369,7 @@ vaultOperationsWrite
 
       await callWriteMethodWithReceipt({
         contract,
-        methodName: 'setNodeOperatorFeeRecipient',
+        methodName: 'setFeeRecipient',
         payload: [recipientAddress],
       });
     },

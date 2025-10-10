@@ -170,7 +170,7 @@ export const readCommandConfig: ReadProgramCommandConfig<
       },
     },
   },
-  pendingPredeposits: {
+  pendingActivations: {
     hidden: true,
   },
 };
