@@ -13,7 +13,6 @@ const showTestnetWarning = () => {
   // );
   console.info('🔄 Testnet-1 is available on the testnet-1 branch.');
   console.info('🔄 Testnet-2 is available on the testnet-2 branch.');
-  console.info('🔄 Testnet-3 is available on the testnet-3 branch.');
   // console.info(
   //   '📄 Contracts info: https://docs.lido.fi/deployed-contracts/hoodi-lidov3/\n',
   // );
