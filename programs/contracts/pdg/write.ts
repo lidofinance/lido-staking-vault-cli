@@ -22,13 +22,15 @@ import {
   isValidBLSDeposit,
   expandBLSSignature,
   logTable,
-  type ValidatorWitness,
   stringToNumber,
   stringToNumberArray,
+  stringToBigIntArray,
+  parseValidatorTopUpArray,
 } from 'utils';
-import { Deposit } from 'types';
+import { Deposit, ValidatorTopUp } from 'types';
 
 import { pdg } from './main.js';
+import { makePDGProofByIndexes } from 'features/deposits/make-pdg-proof.js';
 
 const pdgWrite = pdg
   .command('write')
@@ -126,7 +128,9 @@ pdgWrite
 pdgWrite
   .command('proof-and-prove')
   .aliases(['prove'])
-  .description('make proof and prove')
+  .description(
+    'permissionless method to prove correct Withdrawal Credentials for the validator and to send the activation deposit',
+  )
   .argument('<index>', 'validator index', stringToNumber)
   .action(async (index: number) => {
     const pdgContract = await getPredepositGuaranteeContract();
@@ -165,7 +169,7 @@ pdgWrite
 
       await callWriteMethodWithReceipt({
         contract: pdgContract,
-        methodName: 'proveValidatorWC',
+        methodName: 'proveWCAndActivate',
         payload: [
           {
             proof,
@@ -184,116 +188,66 @@ pdgWrite
   });
 
 pdgWrite
-  .command('prove-and-deposit')
-  .description('prove and deposit')
-  .argument('<indexes>', 'validator indexes', stringToNumberArray)
-  .argument('<vault>', 'vault address')
-  .argument('<deposits>', 'deposits', parseDepositArray)
-  .addHelpText(
-    'after',
-    `Deposit format:
-    '[{
-      "pubkey": "...",
-      "signature": "...",
-      "amount": "...",
-      "deposit_data_root": "..."
-    }
-    {second deposit}
-    ...]'`,
+  .command('prove-and-top-up')
+  .description(
+    'prove validators to unlock NO balance, activate the validators from stash, and optionally top up NO balance',
   )
-  .action(async (indexes: number[], vault: Address, deposits: Deposit[]) => {
+  .argument('<indexes>', 'validator indexes', stringToNumberArray)
+  .argument(
+    '<amounts>',
+    'array of amounts to top up NO balance',
+    stringToBigIntArray,
+  )
+  .action(async (indexes: number[], amounts: bigint[]) => {
     const pdgContract = await getPredepositGuaranteeContract();
 
-    const witnesses: ValidatorWitness[] = [];
-
-    for (const index of indexes) {
-      const validatorIndex = await confirmMakeProof(index);
-      if (!validatorIndex) return;
-
-      const hideSpinner = showSpinner({
-        type: 'bouncingBar',
-        message: 'Making proof...',
-      });
-      try {
-        const packageProof = await createPDGProof(validatorIndex);
-        hideSpinner();
-        const {
-          proof,
-          pubkey,
-          childBlockTimestamp,
-          withdrawalCredentials,
-          slot,
-          proposerIndex,
-        } = packageProof;
-
-        witnesses.push({
-          proof,
-          pubkey,
-          validatorIndex: BigInt(validatorIndex),
-          childBlockTimestamp,
-          slot,
-          proposerIndex,
-        });
-
-        logResult({});
-        logInfo('----------------------proof----------------------');
-        logInfo(proof);
-        logTable({
-          data: [
-            ['Pubkey', pubkey],
-            ['Child Block Timestamp', childBlockTimestamp],
-            ['Withdrawal Credentials', withdrawalCredentials],
-          ],
-        });
-        logInfo('-----------------------end-----------------------');
-      } catch (err) {
-        hideSpinner();
-        printError(err, 'Error when making proof');
-      }
-    }
+    const witnesses = await makePDGProofByIndexes(indexes);
+    if (!witnesses) return;
 
     await callWriteMethodWithReceipt({
       contract: pdgContract,
-      methodName: 'proveAndDeposit',
-      payload: [witnesses, deposits, vault],
+      methodName: 'proveWCActivateAndTopUpValidators',
+      payload: [witnesses, amounts],
     });
   });
 
 pdgWrite
-  .command('deposit-to-beacon-chain')
-  .description('deposit to beacon chain')
-  .argument('<vault>', 'vault address')
-  .argument('<deposits>', 'deposits', parseDepositArray)
+  .command('top-up-existing-validators')
+  .aliases(['top-up-val'])
+  .description('deposits ether to proven validators from staking vault')
+  .argument(
+    '<topUps>',
+    'array of ValidatorTopUp structs with pubkey and amounts',
+    parseValidatorTopUpArray,
+  )
   .addHelpText(
     'after',
-    `Deposit format:
+    `ValidatorTopUp format:
     '[{
       "pubkey": "...",
-      "signature": "...",
       "amount": "...",
-      "deposit_data_root": "..."
     }
-    {second deposit}
+    {second topUp}
     ...]'`,
   )
-  .action(async (vault: Address, deposits: Deposit[]) => {
+  .action(async (topUps: ValidatorTopUp[]) => {
     const pdgContract = await getPredepositGuaranteeContract();
 
     const confirm = await confirmOperation(
-      `Are you sure you want to deposit ${deposits.length} deposits to the vault ${vault}?`,
+      `Are you sure you want to top up ${topUps.length} validators with ${topUps.map((topUp) => formatEther(topUp.amount)).join(', ')} ETH?`,
     );
     if (!confirm) return;
 
     await callWriteMethodWithReceipt({
       contract: pdgContract,
-      methodName: 'depositToBeaconChain',
-      payload: [vault, deposits],
+      methodName: 'topUpExistingValidators',
+      payload: [topUps],
     });
   });
 
 pdgWrite
-  .command('top-up')
-  .description('top up no balance')
+  .command('top-up-no')
+  .description('top up Node Operator balance')
   .argument('<nodeOperator>', 'node operator address')
   .argument('<amount>', 'amount in ETH', etherToWei)
   .action(async (nodeOperator: Address, amount: bigint) => {
@@ -363,7 +317,9 @@ pdgWrite
 
 pdgWrite
   .command('prove-invalid-validator-wc')
-  .description('prove invalid validator withdrawal credentials')
+  .description(
+    'permissionless method to prove and compensate incorrect Withdrawal Credentials for the validator on CL',
+  )
   .argument('<index>', 'validator index', stringToNumber)
   .argument('<invalidWithdrawalCredentials>', 'invalid withdrawal credentials')
   .action(async (index: number, invalidWithdrawalCredentials: Hex) => {
@@ -488,26 +444,5 @@ pdgWrite
       contract: pdgContract,
       methodName: 'claimGuarantorRefund',
       payload: [recipient],
-    });
-  });
-
-pdgWrite
-  .command('compensate-disproven-predeposit')
-  .aliases(['compensate'])
-  .description('compensate disproven predeposit')
-  .argument('<pubkey>', 'validator pubkey')
-  .argument('<recipient>', 'recipient address')
-  .action(async (pubkey: Hex, recipient: Address) => {
-    const pdgContract = await getPredepositGuaranteeContract();
-
-    const confirm = await confirmOperation(
-      `Are you sure you want to compensate the disproven predeposit for validator ${pubkey} to ${recipient}?`,
-    );
-    if (!confirm) return;
-
-    await callWriteMethodWithReceipt({
-      contract: pdgContract,
-      methodName: 'compensateDisprovenPredeposit',
-      payload: [pubkey, recipient],
     });
   });

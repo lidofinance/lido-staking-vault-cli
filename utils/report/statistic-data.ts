@@ -23,7 +23,7 @@ export const getReportStatisticData = async (args: StatisticDataArgs) => {
 
   const nodeOperatorFeeRate = await callReadMethodSilent(
     dashboardContract,
-    'nodeOperatorFeeRate',
+    'feeRate',
     {
       blockNumber: BigInt(reportRefBlockNumber),
     },
@@ -42,7 +42,7 @@ export const getReportStatisticData = async (args: StatisticDataArgs) => {
 
   const metrics = reportMetrics({
     reports: { current: reports.current, previous: reports.previous },
-    nodeOperatorFeeRate,
+    nodeOperatorFeeRate: BigInt(nodeOperatorFeeRate),
     stEthLiabilityRebaseRewards,
   });
 

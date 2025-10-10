@@ -8,3 +8,4 @@ export * from './vault-operations/index.js';
 export * from './utils/index.js';
 export * from './mint-burn/index.js';
 export * from './deposits/index.js';
+export * from './lazy-oracle.js';

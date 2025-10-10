@@ -56,43 +56,6 @@ export const PredepositGuaranteeAbi = [
   },
   {
     inputs: [],
-    name: 'CompensateToVaultNotAllowed',
-    type: 'error',
-  },
-  {
-    inputs: [
-      {
-        internalType: 'bytes',
-        name: 'validatorPubkey',
-        type: 'bytes',
-      },
-      {
-        internalType: 'enum PredepositGuarantee.ValidatorStage',
-        name: 'stage',
-        type: 'uint8',
-      },
-    ],
-    name: 'DepositToUnprovenValidator',
-    type: 'error',
-  },
-  {
-    inputs: [
-      {
-        internalType: 'bytes',
-        name: 'validatorPubkey',
-        type: 'bytes',
-      },
-      {
-        internalType: 'address',
-        name: 'stakingVault',
-        type: 'address',
-      },
-    ],
-    name: 'DepositToWrongVault',
-    type: 'error',
-  },
-  {
-    inputs: [],
     name: 'EmptyDeposits',
     type: 'error',
   },
@@ -104,6 +67,11 @@ export const PredepositGuaranteeAbi = [
   {
     inputs: [],
     name: 'InputHasInfinityPoints',
+    type: 'error',
+  },
+  {
+    inputs: [],
+    name: 'InvalidDepositYLength',
     type: 'error',
   },
   {
@@ -129,6 +97,33 @@ export const PredepositGuaranteeAbi = [
   {
     inputs: [],
     name: 'InvalidTimestamp',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: 'amount',
+        type: 'uint256',
+      },
+    ],
+    name: 'InvalidTopUpAmount',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'bytes',
+        name: 'validatorPubkey',
+        type: 'bytes',
+      },
+      {
+        internalType: 'enum IPredepositGuarantee.ValidatorStage',
+        name: 'stage',
+        type: 'uint8',
+      },
+    ],
+    name: 'InvalidValidatorStage',
     type: 'error',
   },
   {
@@ -237,12 +232,28 @@ export const PredepositGuaranteeAbi = [
   {
     inputs: [
       {
-        internalType: 'enum PredepositGuarantee.ValidatorStage',
+        internalType: 'bytes',
+        name: 'validatorPubkey',
+        type: 'bytes',
+      },
+      {
+        internalType: 'enum IPredepositGuarantee.ValidatorStage',
         name: 'stage',
         type: 'uint8',
       },
     ],
-    name: 'ValidatorNotDisproven',
+    name: 'ValidatorNotActivated',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'bytes',
+        name: 'validatorPubkey',
+        type: 'bytes',
+      },
+    ],
+    name: 'ValidatorNotEligibleForActivation',
     type: 'error',
   },
   {
@@ -253,7 +264,7 @@ export const PredepositGuaranteeAbi = [
         type: 'bytes',
       },
       {
-        internalType: 'enum PredepositGuarantee.ValidatorStage',
+        internalType: 'enum IPredepositGuarantee.ValidatorStage',
         name: 'stage',
         type: 'uint8',
       },
@@ -269,12 +280,28 @@ export const PredepositGuaranteeAbi = [
         type: 'bytes',
       },
       {
-        internalType: 'enum PredepositGuarantee.ValidatorStage',
+        internalType: 'enum IPredepositGuarantee.ValidatorStage',
         name: 'stage',
         type: 'uint8',
       },
     ],
     name: 'ValidatorNotPreDeposited',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'bytes',
+        name: 'validatorPubkey',
+        type: 'bytes',
+      },
+      {
+        internalType: 'enum IPredepositGuarantee.ValidatorStage',
+        name: 'stage',
+        type: 'uint8',
+      },
+    ],
+    name: 'ValidatorNotProven',
     type: 'error',
   },
   {
@@ -732,12 +759,12 @@ export const PredepositGuaranteeAbi = [
       },
       {
         indexed: false,
-        internalType: 'address',
-        name: 'recipient',
-        type: 'address',
+        internalType: 'bytes32',
+        name: 'withdrawalCredentials',
+        type: 'bytes32',
       },
     ],
-    name: 'ValidatorCompensated',
+    name: 'ValidatorActivated',
     type: 'event',
   },
   {
@@ -745,9 +772,9 @@ export const PredepositGuaranteeAbi = [
     inputs: [
       {
         indexed: true,
-        internalType: 'bytes',
-        name: 'validatorPubkey',
-        type: 'bytes',
+        internalType: 'address',
+        name: 'stakingVault',
+        type: 'address',
       },
       {
         indexed: true,
@@ -757,18 +784,24 @@ export const PredepositGuaranteeAbi = [
       },
       {
         indexed: true,
-        internalType: 'address',
-        name: 'stakingVault',
-        type: 'address',
+        internalType: 'bytes',
+        name: 'validatorPubkey',
+        type: 'bytes',
       },
       {
         indexed: false,
-        internalType: 'bytes32',
-        name: 'invalidWithdrawalCredentials',
-        type: 'bytes32',
+        internalType: 'uint256',
+        name: 'guaranteeTotal',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'guaranteeLocked',
+        type: 'uint256',
       },
     ],
-    name: 'ValidatorDisproven',
+    name: 'ValidatorCompensated',
     type: 'event',
   },
   {
@@ -832,6 +865,19 @@ export const PredepositGuaranteeAbi = [
     ],
     name: 'ValidatorProven',
     type: 'event',
+  },
+  {
+    inputs: [],
+    name: 'ACTIVATION_DEPOSIT_AMOUNT',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
   },
   {
     inputs: [],
@@ -939,6 +985,19 @@ export const PredepositGuaranteeAbi = [
   },
   {
     inputs: [],
+    name: 'MAX_TOPUP_AMOUNT',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
     name: 'MIN_SUPPORTED_WC_VERSION',
     outputs: [
       {
@@ -1018,6 +1077,19 @@ export const PredepositGuaranteeAbi = [
   {
     inputs: [
       {
+        internalType: 'bytes',
+        name: '_pubkey',
+        type: 'bytes',
+      },
+    ],
+    name: 'activateValidator',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
         internalType: 'address',
         name: '_recipient',
         type: 'address',
@@ -1051,70 +1123,6 @@ export const PredepositGuaranteeAbi = [
       },
     ],
     stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [
-      {
-        internalType: 'bytes',
-        name: '_validatorPubkey',
-        type: 'bytes',
-      },
-      {
-        internalType: 'address',
-        name: '_recipient',
-        type: 'address',
-      },
-    ],
-    name: 'compensateDisprovenPredeposit',
-    outputs: [
-      {
-        internalType: 'uint256',
-        name: '',
-        type: 'uint256',
-      },
-    ],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      {
-        internalType: 'contract IStakingVault',
-        name: '_stakingVault',
-        type: 'address',
-      },
-      {
-        components: [
-          {
-            internalType: 'bytes',
-            name: 'pubkey',
-            type: 'bytes',
-          },
-          {
-            internalType: 'bytes',
-            name: 'signature',
-            type: 'bytes',
-          },
-          {
-            internalType: 'uint256',
-            name: 'amount',
-            type: 'uint256',
-          },
-          {
-            internalType: 'bytes32',
-            name: 'depositDataRoot',
-            type: 'bytes32',
-          },
-        ],
-        internalType: 'struct IStakingVault.Deposit[]',
-        name: '_deposits',
-        type: 'tuple[]',
-      },
-    ],
-    name: 'depositToBeaconChain',
-    outputs: [],
-    stateMutability: 'payable',
     type: 'function',
   },
   {
@@ -1378,6 +1386,25 @@ export const PredepositGuaranteeAbi = [
     inputs: [
       {
         internalType: 'contract IStakingVault',
+        name: '_vault',
+        type: 'address',
+      },
+    ],
+    name: 'pendingActivations',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'contract IStakingVault',
         name: '_stakingVault',
         type: 'address',
       },
@@ -1461,83 +1488,6 @@ export const PredepositGuaranteeAbi = [
       },
     ],
     name: 'predeposit',
-    outputs: [],
-    stateMutability: 'payable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      {
-        components: [
-          {
-            internalType: 'bytes32[]',
-            name: 'proof',
-            type: 'bytes32[]',
-          },
-          {
-            internalType: 'bytes',
-            name: 'pubkey',
-            type: 'bytes',
-          },
-          {
-            internalType: 'uint256',
-            name: 'validatorIndex',
-            type: 'uint256',
-          },
-          {
-            internalType: 'uint64',
-            name: 'childBlockTimestamp',
-            type: 'uint64',
-          },
-          {
-            internalType: 'uint64',
-            name: 'slot',
-            type: 'uint64',
-          },
-          {
-            internalType: 'uint64',
-            name: 'proposerIndex',
-            type: 'uint64',
-          },
-        ],
-        internalType: 'struct IPredepositGuarantee.ValidatorWitness[]',
-        name: '_witnesses',
-        type: 'tuple[]',
-      },
-      {
-        components: [
-          {
-            internalType: 'bytes',
-            name: 'pubkey',
-            type: 'bytes',
-          },
-          {
-            internalType: 'bytes',
-            name: 'signature',
-            type: 'bytes',
-          },
-          {
-            internalType: 'uint256',
-            name: 'amount',
-            type: 'uint256',
-          },
-          {
-            internalType: 'bytes32',
-            name: 'depositDataRoot',
-            type: 'bytes32',
-          },
-        ],
-        internalType: 'struct IStakingVault.Deposit[]',
-        name: '_deposits',
-        type: 'tuple[]',
-      },
-      {
-        internalType: 'contract IStakingVault',
-        name: '_stakingVault',
-        type: 'address',
-      },
-    ],
-    name: 'proveAndDeposit',
     outputs: [],
     stateMutability: 'payable',
     type: 'function',
@@ -1677,12 +1627,62 @@ export const PredepositGuaranteeAbi = [
             type: 'uint64',
           },
         ],
+        internalType: 'struct IPredepositGuarantee.ValidatorWitness[]',
+        name: '_witnesses',
+        type: 'tuple[]',
+      },
+      {
+        internalType: 'uint256[]',
+        name: '_amounts',
+        type: 'uint256[]',
+      },
+    ],
+    name: 'proveWCActivateAndTopUpValidators',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        components: [
+          {
+            internalType: 'bytes32[]',
+            name: 'proof',
+            type: 'bytes32[]',
+          },
+          {
+            internalType: 'bytes',
+            name: 'pubkey',
+            type: 'bytes',
+          },
+          {
+            internalType: 'uint256',
+            name: 'validatorIndex',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint64',
+            name: 'childBlockTimestamp',
+            type: 'uint64',
+          },
+          {
+            internalType: 'uint64',
+            name: 'slot',
+            type: 'uint64',
+          },
+          {
+            internalType: 'uint64',
+            name: 'proposerIndex',
+            type: 'uint64',
+          },
+        ],
         internalType: 'struct IPredepositGuarantee.ValidatorWitness',
         name: '_witness',
         type: 'tuple',
       },
     ],
-    name: 'proveValidatorWC',
+    name: 'proveWCAndActivate',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
@@ -1773,6 +1773,31 @@ export const PredepositGuaranteeAbi = [
       },
     ],
     stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        components: [
+          {
+            internalType: 'bytes',
+            name: 'pubkey',
+            type: 'bytes',
+          },
+          {
+            internalType: 'uint256',
+            name: 'amount',
+            type: 'uint256',
+          },
+        ],
+        internalType: 'struct PredepositGuarantee.ValidatorTopUp[]',
+        name: '_topUps',
+        type: 'tuple[]',
+      },
+    ],
+    name: 'topUpExistingValidators',
+    outputs: [],
+    stateMutability: 'nonpayable',
     type: 'function',
   },
   {
@@ -1870,7 +1895,7 @@ export const PredepositGuaranteeAbi = [
       {
         components: [
           {
-            internalType: 'enum PredepositGuarantee.ValidatorStage',
+            internalType: 'enum IPredepositGuarantee.ValidatorStage',
             name: 'stage',
             type: 'uint8',
           },
@@ -1885,7 +1910,7 @@ export const PredepositGuaranteeAbi = [
             type: 'address',
           },
         ],
-        internalType: 'struct PredepositGuarantee.ValidatorStatus',
+        internalType: 'struct IPredepositGuarantee.ValidatorStatus',
         name: '',
         type: 'tuple',
       },

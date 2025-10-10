@@ -43,4 +43,18 @@ export const readCommandConfig: ReadProgramCommandConfig<
     name: 'depositor',
     description: 'get the address of the depositor',
   },
+  availableBalance: {
+    name: 'available-balance',
+    description:
+      'get the balance that is available for withdrawal (does not account the balances staged for activations)',
+  },
+  stagedBalance: {
+    name: 'staged-balance',
+    description:
+      'get the amount of ether on the balance that was staged by depositor for validator activations',
+  },
+  pendingOwner: {
+    name: 'pending-owner',
+    description: 'get the pending owner of the contract',
+  },
 };

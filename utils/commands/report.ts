@@ -23,8 +23,12 @@ export const submitReport = async ({
   const lazyOracleContract = await getLazyOracleContract();
   const vaultHubContract = await getVaultHubContract();
 
-  const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
-    await callReadMethod(lazyOracleContract, 'latestReportData');
+  const [
+    _vaultsDataTimestamp,
+    _vaultsDataRefSlot,
+    _vaultsDataTreeRoot,
+    vaultsDataReportCid,
+  ] = await callReadMethod(lazyOracleContract, 'latestReportData');
   const isReportFresh = await callReadMethodSilent(
     vaultHubContract,
     'isReportFresh',
@@ -67,6 +71,7 @@ export const submitReport = async ({
       BigInt(proof.data.totalValueWei),
       BigInt(proof.data.fee),
       BigInt(proof.data.liabilityShares),
+      BigInt(proof.data.maxLiabilityShares),
       BigInt(proof.data.slashingReserve),
       proof.proof,
     ],

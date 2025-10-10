@@ -4,7 +4,7 @@ interface LiabilityOverview {
   totalValue: bigint;
   stETHLiability: bigint;
   reserveRatioBP: number;
-  forceRebalanceThresholdBP: number;
+  forcedRebalanceThresholdBP: number;
   stETHTotalMintingCapacity: bigint;
 }
 
@@ -20,7 +20,7 @@ export const logLiabilityBar = (
 
   const liabilityPercentage = liabilitySteth / totalValueEth;
   const reserveRatioPercentage = data.reserveRatioBP / 10000;
-  const rebalanceThresholdPercentage = data.forceRebalanceThresholdBP / 10000;
+  const rebalanceThresholdPercentage = data.forcedRebalanceThresholdBP / 10000;
   const totalMintingCapacityPercentage =
     totalMintingCapacitySteth / totalValueEth;
 

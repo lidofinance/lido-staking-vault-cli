@@ -1,18 +1,18 @@
-import { parseEther } from 'viem';
-
 import { calculateHealth } from './health/calculate-health.js';
 
 type OverviewArgs = {
   totalValue: bigint;
   reserveRatioBP: number;
   liabilitySharesInStethWei: bigint;
-  forceRebalanceThresholdBP: number;
+  forcedRebalanceThresholdBP: number;
   withdrawableEther: bigint;
   balance: bigint;
   locked: bigint;
-  nodeOperatorDisbursableFee: bigint;
+  nodeOperatorAccruedFee: bigint;
   totalMintingCapacityStethWei: bigint;
   unsettledLidoFees: bigint;
+  minimalReserve: bigint;
+  lastReportLiabilityInStethWei: bigint;
 };
 
 const BASIS_POINTS = 10_000n;
@@ -36,23 +36,25 @@ export const calculateOverviewV2 = (args: OverviewArgs) => {
     totalValue,
     reserveRatioBP,
     liabilitySharesInStethWei,
-    forceRebalanceThresholdBP,
+    forcedRebalanceThresholdBP,
     withdrawableEther,
     balance,
     locked,
-    nodeOperatorDisbursableFee,
+    nodeOperatorAccruedFee,
     totalMintingCapacityStethWei,
     unsettledLidoFees,
+    minimalReserve,
+    lastReportLiabilityInStethWei,
   } = args;
 
   const { healthRatio, isHealthy } = calculateHealth({
     totalValue,
     liabilitySharesInStethWei,
-    forceRebalanceThresholdBP,
+    forcedRebalanceThresholdBP,
   });
   const availableToWithdrawal = withdrawableEther;
   const idleCapital = balance;
-  const totalLocked = locked + nodeOperatorDisbursableFee + unsettledLidoFees;
+  const totalLocked = locked + nodeOperatorAccruedFee + unsettledLidoFees;
   const RR = BigInt(reserveRatioBP);
   const oneMinusRR = BASIS_POINTS - RR;
   const liabilityDivOneMinusRR =
@@ -60,11 +62,11 @@ export const calculateOverviewV2 = (args: OverviewArgs) => {
       ? 0n
       : ceilDiv(liabilitySharesInStethWei * BASIS_POINTS, oneMinusRR);
 
-  const collateral = bigIntMax(parseEther('1'), liabilityDivOneMinusRR);
-  const recentlyRepaid =
-    liabilityDivOneMinusRR <= parseEther('1')
-      ? bigIntMax(locked - parseEther('1'), 0n)
-      : bigIntMax(locked - liabilityDivOneMinusRR, 0n);
+  const collateral = bigIntMax(minimalReserve, liabilityDivOneMinusRR);
+  const recentlyRepaid = bigIntMax(
+    lastReportLiabilityInStethWei - liabilitySharesInStethWei,
+    0n,
+  );
 
   const reservedByFormula =
     oneMinusRR === 0n

@@ -50,7 +50,7 @@ operatorGridRead
 
     const result = await callReadMethodSilent(
       operatorGridContract,
-      'vaultInfo',
+      'vaultTierInfo',
       [vault],
     );
 

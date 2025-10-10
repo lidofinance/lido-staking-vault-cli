@@ -51,8 +51,12 @@ reportWrite
   .action(
     withInterruptHandling(async (vaults: Address[], { gateway, skipError }) => {
       const lazyOracleContract = await getLazyOracleContract();
-      const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
-        await callReadMethod(lazyOracleContract, 'latestReportData');
+      const [
+        _vaultsDataTimestamp,
+        _vaultsDataRefSlot,
+        _vaultsDataTreeRoot,
+        vaultsDataReportCid,
+      ] = await callReadMethod(lazyOracleContract, 'latestReportData');
 
       const proofs = await getReportProofByVaults({
         cid: vaultsDataReportCid,
@@ -60,15 +64,23 @@ reportWrite
         vaults,
       });
 
-      const payloads: [Address, bigint, bigint, bigint, bigint, Hex[]][] =
-        proofs.map((report) => [
-          report.data.vaultAddress as Address,
-          BigInt(report.data.totalValueWei),
-          BigInt(report.data.fee),
-          BigInt(report.data.liabilityShares),
-          BigInt(report.data.slashingReserve),
-          report.proof,
-        ]);
+      const payloads: [
+        Address,
+        bigint,
+        bigint,
+        bigint,
+        bigint,
+        bigint,
+        Hex[],
+      ][] = proofs.map((report) => [
+        report.data.vaultAddress as Address,
+        BigInt(report.data.totalValueWei),
+        BigInt(report.data.fee),
+        BigInt(report.data.liabilityShares),
+        BigInt(report.data.maxLiabilityShares),
+        BigInt(report.data.slashingReserve),
+        report.proof,
+      ]);
 
       // TODO: await checkQuarantine(vault);
 
@@ -91,21 +103,34 @@ reportWrite
   .action(
     withInterruptHandling(async ({ gateway, skipError }) => {
       const lazyOracleContract = await getLazyOracleContract();
-      const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
-        await callReadMethod(lazyOracleContract, 'latestReportData');
+      const [
+        _vaultsDataTimestamp,
+        _vaultsDataRefSlot,
+        _vaultsDataTreeRoot,
+        vaultsDataReportCid,
+      ] = await callReadMethod(lazyOracleContract, 'latestReportData');
 
       const proofs = await getReportProofs({
         cid: vaultsDataReportCid,
         gateway,
       });
 
-      const payloads: [Address, bigint, bigint, bigint, bigint, Hex[]][] =
+      const payloads: [
+        Address,
+        bigint,
+        bigint,
+        bigint,
+        bigint,
+        bigint,
+        Hex[],
+      ][] =
         // eslint-disable-next-line sonarjs/no-identical-functions
         proofs.map((report) => [
           report.data.vaultAddress as Address,
           BigInt(report.data.totalValueWei),
           BigInt(report.data.fee),
           BigInt(report.data.liabilityShares),
+          BigInt(report.data.maxLiabilityShares),
           BigInt(report.data.slashingReserve),
           report.proof,
         ]);

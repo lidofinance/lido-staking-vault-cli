@@ -147,7 +147,9 @@ dashboardRead
 
 dashboardRead
   .command('confirming-roles')
-  .description('get confirming roles')
+  .description(
+    'get the roles that can:change the confirm expiry, set the node operator fee, set a new owner of the StakingVault',
+  )
   .argument('<address>', 'dashboard address', stringToAddress)
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);

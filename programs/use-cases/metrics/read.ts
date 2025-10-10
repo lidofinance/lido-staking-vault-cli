@@ -58,8 +58,12 @@ metricsRead
     await checkQuarantine(vaultAddress);
 
     const lazyOracleContract = await getLazyOracleContract();
-    const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
-      await callReadMethod(lazyOracleContract, 'latestReportData');
+    const [
+      _vaultsDataTimestamp,
+      _vaultsDataRefSlot,
+      _vaultsDataTreeRoot,
+      vaultsDataReportCid,
+    ] = await callReadMethod(lazyOracleContract, 'latestReportData');
 
     const { cacheUse, csv } = program.opts();
     const reportCurrent = await getVaultReport(
@@ -127,8 +131,12 @@ metricsRead
     await checkQuarantine(vaultAddress);
 
     const lazyOracleContract = await getLazyOracleContract();
-    const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
-      await callReadMethod(lazyOracleContract, 'latestReportData');
+    const [
+      _vaultsDataTimestamp,
+      _vaultsDataRefSlot,
+      _vaultsDataTreeRoot,
+      vaultsDataReportCid,
+    ] = await callReadMethod(lazyOracleContract, 'latestReportData');
 
     const { cacheUse, csv } = program.opts();
     const history = await getVaultReportHistory(
@@ -147,13 +155,14 @@ metricsRead
     for (const r of history) {
       let fee = await cache.getNodeOperatorFeeRate(vault, r.blockNumber);
       if (fee === null) {
-        fee = await callReadMethodSilent(
+        const feeRate = await callReadMethodSilent(
           dashboardContract,
-          'nodeOperatorFeeRate',
+          'feeRate',
           {
             blockNumber: BigInt(r.blockNumber),
           },
         );
+        fee = BigInt(feeRate);
         await cache.setNodeOperatorFeeRate(vault, r.blockNumber, fee);
       }
       nodeOperatorFeeBPs.push(fee);
@@ -215,8 +224,12 @@ metricsRead
     await checkQuarantine(vaultAddress);
 
     const lazyOracleContract = await getLazyOracleContract();
-    const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
-      await callReadMethod(lazyOracleContract, 'latestReportData');
+    const [
+      _vaultsDataTimestamp,
+      _vaultsDataRefSlot,
+      _vaultsDataTreeRoot,
+      vaultsDataReportCid,
+    ] = await callReadMethod(lazyOracleContract, 'latestReportData');
 
     const { cacheUse } = program.opts();
     const history = await getVaultReportHistory(
@@ -280,8 +293,12 @@ metricsRead
     await checkQuarantine(vaultAddress);
 
     const lazyOracleContract = await getLazyOracleContract();
-    const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
-      await callReadMethod(lazyOracleContract, 'latestReportData');
+    const [
+      _vaultsDataTimestamp,
+      _vaultsDataRefSlot,
+      _vaultsDataTreeRoot,
+      vaultsDataReportCid,
+    ] = await callReadMethod(lazyOracleContract, 'latestReportData');
     const { cacheUse } = program.opts();
 
     if (simplified) {
@@ -316,8 +333,12 @@ metricsRead
     await checkQuarantine(vaultAddress);
 
     const lazyOracleContract = await getLazyOracleContract();
-    const [_vaultsDataTimestamp, _vaultsDataTreeRoot, vaultsDataReportCid] =
-      await callReadMethod(lazyOracleContract, 'latestReportData');
+    const [
+      _vaultsDataTimestamp,
+      _vaultsDataRefSlot,
+      _vaultsDataTreeRoot,
+      vaultsDataReportCid,
+    ] = await callReadMethod(lazyOracleContract, 'latestReportData');
 
     const { cacheUse } = program.opts();
     const chartsData = await fetchRewardsChartsData({

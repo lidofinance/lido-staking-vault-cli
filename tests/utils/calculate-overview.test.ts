@@ -14,7 +14,7 @@ describe('calculateOverview', () => {
       totalValue: big(1000),
       reserveRatioBP: 1000,
       liabilitySharesInStethWei: big(300),
-      forceRebalanceThresholdBP: 1100,
+      forcedRebalanceThresholdBP: 1100,
       withdrawableEther: big(200),
       balance: big(50),
       locked: big(80),

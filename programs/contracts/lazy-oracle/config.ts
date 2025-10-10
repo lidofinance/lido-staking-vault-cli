@@ -56,4 +56,9 @@ export const readCommandConfig: ReadProgramCommandConfig<typeof LazyOracleAbi> =
       aliases: ['vc'],
       description: 'get vaults count',
     },
+    maxLidoFeeRatePerSecond: {
+      name: 'max-lido-fee-rate-per-second',
+      aliases: ['max-lfs'],
+      description: 'get the max Lido fee rate per second, in ether',
+    },
   };

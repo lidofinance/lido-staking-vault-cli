@@ -20,6 +20,11 @@ export const StakingVaultErrorsAbi = [
     type: 'error',
   },
   {
+    inputs: [],
+    name: 'EthCollectionNotAllowed',
+    type: 'error',
+  },
+  {
     inputs: [
       {
         internalType: 'uint256',
@@ -33,6 +38,22 @@ export const StakingVaultErrorsAbi = [
       },
     ],
     name: 'InsufficientBalance',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: '_staged',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: '_requested',
+        type: 'uint256',
+      },
+    ],
+    name: 'InsufficientStaged',
     type: 'error',
   },
   {
@@ -121,7 +142,18 @@ export const StakingVaultErrorsAbi = [
   },
   {
     inputs: [],
-    name: 'PubkeyLengthDoesNotMatchAmountLength',
+    name: 'RenouncementNotAllowed',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'token',
+        type: 'address',
+      },
+    ],
+    name: 'SafeERC20FailedOperation',
     type: 'error',
   },
   {
@@ -204,6 +236,31 @@ export const StakingVaultAbi = [
   },
   {
     anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'to',
+        type: 'address',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'assetAddress',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'amount',
+        type: 'uint256',
+      },
+    ],
+    name: 'AssetsRecovered',
+    type: 'event',
+  },
+  {
+    anonymous: false,
     inputs: [],
     name: 'BeaconChainDepositsPaused',
     type: 'event',
@@ -212,25 +269,6 @@ export const StakingVaultAbi = [
     anonymous: false,
     inputs: [],
     name: 'BeaconChainDepositsResumed',
-    type: 'event',
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: 'uint256',
-        name: '_deposits',
-        type: 'uint256',
-      },
-      {
-        indexed: false,
-        internalType: 'uint256',
-        name: '_totalAmount',
-        type: 'uint256',
-      },
-    ],
-    name: 'DepositedToBeaconChain',
     type: 'event',
   },
   {
@@ -263,6 +301,32 @@ export const StakingVaultAbi = [
       },
     ],
     name: 'EtherFunded',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'amount',
+        type: 'uint256',
+      },
+    ],
+    name: 'EtherStaged',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'amount',
+        type: 'uint256',
+      },
+    ],
+    name: 'EtherUnstaged',
     type: 'event',
   },
   {
@@ -417,7 +481,7 @@ export const StakingVaultAbi = [
       {
         indexed: false,
         internalType: 'uint64[]',
-        name: 'amounts',
+        name: 'amountsInGwei',
         type: 'uint64[]',
       },
       {
@@ -458,6 +522,19 @@ export const StakingVaultAbi = [
   },
   {
     inputs: [],
+    name: 'availableBalance',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
     name: 'beaconChainDepositsPaused',
     outputs: [
       {
@@ -491,6 +568,29 @@ export const StakingVaultAbi = [
   {
     inputs: [
       {
+        internalType: 'address',
+        name: '_token',
+        type: 'address',
+      },
+      {
+        internalType: 'address',
+        name: '_recipient',
+        type: 'address',
+      },
+      {
+        internalType: 'uint256',
+        name: '_amount',
+        type: 'uint256',
+      },
+    ],
+    name: 'collectERC20',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
         components: [
           {
             internalType: 'bytes',
@@ -513,9 +613,49 @@ export const StakingVaultAbi = [
             type: 'bytes32',
           },
         ],
-        internalType: 'struct IStakingVault.Deposit[]',
-        name: '_deposits',
-        type: 'tuple[]',
+        internalType: 'struct IStakingVault.Deposit',
+        name: '_deposit',
+        type: 'tuple',
+      },
+      {
+        internalType: 'uint256',
+        name: '_additionalAmount',
+        type: 'uint256',
+      },
+    ],
+    name: 'depositFromStaged',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        components: [
+          {
+            internalType: 'bytes',
+            name: 'pubkey',
+            type: 'bytes',
+          },
+          {
+            internalType: 'bytes',
+            name: 'signature',
+            type: 'bytes',
+          },
+          {
+            internalType: 'uint256',
+            name: 'amount',
+            type: 'uint256',
+          },
+          {
+            internalType: 'bytes32',
+            name: 'depositDataRoot',
+            type: 'bytes32',
+          },
+        ],
+        internalType: 'struct IStakingVault.Deposit',
+        name: '_deposit',
+        type: 'tuple',
       },
     ],
     name: 'depositToBeaconChain',
@@ -595,19 +735,6 @@ export const StakingVaultAbi = [
     name: 'initialize',
     outputs: [],
     stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'isOssified',
-    outputs: [
-      {
-        internalType: 'bool',
-        name: '',
-        type: 'bool',
-      },
-    ],
-    stateMutability: 'view',
     type: 'function',
   },
   {
@@ -706,6 +833,32 @@ export const StakingVaultAbi = [
   {
     inputs: [
       {
+        internalType: 'uint256',
+        name: '_ether',
+        type: 'uint256',
+      },
+    ],
+    name: 'stage',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'stagedBalance',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
         internalType: 'address',
         name: '_newOwner',
         type: 'address',
@@ -725,7 +878,7 @@ export const StakingVaultAbi = [
       },
       {
         internalType: 'uint64[]',
-        name: '_amounts',
+        name: '_amountsInGwei',
         type: 'uint64[]',
       },
       {
@@ -737,6 +890,19 @@ export const StakingVaultAbi = [
     name: 'triggerValidatorWithdrawals',
     outputs: [],
     stateMutability: 'payable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: '_ether',
+        type: 'uint256',
+      },
+    ],
+    name: 'unstage',
+    outputs: [],
+    stateMutability: 'nonpayable',
     type: 'function',
   },
   {

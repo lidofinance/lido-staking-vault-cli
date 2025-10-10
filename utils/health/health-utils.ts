@@ -8,12 +8,13 @@ import { calculateHealth } from './calculate-health.js';
 export const fetchVaultMetrics = async (contract: DashboardContract) => {
   const stethContract = await getStethContract();
 
-  const [totalValue, liabilityShares, forceRebalanceThresholdBP] =
-    await Promise.all([
-      callReadMethodSilent(contract, 'totalValue'), // BigInt, in wei
-      callReadMethodSilent(contract, 'liabilityShares'), // BigInt, in shares
-      callReadMethodSilent(contract, 'forcedRebalanceThresholdBP'), // number (in basis points)
-    ]);
+  const [totalValue, liabilityShares, vaultConnection] = await Promise.all([
+    callReadMethodSilent(contract, 'totalValue'), // BigInt, in wei
+    callReadMethodSilent(contract, 'liabilityShares'), // BigInt, in shares
+    callReadMethodSilent(contract, 'vaultConnection'),
+  ]);
+
+  const { forcedRebalanceThresholdBP } = vaultConnection;
 
   const liabilitySharesInStethWei = await callReadMethodSilent(
     stethContract,
@@ -24,7 +25,7 @@ export const fetchVaultMetrics = async (contract: DashboardContract) => {
   return {
     totalValue,
     liabilityShares,
-    forceRebalanceThresholdBP,
+    forcedRebalanceThresholdBP,
     liabilitySharesInStethWei,
     stethContract,
   };
@@ -35,14 +36,14 @@ export const fetchAndCalculateVaultHealth = async (
 ) => {
   const {
     totalValue,
-    forceRebalanceThresholdBP,
+    forcedRebalanceThresholdBP,
     liabilitySharesInStethWei,
     liabilityShares,
   } = await fetchVaultMetrics(contract);
   const { healthRatio, isHealthy } = calculateHealth({
     totalValue,
     liabilitySharesInStethWei,
-    forceRebalanceThresholdBP,
+    forcedRebalanceThresholdBP,
   });
 
   return {
@@ -52,7 +53,7 @@ export const fetchAndCalculateVaultHealth = async (
     totalValueInEth: formatEther(totalValue),
     liabilitySharesInStethWei,
     liabilitySharesInSteth: formatEther(liabilitySharesInStethWei),
-    forceRebalanceThresholdBP,
+    forcedRebalanceThresholdBP,
     liabilitySharesInWei: liabilityShares,
     liabilityShares: formatEther(liabilityShares),
   };
@@ -65,7 +66,7 @@ export const fetchAndCalculateVaultHealthWithNewValue = async (
 ) => {
   const {
     totalValue,
-    forceRebalanceThresholdBP,
+    forcedRebalanceThresholdBP,
     liabilitySharesInStethWei,
     stethContract,
     liabilityShares,
@@ -85,12 +86,12 @@ export const fetchAndCalculateVaultHealthWithNewValue = async (
   const currentVaultHealth = calculateHealth({
     totalValue,
     liabilitySharesInStethWei,
-    forceRebalanceThresholdBP,
+    forcedRebalanceThresholdBP,
   });
   const newVaultHealth = calculateHealth({
     totalValue,
     liabilitySharesInStethWei: newLiabilitySharesInStethWei,
-    forceRebalanceThresholdBP,
+    forcedRebalanceThresholdBP,
   });
 
   return {
@@ -98,7 +99,7 @@ export const fetchAndCalculateVaultHealthWithNewValue = async (
     newVaultHealth,
     totalValue,
     liabilitySharesInStethWei,
-    forceRebalanceThresholdBP,
+    forcedRebalanceThresholdBP,
     liabilityShares,
     newLiabilityShares,
     newLiabilitySharesInStethWei,

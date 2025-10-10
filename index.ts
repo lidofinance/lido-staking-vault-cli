@@ -7,14 +7,15 @@ import './programs/index.js';
 export * from './utils/index.js';
 
 const showTestnetWarning = () => {
-  console.info('\n🎉 Testnet-2 is officially launched!');
-  console.info(
-    '🌐 Web UI is updated and available at: https://vaults-hoodi-lidov3.testnet.fi/vaults',
-  );
+  console.info('\n⚠️ 🎉🎉  HOODI V3 is officially launched!  🎉🎉 ⚠️');
+  // console.info(
+  //   '🌐 Web UI is updated and available at: https://vaults-hoodi-lidov3.testnet.fi/vaults',
+  // );
   console.info('🔄 Testnet-1 is available on the testnet-1 branch.');
-  console.info(
-    '📄 Contracts info: https://docs.lido.fi/deployed-contracts/hoodi-lidov3/\n',
-  );
+  console.info('🔄 Testnet-2 is available on the testnet-2 branch.');
+  // console.info(
+  //   '📄 Contracts info: https://docs.lido.fi/deployed-contracts/hoodi-lidov3/\n',
+  // );
 };
 
 program.addHelpText('afterAll', () => {

@@ -119,7 +119,9 @@ vaultOperationsCreateVault
             data: [
               ['Vault Address', tx?.vault],
               ['Dashboard Address', tx?.dashboard],
-              ['Owner Address', tx?.owner],
+              ['Default Admin Address', tx?.owner],
+              ['Node Operator Address', nodeOperatorAddress],
+              ['Node Operator Manager Address', nodeOperatorManagerAddress],
               ['Transaction Hash', tx?.tx],
               ['Block Number', tx?.blockNumber],
             ],
@@ -234,7 +236,9 @@ vaultOperationsCreateVault
             data: [
               ['Vault Address', tx?.vault],
               ['Dashboard Address', tx?.dashboard],
-              ['Owner Address', tx?.owner],
+              ['Default Admin Address', tx?.owner],
+              ['Node Operator Address', nodeOperatorAddress],
+              ['Node Operator Manager Address', nodeOperatorManagerAddress],
               ['Transaction Hash', tx?.tx],
               ['Block Number', tx?.blockNumber],
             ],

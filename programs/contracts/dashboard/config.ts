@@ -21,18 +21,6 @@ export const readCommandConfig: ReadProgramCommandConfig<typeof DashboardAbi> =
       name: 'total-value',
       description: 'get the total value of the vault in ether',
     },
-    infraFeeBP: {
-      name: 'infra-fee',
-      description: 'get infra fee basis points.',
-    },
-    liquidityFeeBP: {
-      name: 'liquidity-fee',
-      description: 'get liquidity fee basis points',
-    },
-    reservationFeeBP: {
-      name: 'reservation-fee',
-      description: 'get reservation fee basis points',
-    },
     totalMintingCapacityShares: {
       name: 'total-minting-capacity',
       description:
@@ -45,18 +33,6 @@ export const readCommandConfig: ReadProgramCommandConfig<typeof DashboardAbi> =
     liabilityShares: {
       name: 'liability-shares',
       description: 'get the number of stETHshares minted',
-    },
-    shareLimit: {
-      name: 's-limit',
-      description: 'get the stETH share limit of the vault',
-    },
-    reserveRatioBP: {
-      name: 'reserve-ratio',
-      description: 'get reserve ratio in basis points',
-    },
-    forcedRebalanceThresholdBP: {
-      name: 'force-rebalance-threshold',
-      description: 'get the rebalance threshold of the vault in basis points',
     },
     remainingMintingCapacityShares: {
       name: 'remaining-minting-capacity',
@@ -78,23 +54,13 @@ export const readCommandConfig: ReadProgramCommandConfig<typeof DashboardAbi> =
       name: 'has-role',
       description: 'get has role by role and account',
     },
-    nodeOperatorDisbursableFee: {
-      name: 'no-disbursable-fee',
-      description: 'get the node operator`s disbursable fee',
+    accruedFee: {
+      name: 'no-accrued-fee',
+      description: 'get the node operator`s accrued fee',
     },
-    feePeriodStartReport: {
-      name: 'no-fee-report',
-      description:
-        'get last report for which node operator fee was disbursed. Updated on each disbursement',
-    },
-    nodeOperatorFeeRate: {
+    feeRate: {
       name: 'no-fee-rate',
       description: 'get node operator fee rate in basis points',
-    },
-    rewardsAdjustment: {
-      name: 'rewards-adjustment',
-      description:
-        'get rewards offset that excludes side deposits and consolidations',
     },
     confirmation: {
       name: 'confirmation',
@@ -104,11 +70,6 @@ export const readCommandConfig: ReadProgramCommandConfig<typeof DashboardAbi> =
     getConfirmExpiry: {
       name: 'get-confirm-expiry',
       description: 'get the confirmation expiry',
-    },
-    MANUAL_REWARDS_ADJUSTMENT_LIMIT: {
-      name: 'manual-rewards-adjustment-limit',
-      description:
-        'get the maximum value that can be set via manual adjustment',
     },
     MAX_CONFIRM_EXPIRY: {
       name: 'MAX_CONFIRM_EXPIRY',
@@ -121,5 +82,59 @@ export const readCommandConfig: ReadProgramCommandConfig<typeof DashboardAbi> =
     supportsInterface: {
       name: 'supports-interface',
       description: 'get supports interface by id',
+    },
+    healthShortfallShares: {
+      name: 'health-shortfall-shares',
+      description:
+        'get the amount of shares to rebalance to restore vault healthiness or to cover redemptions',
+    },
+    minimalReserve: {
+      name: 'minimal-reserve',
+      description:
+        'get the amount of ether that is locked on the vault only as a reserve',
+    },
+    obligations: {
+      name: 'obligations',
+      description:
+        'get the amount of shares to burn to restore vault healthiness or to cover redemptions and the amount of outstanding Lido fees',
+    },
+    feeRecipient: {
+      name: 'node-operator-fee-recipient',
+      description: 'get the address of the node operator fee recipient',
+    },
+    maxLockableValue: {
+      name: 'max-lockable-value',
+      description:
+        'get the max total lockable amount of ether for the vault (excluding the Lido and node operator fees)',
+    },
+    latestReport: {
+      name: 'latest-report',
+      aliases: ['lr'],
+      description:
+        'get the latest report data containing the total value and in-out delta',
+    },
+    settledGrowth: {
+      name: 'settled-growth',
+      description: 'get settled growth of the vault not subject to fees',
+    },
+    pdgPolicy: {
+      name: 'pdg-policy',
+      description:
+        'get the current active PDG policy set by `DEFAULT_ADMIN_ROLE`',
+    },
+    latestCorrectionTimestamp: {
+      name: 'latest-correction-timestamp',
+      description:
+        'get the timestamp of the most recent settled growth correction',
+    },
+    isApprovedToConnect: {
+      name: 'is-approved-to-connect',
+      description:
+        'get the flag indicating whether the vault is approved by the node operator to connect to VaultHub',
+    },
+    obligationsShortfallValue: {
+      name: 'obligations-shortfall-value',
+      description:
+        'get the amount of ether required to cover obligations shortfall of the vault',
     },
   };

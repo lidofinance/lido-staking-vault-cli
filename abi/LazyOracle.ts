@@ -37,13 +37,87 @@ export const LazyOracleAbi = [
     type: 'error',
   },
   {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: 'feeIncrease',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: 'maxFeeIncrease',
+        type: 'uint256',
+      },
+    ],
+    name: 'CumulativeLidoFeesTooLarge',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: 'reportingFees',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: 'previousFees',
+        type: 'uint256',
+      },
+    ],
+    name: 'CumulativeLidoFeesTooLow',
+    type: 'error',
+  },
+  {
+    inputs: [],
+    name: 'InOutDeltaCacheIsOverwritten',
+    type: 'error',
+  },
+  {
     inputs: [],
     name: 'InvalidInitialization',
     type: 'error',
   },
   {
     inputs: [],
+    name: 'InvalidMaxLiabilityShares',
+    type: 'error',
+  },
+  {
+    inputs: [],
     name: 'InvalidProof',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: 'feeRate',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: 'maxFeeRate',
+        type: 'uint256',
+      },
+    ],
+    name: 'MaxLidoFeeRatePerSecondTooLarge',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: 'rewardRatio',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: 'maxRewardRatio',
+        type: 'uint256',
+      },
+    ],
+    name: 'MaxRewardRatioTooLarge',
     type: 'error',
   },
   {
@@ -57,6 +131,22 @@ export const LazyOracleAbi = [
     type: 'error',
   },
   {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: 'quarantinePeriod',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: 'maxQuarantinePeriod',
+        type: 'uint256',
+      },
+    ],
+    name: 'QuarantinePeriodTooLarge',
+    type: 'error',
+  },
+  {
     inputs: [],
     name: 'TotalValueTooLarge',
     type: 'error',
@@ -64,6 +154,11 @@ export const LazyOracleAbi = [
   {
     inputs: [],
     name: 'UnderflowInTotalValueCalculation',
+    type: 'error',
+  },
+  {
+    inputs: [],
+    name: 'VaultReportIsFreshEnough',
     type: 'error',
   },
   {
@@ -90,12 +185,12 @@ export const LazyOracleAbi = [
       },
       {
         indexed: false,
-        internalType: 'uint128',
+        internalType: 'uint256',
         name: 'delta',
-        type: 'uint128',
+        type: 'uint256',
       },
     ],
-    name: 'QuarantineExpired',
+    name: 'QuarantineActivated',
     type: 'event',
   },
   {
@@ -109,12 +204,25 @@ export const LazyOracleAbi = [
       },
       {
         indexed: false,
-        internalType: 'uint128',
+        internalType: 'uint256',
         name: 'delta',
-        type: 'uint128',
+        type: 'uint256',
       },
     ],
-    name: 'QuarantinedDeposit',
+    name: 'QuarantineReleased',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'vault',
+        type: 'address',
+      },
+    ],
+    name: 'QuarantineRemoved',
     type: 'event',
   },
   {
@@ -197,15 +305,21 @@ export const LazyOracleAbi = [
     inputs: [
       {
         indexed: false,
-        internalType: 'uint64',
+        internalType: 'uint256',
         name: 'quarantinePeriod',
-        type: 'uint64',
+        type: 'uint256',
       },
       {
         indexed: false,
-        internalType: 'uint16',
+        internalType: 'uint256',
         name: 'maxRewardRatioBP',
-        type: 'uint16',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'maxLidoFeeRatePerSecond',
+        type: 'uint256',
       },
     ],
     name: 'SanityParamsUpdated',
@@ -218,6 +332,12 @@ export const LazyOracleAbi = [
         indexed: true,
         internalType: 'uint256',
         name: 'timestamp',
+        type: 'uint256',
+      },
+      {
+        indexed: true,
+        internalType: 'uint256',
+        name: 'refSlot',
         type: 'uint256',
       },
       {
@@ -264,12 +384,70 @@ export const LazyOracleAbi = [
   },
   {
     inputs: [],
+    name: 'MAX_LIDO_FEE_RATE_PER_SECOND',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'MAX_QUARANTINE_PERIOD',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'MAX_REWARD_RATIO',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
     name: 'UPDATE_SANITY_PARAMS_ROLE',
     outputs: [
       {
         internalType: 'bytes32',
         name: '',
         type: 'bytes32',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'bytes[]',
+        name: '_pubkeys',
+        type: 'bytes[]',
+      },
+    ],
+    name: 'batchValidatorStages',
+    outputs: [
+      {
+        internalType: 'enum IPredepositGuarantee.ValidatorStage[]',
+        name: 'batch',
+        type: 'uint8[]',
       },
     ],
     stateMutability: 'view',
@@ -299,7 +477,7 @@ export const LazyOracleAbi = [
           },
           {
             internalType: 'uint256',
-            name: 'balance',
+            name: 'aggregatedBalance',
             type: 'uint256',
           },
           {
@@ -315,6 +493,11 @@ export const LazyOracleAbi = [
           {
             internalType: 'uint256',
             name: 'liabilityShares',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint256',
+            name: 'maxLiabilityShares',
             type: 'uint256',
           },
           {
@@ -497,14 +680,19 @@ export const LazyOracleAbi = [
         type: 'address',
       },
       {
-        internalType: 'uint64',
+        internalType: 'uint256',
         name: '_quarantinePeriod',
-        type: 'uint64',
+        type: 'uint256',
       },
       {
-        internalType: 'uint16',
+        internalType: 'uint256',
         name: '_maxRewardRatioBP',
-        type: 'uint16',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: '_maxLidoFeeRatePerSecond',
+        type: 'uint256',
       },
     ],
     name: 'initialize',
@@ -517,9 +705,14 @@ export const LazyOracleAbi = [
     name: 'latestReportData',
     outputs: [
       {
-        internalType: 'uint64',
+        internalType: 'uint256',
         name: 'timestamp',
-        type: 'uint64',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: 'refSlot',
+        type: 'uint256',
       },
       {
         internalType: 'bytes32',
@@ -540,9 +733,22 @@ export const LazyOracleAbi = [
     name: 'latestReportTimestamp',
     outputs: [
       {
-        internalType: 'uint64',
+        internalType: 'uint256',
         name: '',
-        type: 'uint64',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'maxLidoFeeRatePerSecond',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
       },
     ],
     stateMutability: 'view',
@@ -553,9 +759,9 @@ export const LazyOracleAbi = [
     name: 'maxRewardRatioBP',
     outputs: [
       {
-        internalType: 'uint16',
+        internalType: 'uint256',
         name: '',
-        type: 'uint16',
+        type: 'uint256',
       },
     ],
     stateMutability: 'view',
@@ -566,12 +772,25 @@ export const LazyOracleAbi = [
     name: 'quarantinePeriod',
     outputs: [
       {
-        internalType: 'uint64',
+        internalType: 'uint256',
         name: '',
-        type: 'uint64',
+        type: 'uint256',
       },
     ],
     stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: '_vault',
+        type: 'address',
+      },
+    ],
+    name: 'removeVaultQuarantine',
+    outputs: [],
+    stateMutability: 'nonpayable',
     type: 'function',
   },
   {
@@ -637,6 +856,11 @@ export const LazyOracleAbi = [
         type: 'uint256',
       },
       {
+        internalType: 'uint256',
+        name: '_vaultsDataRefSlot',
+        type: 'uint256',
+      },
+      {
         internalType: 'bytes32',
         name: '_vaultsDataTreeRoot',
         type: 'bytes32',
@@ -655,14 +879,19 @@ export const LazyOracleAbi = [
   {
     inputs: [
       {
-        internalType: 'uint64',
+        internalType: 'uint256',
         name: '_quarantinePeriod',
-        type: 'uint64',
+        type: 'uint256',
       },
       {
-        internalType: 'uint16',
+        internalType: 'uint256',
         name: '_maxRewardRatioBP',
-        type: 'uint16',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: '_maxLidoFeeRatePerSecond',
+        type: 'uint256',
       },
     ],
     name: 'updateSanityParams',
@@ -694,6 +923,11 @@ export const LazyOracleAbi = [
       },
       {
         internalType: 'uint256',
+        name: '_maxLiabilityShares',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
         name: '_slashingReserve',
         type: 'uint256',
       },
@@ -706,6 +940,97 @@ export const LazyOracleAbi = [
     name: 'updateVaultData',
     outputs: [],
     stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: '_vault',
+        type: 'address',
+      },
+    ],
+    name: 'vaultInfo',
+    outputs: [
+      {
+        components: [
+          {
+            internalType: 'address',
+            name: 'vault',
+            type: 'address',
+          },
+          {
+            internalType: 'uint256',
+            name: 'aggregatedBalance',
+            type: 'uint256',
+          },
+          {
+            internalType: 'int256',
+            name: 'inOutDelta',
+            type: 'int256',
+          },
+          {
+            internalType: 'bytes32',
+            name: 'withdrawalCredentials',
+            type: 'bytes32',
+          },
+          {
+            internalType: 'uint256',
+            name: 'liabilityShares',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint256',
+            name: 'maxLiabilityShares',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint256',
+            name: 'mintableStETH',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint96',
+            name: 'shareLimit',
+            type: 'uint96',
+          },
+          {
+            internalType: 'uint16',
+            name: 'reserveRatioBP',
+            type: 'uint16',
+          },
+          {
+            internalType: 'uint16',
+            name: 'forcedRebalanceThresholdBP',
+            type: 'uint16',
+          },
+          {
+            internalType: 'uint16',
+            name: 'infraFeeBP',
+            type: 'uint16',
+          },
+          {
+            internalType: 'uint16',
+            name: 'liquidityFeeBP',
+            type: 'uint16',
+          },
+          {
+            internalType: 'uint16',
+            name: 'reservationFeeBP',
+            type: 'uint16',
+          },
+          {
+            internalType: 'bool',
+            name: 'pendingDisconnect',
+            type: 'bool',
+          },
+        ],
+        internalType: 'struct LazyOracle.VaultInfo',
+        name: '',
+        type: 'tuple',
+      },
+    ],
+    stateMutability: 'view',
     type: 'function',
   },
   {
