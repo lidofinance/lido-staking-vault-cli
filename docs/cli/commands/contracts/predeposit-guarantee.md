@@ -30,7 +30,7 @@ yarn start contracts pdg -h
 | info                                                                     | get PredepositGuarantee base info                                                                  |
 | roles                                                                    | get PredepositGuarantee roles                                                                      |
 | validator-status v-status\<validatorPubkey>                              | get validator status                                                                               |
-| pending-predeposits pd\<vault>                                           | get the current amount of ether that is predeposited to a given vault                              |
+| pending-activations pd\<vault>                                           | get the amount of ether that is pending as predeposits but not proved yet                          |
 | ACTIVATION_DEPOSIT_AMOUNT                                                | get amount of ether to be deposited after the predeposit to activate the validator                 |
 | BEACON_ROOTS                                                             | get beacon roots address                                                                           |
 | DEFAULT_ADMIN_ROLE                                                       | get default admin role                                                                             |
@@ -40,6 +40,7 @@ yarn start contracts pdg -h
 | GI_PUBKEY_WC_PARENT                                                      | get pubkey wc parent gIndex                                                                        |
 | GI_STATE_ROOT                                                            | get state root gIndex                                                                              |
 | MAX_SUPPORTED_WC_VERSION                                                 | get max supported wc version                                                                       |
+| MAX_TOPUP_AMOUNT                                                         | Calls the read-only function "MAX_TOPUP_AMOUNT" on the contract.                                   |
 | MIN_SUPPORTED_WC_VERSION                                                 | get min supported wc version                                                                       |
 | PAUSE_INFINITELY                                                         | get special value for the infinite pause                                                           |
 | PAUSE_ROLE                                                               | get pause role                                                                                     |

@@ -27,6 +27,9 @@ yarn start v-v -h
 | Command                                                      | Description                                                         |
 | ------------------------------------------------------------ | ------------------------------------------------------------------- |
 | DEFAULT_ADMIN_ROLE                                           | Calls the read-only function "DEFAULT_ADMIN_ROLE" on the contract.  |
+| LAZY_ORACLE                                                  | Calls the read-only function "LAZY_ORACLE" on the contract.         |
+| LIDO_LOCATOR                                                 | Calls the read-only function "LIDO_LOCATOR" on the contract.        |
+| VAULT_HUB                                                    | Calls the read-only function "VAULT_HUB" on the contract.           |
 | getRoleMembers \<vaultAddress> \<roles>                      | Calls the read-only function "getRoleMembers" on the contract.      |
 | getRoleMembersBatch \<vaultAddresses> \<roles>               | Calls the read-only function "getRoleMembersBatch" on the contract. |
 | getVaultData \<vault>                                        | Calls the read-only function "getVaultData" on the contract.        |
@@ -34,8 +37,6 @@ yarn start v-v -h
 | has-role \<vault> \<member> \<role>                          | check if an address has a role in a vault                           |
 | isContract \<account>                                        | Calls the read-only function "isContract" on the contract.          |
 | is-owner \<vault> \<owner>                                   | check if an address is the owner of a vault                         |
-| vaultHub                                                     | Calls the read-only function "vaultHub" on the contract.            |
-| vaultState \<\_vault>                                        | Calls the read-only function "vaultState" on the contract.          |
 | by-owner \<owner>                                            | get vaults by owner                                                 |
 | by-owner-bound \<owner> \<from> \<to>                        | get vaults by owner - bound                                         |
 | by-role-address by-ra\<role> \<member>                       | get vaults by role and address                                      |

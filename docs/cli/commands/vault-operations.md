@@ -46,13 +46,13 @@ Vault Operations commands manage the core functionality of Lido Staking Vaults i
 | mint-wsteth \<amountOfWsteth>              | mints wstETH tokens backed by the vault to a recipient                                                                  |
 | mint-steth \<amountOfSteth>                | mints stETH tokens backed by the vault to a recipient                                                                   |
 | burn-shares burn\<amountOfShares>          | Burns stETH shares from the sender backed by the vault. Expects corresponding amount of stETH approved to this contract |
-| burn-steth \<amountOfShares>               | Burns stETH shares from the sender backed by the vault. Expects stETH amount approved to this contract.                 |
-| burn-wsteth \<amountOfWsteth>              | Burns wstETH tokens from the sender backed by the vault. Expects wstETH amount approved to this contract.               |
-| disburse-node-operator-fee                 | transfers the node operator's accrued fee to nodeOperatorFeeRecipient                                                   |
-| set-node-operator-fee-recipient set-no-f-r | sets the node operator fee recipient address                                                                            |
-| change-tier-by-no ct-no \<tierId>          | vault tier change by node operator with multi-role confirmation                                                         |
-| change-tier ct \<tierId>                   | vault tier change by VAULT_CONFIGURATION_ROLE role with multi-role confirmation                                         |
-| sync-tier st                               | requests a sync of tier on the OperatorGrid with multi-role confirmation                                                |
+| burn-steth \<amountOfSteth>                | Burns stETH shares from the sender backed by the vault. Expects stETH amount approved to this contract.                 |
+| burn-wsteth \<amountOfWsteth>              | burn wstETH tokens from the sender backed by the vault                                                                  |
+| disburse-node-operator-fee                 | transfers the node-operator`s accrued fee (if any) to nodeOperatorFeeRecipient                                          |
+| set-node-operator-fee-recipient set-no-f-r | sets the node operator fee recipient                                                                                    |
+| change-tier-by-no ct-no\<tierId>           | vault tier change by node operator with multi-role confirmation                                                         |
+| change-tier ct\<tierId>                    | vault tier change with multi-role confirmation                                                                          |
+| sync-tier st                               | requests a sync of tier on the OperatorGrid                                                                             |
 | create-vault                               | creates a new StakingVault and Dashboard contracts                                                                      |
 
 ## Command Details

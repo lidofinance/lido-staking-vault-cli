@@ -29,26 +29,26 @@ Deposits commands handle validator deposits for Lido Staking Vaults. They work w
 
 ### Read
 
-| Command                                     | Description                                                                                                 |
-| ------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| info                                        | get PredepositGuarantee base info                                                                           |
-| roles                                       | get PredepositGuarantee roles                                                                               |
-| validator-status v-status\<validatorPubkey> | get validator status                                                                                        |
-| no-balance (no-bal)                         | get total, locked & unlocked balances for the node operator in PDG                                          |
-| no-info                                     | get comprehensive info about the node operator in PDG including balances, depositor and guarantor addresses |
-| pending-predeposits pd                      | get the current amount of ether that is predeposited to a given vault                                       |
+|                                             | Command                                                                                                                  | Description |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ----------- |
+| info                                        | get PredepositGuarantee base info                                                                                        |
+| roles                                       | get PredepositGuarantee roles                                                                                            |
+| validator-status v-status\<validatorPubkey> | get validator status                                                                                                     |
+| no-balance no-bal                           | get total,locked & unlocked (the amount of ether that NO can lock for predeposit or withdraw) balances for the NO in PDG |
+| no-info                                     | get info about the NO in PDG                                                                                             |
+| pending-activations pd                      | get the amount of ether that is pending as predeposits but not proved yet                                                |
 
 ### Write
 
-| Command                                           | Description                                                                                                  |
-| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| predeposit \<deposits>                            | Deposits node operator's validators with PREDEPOSIT_AMOUNT ether from StakingVault and locks up NO's balance |
-| proof-and-prove (prove)                           | Create proof for a validator and prove its withdrawal credentials                                            |
-| prove-and-top-up \<indexes> \<amounts>            | Prove validators to unlock NO balance, activate validators from stash, and optionally top up NO balance      |
-| top-up-existing-validators (top-up-val) \<topUps> | Deposits ether to proven validators from staking vault                                                       |
-| top-up-no \<amount>                               | Top up node operator balance in the PDG contract                                                             |
-| withdraw-no-balance \<amount>                     | Withdraw node operator balance from the PDG contract                                                         |
-| set-no-guarantor (set-no-g)                       | Set node operator guarantor address                                                                          |
+| Command                                        | Description                                                                                                        |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| predeposit \<deposits>                         | deposits NO's validators with PREDEPOSIT_AMOUNT ether from StakingVault and locks up NO's balance                  |
+| proof-and-prove prove                          | permissionless method to prove correct Withdrawal Credentials for the validator and to send the activation deposit |
+| prove-and-top-up \<indexes> \<amounts>         | prove validators to unlock NO balance, activate the validators from stash, and optionally top up NO balance        |
+| top-up-existing-validators top-up-val\<topUps> | deposits ether to proven validators from staking vault                                                             |
+| top-up-no \<amount>                            | top up Node Operator balance                                                                                       |
+| withdraw-no-balance \<amount>                  | withdraw Node Operator balance                                                                                     |
+| set-no-guarantor set-no-g                      | set Node Operator guarantor                                                                                        |
 
 ## Command Details
 
@@ -122,7 +122,7 @@ Provides comprehensive information about a node operator including balance detai
 - **Depositor**: Address authorized to make deposits, with "(you)" if current account matches
 - **Guarantor**: Address providing balance management, with "(you)" if current account matches
 
-### pending-predeposits (pd)
+### pending-activations (pd)
 
 Retrieves the current amount of ether that is predeposited to a given vault.
 
