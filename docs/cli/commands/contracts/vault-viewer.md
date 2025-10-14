@@ -7,13 +7,13 @@ sidebar_position: 6
 ## Command
 
 ```bash
-yarn start v-v [arguments] [-options]
+yarn start contracts v-v [arguments] [-options]
 ```
 
 ## VaultViewer commands list
 
 ```bash
-yarn start v-v -h
+yarn start contracts v-v -h
 ```
 
 ## API
