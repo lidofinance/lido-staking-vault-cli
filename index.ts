@@ -9,13 +9,13 @@ export * from './utils/index.js';
 const showTestnetWarning = () => {
   console.info('\n⚠️ 🎉🎉  HOODI V3 is officially launched!  🎉🎉⚠️');
   console.info(
-    '🌐 Web UI is updated and available at: https://stvaults-hoodi.testnet.fi/vaults',
+    '🌐 Web UI is available at: https://stvaults-hoodi.testnet.fi/vaults',
   );
   console.info(
     '📄 Contracts info: https://docs.lido.fi/deployed-contracts/hoodi',
   );
   console.info(
-    '🔄 stVaults Doc Center: https://docs.lido.fi/run-on-lido/stvaults',
+    '📖 stVaults Doc Center: https://docs.lido.fi/run-on-lido/stvaults',
   );
   console.info('\n');
   console.info('🔄 Testnet-1 is available on the testnet-1 branch.');
