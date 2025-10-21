@@ -1020,3 +1020,24 @@ dashboardWrite
       payload: [shareLimit],
     });
   });
+
+dashboardWrite
+  .command('disburse-abnormally-high-fee')
+  .description(
+    'Disburses an abnormally high fee as `DEFAULT_ADMIN_ROLE`. Before calling this function, the caller must ensure that the high fee is expected, and the settled growth (used as baseline for fee) is set correctly.',
+  )
+  .argument('<address>', 'dashboard address', stringToAddress)
+  .action(async (address: Address) => {
+    const contract = getDashboardContract(address);
+
+    const confirm = await confirmOperation(
+      'Are you sure you want to disburse an abnormally high fee as `DEFAULT_ADMIN_ROLE`?',
+    );
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'disburseAbnormallyHighFee',
+      payload: [],
+    });
+  });
