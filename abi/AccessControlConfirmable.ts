@@ -122,7 +122,7 @@ export const AccessControlConfirmableAbi = [
       {
         indexed: true,
         internalType: 'bytes32',
-        name: 'role',
+        name: 'roleOrAddress',
         type: 'bytes32',
       },
       {

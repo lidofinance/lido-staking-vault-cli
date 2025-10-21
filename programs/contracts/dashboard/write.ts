@@ -12,6 +12,7 @@ import {
   mintSteth,
   burnSteth,
   checkIsReportFresh,
+  confirmSettledGrowth,
 } from 'features';
 import {
   callReadMethod,
@@ -690,16 +691,25 @@ dashboardWrite
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
     const vault = await callReadMethod(contract, 'stakingVault');
+    const currentSettledGrowth = await callReadMethodSilent(
+      contract,
+      'settledGrowth',
+    );
+
+    const confirmedSettledGrowth =
+      await confirmSettledGrowth(currentSettledGrowth);
+    if (!confirmedSettledGrowth) return;
 
     const confirm = await confirmOperation(
-      `Are you sure you want to connect the dashboard ${address} (vault: ${vault}) to VaultHub?`,
+      `Are you sure you want to connect the dashboard ${address} (vault: ${vault}) to VaultHub?
+      Settled growth: ${formatEther(confirmedSettledGrowth)}`,
     );
     if (!confirm) return;
 
     await callWriteMethodWithReceipt({
       contract,
       methodName: 'connectToVaultHub',
-      payload: [],
+      payload: [confirmedSettledGrowth],
     });
   });
 
@@ -713,16 +723,25 @@ dashboardWrite
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
     const vault = await callReadMethod(contract, 'stakingVault');
+    const currentSettledGrowth = await callReadMethodSilent(
+      contract,
+      'settledGrowth',
+    );
+
+    const confirmedSettledGrowth =
+      await confirmSettledGrowth(currentSettledGrowth);
+    if (!confirmedSettledGrowth) return;
 
     const confirm = await confirmOperation(
-      `Are you sure you want to reconnect the dashboard ${address} (vault: ${vault}) to VaultHub?`,
+      `Are you sure you want to reconnect the dashboard ${address} (vault: ${vault}) to VaultHub?
+      Settled growth: ${formatEther(confirmedSettledGrowth)}`,
     );
     if (!confirm) return;
 
     await callWriteMethodWithReceipt({
       contract,
       methodName: 'reconnectToVaultHub',
-      payload: [],
+      payload: [confirmedSettledGrowth],
     });
   });
 
@@ -747,17 +766,26 @@ dashboardWrite
     ) => {
       const contract = getDashboardContract(address);
       const vault = await callReadMethod(contract, 'stakingVault');
+      const currentSettledGrowth = await callReadMethodSilent(
+        contract,
+        'settledGrowth',
+      );
+
+      const confirmedSettledGrowth =
+        await confirmSettledGrowth(currentSettledGrowth);
+      if (!confirmedSettledGrowth) return;
 
       const confirm = await confirmOperation(
         `Are you sure you want to change the tier of the vault ${vault} to ${tier} and connect to VaultHub?
-        Requested share limit: ${formatEther(requestedShareLimit)}`,
+        Requested share limit: ${formatEther(requestedShareLimit)}
+        Settled growth: ${formatEther(confirmedSettledGrowth)}`,
       );
       if (!confirm) return;
 
       await callWriteMethodWithReceipt({
         contract,
         methodName: 'connectAndAcceptTier',
-        payload: [tier, requestedShareLimit],
+        payload: [tier, requestedShareLimit, confirmedSettledGrowth],
         value: fund ? parseEther('1') : undefined,
       });
     },

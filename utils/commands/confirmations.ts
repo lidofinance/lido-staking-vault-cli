@@ -44,7 +44,7 @@ type DecodedData = {
 
 type ConfirmationsInfo = {
   member: Address;
-  role: Hex;
+  roleOrAddress: Hex;
   expiryTimestamp: bigint;
   expiryDate: string;
   data: Hex;
@@ -117,7 +117,7 @@ export const getConfirmationsInfo = async <T extends ConfirmationContract>(
 
       acc[args.data] = {
         member: args.member,
-        role: args.role,
+        roleOrAddress: args.roleOrAddress,
         expiryTimestamp: args.expiryTimestamp,
         expiryDate: new Date(
           Number(args.expiryTimestamp) * 1000,
@@ -130,10 +130,10 @@ export const getConfirmationsInfo = async <T extends ConfirmationContract>(
     }, {});
 
   await Promise.all(
-    Object.entries(logsData).map(async ([data, { role }]) => {
+    Object.entries(logsData).map(async ([data, { roleOrAddress }]) => {
       const confirmations = await contract.read.confirmation([
         data as Hex,
-        role,
+        roleOrAddress,
       ]);
       if (confirmations === 0n) delete logsData[data as Hex];
     }),
@@ -215,7 +215,7 @@ export const confirmProposal = async <T extends ConfirmationContract>({
     `Are you sure you want to confirm this proposal?
     ${log.decodedData.functionName} (${log.decodedData.args.join(', ')} - ${formattedArgs})
     Member: ${log.member}
-    Role: ${log.role}
+    Role/Address: ${log.roleOrAddress}
     Expiry: ${log.expiryDate}`,
   );
   if (!confirm) return;
