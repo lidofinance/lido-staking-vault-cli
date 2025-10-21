@@ -6,7 +6,10 @@
     "dist"
   ],
   "type": "module",
-  "bin": "dist/index.js",
+  "bin": {
+    "lsv-cli": "dist/index.js",
+    "lsv-mcp-server": "dist/mcp-server/index.js"
+  },
   "scripts": {
     "start": "tsx ./index.ts",
     "build": "npx tsc && tsc-alias",
@@ -37,6 +40,7 @@
     "@chainsafe/persistent-merkle-tree": "^1.0.1",
     "@chainsafe/ssz": "^1.0.2",
     "@lodestar/types": "^1.27.1",
+    "@modelcontextprotocol/sdk": "1.7.0",
     "@openzeppelin/merkle-tree": "^1.0.8",
     "@walletconnect/sign-client": "^2.22.3",
     "blessed": "^0.1.81",
@@ -55,7 +59,8 @@
     "ox": "^0.8.6",
     "prompts": "^2.4.2",
     "qrcode-terminal": "^0.12.0",
-    "viem": "^2.33.2"
+    "viem": "^2.33.2",
+    "zod": "3.24.2"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.4.4",
