@@ -21,7 +21,7 @@ export const getVaultHealthByDashboard = async (
       isHealthy,
       totalValueInEth,
       liabilitySharesInSteth,
-      forceRebalanceThresholdBP,
+      forcedRebalanceThresholdBP,
       liabilityShares,
     } = await fetchAndCalculateVaultHealth(contract);
 
@@ -34,7 +34,7 @@ export const getVaultHealthByDashboard = async (
         ['Total Value, ETH', totalValueInEth],
         ['Liability Shares', liabilityShares],
         ['Liability Shares in stETH', liabilitySharesInSteth],
-        ['Rebalance Threshold, %', formatBP(forceRebalanceThresholdBP)],
+        ['Forced Rebalance Threshold, %', formatBP(forcedRebalanceThresholdBP)],
       ],
     });
   } catch (err) {

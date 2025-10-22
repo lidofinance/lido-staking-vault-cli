@@ -9,13 +9,7 @@ import {
 } from 'viem';
 
 import { getPublicClient } from 'providers';
-import {
-  confirmOperation,
-  formatBP,
-  logResult,
-  logTable,
-  selectProposalEvent,
-} from 'utils';
+import { confirmOperation, formatBP, selectProposalEvent } from 'utils';
 import { AccessControlConfirmableAbi } from 'abi';
 
 const AVG_BLOCK_TIME_SEC = 12n;
@@ -50,7 +44,7 @@ type DecodedData = {
 
 type ConfirmationsInfo = {
   member: Address;
-  role: Hex;
+  roleOrAddress: Hex;
   expiryTimestamp: bigint;
   expiryDate: string;
   data: Hex;
@@ -109,7 +103,6 @@ export const getConfirmationsInfo = async <T extends ConfirmationContract>(
   });
 
   if (logs.length === 0) {
-    console.error('No confirmations found');
     return;
   }
 
@@ -124,7 +117,7 @@ export const getConfirmationsInfo = async <T extends ConfirmationContract>(
 
       acc[args.data] = {
         member: args.member,
-        role: args.role,
+        roleOrAddress: args.roleOrAddress,
         expiryTimestamp: args.expiryTimestamp,
         expiryDate: new Date(
           Number(args.expiryTimestamp) * 1000,
@@ -137,39 +130,13 @@ export const getConfirmationsInfo = async <T extends ConfirmationContract>(
     }, {});
 
   await Promise.all(
-    Object.entries(logsData).map(async ([data, { role }]) => {
+    Object.entries(logsData).map(async ([data, { roleOrAddress }]) => {
       const confirmations = await contract.read.confirmation([
         data as Hex,
-        role,
+        roleOrAddress,
       ]);
       if (confirmations === 0n) delete logsData[data as Hex];
     }),
-  );
-
-  logResult({});
-  Object.entries(logsData).forEach(
-    (
-      [data, { member, role, expiryTimestamp, expiryDate, decodedData }],
-      idx,
-    ) => {
-      console.info(`\nEvent ${idx + 1}`);
-      logTable({
-        data: [
-          ['Member', member],
-          ['Role', role],
-          ['Expiry Timestamp', `${expiryTimestamp.toString()} (${expiryDate})`],
-          ['Data', data],
-        ],
-      });
-
-      console.info('Decoded data:');
-      logTable({
-        data: [
-          ['Function', decodedData.functionName],
-          ['Argument', decodedData.args[0]],
-        ],
-      });
-    },
   );
 
   return logsData;
@@ -197,18 +164,32 @@ const filterLogsByVault = (logsData: LogsData, vault?: Address): LogsData => {
   }, {} as LogsData);
 };
 
-export const confirmProposal = async <T extends ConfirmationContract>(
-  contract: T,
-  vault?: Address,
-) => {
+export const confirmProposal = async <T extends ConfirmationContract>({
+  contract,
+  additionalContracts,
+  vault,
+}: {
+  contract: T;
+  additionalContracts?: T[];
+  vault?: Address;
+}) => {
   const logsData = await getConfirmationsInfo(contract, contract.abi);
-  if (!logsData) return;
+  const additionalLogsData = await Promise.all(
+    additionalContracts?.map((additionalContract) =>
+      getConfirmationsInfo(additionalContract, additionalContract.abi),
+    ) ?? [],
+  );
+  if (!logsData && additionalLogsData.length === 0) return;
+  const allLogsData = {
+    ...(logsData ?? {}),
+    ...additionalLogsData.reduce((acc, curr) => ({ ...acc, ...curr }), {}),
+  };
 
-  if (Object.keys(logsData).length === 0) {
+  if (Object.keys(allLogsData).length === 0) {
     console.error('No proposals found');
     return;
   }
-  const filteredLogsData = filterLogsByVault(logsData, vault);
+  const filteredLogsData = filterLogsByVault(allLogsData, vault);
 
   if (Object.keys(filteredLogsData).length === 0) {
     console.error('No proposals found for the specified vault');
@@ -234,7 +215,7 @@ export const confirmProposal = async <T extends ConfirmationContract>(
     `Are you sure you want to confirm this proposal?
     ${log.decodedData.functionName} (${log.decodedData.args.join(', ')} - ${formattedArgs})
     Member: ${log.member}
-    Role: ${log.role}
+    Role/Address: ${log.roleOrAddress}
     Expiry: ${log.expiryDate}`,
   );
   if (!confirm) return;

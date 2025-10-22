@@ -70,6 +70,16 @@ export const LidoLocatorAbi = [
           },
           {
             internalType: 'address',
+            name: 'validatorExitDelayVerifier',
+            type: 'address',
+          },
+          {
+            internalType: 'address',
+            name: 'triggerableWithdrawalsGateway',
+            type: 'address',
+          },
+          {
+            internalType: 'address',
             name: 'accounting',
             type: 'address',
           },
@@ -370,6 +380,32 @@ export const LidoLocatorAbi = [
   {
     inputs: [],
     name: 'treasury',
+    outputs: [
+      {
+        internalType: 'address',
+        name: '',
+        type: 'address',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'triggerableWithdrawalsGateway',
+    outputs: [
+      {
+        internalType: 'address',
+        name: '',
+        type: 'address',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'validatorExitDelayVerifier',
     outputs: [
       {
         internalType: 'address',

@@ -61,3 +61,8 @@ export type Deposit = {
 };
 
 export type PubkeyMap = Record<Hex, Hex[]>;
+
+export type ValidatorTopUp = {
+  pubkey: Hex;
+  amount: bigint;
+};

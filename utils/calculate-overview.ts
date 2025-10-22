@@ -7,7 +7,7 @@ type OverviewArgs = {
   totalValue: bigint;
   reserveRatioBP: number;
   liabilitySharesInStethWei: bigint;
-  forceRebalanceThresholdBP: number;
+  forcedRebalanceThresholdBP: number;
   withdrawableEther: bigint;
   balance: bigint;
   locked: bigint;
@@ -28,7 +28,7 @@ export const calculateOverview = (args: OverviewArgs) => {
     totalValue,
     reserveRatioBP,
     liabilitySharesInStethWei,
-    forceRebalanceThresholdBP,
+    forcedRebalanceThresholdBP,
     withdrawableEther,
     balance,
     locked,
@@ -39,7 +39,7 @@ export const calculateOverview = (args: OverviewArgs) => {
   const { healthRatio, isHealthy } = calculateHealth({
     totalValue,
     liabilitySharesInStethWei,
-    forceRebalanceThresholdBP,
+    forcedRebalanceThresholdBP,
   });
   const AvailableToWithdrawal = withdrawableEther;
   const idleCapital = balance;

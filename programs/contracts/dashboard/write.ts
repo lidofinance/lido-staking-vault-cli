@@ -1,14 +1,18 @@
 import { Address, Hex, parseEther, formatEther } from 'viem';
 import { Option } from 'commander';
 
-import { getAccount } from 'providers';
-import { getDashboardContract, getStakingVaultContract } from 'contracts';
+import {
+  getDashboardContract,
+  getOperatorGridContract,
+  getStakingVaultContract,
+} from 'contracts';
 import {
   mintShares,
   burnShares,
   mintSteth,
   burnSteth,
   checkIsReportFresh,
+  confirmSettledGrowth,
 } from 'features';
 import {
   callReadMethod,
@@ -29,6 +33,7 @@ import {
   stringToHexArray,
   etherToWei,
   type ValidatorWitness,
+  stringToNumber,
 } from 'utils';
 import { RoleAssignment, Deposit } from 'types';
 
@@ -197,10 +202,14 @@ dashboardWrite
       const confirm = await confirmOperation(confirmationMessage);
       if (!confirm) return;
 
+      const gweiAmounts = amounts.map((amount) =>
+        parseEther(formatEther(amount), 'gwei'),
+      );
+
       await callWriteMethodWithReceipt({
         contract,
         methodName: 'triggerValidatorWithdrawals',
-        payload: [mergedPubkeys, amounts.map(BigInt), recipient],
+        payload: [mergedPubkeys, gweiAmounts, recipient],
         value: fee,
       });
     },
@@ -315,7 +324,7 @@ dashboardWrite
     const vault = await callReadMethod(contract, 'stakingVault');
 
     const confirm = await confirmOperation(
-      `Are you sure you want to rebalance the vault ${vault} with ${formatEther(ether)} ether?`,
+      `Are you sure you want to rebalance the vault ${vault} with ${formatEther(ether)} ether by transferring?`,
     );
     if (!confirm) return;
 
@@ -323,6 +332,7 @@ dashboardWrite
       contract,
       methodName: 'rebalanceVaultWithEther',
       payload: [ether],
+      value: ether,
     });
   });
 
@@ -350,64 +360,77 @@ dashboardWrite
 dashboardWrite
   .command('recover-erc20')
   .description(
-    'recovers ERC20 tokens or ether from the dashboard contract to sender',
+    'recovers ERC20 tokens or ether from the dashboard contract to the recipient',
   )
   .argument('<address>', 'dashboard address', stringToAddress)
   .argument(
     '<token>',
-    'Address of the token to recover or 0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee for ether',
+    'address of the token to recover or 0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee for ether (EIP-7528)',
+    stringToAddress,
   )
-  .argument('<recipient>', 'Address of the recovery recipient', stringToAddress)
-  .argument('<amount>', 'amount of ether to recover (in ETH)')
+  .argument(
+    '<amount>',
+    'amount of tokens or ether to recover (in ETH)',
+    etherToWei,
+  )
+  .argument('<recipient>', 'address of the recovery recipient', stringToAddress)
   .action(
     async (
       address: Address,
       token: Address,
+      amount: bigint,
       recipient: Address,
-      amount: string,
     ) => {
       const contract = getDashboardContract(address);
 
       const confirm = await confirmOperation(
-        `Are you sure you want to recover ${amount} ${token} from the dashboard contract ${address} to ${recipient}?`,
+        `Are you sure you want to recover the token ${token} with amount ${formatEther(amount)} from the dashboard contract ${address} to ${recipient}?`,
       );
       if (!confirm) return;
 
       await callWriteMethodWithReceipt({
         contract,
         methodName: 'recoverERC20',
-        payload: [token, recipient, parseEther(amount)],
+        payload: [token, recipient, amount],
       });
     },
   );
 
 dashboardWrite
-  .command('recover-erc721')
+  .command('collect-erc20-from-vault')
   .description(
-    'Transfers a given token_id of an ERC721-compatible NFT (defined by the token contract address)',
+    'collects ERC20 tokens from vault contract balance to the recipient',
   )
   .argument('<address>', 'dashboard address', stringToAddress)
-  .argument('<token>', 'an ERC721-compatible token')
-  .argument('<tokenId>', 'token id to recover')
-  .argument('<recipient>', 'Address of the recovery recipient', stringToAddress)
+  .argument(
+    '<token>',
+    'address of the token to recover or 0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee for ether (EIP-7528)',
+    stringToAddress,
+  )
+  .argument(
+    '<amount>',
+    'amount of tokens or ether to recover (in ETH)',
+    etherToWei,
+  )
+  .argument('<recipient>', 'address of the recovery recipient', stringToAddress)
   .action(
     async (
       address: Address,
       token: Address,
-      tokenId: string,
+      amount: bigint,
       recipient: Address,
     ) => {
       const contract = getDashboardContract(address);
 
       const confirm = await confirmOperation(
-        `Are you sure you want to recover the token ${token} with id ${tokenId} from the dashboard contract ${address} to ${recipient}?`,
+        `Are you sure you want to recover the token ${token} with amount ${formatEther(amount)} from the dashboard contract ${address} to ${recipient}?`,
       );
       if (!confirm) return;
 
       await callWriteMethodWithReceipt({
         contract,
-        methodName: 'recoverERC721',
-        payload: [token, BigInt(tokenId), recipient],
+        methodName: 'collectERC20FromVault',
+        payload: [token, recipient, amount],
       });
     },
   );
@@ -434,7 +457,7 @@ dashboardWrite
 
 dashboardWrite
   .command('deposit-resume')
-  .description('Mass-grants multiple roles to multiple accounts.')
+  .description('resumes deposits to beacon chain')
   .argument('<address>', 'dashboard address', stringToAddress)
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
@@ -454,7 +477,7 @@ dashboardWrite
 
 dashboardWrite
   .command('role-grant')
-  .description('Mass-revokes multiple roles from multiple accounts.')
+  .description('mass-grants multiple roles to multiple accounts.')
   .argument('<address>', 'dashboard address', stringToAddress)
   .argument(
     '<roleAssignmentJSON>',
@@ -496,7 +519,7 @@ dashboardWrite
 
 dashboardWrite
   .command('role-revoke')
-  .description('Resumes beacon chain deposits on the staking vault.')
+  .description('mass-revokes multiple roles from multiple accounts')
   .argument('<address>', 'dashboard address', stringToAddress)
   .argument(
     '<roleAssignmentJSON>',
@@ -537,38 +560,10 @@ dashboardWrite
   });
 
 dashboardWrite
-  .command('compensate-disproven-predeposit')
-  .alias('compensate')
-  .description(
-    'Compensates ether of disproven validator`s predeposit from PDG to the recipient',
-  )
-  .argument('<address>', 'dashboard address', stringToAddress)
-  .argument('<pubkey>', 'validator that was proven invalid in PDG')
-  .argument(
-    '<recipient>',
-    'address to receive the `PDG.PREDEPOSIT_AMOUNT`',
-    stringToAddress,
-  )
-  .action(async (address: Address, pubkey: Address, recipient: Address) => {
-    const contract = getDashboardContract(address);
-
-    const confirm = await confirmOperation(
-      `Are you sure you want to compensate the disproven predeposit from the Predeposit Guarantee contract ${contract} with validator public key ${pubkey} to ${recipient}?`,
-    );
-    if (!confirm) return;
-
-    await callWriteMethodWithReceipt({
-      contract,
-      methodName: 'compensateDisprovenPredepositFromPDG',
-      payload: [pubkey, recipient],
-    });
-  });
-
-dashboardWrite
   .command('unguaranteed-deposit-to-beacon-chain')
   .alias('unguaranteed-deposit')
   .description(
-    'Withdraws ether from vault and deposits directly to provided validators bypassing the default PDG process',
+    'withdraws ether from vault and deposits directly to provided validators bypassing the default PDG process',
   )
   .argument('<address>', 'dashboard address', stringToAddress)
   .argument(
@@ -609,12 +604,11 @@ dashboardWrite
   .command('prove-unknown-validators-to-pdg')
   .alias('prove-unknown-validators')
   .description(
-    'Proves validators with correct vault WC if they are unknown to PDG',
+    'proves validators with correct vault WC if they are unknown to PDG',
   )
   .argument('<address>', 'dashboard address', stringToAddress)
   .argument('<validatorIndex...>', 'index of the validator to prove')
   .action(async (address: Address, validatorIndexes: string[]) => {
-    const account = await getAccount();
     const contract = getDashboardContract(address);
     const vault = await callReadMethod(contract, 'stakingVault');
     const vaultContract = getStakingVaultContract(vault);
@@ -622,18 +616,12 @@ dashboardWrite
 
     const payload: ValidatorWitness[] = [];
 
-    const PDG_PROVE_VALIDATOR_ROLE = await callReadMethodSilent(
-      contract,
-      'PDG_PROVE_VALIDATOR_ROLE',
-    );
-    const hasRole = await callReadMethodSilent(contract, 'hasRole', [
-      PDG_PROVE_VALIDATOR_ROLE,
-      account.address,
-    ]);
+    const pdgPolicy = await callReadMethodSilent(contract, 'pdgPolicy');
+    const isAllowed = pdgPolicy === 2;
 
-    if (!hasRole) {
+    if (!isAllowed) {
       throw new Error(
-        `You do not have role (PDG_PROVE_VALIDATOR_ROLE - ${PDG_PROVE_VALIDATOR_ROLE}) to prove validators to PDG`,
+        `Dashboard PDG policy is not set to allow proving unknown validators to PDG`,
       );
     }
 
@@ -703,16 +691,25 @@ dashboardWrite
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
     const vault = await callReadMethod(contract, 'stakingVault');
+    const currentSettledGrowth = await callReadMethodSilent(
+      contract,
+      'settledGrowth',
+    );
+
+    const confirmedSettledGrowth =
+      await confirmSettledGrowth(currentSettledGrowth);
+    if (!confirmedSettledGrowth) return;
 
     const confirm = await confirmOperation(
-      `Are you sure you want to connect the dashboard ${address} (vault: ${vault}) to VaultHub?`,
+      `Are you sure you want to connect the dashboard ${address} (vault: ${vault}) to VaultHub?
+      Settled growth: ${formatEther(confirmedSettledGrowth)}`,
     );
     if (!confirm) return;
 
     await callWriteMethodWithReceipt({
       contract,
       methodName: 'connectToVaultHub',
-      payload: [],
+      payload: [confirmedSettledGrowth],
     });
   });
 
@@ -726,16 +723,25 @@ dashboardWrite
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
     const vault = await callReadMethod(contract, 'stakingVault');
+    const currentSettledGrowth = await callReadMethodSilent(
+      contract,
+      'settledGrowth',
+    );
+
+    const confirmedSettledGrowth =
+      await confirmSettledGrowth(currentSettledGrowth);
+    if (!confirmedSettledGrowth) return;
 
     const confirm = await confirmOperation(
-      `Are you sure you want to reconnect the dashboard ${address} (vault: ${vault}) to VaultHub?`,
+      `Are you sure you want to reconnect the dashboard ${address} (vault: ${vault}) to VaultHub?
+      Settled growth: ${formatEther(confirmedSettledGrowth)}`,
     );
     if (!confirm) return;
 
     await callWriteMethodWithReceipt({
       contract,
       methodName: 'reconnectToVaultHub',
-      payload: [],
+      payload: [confirmedSettledGrowth],
     });
   });
 
@@ -750,79 +756,64 @@ dashboardWrite
     'requested new share limit for the vault (in shares)',
     etherToWei,
   )
+  .option('-f, --fund', 'optional fund the vault with 1 ETH', false)
   .action(
-    async (address: Address, tier: bigint, requestedShareLimit: bigint) => {
+    async (
+      address: Address,
+      tier: bigint,
+      requestedShareLimit: bigint,
+      { fund }: { fund: boolean },
+    ) => {
       const contract = getDashboardContract(address);
       const vault = await callReadMethod(contract, 'stakingVault');
+      const currentSettledGrowth = await callReadMethodSilent(
+        contract,
+        'settledGrowth',
+      );
+
+      const confirmedSettledGrowth =
+        await confirmSettledGrowth(currentSettledGrowth);
+      if (!confirmedSettledGrowth) return;
 
       const confirm = await confirmOperation(
         `Are you sure you want to change the tier of the vault ${vault} to ${tier} and connect to VaultHub?
-        Requested share limit: ${formatEther(requestedShareLimit)}`,
+        Requested share limit: ${formatEther(requestedShareLimit)}
+        Settled growth: ${formatEther(confirmedSettledGrowth)}`,
       );
       if (!confirm) return;
 
       await callWriteMethodWithReceipt({
         contract,
         methodName: 'connectAndAcceptTier',
-        payload: [tier, requestedShareLimit],
+        payload: [tier, requestedShareLimit, confirmedSettledGrowth],
+        value: fund ? parseEther('1') : undefined,
       });
     },
   );
 
 dashboardWrite
-  .command('increase-rewards-adjustment')
-  .description(
-    'increases rewards adjustment to correct fee calculation due to non-rewards ether on CL',
-  )
+  .command('set-pdg-policy')
+  .description('set the PDG policy')
   .argument('<address>', 'dashboard address', stringToAddress)
-  .argument(
-    '<amount>',
-    'amount to increase the rewards adjustment by (in ETH)',
-    etherToWei,
-  )
-  .action(async (address: Address, amount: bigint) => {
+  .argument('<policy>', 'policy to set the PDG policy to', stringToNumber)
+  .action(async (address: Address, policy: number) => {
     const contract = getDashboardContract(address);
 
+    const PDG_POLICY = {
+      0: 'STRICT',
+      1: 'ALLOW_PROVE',
+      2: 'ALLOW_DEPOSIT_AND_PROVE',
+    };
+
     const confirm = await confirmOperation(
-      `Are you sure you want to increase the rewards adjustment by ${formatEther(amount)} ETH?`,
+      `Are you sure you want to set the PDG policy to ${policy} (${PDG_POLICY[policy as keyof typeof PDG_POLICY]})?`,
     );
     if (!confirm) return;
 
     await callWriteMethodWithReceipt({
       contract,
-      methodName: 'increaseRewardsAdjustment',
-      payload: [amount],
-    });
-  });
-
-dashboardWrite
-  .command('set-rewards-adjustment')
-  .description(
-    'set `rewardsAdjustment` to a new proposed value if `confirmingRoles()` agree',
-  )
-  .argument('<address>', 'dashboard address', stringToAddress)
-  .argument(
-    '<amount>',
-    'amount to set the accrued rewards adjustment to (in ETH)',
-    etherToWei,
-  )
-  .action(async (address: Address, amount: bigint) => {
-    const contract = getDashboardContract(address);
-    const currentAdjustment = await callReadMethod(
-      contract,
-      'rewardsAdjustment',
-    );
-
-    const confirm = await confirmOperation(
-      `Are you sure you want to set the rewards adjustment to ${formatEther(amount)} ETH?
-      Current adjustment: ${formatEther(currentAdjustment[0])} ETH`,
-    );
-    if (!confirm) return;
-
-    await callWriteMethodWithReceipt({
-      contract,
-      methodName: 'setRewardsAdjustment',
-      payload: [amount, currentAdjustment[0]],
+      methodName: 'setPDGPolicy',
+      payload: [policy],
     });
   });
 
@@ -846,7 +837,7 @@ dashboardWrite
 
     await callWriteMethodWithReceipt({
       contract,
-      methodName: 'setNodeOperatorFeeRecipient',
+      methodName: 'setFeeRecipient',
       payload: [recipient],
     });
   });
@@ -857,14 +848,27 @@ dashboardWrite
   .argument('<address>', 'dashboard address', stringToAddress)
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
-    const log = await confirmProposal(contract as any);
+    const vault = await callReadMethodSilent(contract, 'stakingVault');
+    const operatorGridContract = await getOperatorGridContract();
+    const log = await confirmProposal({
+      contract: contract as any,
+      vault,
+      additionalContracts: [operatorGridContract],
+    });
 
     if (!log) return;
+
+    const isChangeTier = log.decodedData.functionName === 'changeTier';
+    // ChangeTier event from OperatorGrid has 3 args (vault, tierId, shareLimit), but we need only 2 (tierId, shareLimit)
+    let args: any = log.decodedData.args;
+    if (isChangeTier && args && args.length === 3) {
+      args = [args[1], args[2]];
+    }
 
     await callWriteMethodWithReceipt({
       contract,
       methodName: log.decodedData.functionName as any,
-      payload: log.decodedData.args as any,
+      payload: args,
     });
   });
 
@@ -909,7 +913,7 @@ dashboardWrite
 
     await callWriteMethodWithReceipt({
       contract,
-      methodName: 'setNodeOperatorFeeRate',
+      methodName: 'setFeeRate',
       payload: [fee],
     });
   });
@@ -924,7 +928,7 @@ dashboardWrite
     const contract = getDashboardContract(address);
     const nodeOperatorFeeRecipient = await callReadMethodSilent(
       contract,
-      'nodeOperatorFeeRecipient',
+      'feeRecipient',
     );
 
     const confirm = await confirmOperation(
@@ -934,7 +938,7 @@ dashboardWrite
 
     await callWriteMethodWithReceipt({
       contract,
-      methodName: 'disburseNodeOperatorFee',
+      methodName: 'disburseFee',
       payload: [],
     });
   });
@@ -967,3 +971,73 @@ dashboardWrite
       });
     },
   );
+
+dashboardWrite
+  .command('sync-tier')
+  .alias('st')
+  .description('requests a sync of tier on the OperatorGrid')
+  .argument('<address>', 'dashboard address', stringToAddress)
+  .addHelpText(
+    'after',
+    `Tier sync confirmation logic:
+     - Both vault owner (via this function) AND node operator confirmations are required
+     - First call returns false (pending), second call with both confirmations completes the sync
+     - Confirmations expire after the configured period (default: 1 day)`,
+  )
+  .action(async (address: Address) => {
+    const contract = getDashboardContract(address);
+    const vault = await callReadMethod(contract, 'stakingVault');
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to sync the tier of the vault ${vault}?`,
+    );
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'syncTier',
+      payload: [],
+    });
+  });
+
+dashboardWrite
+  .command('update-share-limit')
+  .description('requests a change of share limit on the OperatorGrid')
+  .argument('<address>', 'dashboard address', stringToAddress)
+  .argument('<shareLimit>', 'share limit', stringToBigInt)
+  .action(async (address: Address, shareLimit: bigint) => {
+    const contract = getDashboardContract(address);
+    const vault = await callReadMethod(contract, 'stakingVault');
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to request a change of share limit on the OperatorGrid for the vault ${vault} to ${shareLimit}?`,
+    );
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'updateShareLimit',
+      payload: [shareLimit],
+    });
+  });
+
+dashboardWrite
+  .command('disburse-abnormally-high-fee')
+  .description(
+    'Disburses an abnormally high fee as `DEFAULT_ADMIN_ROLE`. Before calling this function, the caller must ensure that the high fee is expected, and the settled growth (used as baseline for fee) is set correctly.',
+  )
+  .argument('<address>', 'dashboard address', stringToAddress)
+  .action(async (address: Address) => {
+    const contract = getDashboardContract(address);
+
+    const confirm = await confirmOperation(
+      'Are you sure you want to disburse an abnormally high fee as `DEFAULT_ADMIN_ROLE`?',
+    );
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'disburseAbnormallyHighFee',
+      payload: [],
+    });
+  });

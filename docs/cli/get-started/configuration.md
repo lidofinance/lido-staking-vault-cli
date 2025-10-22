@@ -17,7 +17,7 @@ CL_URL=https://your-consensus-layer-endpoint
 EL_URL=https://your-execution-layer-endpoint
 
 # Contract Deployment Configuration (Required)
-DEPLOYED=deployed-hoodi-vaults-testnet-2.json
+DEPLOYED=deployed-hoodi-vaults.json
 
 # Wallet Configuration (Choose one method)
 # use private key
@@ -61,6 +61,7 @@ WALLET_CONNECT_PROJECT_ID=ee928c025792b10a6daa97d85328c433
 
 - JSON file containing deployed contract addresses
 - Available configurations:
+  - `deployed-hoodi-vaults.json`: Hoodi testnet
   - `deployed-hoodi-vaults-testnet-2.json`: Hoodi v2 testnet
   - `deployed-hoodi-vaults-testnet.json`: Hoodi v1 testnet
   - Custom deployment files for other networks

@@ -65,17 +65,14 @@ export const getNetStakingRewards = (
 //
 // Calculation steps:
 // 1. Calculate the numerator for the metric (see above)
-// 2. Divide by the average TVL
+// 2. Divide by the previous TVL
 // 3. Multiply by 100 and the number of seconds in a year (31536000)
 // 4. Divide by the period duration in seconds
 //
 // Example for Gross Staking APR:
-//   grossStakingAPR = (grossStakingRewards * 100 * 31536000) / (averageTotalValue * periodSeconds)
-const getAverageTotalValue = (current: VaultReport, previous: VaultReport) => {
-  return (
-    (BigInt(current.data.totalValueWei) + BigInt(previous.data.totalValueWei)) /
-    2n
-  );
+//   grossStakingAPR = (grossStakingRewards * 100 * 31536000) / (previousTotalValue * periodSeconds)
+const getPreviousTotalValue = (previous: VaultReport) => {
+  return BigInt(previous.data.totalValueWei);
 };
 
 const getPeriodSeconds = (current: VaultReport, previous: VaultReport) => {
@@ -87,16 +84,16 @@ export const getGrossStakingAPR = (
   previous: VaultReport,
 ) => {
   const grossStakingRewards = getGrossStakingRewards(current, previous);
-  const averageTotalValue = getAverageTotalValue(current, previous);
+  const previousTotalValue = getPreviousTotalValue(previous);
   const periodSeconds = getPeriodSeconds(current, previous);
 
   const apr_bigint =
     (grossStakingRewards * 10000n * 31536000n * SCALE) /
-    (averageTotalValue * BigInt(periodSeconds));
+    (previousTotalValue * BigInt(periodSeconds));
 
   const apr =
     (grossStakingRewards * 100n * 31536000n) /
-    (averageTotalValue * BigInt(periodSeconds));
+    (previousTotalValue * BigInt(periodSeconds));
   const apr_bps = Number(apr_bigint) / Number(SCALE);
   const apr_percent = apr_bps / 100;
 
@@ -112,9 +109,8 @@ export const getNetStakingAPR = (
   previous: VaultReport,
   nodeOperatorFeeBP: bigint,
 ) => {
-  const averageTotalValue = getAverageTotalValue(current, previous);
   const periodSeconds = getPeriodSeconds(current, previous);
-
+  const previousTotalValue = getPreviousTotalValue(previous);
   const netStakingRewards = getNetStakingRewards(
     current,
     previous,
@@ -123,11 +119,11 @@ export const getNetStakingAPR = (
 
   const apr_bigint =
     (netStakingRewards * 10000n * 31536000n * SCALE) /
-    (averageTotalValue * BigInt(periodSeconds));
+    (previousTotalValue * BigInt(periodSeconds));
 
   const apr =
     (netStakingRewards * 100n * 31536000n) /
-    (averageTotalValue * BigInt(periodSeconds));
+    (previousTotalValue * BigInt(periodSeconds));
   const apr_bps = Number(apr_bigint) / Number(SCALE);
   const apr_percent = apr_bps / 100;
 
@@ -159,7 +155,7 @@ export const getCarrySpread = (
   nodeOperatorFeeBP: bigint,
   stEthLiabilityRebaseRewards: bigint,
 ) => {
-  const averageTotalValue = getAverageTotalValue(current, previous);
+  const previousTotalValue = getPreviousTotalValue(previous);
   const periodSeconds = getPeriodSeconds(current, previous);
   const bottomLine = getBottomLine(
     current,
@@ -170,11 +166,11 @@ export const getCarrySpread = (
 
   const apr_bigint =
     (bottomLine * 10000n * 31536000n * SCALE) /
-    (averageTotalValue * BigInt(periodSeconds));
+    (previousTotalValue * BigInt(periodSeconds));
 
   const apr =
     (bottomLine * 100n * 31536000n) /
-    (averageTotalValue * BigInt(periodSeconds));
+    (previousTotalValue * BigInt(periodSeconds));
   const apr_bps = Number(apr_bigint) / Number(SCALE);
   const apr_percent = apr_bps / 100;
 

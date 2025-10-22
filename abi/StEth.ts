@@ -10,7 +10,7 @@ export const StEthAbi = [
     name: 'getPooledEthBySharesRoundUp',
     outputs: [
       {
-        name: 'etherAmount',
+        name: '',
         type: 'uint256',
       },
     ],

@@ -1,9 +1,13 @@
 import { OperatorGridErrorsAbi } from './OperatorGrid.js';
 import { VaultHubErrorsAbi } from './VaultHub.js';
+import { DashboardErrorsAbi } from './Dashboard.js';
+import { StakingVaultErrorsAbi } from './StakingVault.js';
 
 export const VaultFactoryAbi = [
   ...VaultHubErrorsAbi,
   ...OperatorGridErrorsAbi,
+  ...DashboardErrorsAbi,
+  ...StakingVaultErrorsAbi,
   {
     inputs: [
       {
@@ -19,6 +23,11 @@ export const VaultFactoryAbi = [
       {
         internalType: 'address',
         name: '_dashboardImpl',
+        type: 'address',
+      },
+      {
+        internalType: 'address',
+        name: '_previousFactory',
         type: 'address',
       },
     ],
@@ -134,6 +143,19 @@ export const VaultFactoryAbi = [
   {
     inputs: [],
     name: 'LIDO_LOCATOR',
+    outputs: [
+      {
+        internalType: 'address',
+        name: '',
+        type: 'address',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'PREVIOUS_FACTORY',
     outputs: [
       {
         internalType: 'address',
@@ -263,7 +285,26 @@ export const VaultFactoryAbi = [
         type: 'address',
       },
     ],
-    stateMutability: 'payable',
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: '_vault',
+        type: 'address',
+      },
+    ],
+    name: 'deployedVaults',
+    outputs: [
+      {
+        internalType: 'bool',
+        name: '',
+        type: 'bool',
+      },
+    ],
+    stateMutability: 'view',
     type: 'function',
   },
 ] as const;

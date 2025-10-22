@@ -25,19 +25,21 @@ yarn start contracts factory -h
 
 ### Read
 
-| Command        | Description                                                    |
-| -------------- | -------------------------------------------------------------- |
-| info           | get vault factory info                                         |
-| BEACON         | Calls the read-only function "BEACON" on the contract.         |
-| DASHBOARD_IMPL | Calls the read-only function "DASHBOARD_IMPL" on the contract. |
-| LIDO_LOCATOR   | Calls the read-only function "LIDO_LOCATOR" on the contract.   |
+| Command                  | Description                                                            |
+| ------------------------ | ---------------------------------------------------------------------- |
+| info                     | get vault factory info                                                 |
+| BEACON                   | Calls the read-only function "BEACON" on the contract.                 |
+| DASHBOARD_IMPL           | Calls the read-only function "DASHBOARD_IMPL" on the contract.         |
+| LIDO_LOCATOR             | Calls the read-only function "LIDO_LOCATOR" on the contract.           |
+| PREVIOUS_FACTORY         | Calls the read-only function "PREVIOUS_FACTORY" on the contract.       |
+| deployed-vaults \<vault> | get true if the vault was deployed by this factory or PREVIOUS_FACTORY |
 
 ### Write
 
-| Command                                                                                                                                  | Description                                                                       |
-| ---------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| create-vault \<defaultAdmin> \<nodeOperator> \<nodeOperatorManager> \<confirmExpiry> \<nodeOperatorFeeBP> \<quantity>                    | creates a new StakingVault and Dashboard contracts                                |
-| create-vault-without-connecting \<defaultAdmin> \<nodeOperator> \<nodeOperatorManager> \<confirmExpiry> \<nodeOperatorFeeBP> \<quantity> | creates a new StakingVault and Dashboard contracts without connecting to VaultHub |
+| Command                                                                                                                                    | Description                                                                       |
+| ------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------- |
+| create-vault \<defaultAdmin> \<nodeOperator> \<nodeOperatorManager> \<confirmExpiry> \<nodeOperatorFeeRate> \<quantity>                    | creates a new StakingVault and Dashboard contracts                                |
+| create-vault-without-connecting \<defaultAdmin> \<nodeOperator> \<nodeOperatorManager> \<confirmExpiry> \<nodeOperatorFeeRate> \<quantity> | creates a new StakingVault and Dashboard contracts without connecting to VaultHub |
 
 Note: `[quantity]` is an optional argument. The default value is `1`.
 **[options]**

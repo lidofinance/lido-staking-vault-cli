@@ -29,6 +29,7 @@ yarn start contracts operator-grid -h
 | --------------------------------- | --------------------------------------------------------------------------------------------- |
 | info                              | get operator grid base info                                                                   |
 | roles                             | get operator grid roles                                                                       |
+| vault-info \<vault>               | get vault info                                                                                |
 | DEFAULT_ADMIN_ROLE                | Calls the read-only function "DEFAULT_ADMIN_ROLE" on the contract.                            |
 | DEFAULT_TIER_ID                   | Calls the read-only function "DEFAULT_TIER_ID" on the contract.                               |
 | DEFAULT_TIER_OPERATOR             | Calls the read-only function "DEFAULT_TIER_OPERATOR" on the contract.                         |
@@ -45,12 +46,12 @@ yarn start contracts operator-grid -h
 | getRoleMembers \<role>            | Calls the read-only function "getRoleMembers" on the contract.                                |
 | group \<node-operator>            | get group by node operator address                                                            |
 | hasRole \<role> \<account>        | Calls the read-only function "hasRole" on the contract.                                       |
+| is-vault-in-jail \<vault>         | get if vault is in jail                                                                       |
 | node-operator-address \<index>    | get node operator address by index                                                            |
 | node-operator-count               | get node operator count                                                                       |
 | supportsInterface \<interfaceId>  | Calls the read-only function "supportsInterface" on the contract.                             |
 | tier \<id>                        | get tier by ID                                                                                |
 | tiers-count                       | get a tiers count                                                                             |
-| vault-info \<\_vault>             | get vault limits                                                                              |
 
 ### Write
 
@@ -61,4 +62,6 @@ yarn start contracts operator-grid -h
 | register-tiers rt\<nodeOperator> \<tiers>                       | register new tiers                                         |
 | alter-tiers at\<tierIds> \<tiers>                               | alters multiple tiers                                      |
 | change-tier ct\<vault> \<tierId> \<requestedShareLimit>         | vault tier change with multi-role confirmation             |
+| sync-tier st\<vault>                                            | syncs vault tier with current tier params                  |
+| update-vault-share-limit usl\<vault> \<requestedShareLimit>     | update vault share limit                                   |
 | confirm-tier-change \<vault>                                    | Confirms a tier change proposal only for the Node Operator |

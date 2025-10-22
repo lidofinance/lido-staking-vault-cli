@@ -1,5 +1,12 @@
 import { program } from 'commander';
-import { Permit, RoleAssignment, Tier, Deposit, PubkeyMap } from 'types';
+import {
+  Permit,
+  RoleAssignment,
+  Tier,
+  Deposit,
+  PubkeyMap,
+  ValidatorTopUp,
+} from 'types';
 import { Address, isAddress, isHex, parseEther } from 'viem';
 
 import { toHex } from './proof/merkle-utils.js';
@@ -92,12 +99,37 @@ export const parseTier = (value: string) => {
   return JSON.parse(value) as Tier;
 };
 
+export const parseDeposit = (str: string): Deposit => {
+  const trimmed = str.trim();
+  if (!trimmed) {
+    return {} as Deposit;
+  }
+
+  const parsed = JSON.parse(trimmed, (key, value) => {
+    if (key === 'amount') return BigInt(value) * BigInt(10 ** 9); // to wei
+    if (typeof value === 'string') {
+      return toHex(value);
+    }
+    return value;
+  });
+
+  // Convert keys to camelCase
+  const camelCased: any = {};
+  for (const key in parsed) {
+    const camelKey = toCamelCase(key);
+    camelCased[camelKey] = parsed[key];
+  }
+
+  return camelCased;
+};
+
 export const parseDepositArray = (str: string): Deposit[] => {
   const trimmed = str.trim();
   if (!trimmed) {
     return [];
   }
 
+  // eslint-disable-next-line sonarjs/no-identical-functions
   const parsed = JSON.parse(trimmed, (key, value) => {
     if (key === '') return value; // root array
     if (key === 'amount') return BigInt(value) * BigInt(10 ** 9); // to wei
@@ -118,6 +150,24 @@ export const parseDepositArray = (str: string): Deposit[] => {
   });
 
   return camelCased;
+};
+
+export const parseValidatorTopUpArray = (str: string): ValidatorTopUp[] => {
+  const trimmed = str.trim();
+  if (!trimmed) {
+    return [];
+  }
+
+  const parsed = JSON.parse(trimmed, (key, value) => {
+    if (key === '') return value; // root array
+    if (key === 'amount') return BigInt(value);
+    if (typeof value === 'string') {
+      return toHex(value);
+    }
+    return value;
+  });
+
+  return parsed;
 };
 
 export const stringToAddress = (value: string): Address => {

@@ -18,6 +18,7 @@ import {
   stringToAddress,
   callReadMethodSilent,
   getConfirmationsInfo,
+  logTable,
 } from 'utils';
 
 import { dashboard } from './main.js';
@@ -89,17 +90,69 @@ dashboardRead
   });
 
 dashboardRead
+  .command('vault-by-dashboard')
+  .description('get vault address by dashboard')
+  .argument('<dashboard>', 'dashboard address', stringToAddress)
+  .action(async (dashboard: Address) => {
+    const dashboardContract = getDashboardContract(dashboard);
+    const vault = await callReadMethodSilent(dashboardContract, 'stakingVault');
+
+    logResult({
+      data: [['Vault Address', vault]],
+    });
+  });
+
+dashboardRead
   .command('confirmations-log')
   .description('get pending confirmations')
   .argument('<address>', 'dashboard address', stringToAddress)
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);
-    await getConfirmationsInfo(contract as any, contract.abi);
+    const confirmations = await getConfirmationsInfo(
+      contract as any,
+      contract.abi,
+    );
+
+    if (!confirmations) return console.error('No confirmations found');
+
+    logResult({});
+    Object.entries(confirmations).forEach(
+      (
+        [
+          data,
+          { member, roleOrAddress, expiryTimestamp, expiryDate, decodedData },
+        ],
+        idx,
+      ) => {
+        console.info(`\nEvent ${idx + 1}`);
+        logTable({
+          data: [
+            ['Member', member],
+            ['Role/Address', roleOrAddress],
+            [
+              'Expiry Timestamp',
+              `${expiryTimestamp.toString()} (${expiryDate})`,
+            ],
+            ['Data', data],
+          ],
+        });
+
+        console.info('Decoded data:');
+        logTable({
+          data: [
+            ['Function', decodedData.functionName],
+            ['Argument', decodedData.args[0]],
+          ],
+        });
+      },
+    );
   });
 
 dashboardRead
   .command('confirming-roles')
-  .description('get confirming roles')
+  .description(
+    'get the roles that can:change the confirm expiry, set the node operator fee, set a new owner of the StakingVault',
+  )
   .argument('<address>', 'dashboard address', stringToAddress)
   .action(async (address: Address) => {
     const contract = getDashboardContract(address);

@@ -1,4 +1,4 @@
-import { Address, Hex, parseEther } from 'viem';
+import { Address, formatEther, Hex, parseEther } from 'viem';
 import { Option } from 'commander';
 import { getStakingVaultContract } from 'contracts';
 import {
@@ -8,6 +8,7 @@ import {
   etherToWei,
   getCommandsJson,
   logInfo,
+  parseDeposit,
   stringToAddress,
   stringToBigInt,
   stringToBigIntArrayWei,
@@ -15,6 +16,7 @@ import {
 } from 'utils';
 
 import { vault } from './main.js';
+import { Deposit } from 'types';
 
 const vaultWrite = vault
   .command('write')
@@ -66,12 +68,13 @@ vaultWrite
     });
   });
 
-// TODO: get more details
 vaultWrite
   .command('no-deposit-beacon')
-  .description('deposit to beacon chain')
+  .description(
+    'performs deposit to the beacon chain using ether from available balance',
+  )
   .argument('<address>', 'vault address', stringToAddress)
-  .argument('<amountOfDeposit>', 'amount of deposits', stringToBigInt)
+  .argument('<amountOfDeposit>', 'amount of deposit (in gwei)', stringToBigInt)
   .argument('<pubkey>', 'pubkey')
   .argument('<signature>', 'signature')
   .argument('<depositDataRoot>', 'depositDataRoot')
@@ -85,14 +88,12 @@ vaultWrite
     ) => {
       const contract = getStakingVaultContract(vault);
 
-      const payload = [
-        {
-          pubkey,
-          signature,
-          amount: amountOfDeposit,
-          depositDataRoot,
-        },
-      ];
+      const payload = {
+        pubkey,
+        signature,
+        amount: amountOfDeposit,
+        depositDataRoot,
+      };
 
       const confirm = await confirmOperation(
         `Are you sure you want to deposit ${amountOfDeposit} to beacon chain for the staking vault ${vault}?`,
@@ -107,24 +108,99 @@ vaultWrite
     },
   );
 
-// TODO: get more details
+vaultWrite
+  .command('stage')
+  .description('puts aside some ether from the balance to deposit it later')
+  .argument('<address>', 'vault address', stringToAddress)
+  .argument('<amount>', 'amount of ether (in ETH)', etherToWei)
+  .action(async (vault: Address, amount: bigint) => {
+    const contract = getStakingVaultContract(vault);
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to stage ${formatEther(amount)} ETH for the staking vault ${vault}?`,
+    );
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'stage',
+      payload: [amount],
+    });
+  });
+
+vaultWrite
+  .command('unstage')
+  .description(
+    'returns the ether staged for deposits back to available balance',
+  )
+  .argument('<address>', 'vault address', stringToAddress)
+  .argument('<amount>', 'amount of ether (in ETH)', etherToWei)
+  .action(async (vault: Address, amount: bigint) => {
+    const contract = getStakingVaultContract(vault);
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to unstage ${formatEther(amount)} ETH for the staking vault ${vault}?`,
+    );
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'unstage',
+      payload: [amount],
+    });
+  });
+
+vaultWrite
+  .command('deposit-from-staged')
+  .description(
+    'performs deposits to the beacon chain using the staged and available ether.',
+  )
+  .argument('<address>', 'vault address', stringToAddress)
+  .argument('<deposit>', 'deposit to deposit', parseDeposit)
+  .argument(
+    '<additionalAmount>',
+    'additional amount to deposit',
+    stringToBigInt,
+  )
+  .action(
+    async (vault: Address, deposit: Deposit, additionalAmount: bigint) => {
+      const contract = getStakingVaultContract(vault);
+
+      const confirm = await confirmOperation(
+        `Are you sure you want to deposit ${formatEther(deposit.amount)} ETH for the staking vault ${vault}?`,
+      );
+      if (!confirm) return;
+
+      await callWriteMethodWithReceipt({
+        contract,
+        methodName: 'depositFromStaged',
+        payload: [deposit, additionalAmount],
+      });
+    },
+  );
+
 vaultWrite
   .command('no-val-exit')
-  .description('request to exit validator')
+  .description(
+    'requests node operator to exit validators from the beacon chain. It does not directly trigger exits - node operators must monitor for these events and handle the exits',
+  )
   .argument('<address>', 'vault address', stringToAddress)
-  .argument('<validatorPublicKey>', 'validator public key')
-  .action(async (address: Address, validatorPublicKey: Address) => {
+  .argument(
+    '<validatorPublicKeys>',
+    'concatenated validator public keys, each 48 bytes long',
+  )
+  .action(async (address: Address, validatorPublicKeys: Hex) => {
     const contract = getStakingVaultContract(address);
 
     const confirm = await confirmOperation(
-      `Are you sure you want to request to exit validator ${validatorPublicKey} for the staking vault ${address}?`,
+      `Are you sure you want to request to exit validator ${validatorPublicKeys} for the staking vault ${address}?`,
     );
     if (!confirm) return;
 
     await callWriteMethodWithReceipt({
       contract,
       methodName: 'requestValidatorExit',
-      payload: [validatorPublicKey],
+      payload: [validatorPublicKeys],
     });
   });
 
@@ -183,10 +259,14 @@ vaultWrite
       const contract = getStakingVaultContract(address);
       const concatenatedPubkeys = pubkeys.join('') as `0x${string}`;
 
+      const gweiAmounts = amounts.map((amount) =>
+        parseEther(formatEther(amount), 'gwei'),
+      );
+
       await callWriteMethodWithReceipt({
         contract,
         methodName: 'triggerValidatorWithdrawals',
-        payload: [concatenatedPubkeys, amounts, refundRecipient],
+        payload: [concatenatedPubkeys, gweiAmounts, refundRecipient],
       });
     },
   );
@@ -287,3 +367,42 @@ vaultWrite
       payload: [],
     });
   });
+
+vaultWrite
+  .command('collect-erc20')
+  .description(
+    'collects ERC20 tokens from vault contract balance to the recipient',
+  )
+  .argument('<address>', 'vault address', stringToAddress)
+  .argument(
+    '<token>',
+    'address of the token to recover or 0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee for ether (EIP-7528)',
+    stringToAddress,
+  )
+  .argument(
+    '<amount>',
+    'amount of tokens or ether to recover (in ETH)',
+    etherToWei,
+  )
+  .argument('<recipient>', 'address of the recovery recipient', stringToAddress)
+  .action(
+    async (
+      address: Address,
+      token: Address,
+      amount: bigint,
+      recipient: Address,
+    ) => {
+      const contract = getStakingVaultContract(address);
+
+      const confirm = await confirmOperation(
+        `Are you sure you want to recover the token ${token} with amount ${formatEther(amount)} from the dashboard contract ${address} to ${recipient}?`,
+      );
+      if (!confirm) return;
+
+      await callWriteMethodWithReceipt({
+        contract,
+        methodName: 'collectERC20',
+        payload: [token, recipient, amount],
+      });
+    },
+  );

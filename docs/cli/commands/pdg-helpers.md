@@ -30,6 +30,7 @@ PredepositGuarantee Helper commands provide utilities for working with Beacon Ch
 | fv-gindex \<forks>                                                                                  | get first validator gindex                                          |
 | compute-deposit-data-root compute-dd-root\<pubkey> \<withdrawal-credentials> \<signature> \<amount> | compute deposit data root                                           |
 | compute-deposit-domain compute-d-domain\<forkVersion>                                               | compute deposit domain                                              |
+| validator-info \<validator-pubkey>                                                                  | get validator info from Consensus Layer                             |
 
 ## Command Details
 
@@ -170,6 +171,42 @@ Computes the deposit domain for BLS signature verification based on fork version
 - Computed deposit domain
 
 **Use Case:** Generate domain values for BLS signature creation and verification.
+
+### validator-info
+
+Retrieves comprehensive validator information from the Consensus Layer (Beacon Chain).
+
+**Arguments:**
+
+- `<validator-pubkey>`: Validator public key in hex format
+
+**Process:**
+
+- Fetches validator data from configured Consensus Layer endpoint
+- Retrieves current status, balance, and configuration information
+- Displays comprehensive validator state information
+
+**Output:**
+
+- **Index**: Validator index on the Beacon Chain
+- **Balance**: Current validator balance in wei
+- **Status**: Validator status (pending, active, exited, etc.)
+- **Pubkey**: Validator public key
+- **Withdrawal Credentials**: Configured withdrawal credentials
+- **Effective Balance**: Current effective balance for rewards calculation
+- **Slashed**: Whether validator has been slashed
+- **Activation Eligibility Epoch**: When validator became eligible for activation
+- **Activation Epoch**: When validator was activated
+- **Exit Epoch**: When validator exited (if applicable)
+- **Withdrawable Epoch**: When validator becomes withdrawable
+
+**Use Case:** Monitor validator status on the Beacon Chain, verify validator configuration, and track validator lifecycle stages.
+
+**Requirements:**
+
+- Valid Consensus Layer endpoint configured (CL_URL)
+- Valid validator public key
+- Network connectivity to Beacon Chain
 
 ## Deposit Data Format
 

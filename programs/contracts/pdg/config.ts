@@ -55,11 +55,16 @@ export const readCommandConfig: ReadProgramCommandConfig<
   },
   PREDEPOSIT_AMOUNT: {
     name: 'PREDEPOSIT_AMOUNT',
-    description: 'get computed DEPOSIT_DOMAIN for current chain',
+    description: 'get amount of ether that is predeposited with each validator',
+  },
+  ACTIVATION_DEPOSIT_AMOUNT: {
+    name: 'ACTIVATION_DEPOSIT_AMOUNT',
+    description:
+      'get amount of ether to be deposited after the predeposit to activate the validator',
   },
   DEPOSIT_DOMAIN: {
     name: 'DEPOSIT_DOMAIN',
-    description: 'get predeposit role',
+    description: 'get computed DEPOSIT_DOMAIN for current chain',
   },
   nodeOperatorDepositor: {
     name: 'node-operator-depositor',
@@ -164,5 +169,8 @@ export const readCommandConfig: ReadProgramCommandConfig<
         description: 'withdrawal credentials of the deposit message to verify',
       },
     },
+  },
+  pendingActivations: {
+    hidden: true,
   },
 };
