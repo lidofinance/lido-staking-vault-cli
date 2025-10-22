@@ -127,11 +127,6 @@ export const readCommandConfig: ReadProgramCommandConfig<typeof DashboardAbi> =
       description:
         'get the timestamp of the most recent settled growth correction',
     },
-    isApprovedToConnect: {
-      name: 'is-approved-to-connect',
-      description:
-        'get the flag indicating whether the vault is approved by the node operator to connect to VaultHub',
-    },
     obligationsShortfallValue: {
       name: 'obligations-shortfall-value',
       description:

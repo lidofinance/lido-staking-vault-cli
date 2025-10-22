@@ -72,7 +72,6 @@ yarn start contracts dashboard -h
 | has-role \<address> \<role> \<account>                | get has role by role and account                                                                                              |
 | health-shortfall-shares \<address>                    | get the amount of shares to rebalance to restore vault healthiness or to cover redemptions                                    |
 | initialized \<address>                                | Calls the read-only function "initialized" on the contract.                                                                   |
-| is-approved-to-connect \<address>                     | get the flag indicating whether the vault is approved by the node operator to connect to VaultHub                             |
 | latest-correction-timestamp \<address>                | get the timestamp of the most recent settled growth correction                                                                |
 | latest-report lr\<address>                            | get the latest report data containing the total value and in-out delta                                                        |
 | liability-shares \<address>                           | get the number of stETHshares minted                                                                                          |
@@ -130,6 +129,7 @@ yarn start contracts dashboard -h
 | change-tier ct\<address> \<tierId> \<requestedShareLimit>                            | vault tier change with multi-role confirmation                                                                                                                                                                         |
 | sync-tier st\<address>                                                               | requests a sync of tier on the OperatorGrid                                                                                                                                                                            |
 | update-share-limit \<address> \<shareLimit>                                          | requests a change of share limit on the OperatorGrid                                                                                                                                                                   |
+| disburse-abnormally-high-fee \<address>                                              | Disburses an abnormally high fee as `DEFAULT_ADMIN_ROLE`. Before calling this function, the caller must ensure that the high fee is expected, and the settled growth (used as baseline for fee) is set correctly.      |
 
 **\<roleAssignmentJSON>**
 
