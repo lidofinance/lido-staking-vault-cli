@@ -698,7 +698,7 @@ dashboardWrite
 
     const confirmedSettledGrowth =
       await confirmSettledGrowth(currentSettledGrowth);
-    if (!confirmedSettledGrowth) return;
+    if (confirmedSettledGrowth === false) return;
 
     const confirm = await confirmOperation(
       `Are you sure you want to connect the dashboard ${address} (vault: ${vault}) to VaultHub?
@@ -730,7 +730,7 @@ dashboardWrite
 
     const confirmedSettledGrowth =
       await confirmSettledGrowth(currentSettledGrowth);
-    if (!confirmedSettledGrowth) return;
+    if (confirmedSettledGrowth === false) return;
 
     const confirm = await confirmOperation(
       `Are you sure you want to reconnect the dashboard ${address} (vault: ${vault}) to VaultHub?
@@ -773,7 +773,7 @@ dashboardWrite
 
       const confirmedSettledGrowth =
         await confirmSettledGrowth(currentSettledGrowth);
-      if (!confirmedSettledGrowth) return;
+      if (confirmedSettledGrowth === false) return;
 
       const confirm = await confirmOperation(
         `Are you sure you want to change the tier of the vault ${vault} to ${tier} and connect to VaultHub?
