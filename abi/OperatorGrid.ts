@@ -219,6 +219,22 @@ export const OperatorGridErrorsAbi = [
     type: 'error',
   },
   {
+    inputs: [
+      {
+        internalType: 'uint8',
+        name: 'bits',
+        type: 'uint8',
+      },
+      {
+        internalType: 'uint256',
+        name: 'value',
+        type: 'uint256',
+      },
+    ],
+    name: 'SafeCastOverflowedUintDowncast',
+    type: 'error',
+  },
+  {
     inputs: [],
     name: 'SenderNotMember',
     type: 'error',
@@ -437,7 +453,7 @@ export const OperatorGridAbi = [
       {
         indexed: true,
         internalType: 'bytes32',
-        name: 'role',
+        name: 'roleOrAddress',
         type: 'bytes32',
       },
       {
@@ -1280,6 +1296,19 @@ export const OperatorGridAbi = [
       },
     ],
     name: 'revokeRole',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: '_newConfirmExpiry',
+        type: 'uint256',
+      },
+    ],
+    name: 'setConfirmExpiry',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',

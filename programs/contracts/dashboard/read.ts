@@ -118,14 +118,17 @@ dashboardRead
     logResult({});
     Object.entries(confirmations).forEach(
       (
-        [data, { member, role, expiryTimestamp, expiryDate, decodedData }],
+        [
+          data,
+          { member, roleOrAddress, expiryTimestamp, expiryDate, decodedData },
+        ],
         idx,
       ) => {
         console.info(`\nEvent ${idx + 1}`);
         logTable({
           data: [
             ['Member', member],
-            ['Role', role],
+            ['Role/Address', roleOrAddress],
             [
               'Expiry Timestamp',
               `${expiryTimestamp.toString()} (${expiryDate})`,
