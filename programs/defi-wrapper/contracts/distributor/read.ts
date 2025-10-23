@@ -1,8 +1,16 @@
+import { type Address } from 'viem';
 import { Option } from 'commander';
 
 import { DistributorAbi } from 'abi/defi-wrapper/index.js';
 import { getDistributorContract } from 'contracts/defi-wrapper/index.js';
-import { generateReadCommands, logInfo, getCommandsJson } from 'utils';
+import {
+  generateReadCommands,
+  logInfo,
+  getCommandsJson,
+  stringToAddress,
+  callReadMethodSilent,
+  logResult,
+} from 'utils';
 
 import { distributor } from './main.js';
 import { readCommandConfig } from './config.js';
@@ -18,33 +26,32 @@ distributorRead.on('option:-cmd2json', function () {
   process.exit();
 });
 
-// dashboardRead
-//   .command('info')
-//   .description('get dashboard base info')
-//   .argument('<address>', 'dashboard address', stringToAddress)
-//   .action(async (address: Address) => {
-//     const contract = getDashboardContract(address);
+distributorRead
+  .command('info')
+  .description('get distributor base info')
+  .argument('<address>', 'distributor address', stringToAddress)
+  .action(async (address: Address) => {
+    const contract = getDistributorContract(address);
 
-//     await getDashboardBaseInfo(contract);
-//   });
+    const [DEFAULT_ADMIN_ROLE, MANAGER_ROLE, cid, root, lastProcessedBlock] =
+      await Promise.all([
+        callReadMethodSilent(contract, 'DEFAULT_ADMIN_ROLE'),
+        callReadMethodSilent(contract, 'MANAGER_ROLE'),
+        callReadMethodSilent(contract, 'cid'),
+        callReadMethodSilent(contract, 'root'),
+        callReadMethodSilent(contract, 'lastProcessedBlock'),
+      ]);
 
-// dashboardRead
-//   .command('overview')
-//   .description('get dashboard overview')
-//   .argument('<address>', 'dashboard address', stringToAddress)
-//   .action(async (address: Address) => {
-//     const contract = getDashboardContract(address);
-//     await getDashboardOverview(contract);
-//   });
-
-// dashboardRead
-//   .command('roles')
-//   .description('get dashboard roles')
-//   .argument('<address>', 'dashboard address', stringToAddress)
-//   .action(async (address: Address) => {
-//     const contract = getDashboardContract(address);
-//     await getDashboardRoles(contract);
-//   });
+    logResult({
+      data: [
+        ['DEFAULT_ADMIN_ROLE', DEFAULT_ADMIN_ROLE],
+        ['MANAGER_ROLE', MANAGER_ROLE],
+        ['cid', cid],
+        ['root', root],
+        ['lastProcessedBlock', lastProcessedBlock],
+      ],
+    });
+  });
 
 generateReadCommands(
   DistributorAbi,
