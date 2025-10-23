@@ -1,3 +1,6 @@
+import { VaultHubErrorsAbi } from './VaultHub.js';
+import { StakingVaultErrorsAbi } from './StakingVault.js';
+
 export const OperatorGridErrorsAbi = [
   {
     inputs: [],
@@ -304,6 +307,8 @@ export const OperatorGridErrorsAbi = [
 
 export const OperatorGridAbi = [
   ...OperatorGridErrorsAbi,
+  ...VaultHubErrorsAbi,
+  ...StakingVaultErrorsAbi,
   {
     inputs: [
       {
