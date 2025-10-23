@@ -110,10 +110,10 @@ consolidation
         dashboard,
       );
 
-      const confrim = await confirmOperation(
+      const confirm = await confirmOperation(
         `Are you sure you want to proceed with the consolidation? There are will be ${populatedTxs.length} operations to be executed`,
       );
-      if (!confrim) return;
+      if (!confirm) return;
 
       await callWriteMethodWithReceiptBatchCalls({
         calls: populatedTxs,
