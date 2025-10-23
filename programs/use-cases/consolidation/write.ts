@@ -4,8 +4,11 @@ import {
   stringToHexArray,
   callWriteMethodWithReceiptBatchCalls,
   jsonFileToPubkeys,
+  confirmOperation,
+  logTable,
+  logInfo,
 } from 'utils';
-import { Address, Hex } from 'viem';
+import { Address, Hex, formatGwei } from 'viem';
 import { consolidation } from './main.js';
 import {
   checkConsolidationInput,
@@ -57,16 +60,61 @@ consolidation
         : (target_pubkeys ?? []);
 
       await checkConsolidationInput(sourcePubkeys, targetPubkeys, dashboard);
-      const { sourceValidatorsInfo } = await checkValidators(
-        sourcePubkeys,
-        targetPubkeys,
-      );
+
+      const { sourceValidatorsInfo, targetValidatorsInfo } =
+        await checkValidators(sourcePubkeys, targetPubkeys);
+
+      logInfo('Source Validators Info');
+      logTable({
+        params: {
+          head: ['Pubkey', 'Status', 'Balance', 'index'],
+        },
+        data: sourceValidatorsInfo.data.map((validator) => [
+          validator.validator.pubkey,
+          validator.status,
+          `${formatGwei(BigInt(validator.balance))} ETH`,
+          validator.index,
+        ]),
+      });
+
+      logInfo('Target Validators Info');
+      logTable({
+        params: {
+          head: ['Pubkey', 'Status', 'Balance', 'index'],
+        },
+        // eslint-disable-next-line sonarjs/no-identical-functions
+        data: targetValidatorsInfo.data.map((validator) => [
+          validator.validator.pubkey,
+          validator.status,
+          `${formatGwei(BigInt(validator.balance))} ETH`,
+          validator.index,
+        ]),
+      });
+
+      const lines = [
+        'Are you sure you want to consolidate the following validators?\n',
+        ...targetPubkeys.map((target, index) => {
+          const sources = sourcePubkeys[index]?.join('\n') || '';
+          return `Target: ${target}\nSource: ${sources}\n`;
+        }),
+        `Dashboard: ${dashboard}`,
+      ];
+      const confirmFileContent = await confirmOperation(lines.join('\n'));
+
+      if (!confirmFileContent) return;
+
       const populatedTxs = await consolidationRequestsAndIncreaseFeeExemption(
         sourcePubkeys,
         targetPubkeys,
         sourceValidatorsInfo,
         dashboard,
       );
+
+      const confrim = await confirmOperation(
+        `Are you sure you want to proceed with the consolidation? There are will be ${populatedTxs.length} operations to be executed`,
+      );
+      if (!confrim) return;
+
       await callWriteMethodWithReceiptBatchCalls({
         calls: populatedTxs,
         withSpinner: true,
