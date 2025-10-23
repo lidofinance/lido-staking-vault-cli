@@ -1,4 +1,4 @@
-import { StvStETHPoolAbi } from 'abi/defi-wrapper/index.js';
+import { StvStrategyPoolAbi } from 'abi/defi-wrapper/index.js';
 import {
   ReadProgramCommandConfig,
   stringToAddress,
@@ -6,8 +6,12 @@ import {
 } from 'utils';
 
 export const readCommandConfig: ReadProgramCommandConfig<
-  typeof StvStETHPoolAbi
+  typeof StvStrategyPoolAbi
 > = {
+  wrapperType: {
+    name: 'wrapper-type',
+    description: 'get the wrapper type of the pool',
+  },
   withdrawableStvOf: {
     name: 'withdrawable-stv-of',
     description:

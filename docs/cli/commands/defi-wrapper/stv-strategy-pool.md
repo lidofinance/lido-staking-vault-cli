@@ -2,18 +2,18 @@
 sidebar_position: 1
 ---
 
-# StvStethPool
+# StvStrategyPool
 
 ## Command
 
 ```bash
-yarn start defi-wrapper contracts stv-steth [arguments] [-options]
+yarn start defi-wrapper contracts stv-strategy [arguments] [-options]
 ```
 
-## StvStethPool commands list
+## StvStrategyPool commands list
 
 ```bash
-yarn start defi-wrapper contracts stv-steth -h
+yarn start defi-wrapper contracts stv-strategy -h
 ```
 
 ## API
@@ -40,6 +40,7 @@ yarn start defi-wrapper contracts stv-steth -h
 | REQUEST_VALIDATOR_EXIT_ROLE \<address>                           | Calls the read-only function "REQUEST_VALIDATOR_EXIT_ROLE" on the contract.                   |
 | STAKING_VAULT \<address>                                         | Calls the read-only function "STAKING_VAULT" on the contract.                                 |
 | STETH \<address>                                                 | Calls the read-only function "STETH" on the contract.                                         |
+| STRATEGY \<address>                                              | Calls the read-only function "STRATEGY" on the contract.                                      |
 | TOTAL_BASIS_POINTS \<address>                                    | Calls the read-only function "TOTAL_BASIS_POINTS" on the contract.                            |
 | TRIGGER_VALIDATOR_WITHDRAWAL_ROLE \<address>                     | Calls the read-only function "TRIGGER_VALIDATOR_WITHDRAWAL_ROLE" on the contract.             |
 | VAULT_HUB \<address>                                             | Calls the read-only function "VAULT_HUB" on the contract.                                     |
@@ -89,7 +90,7 @@ yarn start defi-wrapper contracts stv-steth -h
 | withdrawable-stv-of \<address> \<account> \<\_stethSharesToBurn> | get calculated amount of stv that can be withdrawn by an account                              |
 | withdrawableStvOf_account \<address> \<account>                  | get calculated amount of stv that can be withdrawn by an account                              |
 | withdrawalQueue \<address>                                       | Calls the read-only function "withdrawalQueue" on the contract.                               |
-| wrapperType \<address>                                           | Calls the read-only function "wrapperType" on the contract.                                   |
+| wrapper-type \<address>                                          | get the wrapper type of the pool                                                              |
 
 ### Write
 
