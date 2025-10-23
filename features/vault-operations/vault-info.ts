@@ -35,6 +35,7 @@ export const getVaultInfoByDashboard = async (contract: DashboardContract) => {
       totalMintingCapacityShares,
       remainingMintingCapacityShares,
       withdrawableValue,
+      settledGrowth,
       feeRecipient,
       nodeOperatorAccruedFee,
       feeRate,
@@ -56,6 +57,7 @@ export const getVaultInfoByDashboard = async (contract: DashboardContract) => {
       contract.read.totalMintingCapacityShares(),
       contract.read.remainingMintingCapacityShares([0n]),
       contract.read.withdrawableValue(),
+      contract.read.settledGrowth(),
 
       contract.read.feeRecipient(),
       contract.read.accruedFee(),
@@ -105,7 +107,7 @@ export const getVaultInfoByDashboard = async (contract: DashboardContract) => {
         ['Locked, ETH', formatEther(locked)],
         ['Max Lockable Value, ETH', formatEther(maxLockableValue)],
         ['Balance, ETH', formatEther(balance)],
-
+        ['Settled Growth, ETH', formatEther(settledGrowth)],
         [
           'Total Minting Capacity, Shares',
           formatEther(totalMintingCapacityShares),

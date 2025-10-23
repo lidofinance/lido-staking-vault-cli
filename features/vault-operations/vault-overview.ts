@@ -61,6 +61,7 @@ export const getVaultOverviewByDashboard = async (
       minimalReserve,
       nodeOperatorFeeRate,
       nodeOperatorAccruedFee,
+      settledGrowth,
     ] = await Promise.all([
       contract.read.vaultConnection(),
       contract.read.totalMintingCapacityShares(),
@@ -71,6 +72,7 @@ export const getVaultOverviewByDashboard = async (
       contract.read.minimalReserve(),
       contract.read.feeRate(),
       contract.read.accruedFee(),
+      contract.read.settledGrowth(),
     ]);
 
     const { reserveRatioBP, shareLimit } = vaultConnection;
@@ -167,6 +169,7 @@ export const getVaultOverviewByDashboard = async (
         ['Recently Repaid, ETH', formatEther(overview.recentlyRepaid)],
         ['Node Operator Accrued Fee, ETH', formatEther(nodeOperatorAccruedFee)],
         ['Reserved, ETH', formatEther(overview.reserved)],
+        ['Settled Growth, ETH', formatEther(settledGrowth)],
         [
           'Total Minting Capacity, stETH',
           formatEther(overview.totalMintingCapacityStethWei),
