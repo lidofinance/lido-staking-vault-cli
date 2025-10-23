@@ -10,7 +10,7 @@ sidebar_position: 1
 yarn start defi-wrapper contracts stv [arguments] [-options]
 ```
 
-## Dashboard commands list
+## StvPool commands list
 
 ```bash
 yarn start defi-wrapper contracts stv -h

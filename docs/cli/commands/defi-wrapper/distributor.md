@@ -10,7 +10,7 @@ sidebar_position: 1
 yarn start defi-wrapper contracts distributor [arguments] [-options]
 ```
 
-## Dashboard commands list
+## Distributor commands list
 
 ```bash
 yarn start defi-wrapper contracts distributor -h

@@ -13,56 +13,62 @@ import {
 } from 'utils';
 import { getAccount } from 'providers';
 
-import { stvPool } from './main.js';
+import { stvStethPool } from './main.js';
 import { Address, formatEther, Hex } from 'viem';
-import { getStvPoolContract } from 'contracts/defi-wrapper/index.js';
+import { getStvStethPoolContract } from 'contracts/defi-wrapper/index.js';
 
-const stvPoolWrite = stvPool
+const stvStethPoolWrite = stvStethPool
   .command('write')
   .alias('w')
-  .description('stv pool write commands');
+  .description('write commands');
 
-stvPoolWrite.addOption(new Option('-cmd2json'));
-stvPoolWrite.on('option:-cmd2json', function () {
-  logInfo(getCommandsJson(stvPoolWrite));
+stvStethPoolWrite.addOption(new Option('-cmd2json'));
+stvStethPoolWrite.on('option:-cmd2json', function () {
+  logInfo(getCommandsJson(stvStethPoolWrite));
   process.exit();
 });
 
-stvPoolWrite
+stvStethPoolWrite
   .command('deposit-eth')
   .description('convenience function to deposit ETH to msg.sender')
   .argument('<address>', 'distributor address', stringToAddress)
-  .argument('<amount>', 'amount of ETH to deposit (in ETH)', etherToWei)
-  .argument('<referral>', 'address of the referral (if any)', stringToAddress)
-  .option(
-    '-s, --receiver <receiver>',
-    'address to receive the minted shares',
+  .argument(
+    '<referral>',
+    'the address of the referral (if any)',
     stringToAddress,
+  )
+  .argument(
+    '<receiver>',
+    'the address to receive the minted shares',
+    stringToAddress,
+  )
+  .argument(
+    '<stethSharesToMint>',
+    'amount of stETH shares to mint (up to maximum capacity for this deposit). Pass MAX_MINTABLE_AMOUNT to mint maximum available for this deposit',
+    stringToBigInt,
   )
   .action(
     async (
       address: Address,
-      amount: bigint,
       referral: Address,
-      { receiver }: { receiver: Address },
+      receiver: Address,
+      stethSharesToMint: bigint,
     ) => {
-      const contract = getStvPoolContract(address);
-      const account = await getAccount();
+      const contract = getStvStethPoolContract(address);
 
-      const confirmationMessage = `Are you sure you want to deposit ETH to the stv pool? (referral: ${referral}, receiver: ${receiver || account.address}, amount: ${formatEther(amount)})`;
+      const confirmationMessage = `Are you sure you want to deposit ETH to the stv pool? (referral: ${referral}, receiver: ${receiver}, stethSharesToMint: ${stethSharesToMint})`;
       const confirm = await confirmOperation(confirmationMessage);
       if (!confirm) return;
 
       await callWriteMethodWithReceipt({
         contract,
         methodName: 'depositETH',
-        payload: [receiver || account.address, referral],
-        value: amount,
+        payload: [referral, receiver, stethSharesToMint],
       });
     },
   );
 
-stvPoolWrite
+stvStethPoolWrite
   .command('rebalance-unassigned-liability')
   .description(
     'rebalance unassigned liability by repaying it with assets held by the vault',
@@ -74,7 +80,7 @@ stvPoolWrite
     stringToBigInt,
   )
   .action(async (address: Address, stethShares: bigint) => {
-    const contract = getStvPoolContract(address);
+    const contract = getStvStethPoolContract(address);
 
     const confirmationMessage = `Are you sure you want to rebalance unassigned liability with ${stethShares} stETH shares?`;
     const confirm = await confirmOperation(confirmationMessage);
@@ -87,7 +93,7 @@ stvPoolWrite
     });
   });
 
-stvPoolWrite
+stvStethPoolWrite
   .command('rebalance-unassigned-liability-with-ether')
   .description(
     'rebalance unassigned liability by repaying it with external ether',
@@ -95,7 +101,7 @@ stvPoolWrite
   .argument('<address>', 'distributor address', stringToAddress)
   .argument('<ether>', 'amount of ether to rebalance (in ETH)', etherToWei)
   .action(async (address: Address, ether: bigint) => {
-    const contract = getStvPoolContract(address);
+    const contract = getStvStethPoolContract(address);
 
     const confirmationMessage = `Are you sure you want to rebalance unassigned liability with ${formatEther(ether)} ether?`;
     const confirm = await confirmOperation(confirmationMessage);
@@ -109,7 +115,7 @@ stvPoolWrite
     });
   });
 
-stvPoolWrite
+stvStethPoolWrite
   .command('request-withdrawal-eth')
   .description(
     'request a withdrawal by specifying the amount of assets to withdraw',
@@ -121,7 +127,7 @@ stvPoolWrite
     stringToBigInt,
   )
   .action(async (address: Address, assetsToWithdraw: bigint) => {
-    const contract = getStvPoolContract(address);
+    const contract = getStvStethPoolContract(address);
 
     const confirmationMessage = `Are you sure you want to request a withdrawal of ${assetsToWithdraw} assets?`;
     const confirm = await confirmOperation(confirmationMessage);
@@ -134,7 +140,7 @@ stvPoolWrite
     });
   });
 
-stvPoolWrite
+stvStethPoolWrite
   .command('request-withdrawal')
   .description(
     'request a withdrawal by specifying the amount of stv to withdraw',
@@ -143,6 +149,16 @@ stvPoolWrite
   .argument(
     '<stvToWithdraw>',
     'the amount of stv to withdraw (27 decimals)',
+    stringToBigInt,
+  )
+  .argument(
+    '<stethSharesToBurn>',
+    "the amount of stETH shares to burn to repay user's liabilities (18 decimals)",
+    stringToBigInt,
+  )
+  .argument(
+    '<stethSharesToRebalance>',
+    'the amount of stETH shares to rebalance (18 decimals)',
     stringToBigInt,
   )
   .option(
@@ -154,24 +170,31 @@ stvPoolWrite
     async (
       address: Address,
       stvToWithdraw: bigint,
+      stethSharesToBurn: bigint,
+      stethSharesToRebalance: bigint,
       { receiver }: { receiver: Address },
     ) => {
-      const contract = getStvPoolContract(address);
+      const contract = getStvStethPoolContract(address);
       const account = await getAccount();
 
-      const confirmationMessage = `Are you sure you want to request a withdrawal of ${stvToWithdraw} stv to ${receiver}?`;
+      const confirmationMessage = `Are you sure you want to request a withdrawal of ${stvToWithdraw} stv to ${receiver}? (stethSharesToBurn: ${stethSharesToBurn}, stethSharesToRebalance: ${stethSharesToRebalance})`;
       const confirm = await confirmOperation(confirmationMessage);
       if (!confirm) return;
 
       await callWriteMethodWithReceipt({
         contract,
         methodName: 'requestWithdrawal',
-        payload: [stvToWithdraw, receiver || account.address],
+        payload: [
+          stvToWithdraw,
+          stethSharesToBurn,
+          stethSharesToRebalance,
+          receiver || account.address,
+        ],
       });
     },
   );
 
-stvPoolWrite
+stvStethPoolWrite
   .command('request-withdrawals')
   .description(
     'request multiple withdrawals by specifying the amounts of stv to withdraw',
@@ -180,6 +203,16 @@ stvPoolWrite
   .argument(
     '<stvToWithdraw>',
     'the array of amounts of stv to withdraw (27 decimals)',
+    stringToBigIntArray,
+  )
+  .argument(
+    '<stethSharesToBurn>',
+    "the amount of stETH shares to burn to repay user's liabilities (18 decimals)",
+    stringToBigInt,
+  )
+  .argument(
+    '<stethSharesToRebalance>',
+    'the amount of stETH shares to rebalance (18 decimals)',
     stringToBigIntArray,
   )
   .option(
@@ -191,24 +224,31 @@ stvPoolWrite
     async (
       address: Address,
       stvToWithdraw: bigint[],
+      stethSharesToBurn: bigint,
+      stethSharesToRebalance: bigint[],
       { receiver }: { receiver: Address },
     ) => {
-      const contract = getStvPoolContract(address);
+      const contract = getStvStethPoolContract(address);
       const account = await getAccount();
 
-      const confirmationMessage = `Are you sure you want to request multiple withdrawals of ${stvToWithdraw.join(', ')} stv to ${receiver}?`;
+      const confirmationMessage = `Are you sure you want to request multiple withdrawals of ${stvToWithdraw.join(', ')} stv to ${receiver}? (stethSharesToBurn: ${stethSharesToBurn}, stethSharesToRebalance: ${stethSharesToRebalance.join(', ')})`;
       const confirm = await confirmOperation(confirmationMessage);
       if (!confirm) return;
 
       await callWriteMethodWithReceipt({
         contract,
         methodName: 'requestWithdrawals',
-        payload: [stvToWithdraw, receiver || account.address],
+        payload: [
+          stvToWithdraw,
+          stethSharesToRebalance,
+          stethSharesToBurn,
+          receiver || account.address,
+        ],
       });
     },
   );
 
-stvPoolWrite
+stvStethPoolWrite
   .command('claim-withdrawal')
   .description('claim finalized withdrawal request')
   .argument('<address>', 'distributor address', stringToAddress)
@@ -224,7 +264,7 @@ stvPoolWrite
       requestId: bigint,
       { receiver }: { receiver: Address },
     ) => {
-      const contract = getStvPoolContract(address);
+      const contract = getStvStethPoolContract(address);
       const account = await getAccount();
 
       const confirmationMessage = `Are you sure you want to claim withdrawal request ${requestId} to ${receiver}?`;
@@ -239,7 +279,7 @@ stvPoolWrite
     },
   );
 
-stvPoolWrite
+stvStethPoolWrite
   .command('claim-withdrawals')
   .description('claim multiple finalized withdrawal requests')
   .argument('<address>', 'distributor address', stringToAddress)
@@ -265,7 +305,7 @@ stvPoolWrite
       hints: bigint[],
       { receiver }: { receiver: Address },
     ) => {
-      const contract = getStvPoolContract(address);
+      const contract = getStvStethPoolContract(address);
       const account = await getAccount();
 
       const confirmationMessage = `Are you sure you want to claim withdrawal requests ${requestIds.join(', ')} to ${receiver}?`;
@@ -280,7 +320,7 @@ stvPoolWrite
     },
   );
 
-stvPoolWrite
+stvStethPoolWrite
   .command('burn-stv-for-withdrawal-queue')
   .description(
     'burn stv from WithdrawalQueue contract when processing withdrawal requests',
@@ -288,7 +328,7 @@ stvPoolWrite
   .argument('<address>', 'distributor address', stringToAddress)
   .argument('<stv>', 'amount of stv to burn (27 decimals)', stringToBigInt)
   .action(async (address: Address, stv: bigint) => {
-    const contract = getStvPoolContract(address);
+    const contract = getStvStethPoolContract(address);
 
     const confirmationMessage = `Are you sure you want to burn ${stv} stv for the withdrawal queue ${address}?`;
     const confirm = await confirmOperation(confirmationMessage);
@@ -301,12 +341,12 @@ stvPoolWrite
     });
   });
 
-stvPoolWrite
+stvStethPoolWrite
   .command('disconnect-vault')
   .description('initiates voluntary vault disconnection from VaultHub')
   .argument('<address>', 'distributor address', stringToAddress)
   .action(async (address: Address) => {
-    const contract = getStvPoolContract(address);
+    const contract = getStvStethPoolContract(address);
 
     const confirmationMessage = `Are you sure you want to disconnect the vault ${address}?`;
     const confirm = await confirmOperation(confirmationMessage);
@@ -319,7 +359,7 @@ stvPoolWrite
     });
   });
 
-stvPoolWrite
+stvStethPoolWrite
   .command('claim-connect-deposit')
   .description('claims the connect deposit after vault has been disconnected')
   .argument('<address>', 'distributor address', stringToAddress)
@@ -329,7 +369,7 @@ stvPoolWrite
     stringToAddress,
   )
   .action(async (address: Address, { receiver }: { receiver: Address }) => {
-    const contract = getStvPoolContract(address);
+    const contract = getStvStethPoolContract(address);
     const account = await getAccount();
 
     const confirmationMessage = `Are you sure you want to claim the connect deposit for the vault ${address} to ${receiver}?`;
@@ -343,7 +383,7 @@ stvPoolWrite
     });
   });
 
-stvPoolWrite
+stvStethPoolWrite
   .command('trigger-validator-withdrawals')
   .description('triggers validator withdrawals')
   .argument('<address>', 'distributor address', stringToAddress)
@@ -357,7 +397,7 @@ stvPoolWrite
       amounts: bigint[],
       refundRecipient: Address,
     ) => {
-      const contract = getStvPoolContract(address);
+      const contract = getStvStethPoolContract(address);
 
       const confirmationMessage = `Are you sure you want to trigger validator withdrawals for the vault ${address} with pubkeys ${pubkeys.join(', ')} and amounts ${amounts.map((amount) => formatEther(amount)).join(', ')} to ${refundRecipient}?`;
       const confirm = await confirmOperation(confirmationMessage);
@@ -371,13 +411,13 @@ stvPoolWrite
     },
   );
 
-stvPoolWrite
+stvStethPoolWrite
   .command('request-validator-exit')
   .description('requests validator exit')
   .argument('<address>', 'distributor address', stringToAddress)
   .argument('<pubkeys>', 'validator public keys', stringToHexArray)
   .action(async (address: Address, pubkeys: Hex[]) => {
-    const contract = getStvPoolContract(address);
+    const contract = getStvStethPoolContract(address);
 
     const confirmationMessage = `Are you sure you want to request validator exit for the vault ${address} with pubkeys ${pubkeys.join(', ')}?`;
     const confirm = await confirmOperation(confirmationMessage);
@@ -390,13 +430,13 @@ stvPoolWrite
     });
   });
 
-stvPoolWrite
+stvStethPoolWrite
   .command('add-to-allow-list')
   .description('add an address to the allowlist')
   .argument('<address>', 'distributor address', stringToAddress)
   .argument('<user>', 'address to add to the allowlist', stringToAddress)
   .action(async (address: Address, user: Address) => {
-    const contract = getStvPoolContract(address);
+    const contract = getStvStethPoolContract(address);
 
     const confirmationMessage = `Are you sure you want to add ${user} to the allowlist for the vault ${address}?`;
     const confirm = await confirmOperation(confirmationMessage);
@@ -409,13 +449,13 @@ stvPoolWrite
     });
   });
 
-stvPoolWrite
+stvStethPoolWrite
   .command('remove-from-allow-list')
   .description('remove an address from the allowlist')
   .argument('<address>', 'distributor address', stringToAddress)
   .argument('<user>', 'address to remove from the allowlist', stringToAddress)
   .action(async (address: Address, user: Address) => {
-    const contract = getStvPoolContract(address);
+    const contract = getStvStethPoolContract(address);
 
     const confirmationMessage = `Are you sure you want to remove ${user} from the allowlist for the vault ${address}?`;
     const confirm = await confirmOperation(confirmationMessage);
@@ -427,3 +467,106 @@ stvPoolWrite
       payload: [user],
     });
   });
+
+stvStethPoolWrite
+  .command('mint-steth-shares')
+  .description("mint stETH shares up to the user's minting capacity")
+  .argument('<address>', 'distributor address', stringToAddress)
+  .argument(
+    '<stethShares>',
+    'the amount of stETH shares to mint',
+    stringToBigInt,
+  )
+  .action(async (address: Address, stethShares: bigint) => {
+    const contract = getStvStethPoolContract(address);
+
+    const confirmationMessage = `Are you sure you want to mint stETH shares up to the user's minting capacity for the vault ${address}? (stethShares: ${stethShares})`;
+    const confirm = await confirmOperation(confirmationMessage);
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'mintStethShares',
+      payload: [stethShares],
+    });
+  });
+
+stvStethPoolWrite
+  .command('burn-steth-shares')
+  .description("burn stETH shares to reduce the user's minted stETH obligation")
+  .argument('<address>', 'distributor address', stringToAddress)
+  .argument(
+    '<stethShares>',
+    'the amount of stETH shares to burn',
+    stringToBigInt,
+  )
+  .action(async (address: Address, stethShares: bigint) => {
+    const contract = getStvStethPoolContract(address);
+
+    const confirmationMessage = `Are you sure you want to burn stETH shares to reduce the user's minted stETH obligation for the vault ${address}? (stethShares: ${stethShares})`;
+    const confirm = await confirmOperation(confirmationMessage);
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'burnStethShares',
+      payload: [stethShares],
+    });
+  });
+
+stvStethPoolWrite
+  .command('rebalance-minted-steth-shares')
+  .description("rebalance the user's minted stETH shares by burning stv")
+  .argument('<address>', 'distributor address', stringToAddress)
+  .argument(
+    '<stethShares>',
+    'the amount of stETH shares to rebalance',
+    stringToBigInt,
+  )
+  .argument(
+    '<maxStvToBurn>',
+    'the maximum amount of stv to burn for rebalancing',
+    stringToBigInt,
+  )
+  .action(
+    async (address: Address, stethShares: bigint, maxStvToBurn: bigint) => {
+      const contract = getStvStethPoolContract(address);
+
+      const confirmationMessage = `Are you sure you want to rebalance the user's minted stETH shares by burning stv for the vault ${address}? (stethShares: ${stethShares}, maxStvToBurn: ${maxStvToBurn})`;
+      const confirm = await confirmOperation(confirmationMessage);
+      if (!confirm) return;
+
+      await callWriteMethodWithReceipt({
+        contract,
+        methodName: 'rebalanceMintedStethShares',
+        payload: [stethShares, maxStvToBurn],
+      });
+    },
+  );
+
+stvStethPoolWrite
+  .command('transfer-with-liability')
+  .description('transfer stETH shares with liability to another address')
+  .argument('<address>', 'distributor address', stringToAddress)
+  .argument('<to>', 'the address to transfer to', stringToAddress)
+  .argument('<stv>', 'the amount of stv to transfer', stringToBigInt)
+  .argument(
+    '<stethShares>',
+    'the amount of stETH shares liability to transfer',
+    stringToBigInt,
+  )
+  .action(
+    async (address: Address, to: Address, stv: bigint, stethShares: bigint) => {
+      const contract = getStvStethPoolContract(address);
+
+      const confirmationMessage = `Are you sure you want to transfer ${stv} stv and ${stethShares} stETH shares liability to ${to} for the vault ${address}?`;
+      const confirm = await confirmOperation(confirmationMessage);
+      if (!confirm) return;
+
+      await callWriteMethodWithReceipt({
+        contract,
+        methodName: 'transferWithLiability',
+        payload: [to, stv, stethShares],
+      });
+    },
+  );

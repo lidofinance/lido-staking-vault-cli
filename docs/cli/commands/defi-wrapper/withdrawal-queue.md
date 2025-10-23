@@ -2,7 +2,7 @@
 sidebar_position: 1
 ---
 
-# Withdrawal Queue
+# WithdrawalQueue
 
 ## Command
 
@@ -10,7 +10,7 @@ sidebar_position: 1
 yarn start defi-wrapper contracts wq [arguments] [-options]
 ```
 
-## Dashboard commands list
+## WithdrawalQueue commands list
 
 ```bash
 yarn start defi-wrapper contracts wq -h
