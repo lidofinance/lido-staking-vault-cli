@@ -435,6 +435,8 @@ vaultOperationsWrite
         );
       }
 
+      await checkIsReportFresh(vaultAddress);
+
       await callWriteMethodWithReceipt({
         contract: operatorGridContract,
         methodName: 'changeTier',
@@ -525,6 +527,8 @@ vaultOperationsWrite
       `Are you sure you want to sync the tier of the vault ${vaultAddress}?`,
     );
     if (!confirm) return;
+
+    await checkIsReportFresh(vaultAddress);
 
     await callWriteMethodWithReceipt({
       contract,
