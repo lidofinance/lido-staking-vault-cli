@@ -435,6 +435,7 @@ vaultOperationsWrite
         );
       }
 
+      // TODO: only for confirmation
       await checkIsReportFresh(vaultAddress);
 
       await callWriteMethodWithReceipt({
@@ -497,6 +498,9 @@ vaultOperationsWrite
         'VAULT_CONFIGURATION_ROLE',
         account.address,
       );
+
+      // TODO: only for confirmation
+      await checkIsReportFresh(vaultAddress);
 
       await callWriteMethodWithReceipt({
         contract,
