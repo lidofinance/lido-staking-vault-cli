@@ -18,7 +18,7 @@ import {
 const CONSOLIDATION_REQUEST_PREDEPLOY_ADDRESS =
   '0x0000BBdDc7CE488642fb579F8B00f3a590007251';
 
-export const consolidationRequestsAndIncreaseRewardsAdjustment = async (
+export const consolidationRequestsAndIncreaseFeeExemption = async (
   sourcePubkeys: Hex[][],
   targetPubkeys: Hex[],
   sourceValidatorsInfo: ValidatorsInfo,
@@ -42,7 +42,7 @@ export const consolidationRequestsAndIncreaseRewardsAdjustment = async (
   if (!data) throw new Error('Fee read returned empty data');
   const feePerRequest = hexToBigInt(data);
 
-  // 2. Fetch consolidation request encoded calls and increase rewards adjustment encoded call.
+  // 2. Fetch consolidation request encoded calls and increase fee exemption amount encoded call.
   const sourcePubkeysFlattened = sourcePubkeys.map(
     (group) => '0x' + group.map((p) => p.replace(/^0x/, '')).join(''),
   ) as Hex[];
@@ -51,10 +51,10 @@ export const consolidationRequestsAndIncreaseRewardsAdjustment = async (
     (sum, validator) => sum + parseGwei(validator.balance),
     0n,
   );
-  const [adjustmentIncreaseEncodedCall, consolidationRequestEncodedCalls] =
+  const [feeExemptionEncodedCall, consolidationRequestEncodedCalls] =
     await callReadMethodSilent(
       consolidationContract,
-      'getConsolidationRequestsAndAdjustmentIncreaseEncodedCalls',
+      'getConsolidationRequestsAndFeeExemptionEncodedCalls',
       [sourcePubkeysFlattened, targetPubkeys, dashboard, totalBalance],
     );
 
@@ -69,11 +69,11 @@ export const consolidationRequestsAndIncreaseRewardsAdjustment = async (
     },
   );
 
-  // 4. Create populated transaction for increase rewards adjustment
+  // 4. Create populated transaction to increase the fee exemption amount
   if (totalBalance > 0n) {
     populatedTxs.push({
       to: dashboard,
-      data: adjustmentIncreaseEncodedCall,
+      data: feeExemptionEncodedCall,
     });
   }
 

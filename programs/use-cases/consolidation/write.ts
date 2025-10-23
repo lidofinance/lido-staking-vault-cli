@@ -11,7 +11,7 @@ import {
   checkConsolidationInput,
   checkValidators,
 } from 'features/consolidation.js';
-import { consolidationRequestsAndIncreaseRewardsAdjustment } from 'features/consolidation.js';
+import { consolidationRequestsAndIncreaseFeeExemption } from 'features/consolidation.js';
 import { PubkeyMap } from 'types/common.js';
 import { toHex } from 'utils/proof/merkle-utils.js';
 
@@ -61,13 +61,12 @@ consolidation
         sourcePubkeys,
         targetPubkeys,
       );
-      const populatedTxs =
-        await consolidationRequestsAndIncreaseRewardsAdjustment(
-          sourcePubkeys,
-          targetPubkeys,
-          sourceValidatorsInfo,
-          dashboard,
-        );
+      const populatedTxs = await consolidationRequestsAndIncreaseFeeExemption(
+        sourcePubkeys,
+        targetPubkeys,
+        sourceValidatorsInfo,
+        dashboard,
+      );
       await callWriteMethodWithReceiptBatchCalls({
         calls: populatedTxs,
         withSpinner: true,

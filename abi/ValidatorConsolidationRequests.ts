@@ -139,7 +139,7 @@ export const validatorConsolidationRequestsAbi = [
         type: 'uint256',
       },
     ],
-    name: 'getConsolidationRequestsAndAdjustmentIncreaseEncodedCalls',
+    name: 'getConsolidationRequestsAndFeeExemptionEncodedCalls',
     outputs: [
       {
         internalType: 'bytes',
