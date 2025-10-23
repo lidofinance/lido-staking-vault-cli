@@ -32,15 +32,15 @@ Currently no read commands are implemented for consolidation.
 
 ### Write
 
-| Command | Description                                                                                     |
-| ------- | ----------------------------------------------------------------------------------------------- |
-| write   | Consolidate validators and increase rewards adjustment to fix fee calculation for node-operator |
+| Command | Description                                                                                |
+| ------- | ------------------------------------------------------------------------------------------ |
+| -       | Consolidate validators and increase fee exemption to fix fee calculation for node-operator |
 
 ## Command Details
 
 ### write
 
-Consolidates validators and increases rewards adjustment to fix fee calculation for node-operator.
+Consolidates validators and increases fee exemption to fix fee calculation for node-operator.
 
 **Usage:**
 
@@ -104,12 +104,12 @@ The JSON file should contain a mapping of target pubkeys to arrays of source pub
 2. Checks finality checkpoints and validator eligibility
 3. Calculates consolidation fees using EIP-7251 predeploy contract
 4. Generates consolidation request transactions
-5. Creates rewards adjustment transaction if needed
+5. Creates fee exemption transaction if needed
 6. Executes all transactions in batch
 
 **Notes:**
 
 - This command uses the EIP-7251 consolidation mechanism
 - Consolidation requests are sent to the predeploy contract at `0x0000BBdDc7CE488642fb579F8B00f3a590007251`
-- The process includes automatic fee calculation and rewards adjustment
+- The process includes automatic fee calculation and fee exemption
 - All transactions are executed atomically - either all succeed or all fail
