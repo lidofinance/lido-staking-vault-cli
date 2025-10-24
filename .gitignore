@@ -2,7 +2,10 @@
 .env
 .env.local
 .env.production
-.env.development
+.env.config*
+
+# test
+/deployed.json
 
 # dependencies
 /node_modules
@@ -15,3 +18,19 @@ tsconfig.tsbuildinfo
 # production
 /build
 /dist
+
+#ide
+.vscode
+.idea
+
+# yarn
+.yarn/install-state.gz
+
+# wallets
+wallets/*
+
+# IPFS cache
+ipfs-cache/*
+
+# lsv-web-terminal
+lsv-web-terminal

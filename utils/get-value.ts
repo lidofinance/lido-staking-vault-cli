@@ -1,17 +1,13 @@
 export const getValueByPath = <T extends Record<string, unknown>>(
   obj: T,
-  path: string
+  path: string,
 ) => {
-  const segments = path.split(".");
+  const segments = path.split('.');
   let current: unknown = obj;
 
-  for (let i = 0; i < segments.length; i++) {
-    if (
-      typeof current === "object" &&
-      current !== null &&
-      (segments[i] as string) in current
-    ) {
-      current = (current as T)[segments[i] as string];
+  for (const segment of segments) {
+    if (typeof current === 'object' && current !== null && segment in current) {
+      current = (current as T)[segment];
     } else {
       return undefined;
     }

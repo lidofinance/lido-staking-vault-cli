@@ -1,32 +1,91 @@
-import { lstatSync } from "fs";
-import { resolve } from "path";
-import { envs } from "./envs";
-import { getValueByPath } from "@utils";
-import { zeroAddress, Address } from "viem";
+import { lstatSync, readFileSync } from 'fs';
+import * as process from 'node:process';
+import path from 'path';
+import { zeroAddress, Address, Chain } from 'viem';
 
-export const importConfigFile = (path?: string) => {
-  const fullPath = resolve("configs", path ?? "");
-  const json: Record<string, Record<string, Address>> = {};
+import { getValueByPath, validateConfig } from 'utils';
+import { Config } from 'types';
+
+import { envs } from './envs.js';
+import { SUPPORTED_CHAINS_LIST } from './constants.js';
+
+export const importDeployFile = () => {
+  const fullPath = path.resolve('configs', envs?.DEPLOYED ?? '');
+  if (!fullPath) {
+    throw new Error('Deployed contracts file is not set, check .env file');
+  }
+
+  let json: Record<string, number | string | Chain | any> = {};
 
   if (lstatSync(fullPath).isFile()) {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    Object.assign(json, require(fullPath));
+    const fileContent = readFileSync(fullPath, 'utf-8');
+    const config = JSON.parse(fileContent);
+    json = structuredClone(config);
   }
 
   return json;
 };
 
-export const getContracts = () => {
-  const deployedFile = envs?.DEPLOYED;
+export const importConfigFromEnv = () => {
+  const config = envs as unknown as Config;
+  config.CHAIN_ID = Number(config.CHAIN_ID);
 
-  if (!deployedFile) {
-    throw new Error("Deployed contracts file is not set, check .env file");
+  return config;
+};
+
+export const getConfig = () => {
+  const config = importConfigFromEnv();
+
+  const errors = validateConfig(config as unknown as Config);
+  const errorKeys = Object.keys(errors);
+  if (errorKeys.length > 0) {
+    errorKeys.forEach((key) => console.error(`${errors[key as keyof Config]}`));
+    process.exit(1);
   }
 
-  const mainDeployedJSON = importConfigFile(envs?.DEPLOYED);
-  const extraDeployedJSON = importConfigFile(`extra-${envs?.DEPLOYED}`);
+  return config;
+};
 
-  return { ...mainDeployedJSON, ...extraDeployedJSON };
+export const getDeployed = () => {
+  const deployedJSON = importDeployFile();
+
+  return deployedJSON;
+};
+
+export const getChainId = () => {
+  const config = getConfig();
+  const deployed = getDeployed();
+  const chainId = config.CHAIN_ID;
+
+  if (chainId !== deployed.chainId) {
+    throw new Error('ChainId in env and deployed file mismatch');
+  }
+
+  return chainId;
+};
+
+export const getChain = (): Chain => {
+  const chainId = getChainId();
+  const chain = SUPPORTED_CHAINS_LIST.find((chain) => chain.id === chainId);
+
+  if (!chain) {
+    throw new Error(`Chain ${chainId} is not supported`);
+  }
+
+  return chain;
+};
+
+export const getElUrl = () => {
+  const config = getConfig();
+  const elUrls = config.EL_URL as string;
+
+  return elUrls.split(',')[0] as string;
+};
+
+export const getContracts = () => {
+  const deployedJSON = getDeployed();
+
+  return { ...deployedJSON };
 };
 
 export const getContractDeploy = (path: string) => {
@@ -35,23 +94,29 @@ export const getContractDeploy = (path: string) => {
 
 export const getDeployedAddress = (...contractKeys: string[]) => {
   const contracts = contractKeys.map((contractKey) =>
-    getContractDeploy(contractKey)
+    getContractDeploy(contractKey),
   );
+
   const contract = contracts.find((contract) => contract);
 
-  if (typeof contract === "string") {
+  if (typeof contract === 'string') {
     return contract as Address;
   }
 
-  if (!contract || typeof contract !== "object") {
+  if (!contract || typeof contract !== 'object') {
     throw new Error(`Contracts by ${contractKeys} not found`);
   }
 
-  if ("proxyAddress" in contract) {
-    return contract.proxyAddress as Address;
+  if (
+    'proxy' in contract &&
+    typeof contract.proxy === 'object' &&
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    'address' in contract.proxy!
+  ) {
+    return contract.proxy.address as Address;
   }
 
-  if ("address" in contract) {
+  if ('address' in contract) {
     return contract.address as Address;
   }
 
@@ -69,27 +134,29 @@ export const getOptionalDeployedAddress = (...contractKeys: string[]) => {
 export const getAddressMap = () => {
   const contracts = getContracts();
 
-  return Object.entries(contracts).reduce((acc, [key, value]) => {
-    const name = value.contract || key;
-    const proxyAddress =
-      value.proxyAddress || (value.implementation && value.address);
-    const implementation = value.implementation;
-    const isNotProxy = !implementation && !proxyAddress;
+  return Object.entries(contracts).reduce(
+    (acc, [key, value]) => {
+      const name = value?.contract || key;
+      const proxy = value?.proxy || (value?.implementation && value?.address);
+      const implementation = value?.implementation.address;
+      const isNotProxy = !implementation && !proxy;
 
-    if (proxyAddress) {
-      acc[proxyAddress.toLowerCase()] = `Proxy (${name})`;
-    }
+      if (proxy) {
+        acc[proxy.toLowerCase()] = `Proxy (${name})`;
+      }
 
-    if (implementation) {
-      acc[implementation.toLowerCase()] = `Implementation (${name})`;
-    }
+      if (implementation) {
+        acc[implementation.toLowerCase()] = `Implementation (${name})`;
+      }
 
-    if (isNotProxy && value.address) {
-      acc[value.address.toLowerCase()] = name;
-    }
+      if (isNotProxy && value?.address) {
+        acc[value?.address.toLowerCase()] = name;
+      }
 
-    return acc;
-  }, {} as Record<string, string>);
+      return acc;
+    },
+    {} as Record<string, string>,
+  );
 };
 
 let addressMapCache: Record<string, string> | undefined;

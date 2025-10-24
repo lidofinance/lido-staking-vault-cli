@@ -1,0 +1,34 @@
+export type CalculateHealthArgs = {
+  totalValue: bigint;
+  liabilitySharesInStethWei: bigint;
+  forcedRebalanceThresholdBP: number;
+};
+
+export const calculateHealth = (args: CalculateHealthArgs) => {
+  const { totalValue, liabilitySharesInStethWei, forcedRebalanceThresholdBP } =
+    args;
+  // Convert everything to BigInt and perform calculations with 1e18 precision
+  const BASIS_POINTS_DENOMINATOR = 10_000n;
+  const PRECISION = 10n ** 18n;
+
+  const thresholdMultiplier =
+    ((BASIS_POINTS_DENOMINATOR - BigInt(forcedRebalanceThresholdBP)) *
+      PRECISION) /
+    BASIS_POINTS_DENOMINATOR;
+  const adjustedValuation = (totalValue * thresholdMultiplier) / PRECISION;
+
+  const healthRatio18 =
+    liabilitySharesInStethWei > 0n
+      ? (adjustedValuation * PRECISION * 100n) / liabilitySharesInStethWei
+      : Infinity;
+  const healthRatio = Number(healthRatio18) / 1e18;
+
+  // Convert to readable format
+  const isHealthy = healthRatio >= 100;
+
+  return {
+    healthRatio,
+    healthRatio18,
+    isHealthy,
+  };
+};
