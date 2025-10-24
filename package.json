@@ -21,8 +21,7 @@
   "homepage": "https://github.com/lidofinance/lido-staking-vault-cli/",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/lidofinance/lido-staking-vault-cli.git",
-    "directory": "packages/sdk"
+    "url": "git+https://github.com/lidofinance/lido-staking-vault-cli.git"
   },
   "bugs": {
     "url": "https://github.com/lidofinance/lido-staking-vault-cli/issues"
