@@ -38,6 +38,7 @@ export const callSimulateWriteMethod = async <
     methodName,
     payload,
     value,
+    authorizationList,
     withSpinner = true,
     skipError = false,
   } = args;
@@ -54,6 +55,7 @@ export const callSimulateWriteMethod = async <
       account: await getAccount(),
       chain: getChain(),
       value,
+      authorizationList,
     });
     hideSpinner();
 
@@ -79,6 +81,7 @@ export const callWriteMethod = async <
     methodName,
     payload,
     value,
+    authorizationList,
     withSpinner = true,
     silent = false,
     skipError = false,
@@ -89,6 +92,7 @@ export const callWriteMethod = async <
     methodName,
     payload,
     value,
+    authorizationList,
     withSpinner,
     skipError,
   });
@@ -113,6 +117,7 @@ export const callWriteMethod = async <
       account: await getAccount(),
       chain: getChain(),
       value,
+      authorizationList,
     });
     hideSpinner();
 
@@ -255,6 +260,7 @@ export const callWriteMethodWithReceipt = async <
   const {
     contract,
     methodName,
+    authorizationList,
     payload,
     value,
     withSpinner = true,
@@ -306,6 +312,7 @@ export const callWriteMethodWithReceipt = async <
     methodName,
     payload,
     value,
+    authorizationList,
     withSpinner,
     silent,
     skipError,

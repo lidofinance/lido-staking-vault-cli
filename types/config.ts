@@ -11,6 +11,7 @@ export interface Config {
   TOKEN_MANAGER?: Address;
   VOTING?: Address;
   WALLET_CONNECT_PROJECT_ID?: string;
+  VALIDATOR_CONSOLIDATION_REQUESTS?: Address;
 }
 
 export type Vote = readonly [

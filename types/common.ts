@@ -60,6 +60,8 @@ export type Deposit = {
   depositDataRoot: Hex;
 };
 
+export type PubkeyMap = Record<Hex, Hex[]>;
+
 export type ValidatorTopUp = {
   pubkey: Hex;
   amount: bigint;
