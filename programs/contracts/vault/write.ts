@@ -1,8 +1,9 @@
-import { Address, Hex, parseEther } from 'viem';
+import { Address, formatEther, Hex, parseEther } from 'viem';
 import { Option } from 'commander';
 import { getStakingVaultContract } from 'contracts';
 import {
   callWriteMethodWithReceipt,
+  callReadMethodSilent,
   confirmFund,
   confirmOperation,
   etherToWei,
@@ -196,16 +197,40 @@ vaultWrite
   .description('triggers EIP-7002 validator exits by the node operator.')
   .argument('<address>', 'vault address', stringToAddress)
   .argument('<pubkeys>', 'validator public keys', stringToHexArray)
+  .argument(
+    '<amounts>',
+    'amounts of ether to eject. Comma separated list of amounts',
+    stringToBigIntArrayWei,
+  )
   .argument('<refundRecipient>', 'refund recipient address', stringToAddress)
   .action(
-    async (address: Address, pubkeys: Hex[], refundRecipient: Address) => {
+    async (
+      address: Address,
+      pubkeys: Hex[],
+      amounts: bigint[],
+      refundRecipient: Address,
+    ) => {
       const contract = getStakingVaultContract(address);
       const concatenatedPubkeys = pubkeys.join('') as `0x${string}`;
+      const fee = await callReadMethodSilent(
+        contract,
+        'calculateValidatorWithdrawalFee',
+        [BigInt(amounts.length)],
+      );
+
+      const confirmationMessage = `Are you sure you want to eject the validators 
+      ${pubkeys.join(', ')} 
+      from the staking vault ${address} to ${refundRecipient} 
+      with amounts ${amounts.map((amount) => formatEther(amount)).join(', ')} ETH?
+      The fee is ${formatEther(fee)} ETH`;
+      const confirm = await confirmOperation(confirmationMessage);
+      if (!confirm) return;
 
       await callWriteMethodWithReceipt({
         contract,
         methodName: 'ejectValidators',
         payload: [concatenatedPubkeys, refundRecipient],
+        value: fee,
       });
     },
   );
