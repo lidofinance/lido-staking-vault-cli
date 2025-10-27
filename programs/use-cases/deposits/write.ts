@@ -18,7 +18,6 @@ import {
 } from 'utils';
 import {
   chooseVaultAndGetDashboard,
-  checkBLSDeposits,
   makePDGProofByIndex,
   makePDGProofByIndexes,
   checkNOBalancePDGforDeposit,
@@ -26,6 +25,7 @@ import {
   checkNodeOperatorForDeposit,
   checkAndSpecifyNodeOperatorForTopUpOrWithdraw,
   getGuarantor,
+  checkBLSWithAmountDeposits,
 } from 'features';
 import { Deposit, ValidatorTopUp } from 'types';
 import {
@@ -80,7 +80,7 @@ depositsWrite
       const nodeOperator = await checkNodeOperatorForDeposit(vaultContract);
 
       if (blsCheck)
-        await checkBLSDeposits(pdgContract, vaultContract, deposits);
+        await checkBLSWithAmountDeposits(pdgContract, vaultContract, deposits);
 
       const depositsY = deposits.map((deposit) => {
         const expanded = expandBLSSignature(deposit.signature, deposit.pubkey);
