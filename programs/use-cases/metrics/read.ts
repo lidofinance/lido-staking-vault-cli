@@ -231,7 +231,7 @@ metricsRead
       vaultsDataReportCid,
     ] = await callReadMethod(lazyOracleContract, 'latestReportData');
 
-    const { cacheUse } = program.opts();
+    const { cacheUse, csv } = program.opts();
     const history = await getVaultReportHistory(
       {
         vault: vaultAddress,
@@ -246,23 +246,40 @@ metricsRead
     logResult({
       data: [
         ['Vault Address', ...history.map((r) => r.data.vaultAddress)],
-        ['Total Value, WEI', ...history.map((r) => r.data.totalValueWei)],
-        ['Fee, WEI', ...history.map((r) => r.data.fee)],
         [
-          'Liability Shares, WEI',
-          ...history.map((r) => r.data.liabilityShares),
+          'Total Value, ETH',
+          ...history.map((r) => formatEther(BigInt(r.data.totalValueWei))),
+        ],
+        ['Fee, ETH', ...history.map((r) => formatEther(BigInt(r.data.fee)))],
+        [
+          'Liability Shares, ETH',
+          ...history.map((r) => formatEther(BigInt(r.data.liabilityShares))),
         ],
         [
-          'Slashing Reserve, WEI',
-          ...history.map((r) => r.data.slashingReserve),
+          'Slashing Reserve, ETH',
+          ...history.map((r) => formatEther(BigInt(r.data.slashingReserve))),
         ],
-        ['In/Out Delta, WEI', ...history.map((r) => r.extraData.inOutDelta)],
-        ['Prev Fee, WEI', ...history.map((r) => r.extraData.prevFee)],
-        ['Infra Fee, WEI', ...history.map((r) => r.extraData.infraFee)],
-        ['Liquidity Fee, WEI', ...history.map((r) => r.extraData.liquidityFee)],
         [
-          'Reservation Fee, WEI',
-          ...history.map((r) => r.extraData.reservationFee),
+          'In/Out Delta, ETH',
+          ...history.map((r) => formatEther(BigInt(r.extraData.inOutDelta))),
+        ],
+        [
+          'Prev Fee, ETH',
+          ...history.map((r) => formatEther(BigInt(r.extraData.prevFee))),
+        ],
+        [
+          'Infra Fee, ETH',
+          ...history.map((r) => formatEther(BigInt(r.extraData.infraFee))),
+        ],
+        [
+          'Liquidity Fee, ETH',
+          ...history.map((r) => formatEther(BigInt(r.extraData.liquidityFee))),
+        ],
+        [
+          'Reservation Fee, ETH',
+          ...history.map((r) =>
+            formatEther(BigInt(r.extraData.reservationFee)),
+          ),
         ],
         ['Timestamp', ...history.map((r) => r.timestamp)],
         ['CID', ...history.map((r) => r.cid)],
@@ -275,6 +292,7 @@ metricsRead
           ),
         ],
       },
+      csvPath: csv,
     });
   });
 
