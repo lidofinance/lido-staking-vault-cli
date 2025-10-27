@@ -156,18 +156,18 @@ vaultWrite
     'performs deposits to the beacon chain using the staged and available ether.',
   )
   .argument('<address>', 'vault address', stringToAddress)
-  .argument('<deposit>', 'deposit to deposit', parseDeposit)
+  .argument('<deposit>', 'deposit to deposit (amount is in gwei)', parseDeposit)
   .argument(
     '<additionalAmount>',
-    'additional amount to deposit',
-    stringToBigInt,
+    'additional amount to deposit (in ETH)',
+    etherToWei,
   )
   .action(
     async (vault: Address, deposit: Deposit, additionalAmount: bigint) => {
       const contract = getStakingVaultContract(vault);
 
       const confirm = await confirmOperation(
-        `Are you sure you want to deposit ${formatEther(deposit.amount)} ETH for the staking vault ${vault}?`,
+        `Are you sure you want to deposit ${formatEther(deposit.amount)} ETH + Additional ${formatEther(additionalAmount)} ETH for the staking vault ${vault}?`,
       );
       if (!confirm) return;
 
