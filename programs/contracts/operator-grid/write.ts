@@ -17,6 +17,7 @@ import {
   confirmProposal,
   etherToWei,
   callReadMethodSilent,
+  stringToAddress,
 } from 'utils';
 import { Tier } from 'types';
 
@@ -174,7 +175,7 @@ operatorGridWrite
   .command('update-vault-share-limit')
   .alias('usl')
   .description('update vault share limit')
-  .argument('<vault>', 'vault address')
+  .argument('<vault>', 'vault address', stringToAddress)
   .argument(
     '<requestedShareLimit>',
     'requested share limit (in shares)',

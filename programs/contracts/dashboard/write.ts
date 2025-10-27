@@ -1002,15 +1002,16 @@ dashboardWrite
 
 dashboardWrite
   .command('update-share-limit')
+  .alias('usl')
   .description('requests a change of share limit on the OperatorGrid')
   .argument('<address>', 'dashboard address', stringToAddress)
-  .argument('<shareLimit>', 'share limit', stringToBigInt)
+  .argument('<shareLimit>', 'share limit', etherToWei)
   .action(async (address: Address, shareLimit: bigint) => {
     const contract = getDashboardContract(address);
     const vault = await callReadMethod(contract, 'stakingVault');
 
     const confirm = await confirmOperation(
-      `Are you sure you want to request a change of share limit on the OperatorGrid for the vault ${vault} to ${shareLimit}?`,
+      `Are you sure you want to request a change of share limit on the OperatorGrid for the vault ${vault} to ${formatEther(shareLimit)}?`,
     );
     if (!confirm) return;
 
