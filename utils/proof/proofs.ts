@@ -7,20 +7,18 @@ import {
   Node,
 } from '@chainsafe/persistent-merkle-tree';
 import { ssz } from '@lodestar/types';
+import type { ContainerTreeViewType } from '@chainsafe/ssz/lib/view/container.js';
 
 import { getPubkeyWCParentGIndex } from './merkle-utils.js';
+import { SupportedFork } from './constants.js';
 
-type View =
-  | ReturnType<(typeof ssz)['capella']['BeaconState']['deserializeToView']>
-  | ReturnType<(typeof ssz)['deneb']['BeaconState']['deserializeToView']>
-  | ReturnType<(typeof ssz)['electra']['BeaconState']['deserializeToView']>;
-type Validator = ReturnType<View['validators']['getReadonly']>;
+export type SupportedStateView = {
+  [K in keyof typeof SupportedFork]: ContainerTreeViewType<
+    (typeof ssz)[K]['BeaconState']['fields']
+  >;
+}[keyof typeof SupportedFork];
 
-const SupportedFork = {
-  capella: 'capella',
-  deneb: 'deneb',
-  electra: 'electra',
-};
+type Validator = ReturnType<SupportedStateView['validators']['getReadonly']>;
 
 export type BeaconHeaderResponse = {
   slot: number;
@@ -43,7 +41,11 @@ export const createStateProof = async (
   validatorIndex: number,
   bodyBytes: ArrayBuffer,
   forkName: keyof typeof SupportedFork,
-): Promise<{ proof: SingleProof; validator: Validator; view: View }> => {
+): Promise<{
+  proof: SingleProof;
+  validator: Validator;
+  view: SupportedStateView;
+}> => {
   const stateView = ssz[forkName].BeaconState.deserializeToView(
     new Uint8Array(bodyBytes),
   );

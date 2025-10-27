@@ -2,10 +2,7 @@ import { ssz } from '@lodestar/types';
 
 import { logResult } from 'utils';
 
-const SupportedFork = {
-  deneb: 'deneb',
-  electra: 'electra',
-};
+import { SupportedFork } from './constants.js';
 
 export const getFirstValidatorGIndex = (forks: string[]) => {
   const gIndexes: Record<string, string> = {};
