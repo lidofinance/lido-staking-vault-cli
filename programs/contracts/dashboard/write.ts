@@ -573,7 +573,7 @@ dashboardWrite
   )
   .addHelpText(
     'after',
-    `Deposit format:
+    `Deposit format (amount are in gwei):
     '[{
       "pubkey": "...",
       "signature": "...",
@@ -1039,5 +1039,32 @@ dashboardWrite
       contract,
       methodName: 'disburseAbnormallyHighFee',
       payload: [],
+    });
+  });
+
+dashboardWrite
+  .command('correct-settled-growth')
+  .description(
+    'Manually corrects the settled growth value with dual confirmation.',
+  )
+  .argument('<address>', 'dashboard address', stringToAddress)
+  .argument('<newSettledGrowth>', 'new settled growth', etherToWei)
+  .action(async (address: Address, newSettledGrowth: bigint) => {
+    const contract = getDashboardContract(address);
+    const currentSettledGrowth = await callReadMethodSilent(
+      contract,
+      'settledGrowth',
+    );
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to correct the settled growth to ${newSettledGrowth}?
+      Current settled growth: ${formatEther(currentSettledGrowth)}`,
+    );
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'correctSettledGrowth',
+      payload: [newSettledGrowth, currentSettledGrowth],
     });
   });

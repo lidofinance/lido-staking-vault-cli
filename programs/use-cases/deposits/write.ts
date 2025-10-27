@@ -56,7 +56,7 @@ depositsWrite
   .option('-v, --vault <string>', 'vault address', stringToAddress)
   .addHelpText(
     'after',
-    `Deposit format:
+    `Deposit format (amount are in gwei):
   '[{
     "pubkey": "...",
     "signature": "...",
@@ -187,7 +187,7 @@ depositsWrite
 depositsWrite
   .command('top-up-existing-validators')
   .aliases(['top-up-val'])
-  .description('deposits ether to proven validators from staking vault')
+  .description('deposits ether to proven validators from staking vault.')
   .argument(
     '<topUps>',
     'array of ValidatorTopUp structs with pubkey and amounts',
@@ -196,7 +196,7 @@ depositsWrite
   .option('-v, --vault <string>', 'vault address', stringToAddress)
   .addHelpText(
     'after',
-    `ValidatorTopUp format:
+    `ValidatorTopUp format (amount are in gwei):
   '[{
     "pubkey": "...",
     "amount": "...",
