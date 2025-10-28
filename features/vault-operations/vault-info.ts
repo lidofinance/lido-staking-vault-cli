@@ -99,7 +99,7 @@ export const getVaultInfoByDashboard = async (contract: DashboardContract) => {
         ['Liquidity Fee, %', formatBP(vaultConnection.liquidityFeeBP)],
         ['Reservation Fee, BP', vaultConnection.reservationFeeBP],
         ['Reservation Fee, %', formatBP(vaultConnection.reservationFeeBP)],
-        ['Share Limit, Shares', vaultConnection.shareLimit],
+        ['Share Limit, Shares', formatEther(vaultConnection.shareLimit)],
         ['Liability Shares, Shares', formatEther(liabilityShares)],
         ['Obligations (sharesToBurn), Shares', formatEther(obligations[0])],
         ['Obligations (feesToSettle), ETH', formatEther(obligations[1])],

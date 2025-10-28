@@ -3,6 +3,26 @@ import { PredepositGuaranteeContract, StakingVaultContract } from 'contracts';
 import { Deposit } from 'types';
 
 export const checkBLSDeposits = async (
+  vaultContract: StakingVaultContract,
+  deposits: Deposit[],
+) => {
+  const withdrawalCredentials = await callReadMethod(
+    vaultContract,
+    'withdrawalCredentials',
+  );
+
+  for (const deposit of deposits) {
+    const isBLSValid = isValidBLSDeposit(deposit, withdrawalCredentials);
+
+    if (!isBLSValid) {
+      throw new Error(
+        `❌ Offchain - BLS signature is not valid for Pubkey ${deposit.pubkey}`,
+      );
+    }
+  }
+};
+
+export const checkBLSWithAmountDeposits = async (
   pdgContract: PredepositGuaranteeContract,
   vaultContract: StakingVaultContract,
   deposits: Deposit[],
