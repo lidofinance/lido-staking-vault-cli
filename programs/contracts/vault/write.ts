@@ -3,6 +3,7 @@ import { Option } from 'commander';
 import { getStakingVaultContract } from 'contracts';
 import {
   callWriteMethodWithReceipt,
+  callReadMethodSilent,
   confirmFund,
   confirmOperation,
   etherToWei,
@@ -156,18 +157,18 @@ vaultWrite
     'performs deposits to the beacon chain using the staged and available ether.',
   )
   .argument('<address>', 'vault address', stringToAddress)
-  .argument('<deposit>', 'deposit to deposit', parseDeposit)
+  .argument('<deposit>', 'deposit to deposit (amount is in gwei)', parseDeposit)
   .argument(
     '<additionalAmount>',
-    'additional amount to deposit',
-    stringToBigInt,
+    'additional amount to deposit (in ETH)',
+    etherToWei,
   )
   .action(
     async (vault: Address, deposit: Deposit, additionalAmount: bigint) => {
       const contract = getStakingVaultContract(vault);
 
       const confirm = await confirmOperation(
-        `Are you sure you want to deposit ${formatEther(deposit.amount)} ETH for the staking vault ${vault}?`,
+        `Are you sure you want to deposit ${formatEther(deposit.amount)} ETH + Additional ${formatEther(additionalAmount)} ETH for the staking vault ${vault}?`,
       );
       if (!confirm) return;
 
@@ -273,19 +274,50 @@ vaultWrite
 
 vaultWrite
   .command('eject-validators')
-  .description('triggers EIP-7002 validator exits by the node operator.')
+  .description(
+    'triggers EIP-7002 validator exits by the node operator.Because the node operator cannot ensure that all the associated validators are under control, the node operator has the ability to forcefully eject validators.',
+  )
   .argument('<address>', 'vault address', stringToAddress)
   .argument('<pubkeys>', 'validator public keys', stringToHexArray)
-  .argument('<refundRecipient>', 'refund recipient address', stringToAddress)
+  .argument(
+    '<amounts>',
+    'amounts of ether to eject. Comma separated list of amounts',
+    stringToBigIntArrayWei,
+  )
+  .argument(
+    '<refundRecipient>',
+    'address to receive the fee refund, if zero, refunds go to msg.sender',
+    stringToAddress,
+  )
   .action(
-    async (address: Address, pubkeys: Hex[], refundRecipient: Address) => {
+    async (
+      address: Address,
+      pubkeys: Hex[],
+      amounts: bigint[],
+      refundRecipient: Address,
+    ) => {
       const contract = getStakingVaultContract(address);
       const concatenatedPubkeys = pubkeys.join('') as `0x${string}`;
+
+      const fee = await callReadMethodSilent(
+        contract,
+        'calculateValidatorWithdrawalFee',
+        [BigInt(amounts.length)],
+      );
+
+      const confirmationMessage = `Are you sure you want to eject the validators 
+      ${pubkeys.join(', ')} 
+      from the staking vault ${address} to ${refundRecipient} 
+      with amounts ${amounts.map((amount) => formatEther(amount)).join(', ')} ETH?
+      The fee is ${formatEther(fee)} ETH`;
+      const confirm = await confirmOperation(confirmationMessage);
+      if (!confirm) return;
 
       await callWriteMethodWithReceipt({
         contract,
         methodName: 'ejectValidators',
         payload: [concatenatedPubkeys, refundRecipient],
+        value: fee,
       });
     },
   );

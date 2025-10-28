@@ -13,6 +13,7 @@ import {
   burnSteth,
   checkIsReportFresh,
   confirmSettledGrowth,
+  checkBLSDeposits,
 } from 'features';
 import {
   callReadMethod,
@@ -571,9 +572,10 @@ dashboardWrite
     'array of IStakingVault.Deposit structs containing deposit data',
     parseDepositArray,
   )
+  .option('--no-bls-check', 'skip bls signature check')
   .addHelpText(
     'after',
-    `Deposit format:
+    `Deposit format (amount are in gwei):
     '[{
       "pubkey": "...",
       "signature": "...",
@@ -583,22 +585,31 @@ dashboardWrite
     {second deposit}
     ...]'`,
   )
-  .action(async (address: Address, deposits: Deposit[]) => {
-    const contract = getDashboardContract(address);
-    const vault = await callReadMethod(contract, 'stakingVault');
+  .action(
+    async (
+      address: Address,
+      deposits: Deposit[],
+      { blsCheck }: { blsCheck: boolean },
+    ) => {
+      const contract = getDashboardContract(address);
+      const vault = await callReadMethod(contract, 'stakingVault');
+      const vaultContract = getStakingVaultContract(vault);
 
-    const confirm = await confirmOperation(
-      `Are you sure you want to unguaranteed deposit ${deposits.length} deposits to the beacon chain in the staking vault ${vault}?
+      const confirm = await confirmOperation(
+        `Are you sure you want to unguaranteed deposit ${deposits.length} deposits to the beacon chain in the staking vault ${vault}?
       Pubkeys: ${deposits.map((i) => i.pubkey).join(', ')}`,
-    );
-    if (!confirm) return;
+      );
+      if (!confirm) return;
 
-    await callWriteMethodWithReceipt({
-      contract,
-      methodName: 'unguaranteedDepositToBeaconChain',
-      payload: [deposits],
-    });
-  });
+      if (blsCheck) await checkBLSDeposits(vaultContract, deposits);
+
+      await callWriteMethodWithReceipt({
+        contract,
+        methodName: 'unguaranteedDepositToBeaconChain',
+        payload: [deposits],
+      });
+    },
+  );
 
 dashboardWrite
   .command('prove-unknown-validators-to-pdg')
@@ -698,7 +709,7 @@ dashboardWrite
 
     const confirmedSettledGrowth =
       await confirmSettledGrowth(currentSettledGrowth);
-    if (!confirmedSettledGrowth) return;
+    if (confirmedSettledGrowth === false) return;
 
     const confirm = await confirmOperation(
       `Are you sure you want to connect the dashboard ${address} (vault: ${vault}) to VaultHub?
@@ -730,7 +741,7 @@ dashboardWrite
 
     const confirmedSettledGrowth =
       await confirmSettledGrowth(currentSettledGrowth);
-    if (!confirmedSettledGrowth) return;
+    if (confirmedSettledGrowth === false) return;
 
     const confirm = await confirmOperation(
       `Are you sure you want to reconnect the dashboard ${address} (vault: ${vault}) to VaultHub?
@@ -773,7 +784,7 @@ dashboardWrite
 
       const confirmedSettledGrowth =
         await confirmSettledGrowth(currentSettledGrowth);
-      if (!confirmedSettledGrowth) return;
+      if (confirmedSettledGrowth === false) return;
 
       const confirm = await confirmOperation(
         `Are you sure you want to change the tier of the vault ${vault} to ${tier} and connect to VaultHub?
@@ -1002,15 +1013,16 @@ dashboardWrite
 
 dashboardWrite
   .command('update-share-limit')
+  .alias('usl')
   .description('requests a change of share limit on the OperatorGrid')
   .argument('<address>', 'dashboard address', stringToAddress)
-  .argument('<shareLimit>', 'share limit', stringToBigInt)
+  .argument('<shareLimit>', 'share limit', etherToWei)
   .action(async (address: Address, shareLimit: bigint) => {
     const contract = getDashboardContract(address);
     const vault = await callReadMethod(contract, 'stakingVault');
 
     const confirm = await confirmOperation(
-      `Are you sure you want to request a change of share limit on the OperatorGrid for the vault ${vault} to ${shareLimit}?`,
+      `Are you sure you want to request a change of share limit on the OperatorGrid for the vault ${vault} to ${formatEther(shareLimit)}?`,
     );
     if (!confirm) return;
 
@@ -1039,5 +1051,32 @@ dashboardWrite
       contract,
       methodName: 'disburseAbnormallyHighFee',
       payload: [],
+    });
+  });
+
+dashboardWrite
+  .command('correct-settled-growth')
+  .description(
+    'Manually corrects the settled growth value with dual confirmation.',
+  )
+  .argument('<address>', 'dashboard address', stringToAddress)
+  .argument('<newSettledGrowth>', 'new settled growth', etherToWei)
+  .action(async (address: Address, newSettledGrowth: bigint) => {
+    const contract = getDashboardContract(address);
+    const currentSettledGrowth = await callReadMethodSilent(
+      contract,
+      'settledGrowth',
+    );
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to correct the settled growth to ${newSettledGrowth}?
+      Current settled growth: ${formatEther(currentSettledGrowth)}`,
+    );
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'correctSettledGrowth',
+      payload: [newSettledGrowth, currentSettledGrowth],
     });
   });

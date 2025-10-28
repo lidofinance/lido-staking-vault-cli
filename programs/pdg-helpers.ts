@@ -139,7 +139,7 @@ predepositGuaranteeHelpers
   .argument('<deposits>', 'deposits', parseDepositArray)
   .addHelpText(
     'after',
-    `Deposit format:
+    `Deposit format (amount are in gwei):
     '[{
       "pubkey": "...",
       "signature": "...",

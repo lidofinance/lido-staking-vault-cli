@@ -106,7 +106,7 @@ export const parseDeposit = (str: string): Deposit => {
   }
 
   const parsed = JSON.parse(trimmed, (key, value) => {
-    if (key === 'amount') return BigInt(value) * BigInt(10 ** 9); // to wei
+    if (key === 'amount') return BigInt(value) * BigInt(10 ** 9); // gwei to wei
     if (typeof value === 'string') {
       return toHex(value);
     }
@@ -132,7 +132,7 @@ export const parseDepositArray = (str: string): Deposit[] => {
   // eslint-disable-next-line sonarjs/no-identical-functions
   const parsed = JSON.parse(trimmed, (key, value) => {
     if (key === '') return value; // root array
-    if (key === 'amount') return BigInt(value) * BigInt(10 ** 9); // to wei
+    if (key === 'amount') return BigInt(value) * BigInt(10 ** 9); // gwei to wei
     if (typeof value === 'string') {
       return toHex(value);
     }
@@ -158,9 +158,10 @@ export const parseValidatorTopUpArray = (str: string): ValidatorTopUp[] => {
     return [];
   }
 
+  // eslint-disable-next-line sonarjs/no-identical-functions
   const parsed = JSON.parse(trimmed, (key, value) => {
     if (key === '') return value; // root array
-    if (key === 'amount') return BigInt(value);
+    if (key === 'amount') return BigInt(value) * BigInt(10 ** 9); // gwei to wei
     if (typeof value === 'string') {
       return toHex(value);
     }

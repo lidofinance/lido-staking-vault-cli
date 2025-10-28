@@ -4,6 +4,8 @@ import { getConfig } from 'configs';
 import { printError } from 'utils';
 import { Hex } from 'viem';
 
+import { SupportedFork } from './proof/constants.js';
+
 export type BlockId = RootHex | Slot | 'head' | 'genesis' | 'finalized';
 export type StateId =
   | RootHex
@@ -152,12 +154,6 @@ const endpoints = {
   state: (stateId: StateId): string => `eth/v2/debug/beacon/states/${stateId}`,
   validatorsInfo: (validatorsPubkeys: string): string =>
     `eth/v1/beacon/states/head/validators${validatorsPubkeys}`,
-};
-
-export const SupportedFork = {
-  capella: 'capella',
-  deneb: 'deneb',
-  electra: 'electra',
 };
 
 export const finalityCheckpoints = async (

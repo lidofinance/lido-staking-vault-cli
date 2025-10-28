@@ -18,7 +18,6 @@ import {
 } from 'utils';
 import {
   chooseVaultAndGetDashboard,
-  checkBLSDeposits,
   makePDGProofByIndex,
   makePDGProofByIndexes,
   checkNOBalancePDGforDeposit,
@@ -26,6 +25,7 @@ import {
   checkNodeOperatorForDeposit,
   checkAndSpecifyNodeOperatorForTopUpOrWithdraw,
   getGuarantor,
+  checkBLSWithAmountDeposits,
 } from 'features';
 import { Deposit, ValidatorTopUp } from 'types';
 import {
@@ -56,7 +56,7 @@ depositsWrite
   .option('-v, --vault <string>', 'vault address', stringToAddress)
   .addHelpText(
     'after',
-    `Deposit format:
+    `Deposit format (amount are in gwei):
   '[{
     "pubkey": "...",
     "signature": "...",
@@ -80,7 +80,7 @@ depositsWrite
       const nodeOperator = await checkNodeOperatorForDeposit(vaultContract);
 
       if (blsCheck)
-        await checkBLSDeposits(pdgContract, vaultContract, deposits);
+        await checkBLSWithAmountDeposits(pdgContract, vaultContract, deposits);
 
       const depositsY = deposits.map((deposit) => {
         const expanded = expandBLSSignature(deposit.signature, deposit.pubkey);
@@ -187,7 +187,7 @@ depositsWrite
 depositsWrite
   .command('top-up-existing-validators')
   .aliases(['top-up-val'])
-  .description('deposits ether to proven validators from staking vault')
+  .description('deposits ether to proven validators from staking vault.')
   .argument(
     '<topUps>',
     'array of ValidatorTopUp structs with pubkey and amounts',
@@ -196,7 +196,7 @@ depositsWrite
   .option('-v, --vault <string>', 'vault address', stringToAddress)
   .addHelpText(
     'after',
-    `ValidatorTopUp format:
+    `ValidatorTopUp format (amount are in gwei):
   '[{
     "pubkey": "...",
     "amount": "...",
