@@ -156,10 +156,19 @@ const registerCommand = (command: CLICommand) => {
 const registerAllCommands = () => {
   console.error('🔍 Extracting CLI commands...');
 
-  const commands = extractAllCommands(program);
+  const allCommands = extractAllCommands(program);
 
-  console.error(`📦 Found ${commands.length} CLI commands`);
-  console.error('🔧 Registering MCP tools...\n');
+  // Filter out defi-wrapper commands
+  const commands = allCommands.filter((cmd) => {
+    const firstSegment = cmd.fullPath.split(' ')[0];
+    return firstSegment !== 'defi-wrapper' && firstSegment !== 'dw';
+  });
+
+  console.error(`📦 Found ${allCommands.length} CLI commands`);
+  console.error(
+    `🚫 Excluded ${allCommands.length - commands.length} defi-wrapper commands`,
+  );
+  console.error(`✅ Registering ${commands.length} MCP tools...\n`);
 
   // Group commands by category for better logging
   const categories = new Map<string, CLICommand[]>();
