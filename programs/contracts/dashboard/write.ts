@@ -201,10 +201,14 @@ dashboardWrite
       const confirm = await confirmOperation(confirmationMessage);
       if (!confirm) return;
 
+      const gweiAmounts = amounts.map((amount) =>
+        parseEther(formatEther(amount), 'gwei'),
+      );
+
       await callWriteMethodWithReceipt({
         contract,
         methodName: 'triggerValidatorWithdrawals',
-        payload: [mergedPubkeys, amounts.map(BigInt), recipient],
+        payload: [mergedPubkeys, gweiAmounts, recipient],
         value: fee,
       });
     },
