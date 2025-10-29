@@ -29,26 +29,28 @@ Deposits commands handle validator deposits for Lido Staking Vaults. They work w
 
 ### Read
 
-|                                             | Command                                                                                                                  | Description |
-| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ----------- |
+| Command                                     | Description                                                                                                              |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | info                                        | get PredepositGuarantee base info                                                                                        |
 | roles                                       | get PredepositGuarantee roles                                                                                            |
 | validator-status v-status\<validatorPubkey> | get validator status                                                                                                     |
 | no-balance no-bal                           | get total,locked & unlocked (the amount of ether that NO can lock for predeposit or withdraw) balances for the NO in PDG |
 | no-info                                     | get info about the NO in PDG                                                                                             |
-| pending-activations pd                      | get the amount of ether that is pending as predeposits but not proved yet                                                |
+| pending-activations pd                      | get the number of validators in PREDEPOSITED and PROVEN states but not ACTIVATED yet                                     |
 
 ### Write
 
 | Command                                        | Description                                                                                                        |
 | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | predeposit \<deposits>                         | deposits NO's validators with PREDEPOSIT_AMOUNT ether from StakingVault and locks up NO's balance                  |
-| proof-and-prove prove                          | permissionless method to prove correct Withdrawal Credentials for the validator and to send the activation deposit |
+| prove-and-activate prove                       | permissionless method to prove correct Withdrawal Credentials for the validator and to send the activation deposit |
 | prove-and-top-up \<indexes> \<amounts>         | prove validators to unlock NO balance, activate the validators from stash, and optionally top up NO balance        |
-| top-up-existing-validators top-up-val\<topUps> | deposits ether to proven validators from staking vault                                                             |
+| top-up-existing-validators top-up-val\<topUps> | deposits ether to proven validators from staking vault.                                                            |
 | top-up-no \<amount>                            | top up Node Operator balance                                                                                       |
 | withdraw-no-balance \<amount>                  | withdraw Node Operator balance                                                                                     |
 | set-no-guarantor set-no-g                      | set Node Operator guarantor                                                                                        |
+| claim-guarantor-refund claim-g-refund          | claims refund for the previous guarantor of the NO                                                                 |
+| activate-validator activate\<pubkey>           | permissionless method to activate the proven validator depositing 31 ETH from the staged balance of StakingVault   |
 
 ## Command Details
 
@@ -86,7 +88,7 @@ Retrieves current status information for a specific validator registered in the 
 **Output:**
 
 - **Validator Pubkey**: Hex-formatted validator public key
-- **Status**: Current stage with mapping (NONE=0, PREDEPOSITED=1, PROVEN=2, DISPROVEN=3, COMPENSATED=4)
+- **Stage**: Current validator stage with mapping (NONE=0, PREDEPOSITED=1, PROVEN=2, ACTIVATED=3, COMPENSATED=4)
 - **Staking Vault**: Associated StakingVault contract address
 - **Node Operator**: Node operator address responsible for this validator
 
@@ -95,7 +97,7 @@ Retrieves current status information for a specific validator registered in the 
 - NONE (0): Validator not registered in PDG
 - PREDEPOSITED (1): 1 ETH predeposit completed, awaiting proof
 - PROVEN (2): Withdrawal credentials proven, ready for full deposit
-- DISPROVEN (3): Proof failed or invalid withdrawal credentials
+- ACTIVATED (3): Validator activated, 32 ETH deposit completed
 - COMPENSATED (4): Node operator compensated for failed validator
 
 ### no-balance
@@ -121,10 +123,11 @@ Provides comprehensive information about a node operator including balance detai
 - **Unlocked**: ETH available for operations
 - **Depositor**: Address authorized to make deposits, with "(you)" if current account matches
 - **Guarantor**: Address providing balance management, with "(you)" if current account matches
+- **Claimable Refund**: Amount of ETH that can be claimed for the previous guarantor of the NO
 
 ### pending-activations (pd)
 
-Retrieves the current amount of ether that is predeposited to a given vault.
+Retrieves the number of validators in PREDEPOSITED and PROVEN states but not ACTIVATED yet.
 
 **Options:**
 
@@ -132,9 +135,9 @@ Retrieves the current amount of ether that is predeposited to a given vault.
 
 **Output:**
 
-- **Pending Predeposits amount, ETH**: Amount of ETH currently predeposited to the vault
+- **Pending Activations**: Number of validators in PREDEPOSITED and PROVEN states but not ACTIVATED yet
 
-**Use Case:** Monitor how much ETH is currently in predeposit state for a specific vault, helping track pending validator activations.
+**Use Case:** Monitor how many validators are in PREDEPOSITED and PROVEN states but not ACTIVATED yet for a specific vault, helping track pending validator activations.
 
 ### predeposit
 
@@ -168,16 +171,16 @@ Initiates the predeposit process for validators within a StakingVault. This comm
 
 **Security:** This command includes comprehensive validation of deposit data, withdrawal credentials, and BLS signatures to ensure compatibility with the vault's configuration.
 
-### proof-and-prove (prove)
+### proof-and-activate (prove)
 
-Creates and submits a cryptographic proof that a validator with the given index has the correct withdrawal credentials pointing to the StakingVault. This proof is essential for the security model of stVaults.
+Creates and submits a cryptographic proof that a validator with the given index has the correct withdrawal credentials pointing to the StakingVault and to send the ACTIVATION_DEPOSIT_AMOUNT (31 ETH) from the staged balance of StakingVault. This proof is essential for the security model of stVaults.
 
 **Process:**
 
 - Generates a Merkle proof from the Beacon Chain state
 - Validates withdrawal credentials match the vault address
 - Submits proof to the PredepositGuarantee contract
-- Enables the validator for full deposits
+- Activates the validator by depositing 31 ETH from the staged balance of StakingVault
 
 **Options:**
 
@@ -187,7 +190,13 @@ Creates and submits a cryptographic proof that a validator with the given index 
 
 ### prove-and-top-up
 
-Proves validators to unlock node operator balance, activates validators from stash, and optionally tops up Node Operator balance.
+happy path shortcut for the node operator (or depositor) that allows:
+
+- to prove validator's withdrawal credentials to unlock Node Operator balance
+- to activate the validator depositing ACTIVATION_DEPOSIT_AMOUNT (31 ETH) from StakingVault staged balance
+- to top up validator on top of ACTIVATION_DEPOSIT_AMOUNT (31 ETH)
+
+And do it for multiple validators at once by providing an array of validator indexes and amounts
 
 **Arguments:**
 
@@ -203,8 +212,8 @@ Proves validators to unlock node operator balance, activates validators from sta
 1. Validates caller is the node operator for the vault
 2. Generates proofs for all specified validator indexes
 3. Validates withdrawal credentials for each validator
-4. Activates validators from stash state
-5. Tops up node operator balance with specified amounts
+4. Activates validators from PREDEPOSITED state to ACTIVATED state
+5. Tops up validators with specified amounts
 
 **Requirements:**
 
@@ -304,6 +313,40 @@ Changes the guarantor address for a node operator and provides refund to the pre
 - New guarantor must be different from current guarantor
 
 **Use Case:** Allows node operators to change their guarantor while ensuring previous guarantor gets refunded for any existing balance.
+
+### claim-guarantor-refund (claim-g-refund)
+
+Claims refund for the previous guarantor of the node operator.
+
+**Process:**
+
+1. Validates caller is the previous guarantor of the node operator
+2. Confirms the claim operation
+3. Transfers ETH to the previous guarantor
+
+**Requirements:**
+
+- Previous guarantor must be different from current guarantor
+- Previous guarantor must have balance
+
+**Use Case:** Allows previous guarantors to claim refund for any existing balance.
+
+### activate-validator (activate)
+
+Activates the proven validator depositing ACTIVATION_DEPOSIT_AMOUNT (31 ETH) from the staged balance of StakingVault.
+
+**Process:**
+
+1. Validates caller is the node operator of the validator
+2. Confirms the activate operation
+3. Transfers ACTIVATION_DEPOSIT_AMOUNT (31 ETH) from the staged balance of StakingVault to the validator
+
+**Requirements:**
+
+- Validator must be in PROVEN state
+- Staged balance must be sufficient for ACTIVATION_DEPOSIT_AMOUNT (31 ETH)
+
+**Use Case:** Allows node operators to activate their validators by depositing 31 ETH from the staged balance of StakingVault.
 
 ## Withdrawal Credentials
 

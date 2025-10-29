@@ -19,6 +19,10 @@ export const stringToHexArray = (value: string) => {
   return value.split(',').map(toHex);
 };
 
+export const stringToHex = (value: string) => {
+  return toHex(value);
+};
+
 export const jsonToPermit = (value: string) => {
   return JSON.parse(value) as Permit;
 };
