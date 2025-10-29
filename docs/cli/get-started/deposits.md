@@ -129,7 +129,7 @@ This command shows:
 Add ETH to node operator balance for covering predeposit requirements:
 
 ```bash
-yarn start deposits w top-up <amount>
+yarn start deposits w top-up-no <amount>
 ```
 
 **Arguments and Options:**
@@ -142,10 +142,10 @@ yarn start deposits w top-up <amount>
 **Example:**
 
 ```bash
-yarn start deposits w top-up 1 -v 0x1234567890123456789012345678901234567890
+yarn start deposits w top-up-no 1 -v 0x1234567890123456789012345678901234567890
 
 # Interactive vault selection
-yarn start deposits w top-up 1
+yarn start deposits w top-up-no 1
 ```
 
 ### Predeposit Validators
@@ -450,7 +450,7 @@ yarn start deposits w top-up-existing-validators '[{
 ```bash
 # Check current balance and top up
 yarn start deposits r info
-yarn start deposits w top-up <amount>
+yarn start deposits w top-up-no <amount>
 ```
 
 **Invalid BLS Signature**
