@@ -1,5 +1,5 @@
 import { Option } from 'commander';
-import { Address, formatEther, Hex } from 'viem';
+import { Address, Hex } from 'viem';
 
 import {
   callReadMethodSilent,
@@ -53,7 +53,7 @@ pdgRead
   .command('pending-activations')
   .aliases(['pd'])
   .description(
-    'get the amount of ether that is pending as predeposits but not proved yet',
+    'get the number of validators in PREDEPOSITED and PROVEN states but not ACTIVATED yet',
   )
   .argument('<vault>', 'vault address')
   .action(async (vault: Address) => {
@@ -65,9 +65,7 @@ pdgRead
     );
 
     logResult({
-      data: [
-        ['Pending Activations amount, ETH', formatEther(pendingActivations)],
-      ],
+      data: [['Pending Activations', pendingActivations]],
     });
   });
 

@@ -1,4 +1,4 @@
-import { Address, formatEther, Hex } from 'viem';
+import { Address, formatEther, Hex, stringToHex } from 'viem';
 import { Option } from 'commander';
 
 import { getAccount } from 'providers';
@@ -126,7 +126,7 @@ pdgWrite
   );
 
 pdgWrite
-  .command('proof-and-prove')
+  .command('prove-and-activate')
   .aliases(['prove'])
   .description(
     'permissionless method to prove correct Withdrawal Credentials for the validator and to send the activation deposit',
@@ -444,5 +444,27 @@ pdgWrite
       contract: pdgContract,
       methodName: 'claimGuarantorRefund',
       payload: [recipient],
+    });
+  });
+
+pdgWrite
+  .command('activate-validator')
+  .aliases(['activate'])
+  .description(
+    'permissionless method to activate the proven validator depositing 31 ETH from the staged balance of StakingVault',
+  )
+  .argument('<pubkey>', 'validator pubkey', stringToHex)
+  .action(async (pubkey: Hex) => {
+    const pdgContract = await getPredepositGuaranteeContract();
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to activate the validator ${pubkey}?`,
+    );
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt({
+      contract: pdgContract,
+      methodName: 'activateValidator',
+      payload: [pubkey],
     });
   });

@@ -1,4 +1,4 @@
-import { formatEther, parseEther, type Address } from 'viem';
+import { formatEther, Hex, parseEther, type Address } from 'viem';
 import { Option } from 'commander';
 
 import {
@@ -15,6 +15,8 @@ import {
   etherToWei,
   stringToBigIntArray,
   parseValidatorTopUpArray,
+  stringToHex,
+  callReadMethodSilent,
 } from 'utils';
 import {
   chooseVaultAndGetDashboard,
@@ -26,6 +28,8 @@ import {
   checkAndSpecifyNodeOperatorForTopUpOrWithdraw,
   getGuarantor,
   checkBLSWithAmountDeposits,
+  VALIDATOR_STAGES,
+  checkValidatorStageAndStagedBalanceForActivation,
 } from 'features';
 import { Deposit, ValidatorTopUp } from 'types';
 import {
@@ -116,7 +120,7 @@ depositsWrite
   );
 
 depositsWrite
-  .command('proof-and-prove')
+  .command('prove-and-activate')
   .aliases(['prove'])
   .description(
     'permissionless method to prove correct Withdrawal Credentials for the validator and to send the activation deposit',
@@ -130,6 +134,8 @@ depositsWrite
 
     const { proof, pubkey, childBlockTimestamp, slot, proposerIndex } =
       await makePDGProofByIndex(validatorIndex);
+
+    await checkValidatorStageAndStagedBalanceForActivation(pdgContract, pubkey);
 
     await callWriteMethodWithReceipt({
       contract: pdgContract,
@@ -315,5 +321,71 @@ depositsWrite
       contract: pdgContract,
       methodName: 'setNodeOperatorGuarantor',
       payload: [newGuarantor],
+    });
+  });
+
+depositsWrite
+  .command('claim-guarantor-refund')
+  .aliases(['claim-g-refund'])
+  .description('claims refund for the previous guarantor of the NO')
+  .option('-r, --recipient <string>', 'recipient address', stringToAddress)
+  .action(async (recipient: Address) => {
+    const pdgContract = await getPredepositGuaranteeContract();
+
+    const recipientAddress = await getAddress(recipient, 'recipient');
+
+    await callWriteMethodWithReceipt({
+      contract: pdgContract,
+      methodName: 'claimGuarantorRefund',
+      payload: [recipientAddress],
+    });
+  });
+
+depositsWrite
+  .command('activate-validator')
+  .aliases(['activate'])
+  .description(
+    'permissionless method to activate the proven validator depositing 31 ETH from the staged balance of StakingVault',
+  )
+  .argument('<pubkey>', 'validator pubkey', stringToHex)
+  .action(async (pubkey: Hex) => {
+    const pdgContract = await getPredepositGuaranteeContract();
+    const { stage, stakingVault } = await callReadMethodSilent(
+      pdgContract,
+      'validatorStatus',
+      [pubkey],
+    );
+    const vaultStagedBalance = await callReadMethodSilent(
+      getStakingVaultContract(stakingVault),
+      'stagedBalance',
+    );
+    const ACTIVATION_DEPOSIT_AMOUNT = await callReadMethodSilent(
+      pdgContract,
+      'ACTIVATION_DEPOSIT_AMOUNT',
+    );
+
+    if (vaultStagedBalance < ACTIVATION_DEPOSIT_AMOUNT) {
+      throw new Error(
+        `Staged balance is less than ${formatEther(ACTIVATION_DEPOSIT_AMOUNT)} ETH (current: ${formatEther(vaultStagedBalance)} ETH)`,
+      );
+    }
+
+    const validatorStage =
+      VALIDATOR_STAGES[stage as keyof typeof VALIDATOR_STAGES];
+    if (validatorStage !== 'PROVEN') {
+      throw new Error(
+        `Validator is not in PROVEN stage (current: ${validatorStage}, ${stage})`,
+      );
+    }
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to activate the validator ${pubkey} and deposit ${formatEther(ACTIVATION_DEPOSIT_AMOUNT)} ETH from the staged balance of StakingVault?`,
+    );
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt({
+      contract: pdgContract,
+      methodName: 'activateValidator',
+      payload: [pubkey],
     });
   });
