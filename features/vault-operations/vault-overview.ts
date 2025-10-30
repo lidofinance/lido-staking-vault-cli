@@ -171,6 +171,10 @@ export const getVaultOverviewByDashboard = async (
         ['Reserved, ETH', formatEther(overview.reserved)],
         ['Settled Growth, ETH', formatEther(settledGrowth)],
         [
+          'Total Minting Capacity, Shares',
+          formatEther(totalMintingCapacityShares),
+        ],
+        [
           'Total Minting Capacity, stETH',
           formatEther(overview.totalMintingCapacityStethWei),
         ],

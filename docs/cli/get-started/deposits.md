@@ -12,9 +12,8 @@ The deposit process involves several stages:
 
 1. **Top Up Node Operator Balance**: Add ETH to node operator balance for covering predeposit requirements
 2. **Predeposit**: Initial validator registration with 1 ETH from vault
-3. **Validator Proving**: Cryptographic proof that validator exists on Beacon Chain
-4. **Full Deposit**: Complete 32 ETH deposit to activate validator
-5. **Balance Management**: Node operator balance top-ups and withdrawals
+3. **Validator Proving and Activation**: Cryptographic proof that validator exists on Beacon Chain and activation deposit of 31 ETH from staged balance of vault
+4. **Balance Management**: Node operator balance top-ups and withdrawals
 
 All deposit operations work through the PredepositGuarantee (PDG) contract which manages validator lifecycle and node operator balances.
 
