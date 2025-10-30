@@ -13,6 +13,7 @@ import { consolidation } from './main.js';
 import {
   checkConsolidationInput,
   checkValidators,
+  consolidateAndIncreaseFeeExemptionWithoutBatching,
 } from 'features/consolidation.js';
 import { consolidationRequestsAndIncreaseFeeExemption } from 'features/consolidation.js';
 import { PubkeyMap } from 'types/common.js';
@@ -40,6 +41,11 @@ consolidation
     'Path to a JSON file containing the source pubkeys and target pubkeys in format: {"targetPubkey0": ["sourcePubkey0", "sourcePubkey1"], "targetPubkey1": ["sourcePubkey2", "sourcePubkey3"]}',
     jsonFileToPubkeys,
   )
+  .option(
+    '-b, --batch',
+    'Batch the consolidation requests and increase fee exemption amount',
+    false,
+  )
   .action(
     async (
       dashboard: Address,
@@ -47,7 +53,13 @@ consolidation
         source_pubkeys,
         target_pubkeys,
         file,
-      }: { source_pubkeys: Hex[][]; target_pubkeys: Hex[]; file: PubkeyMap },
+        batch,
+      }: {
+        source_pubkeys: Hex[][];
+        target_pubkeys: Hex[];
+        file: PubkeyMap;
+        batch?: boolean;
+      },
     ) => {
       if (!file && !(source_pubkeys && target_pubkeys)) {
         throw new Error(
@@ -100,26 +112,34 @@ consolidation
         `Dashboard: ${dashboard}`,
       ];
       const confirmFileContent = await confirmOperation(lines.join('\n'));
-
       if (!confirmFileContent) return;
 
-      const populatedTxs = await consolidationRequestsAndIncreaseFeeExemption(
-        sourcePubkeys,
-        targetPubkeys,
-        sourceValidatorsInfo,
-        dashboard,
-      );
+      if (batch) {
+        const populatedTxs = await consolidationRequestsAndIncreaseFeeExemption(
+          sourcePubkeys,
+          targetPubkeys,
+          sourceValidatorsInfo,
+          dashboard,
+        );
 
-      const confirm = await confirmOperation(
-        `Are you sure you want to proceed with the consolidation? There are will be ${populatedTxs.length} operations to be executed`,
-      );
-      if (!confirm) return;
+        const confirm = await confirmOperation(
+          `Are you sure you want to proceed with the consolidation? There are will be ${populatedTxs.length} operations to be executed`,
+        );
+        if (!confirm) return;
 
-      await callWriteMethodWithReceiptBatchCalls({
-        calls: populatedTxs,
-        withSpinner: true,
-        silent: false,
-        skipError: false,
-      });
+        await callWriteMethodWithReceiptBatchCalls({
+          calls: populatedTxs,
+          withSpinner: true,
+          silent: false,
+          skipError: false,
+        });
+      } else {
+        await consolidateAndIncreaseFeeExemptionWithoutBatching(
+          sourcePubkeys,
+          targetPubkeys,
+          sourceValidatorsInfo,
+          dashboard,
+        );
+      }
     },
   );
