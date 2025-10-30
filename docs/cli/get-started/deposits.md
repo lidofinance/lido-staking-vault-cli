@@ -4,7 +4,7 @@ sidebar_position: 6
 
 # Validator Deposits
 
-This guide covers validator deposit operations in Lido Staking Vaults, including predeposits, validator proving, and full deposits to the Beacon Chain.
+This guide covers validator deposit operations in Lido Staking Vaults, including predeposits, validator proving and activation, and balance management.
 
 ## Overview
 
