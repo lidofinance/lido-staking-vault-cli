@@ -40,17 +40,19 @@ Deposits commands handle validator deposits for Lido Staking Vaults. They work w
 
 ### Write
 
-| Command                                        | Description                                                                                                        |
-| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| predeposit \<deposits>                         | deposits NO's validators with PREDEPOSIT_AMOUNT ether from StakingVault and locks up NO's balance                  |
-| prove-and-activate prove                       | permissionless method to prove correct Withdrawal Credentials for the validator and to send the activation deposit |
-| prove-and-top-up \<indexes> \<amounts>         | prove validators to unlock NO balance, activate the validators from stash, and optionally top up NO balance        |
-| top-up-existing-validators top-up-val\<topUps> | deposits ether to proven validators from staking vault.                                                            |
-| top-up-no \<amount>                            | top up Node Operator balance                                                                                       |
-| withdraw-no-balance \<amount>                  | withdraw Node Operator balance                                                                                     |
-| set-no-guarantor set-no-g                      | set Node Operator guarantor                                                                                        |
-| claim-guarantor-refund claim-g-refund          | claims refund for the previous guarantor of the NO                                                                 |
-| activate-validator activate\<pubkey>           | permissionless method to activate the proven validator depositing 31 ETH from the staged balance of StakingVault   |
+| Command                                                               | Description                                                                                                        |
+| --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| predeposit \<deposits>                                                | deposits NO's validators with PREDEPOSIT_AMOUNT ether from StakingVault and locks up NO's balance                  |
+| prove-and-activate prove                                              | permissionless method to prove correct Withdrawal Credentials for the validator and to send the activation deposit |
+| prove-and-top-up \<indexes> \<amounts>                                | prove validators to unlock NO balance, activate the validators from stash, and optionally top up NO balance        |
+| top-up-existing-validators top-up-val\<topUps>                        | deposits ether to proven validators from staking vault.                                                            |
+| top-up-no \<amount>                                                   | top up Node Operator balance                                                                                       |
+| withdraw-no-balance \<amount>                                         | withdraw Node Operator balance                                                                                     |
+| set-no-guarantor set-no-g                                             | set Node Operator guarantor                                                                                        |
+| claim-guarantor-refund claim-g-refund                                 | claims refund for the previous guarantor of the NO                                                                 |
+| activate-validator activate\<pubkey>                                  | permissionless method to activate the proven validator depositing 31 ETH from the staged balance of StakingVault   |
+| set-no-depositor set-no-d                                             | sets the depositor for the NO                                                                                      |
+| unguaranteed-deposit-to-beacon-chain unguaranteed-deposit \<deposits> | withdraws ether from vault and deposits directly to provided validators bypassing the default PDG process          |
 
 ## Command Details
 
@@ -313,6 +315,23 @@ Changes the guarantor address for a node operator and provides refund to the pre
 - New guarantor must be different from current guarantor
 
 **Use Case:** Allows node operators to change their guarantor while ensuring previous guarantor gets refunded for any existing balance.
+
+### set-no-depositor
+
+Sets the depositor for the node operator.
+
+**Process:**
+
+1. Validates caller is the node operator
+2. Confirms the set depositor operation
+3. Sets the new depositor for the node operator
+
+**Requirements:**
+
+- New depositor cannot be zero address
+- New depositor must be different from current depositor
+
+**Use Case:** Allows node operators to set their depositor.
 
 ### claim-guarantor-refund (claim-g-refund)
 

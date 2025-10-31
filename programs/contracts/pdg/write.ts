@@ -24,8 +24,8 @@ import {
   logTable,
   stringToNumber,
   stringToNumberArray,
-  stringToBigIntArray,
   parseValidatorTopUpArray,
+  etherToWeiArray,
 } from 'utils';
 import { Deposit, ValidatorTopUp } from 'types';
 
@@ -195,8 +195,8 @@ pdgWrite
   .argument('<indexes>', 'validator indexes', stringToNumberArray)
   .argument(
     '<amounts>',
-    'array of amounts to top up NO balance',
-    stringToBigIntArray,
+    'array of amounts (in ETH) to deposit to proven validator on top of ACTIVATION_DEPOSIT_AMOUNT',
+    etherToWeiArray,
   )
   .action(async (indexes: number[], amounts: bigint[]) => {
     const pdgContract = await getPredepositGuaranteeContract();
@@ -466,5 +466,25 @@ pdgWrite
       contract: pdgContract,
       methodName: 'activateValidator',
       payload: [pubkey],
+    });
+  });
+
+pdgWrite
+  .command('set-no-depositor')
+  .alias('set-no-d')
+  .description('sets the depositor for the NO')
+  .argument('<depositor>', 'depositor address')
+  .action(async (depositor: Address) => {
+    const pdgContract = await getPredepositGuaranteeContract();
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to set the node operator depositor to ${depositor}?`,
+    );
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt({
+      contract: pdgContract,
+      methodName: 'setNodeOperatorDepositor',
+      payload: [depositor],
     });
   });

@@ -88,6 +88,9 @@ dashboardWrite
     );
     if (!confirm) return;
 
+    const isReportFresh = await checkIsReportFresh(vault);
+    if (!isReportFresh) return;
+
     await callWriteMethodWithReceipt({
       contract,
       methodName: 'voluntaryDisconnect',
@@ -807,6 +810,13 @@ dashboardWrite
   .description('set the PDG policy')
   .argument('<address>', 'dashboard address', stringToAddress)
   .argument('<policy>', 'policy to set the PDG policy to', stringToNumber)
+  .addHelpText(
+    'after',
+    `Policy values:
+    0: STRICT
+    1: ALLOW_PROVE
+    2: ALLOW_DEPOSIT_AND_PROVE`,
+  )
   .action(async (address: Address, policy: number) => {
     const contract = getDashboardContract(address);
 

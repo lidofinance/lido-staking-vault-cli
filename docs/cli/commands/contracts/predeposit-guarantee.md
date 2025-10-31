@@ -77,6 +77,7 @@ yarn start contracts pdg -h
 | set-no-guarantor set-no-g\<guarantor>                               | set node operator guarantor                                                                                        |
 | claim-guarantor-refund claim-g-refund\<recipient>                   | claim guarantor refund                                                                                             |
 | activate-validator activate\<pubkey>                                | permissionless method to activate the proven validator depositing 31 ETH from the staged balance of StakingVault   |
+| set-no-depositor set-no-d\<depositor>                               | sets the depositor for the NO                                                                                      |
 
 **\<deposits>**
 
