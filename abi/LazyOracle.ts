@@ -229,6 +229,19 @@ export const LazyOracleAbi = [
     anonymous: false,
     inputs: [
       {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'totalValueReminder',
+        type: 'uint256',
+      },
+    ],
+    name: 'QuarantineUpdated',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
         indexed: true,
         internalType: 'bytes32',
         name: 'role',
@@ -788,6 +801,25 @@ export const LazyOracleAbi = [
         type: 'address',
       },
     ],
+    name: 'quarantineValue',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: '_vault',
+        type: 'address',
+      },
+    ],
     name: 'removeVaultQuarantine',
     outputs: [],
     stateMutability: 'nonpayable',
@@ -1063,6 +1095,11 @@ export const LazyOracleAbi = [
           {
             internalType: 'uint256',
             name: 'endTimestamp',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint256',
+            name: 'totalValueRemainder',
             type: 'uint256',
           },
         ],

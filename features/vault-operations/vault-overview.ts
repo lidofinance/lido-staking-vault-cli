@@ -106,17 +106,11 @@ export const getVaultOverviewByDashboard = async (
       remainingMintingCapacityStethWei,
       lastReportLiabilityInStethWei,
     ] = await Promise.all([
-      stethContract.read.getPooledEthBySharesRoundUp([
-        totalMintingCapacityShares,
-      ]),
-      stethContract.read.getPooledEthBySharesRoundUp([shareLimit]),
-      stethContract.read.getPooledEthBySharesRoundUp([tierInfo[2]]),
-      stethContract.read.getPooledEthBySharesRoundUp([
-        nodeOperatorGroup.shareLimit,
-      ]),
-      stethContract.read.getPooledEthBySharesRoundUp([
-        remainingMintingCapacityShares,
-      ]),
+      stethContract.read.getPooledEthByShares([totalMintingCapacityShares]),
+      stethContract.read.getPooledEthByShares([shareLimit]),
+      stethContract.read.getPooledEthByShares([tierInfo[2]]),
+      stethContract.read.getPooledEthByShares([nodeOperatorGroup.shareLimit]),
+      stethContract.read.getPooledEthByShares([remainingMintingCapacityShares]),
       report
         ? stethContract.read.getPooledEthBySharesRoundUp([
             BigInt(report.data.liabilityShares),
