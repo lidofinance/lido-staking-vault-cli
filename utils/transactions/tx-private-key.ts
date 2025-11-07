@@ -251,7 +251,7 @@ export const callWriteMethodWithReceipt = async <
   M extends keyof T['write'] & string,
 >(
   args: WriteTxArgs<T, M>,
-): Promise<{ receipt: TransactionReceipt; tx: Address }> => {
+): Promise<{ receipt?: TransactionReceipt; tx?: Address }> => {
   const {
     contract,
     methodName,
@@ -278,7 +278,7 @@ export const callWriteMethodWithReceipt = async <
       ],
     });
 
-    return { receipt: undefined as any, tx: data as any };
+    return { receipt: undefined, tx: data as any };
   }
 
   if (program.opts().walletConnect) {

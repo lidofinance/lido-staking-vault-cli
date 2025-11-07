@@ -85,13 +85,16 @@ vaultFactoryWrite
             logInfo('Populated transaction data:', tx);
             return;
           }
+          // Gnosis safe case
+          if (!tx) return;
+
           logTable({
             data: [
-              ['Vault Address', tx?.vault],
-              ['Dashboard Address', tx?.dashboard],
-              ['Owner Address', tx?.owner],
-              ['Transaction Hash', tx?.tx],
-              ['Block Number', tx?.blockNumber],
+              ['Vault Address', tx.vault],
+              ['Dashboard Address', tx.dashboard],
+              ['Owner Address', tx.owner],
+              ['Transaction Hash', tx.tx],
+              ['Block Number', tx.blockNumber],
             ],
           });
         });
@@ -167,13 +170,16 @@ vaultFactoryWrite
             logInfo('Populated transaction data:', tx);
             return;
           }
+          // Gnosis safe case
+          if (!tx) return;
+
           logTable({
             data: [
-              ['Vault Address', tx?.vault],
-              ['Dashboard Address', tx?.dashboard],
-              ['Owner Address', tx?.owner],
-              ['Transaction Hash', tx?.tx],
-              ['Block Number', tx?.blockNumber],
+              ['Vault Address', tx.vault],
+              ['Dashboard Address', tx.dashboard],
+              ['Owner Address', tx.owner],
+              ['Transaction Hash', tx.tx],
+              ['Block Number', tx.blockNumber],
             ],
           });
         });
