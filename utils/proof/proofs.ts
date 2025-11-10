@@ -9,6 +9,8 @@ import {
 import { ssz } from '@lodestar/types';
 import type { ContainerTreeViewType } from '@chainsafe/ssz/lib/view/container.js';
 
+import { printError } from '../error-handler.js';
+
 import { getPubkeyWCParentGIndex } from './merkle-utils.js';
 import { SupportedFork } from './constants.js';
 
@@ -29,12 +31,17 @@ export type BeaconHeaderResponse = {
 };
 
 export const createPubkeyWCProof = async (validatorNode: Node) => {
-  const pubkeyWCProof: Proof = createProof(validatorNode, {
-    type: ProofType.single,
-    gindex: getPubkeyWCParentGIndex(),
-  }) as SingleProof;
+  try {
+    const pubkeyWCProof: Proof = createProof(validatorNode, {
+      type: ProofType.single,
+      gindex: getPubkeyWCParentGIndex(),
+    }) as SingleProof;
 
-  return { proof: pubkeyWCProof };
+    return { proof: pubkeyWCProof };
+  } catch (error) {
+    printError(error, 'Error creating pubkey WC proof');
+    throw error;
+  }
 };
 
 export const createStateProof = async (
@@ -69,23 +76,28 @@ export const createStateProof = async (
 export const createBeaconHeaderProof = async (
   beaconHeader: BeaconHeaderResponse,
 ) => {
-  const beaconHeaderView = ssz['phase0'].BeaconBlockHeader.toView({
-    slot: Number(beaconHeader.slot),
-    proposerIndex: Number(beaconHeader.proposer_index),
-    parentRoot: fromHex(beaconHeader.parent_root, 'bytes'),
-    stateRoot: fromHex(beaconHeader.state_root, 'bytes'),
-    bodyRoot: fromHex(beaconHeader.body_root, 'bytes'),
-  });
-  const gIndexBeaconHeader = beaconHeaderView.type.getPathInfo([
-    'state_root',
-  ]).gindex;
-  const beaconHeaderProof = createProof(beaconHeaderView.node, {
-    type: ProofType.single,
-    gindex: gIndexBeaconHeader,
-  }) as SingleProof;
+  try {
+    const beaconHeaderView = ssz['phase0'].BeaconBlockHeader.toView({
+      slot: Number(beaconHeader.slot),
+      proposerIndex: Number(beaconHeader.proposer_index),
+      parentRoot: fromHex(beaconHeader.parent_root, 'bytes'),
+      stateRoot: fromHex(beaconHeader.state_root, 'bytes'),
+      bodyRoot: fromHex(beaconHeader.body_root, 'bytes'),
+    });
+    const gIndexBeaconHeader = beaconHeaderView.type.getPathInfo([
+      'state_root',
+    ]).gindex;
+    const beaconHeaderProof = createProof(beaconHeaderView.node, {
+      type: ProofType.single,
+      gindex: gIndexBeaconHeader,
+    }) as SingleProof;
 
-  return {
-    proof: beaconHeaderProof,
-    root: toHex(beaconHeaderView.hashTreeRoot()),
-  };
+    return {
+      proof: beaconHeaderProof,
+      root: toHex(beaconHeaderView.hashTreeRoot()),
+    };
+  } catch (error) {
+    printError(error, 'Error creating beacon header proof');
+    throw error;
+  }
 };
