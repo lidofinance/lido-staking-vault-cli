@@ -29,10 +29,34 @@ interface WalletConnectOptions {
 const DEFAULT_MAX_RETRIES = 3;
 const DEFAULT_CONNECTION_TIMEOUT = 180_000; // 180 seconds
 // Cache for the wallet connect client
-let cachedWalletConnectClient: WalletClient | null = null;
+let cachedWalletConnectClient: {
+  walletConnectClient: WalletClient;
+  isGnosis: boolean;
+} | null = null;
 let cachedSignClient: Awaited<ReturnType<typeof SignClient.init>> | null = null;
 // TODO: fix this type
 let cachedSession: any | null = null;
+
+type Peer = {
+  publicKey: string;
+  metadata: {
+    description: string;
+    url: string;
+    icons: string[];
+    name: string;
+  };
+};
+
+const isGnosisSafe = (peer: Peer) => {
+  const { name, url } = peer.metadata;
+  const isUrlSafe =
+    url.includes('https://app.safe.global') ||
+    url.includes('https://app.safe.protofire.io');
+  const isNameSafe =
+    name.includes('Safe{Wallet}') || name.includes('Protofire Safe');
+
+  return isUrlSafe && isNameSafe;
+};
 
 // Create a wallet connect client
 export const createWalletConnectClient = async () => {
@@ -44,7 +68,8 @@ export const createWalletConnectClient = async () => {
       return cachedWalletConnectClient;
     }
 
-    const { session, accounts } = await connectWalletConnectWithRetry();
+    const { session, accounts, isGnosis } =
+      await connectWalletConnectWithRetry();
     logInfo('Found accounts:', accounts.length);
 
     // Get the address from the accounts
@@ -81,7 +106,7 @@ export const createWalletConnectClient = async () => {
     });
 
     // Cache the wallet connect client and account
-    cachedWalletConnectClient = walletConnectClient;
+    cachedWalletConnectClient = { walletConnectClient, isGnosis };
 
     return cachedWalletConnectClient;
   } catch (error) {
@@ -130,7 +155,7 @@ export const connectWalletConnectWithRetry = async (
 
 const connectWalletConnectWithTimeout = async (
   timeout: number,
-): Promise<{ session: any; accounts: string[] }> => {
+): Promise<{ session: any; accounts: string[]; isGnosis: boolean }> => {
   // eslint-disable-next-line no-async-promise-executor
   return new Promise(async (resolve, reject) => {
     const timeoutId = setTimeout(() => {
@@ -207,6 +232,10 @@ const connectWalletConnect = async () => {
   logInfo(
     `Session expiration: ${new Date(session.expiry * 1000).toLocaleString()}`,
   );
+  const isGnosis = isGnosisSafe(session.peer);
+  if (isGnosis) {
+    logInfo('Using Gnosis Safe to send transactions...');
+  }
 
   // If no accounts are found, throw an error
   if (!accounts) {
@@ -216,6 +245,7 @@ const connectWalletConnect = async () => {
   return {
     session,
     accounts,
+    isGnosis,
   };
 };
 

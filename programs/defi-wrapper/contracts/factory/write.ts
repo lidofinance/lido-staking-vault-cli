@@ -108,6 +108,11 @@ factoryWrite
         ],
       });
 
+      if (!result.receipt || !result.tx) {
+        logInfo('Transaction has been sent');
+        return;
+      }
+
       const eventData = await getCreateVaultEventData(
         result.receipt,
         result.tx,
@@ -191,6 +196,11 @@ factoryWrite
           timelockExecutor ?? undefined,
         ],
       });
+
+      if (!result.receipt || !result.tx) {
+        logInfo('Transaction has been sent');
+        return;
+      }
 
       const eventData = await getCreateVaultEventData(
         result.receipt,
@@ -283,6 +293,11 @@ factoryWrite
           timelockExecutor ?? undefined,
         ],
       });
+
+      if (!result.receipt || !result.tx) {
+        logInfo('Transaction has been sent');
+        return;
+      }
 
       const eventData = await getCreateVaultEventData(
         result.receipt,
@@ -379,6 +394,11 @@ factoryWrite
           timelockExecutor ?? undefined,
         ],
       });
+
+      if (!result.receipt || !result.tx) {
+        logInfo('Transaction has been sent');
+        return;
+      }
 
       const eventData = await getCreateVaultEventData(
         result.receipt,
@@ -479,6 +499,11 @@ factoryWrite
           timelockExecutor ?? undefined,
         ],
       });
+
+      if (!result.receipt || !result.tx) {
+        logInfo('Transaction has been sent');
+        return;
+      }
 
       const eventData = await getCreateVaultEventData(
         result.receipt,
