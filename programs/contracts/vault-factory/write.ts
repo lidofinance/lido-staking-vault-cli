@@ -2,7 +2,12 @@ import { Address } from 'viem';
 import { program } from 'command';
 import { Option } from 'commander';
 
-import { createVault, prepareCreateVaultPayload } from 'features';
+import {
+  createVault,
+  getNodeOperatorFeeRate,
+  getConfirmExpiry,
+  prepareCreateVaultPayload,
+} from 'features';
 import { RoleAssignment } from 'types';
 import {
   confirmCreateVaultParams,
@@ -56,12 +61,16 @@ vaultFactoryWrite
       quantity: string,
       options: { roles: RoleAssignment[] },
     ) => {
+      const confirmExpiryValue = await getConfirmExpiry(confirmExpiry);
+      const nodeOperatorFeeRateValue =
+        await getNodeOperatorFeeRate(nodeOperatorFeeRate);
+
       const createVaultData = prepareCreateVaultPayload({
         defaultAdmin,
         nodeOperator,
         nodeOperatorManager,
-        confirmExpiry,
-        nodeOperatorFeeRate,
+        confirmExpiry: confirmExpiryValue,
+        nodeOperatorFeeRate: nodeOperatorFeeRateValue,
         quantity,
         roles: options.roles,
       });
@@ -136,12 +145,16 @@ vaultFactoryWrite
       quantity: string,
       options: { roles: RoleAssignment[] },
     ) => {
+      const confirmExpiryValue = await getConfirmExpiry(confirmExpiry);
+      const nodeOperatorFeeRateValue =
+        await getNodeOperatorFeeRate(nodeOperatorFeeRate);
+
       const createVaultData = prepareCreateVaultPayload({
         defaultAdmin,
         nodeOperator,
         nodeOperatorManager,
-        confirmExpiry,
-        nodeOperatorFeeRate,
+        confirmExpiry: confirmExpiryValue,
+        nodeOperatorFeeRate: nodeOperatorFeeRateValue,
         quantity,
         roles: options.roles,
       });
