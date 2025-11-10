@@ -61,4 +61,17 @@ export const readCommandConfig: ReadProgramCommandConfig<typeof LazyOracleAbi> =
       aliases: ['max-lfs'],
       description: 'get the max Lido fee rate per second, in ether',
     },
+    quarantineValue: {
+      name: 'quarantine-value',
+      aliases: ['qv'],
+      description:
+        'get the amount of total value that is pending in the quarantine for the given vault',
+      arguments: {
+        _vault: {
+          name: 'vault',
+          description: 'vault address',
+          modifier: (value) => stringToAddress(value),
+        },
+      },
+    },
   };

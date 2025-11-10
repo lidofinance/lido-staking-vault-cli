@@ -378,6 +378,11 @@ export const VaultViewerAbi = [
                 name: 'endTimestamp',
                 type: 'uint256',
               },
+              {
+                internalType: 'uint256',
+                name: 'totalValueRemainder',
+                type: 'uint256',
+              },
             ],
             internalType: 'struct LazyOracle.QuarantineInfo',
             name: 'quarantineInfo',
@@ -592,6 +597,11 @@ export const VaultViewerAbi = [
               {
                 internalType: 'uint256',
                 name: 'endTimestamp',
+                type: 'uint256',
+              },
+              {
+                internalType: 'uint256',
+                name: 'totalValueRemainder',
                 type: 'uint256',
               },
             ],

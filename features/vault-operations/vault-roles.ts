@@ -26,8 +26,7 @@ export type RoleName =
   | 'COLLECT_VAULT_ERC20_ROLE'
   | 'NODE_OPERATOR_FEE_EXEMPT_ROLE'
   | 'NODE_OPERATOR_PROVE_UNKNOWN_VALIDATOR_ROLE'
-  | 'NODE_OPERATOR_UNGUARANTEED_DEPOSIT_ROLE'
-  | 'PAUSE_BEACON_CHAIN_DEPOSITS_ROLE';
+  | 'NODE_OPERATOR_UNGUARANTEED_DEPOSIT_ROLE';
 
 export const getVaultRolesByDashboard = async (contract: DashboardContract) => {
   const hideSpinner = showSpinner();
@@ -51,7 +50,6 @@ export const getVaultRolesByDashboard = async (contract: DashboardContract) => {
       'NODE_OPERATOR_FEE_EXEMPT_ROLE',
       'NODE_OPERATOR_PROVE_UNKNOWN_VALIDATOR_ROLE',
       'NODE_OPERATOR_UNGUARANTEED_DEPOSIT_ROLE',
-      'PAUSE_BEACON_CHAIN_DEPOSITS_ROLE',
     ];
 
     const roleValues: Hex[] = await Promise.all(

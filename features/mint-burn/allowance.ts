@@ -13,6 +13,7 @@ import {
   confirmOperation,
   logInfo,
 } from 'utils';
+
 export const checkAllowance = async (
   contract: DashboardContract,
   amount: bigint,
@@ -32,7 +33,7 @@ export const checkAllowance = async (
     if (isShares) {
       currentAmount = await callReadMethodSilent(
         stethContract,
-        'getPooledEthBySharesRoundUp',
+        'getPooledEthByShares',
         [amount],
       );
     }

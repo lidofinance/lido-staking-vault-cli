@@ -60,7 +60,7 @@ export const getAccount = async () => {
   const id = getChainId();
 
   if (program.opts().walletConnect) {
-    const walletConnectClient = await getWalletConnectClient();
+    const { walletConnectClient } = await getWalletConnectClient();
 
     if (!walletConnectClient.account) {
       throw new Error('Wallet connect account is not found');
@@ -94,7 +94,10 @@ export const getWalletWithAccount = async (): Promise<WalletClient> => {
   });
 };
 
-export const getWalletConnectClient = async () => {
+export const getWalletConnectClient = async (): Promise<{
+  walletConnectClient: WalletClient;
+  isGnosis: boolean;
+}> => {
   const walletConnectClient = await createWalletConnectClient();
 
   return walletConnectClient;

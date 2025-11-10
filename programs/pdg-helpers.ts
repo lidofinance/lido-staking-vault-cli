@@ -158,10 +158,14 @@ predepositGuaranteeHelpers
       let withdrawalCredentials = options.withdrawalCredentials;
 
       if (!vault && !withdrawalCredentials) {
-        logError('You must provide either vault or withdrawal credentials');
+        logError(
+          'You must provide either vault (-a, --vault) or withdrawal credentials (-w, --withdrawalCredentials)',
+        );
         return;
       } else if (vault && withdrawalCredentials) {
-        logError('You can only provide one of vault or withdrawal credentials');
+        logError(
+          'You can only provide one of vault (-a, --vault) or withdrawal credentials (-w, --withdrawalCredentials)',
+        );
         return;
       }
       const hideMetadataSpinner = showSpinner({
