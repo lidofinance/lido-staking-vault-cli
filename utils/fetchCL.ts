@@ -1,7 +1,7 @@
 import { RootHex, Slot } from '@lodestar/types';
 
 import { getConfig } from 'configs';
-import { printError } from 'utils';
+import { logError, printError } from 'utils';
 import { Hex } from 'viem';
 
 import { SupportedFork } from './proof/constants.js';
@@ -99,8 +99,12 @@ export const fetchBeaconState = async (
     ) as keyof typeof SupportedFork;
 
     // Checks
-    if (!(forkName in SupportedFork))
+    if (!(forkName in SupportedFork)) {
+      logError(
+        `Looks like the CL headers don't contain the fork name (header: eth-consensus-version) or the fork name is not supported`,
+      );
       throw new Error(`Fork name [${forkName}] is not supported`);
+    }
 
     const stateBodyBytes = await beaconStateResp.arrayBuffer();
     if (!stateBodyBytes)
