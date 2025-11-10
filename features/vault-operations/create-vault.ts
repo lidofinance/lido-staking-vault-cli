@@ -1,7 +1,7 @@
 import { numberPrompt, selectPrompt } from 'utils';
 
-const MIN_CONFIRM_EXPIRY = 24 * 60 * 60;
-const MAX_CONFIRM_EXPIRY = 24 * 60 * 60 * 30;
+const MIN_CONFIRM_EXPIRY = 24 * 60 * 60; // 24 hours
+const MAX_CONFIRM_EXPIRY = 24 * 60 * 60 * 30; // 30 days
 
 const validateConfirmExpiry = (confirmExpiry: number) => {
   const minInHours = MIN_CONFIRM_EXPIRY / 3600;
