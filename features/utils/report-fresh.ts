@@ -21,7 +21,7 @@ const checkIsDisconnected = async (vault: Address) => {
     connection.vaultIndex === 0n;
 
   if (isDisconnected) {
-    logInfo('⚠️  The vault is disconnected  ⚠️');
+    logInfo('⚠️  The vault is not connected to VaultHub  ⚠️');
     return true;
   }
 
