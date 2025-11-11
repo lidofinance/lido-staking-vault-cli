@@ -74,4 +74,26 @@ export const readCommandConfig: ReadProgramCommandConfig<typeof LazyOracleAbi> =
         },
       },
     },
+    batchValidatorStatuses: {
+      name: 'batch-validator-statuses',
+      description:
+        'get batch to mass check the validator statuses in PredepositGuarantee contract',
+      arguments: {
+        _pubkeys: {
+          name: 'pubkeys',
+          description: 'pubkeys',
+        },
+      },
+    },
+    vaultInfo: {
+      name: 'vault-info',
+      description: 'get the vault data info',
+      aliases: ['vi'],
+      arguments: {
+        _vault: {
+          name: 'vault',
+          description: 'vault address',
+        },
+      },
+    },
   };

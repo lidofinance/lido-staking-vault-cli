@@ -455,12 +455,29 @@ export const LazyOracleAbi = [
         type: 'bytes[]',
       },
     ],
-    name: 'batchValidatorStages',
+    name: 'batchValidatorStatuses',
     outputs: [
       {
-        internalType: 'enum IPredepositGuarantee.ValidatorStage[]',
+        components: [
+          {
+            internalType: 'enum IPredepositGuarantee.ValidatorStage',
+            name: 'stage',
+            type: 'uint8',
+          },
+          {
+            internalType: 'contract IStakingVault',
+            name: 'stakingVault',
+            type: 'address',
+          },
+          {
+            internalType: 'address',
+            name: 'nodeOperator',
+            type: 'address',
+          },
+        ],
+        internalType: 'struct IPredepositGuarantee.ValidatorStatus[]',
         name: 'batch',
-        type: 'uint8[]',
+        type: 'tuple[]',
       },
     ],
     stateMutability: 'view',
