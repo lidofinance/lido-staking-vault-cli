@@ -1,4 +1,5 @@
 import type { PlaywrightTestConfig } from '@playwright/test';
+import { getReportConfig } from './config/report.config';
 
 export const pwConfig: PlaywrightTestConfig = {
   timeout: 180 * 1000,
@@ -8,7 +9,7 @@ export const pwConfig: PlaywrightTestConfig = {
   retries: 0,
   // eslint-disable-next-line sonarjs/no-all-duplicated-branches
   workers: process.env.CI ? 1 : 1,
-  reporter: [['html', { outputFolder: 'playwright-report', open: 'never' }]],
+  reporter: getReportConfig(),
   use: {
     actionTimeout: 15000,
     trace: 'retain-on-failure',
