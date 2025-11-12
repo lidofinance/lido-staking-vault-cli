@@ -12,7 +12,7 @@
     "build": "npx tsc && tsc-alias",
     "types": "echo 'No types yet'",
     "lint": "eslint . --ext .ts --max-warnings 0",
-    "test": "jest",
+    "test": "jest ./tests/unit",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "prepare": "git config core.hooksPath .git-hooks || echo 'Not in a git repo'",
