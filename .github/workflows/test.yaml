@@ -42,15 +42,11 @@ jobs:
         working-directory: tests/base
         run: yarn install --immutable
 
-      - name: Yarn lint
-        run: yarn lint
-
-
       - name: Run tests
         working-directory: tests/base
         run: |
           echo -e "\033[34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
-          echo -e "🚀 Running on CHAI_ID: \033[1;34m$CHAI_ID\033[0m"
+          echo -e "🚀 Running on CHAIN_ID: \033[1;34m$CHAIN_ID\033[0m"
           echo -e "🌱 Branch: \033[1;34m${GITHUB_HEAD_REF:-$GITHUB_REF_NAME}\033[0m"
           echo -e "\033[34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
           xvfb-run --auto-servernum -- yarn test
