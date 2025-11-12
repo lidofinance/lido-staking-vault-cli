@@ -38,12 +38,13 @@ jobs:
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
 
-      - name: Yarn lint
-        run: yarn lint
-
       - name: Install dependencies in tests/base
         working-directory: tests/base
         run: yarn install --immutable
+
+      - name: Yarn lint
+        run: yarn lint
+
 
       - name: Run tests
         working-directory: tests/base
