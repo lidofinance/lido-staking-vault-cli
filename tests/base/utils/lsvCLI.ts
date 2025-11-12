@@ -1,0 +1,164 @@
+import { spawn } from 'child_process';
+
+type RoleAssignment = {
+  account: string; // Ethereum address
+  role: `0x${string}`; // hex role identifier
+};
+
+type CreateVaultParams = {
+  defaultAdmin: string;
+  nodeOperator: string;
+  nodeOperatorManager: string;
+  confirmExpiry: number;
+  nodeOperatorFeeRate: number;
+  quantity?: number;
+  roles?: RoleAssignment[];
+  deployedFile?: string;
+};
+
+type VaultCreationResult = {
+  vaultAddress: string;
+  dashboardAddress: string;
+};
+
+export const createVault = async (
+  params: CreateVaultParams,
+): Promise<VaultCreationResult> => {
+  const {
+    defaultAdmin,
+    nodeOperator,
+    nodeOperatorManager,
+    confirmExpiry,
+    nodeOperatorFeeRate,
+    quantity = 1,
+    roles = [],
+  } = params;
+
+  return new Promise((resolve, reject) => {
+    const args = [
+      'contracts',
+      'factory',
+      'write',
+      'create-vault',
+      defaultAdmin,
+      nodeOperator,
+      nodeOperatorManager,
+      String(confirmExpiry),
+      String(nodeOperatorFeeRate),
+      String(quantity),
+    ];
+
+    if (roles.length > 0) {
+      args.push('--yes', '--roles', JSON.stringify(roles));
+    }
+
+    const cli = spawn('yarn', ['lsvCLI', ...args], {
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
+
+    let stdout = '';
+    let stderr = '';
+
+    cli.stdout.on('data', (data) => {
+      stdout += data.toString();
+    });
+
+    cli.stderr.on('data', (data) => {
+      stderr += data.toString();
+    });
+
+    cli.on('close', (code) => {
+      if (code !== 0) {
+        return reject(new Error(`CLI exited with code ${code}\n${stderr}`));
+      }
+
+      const vaultLine = stdout
+        .split('\n')
+        .find((line) => line.includes('Vault Address') && line.includes('0x'));
+
+      const dashboardLine = stdout
+        .split('\n')
+        .find(
+          (line) => line.includes('Dashboard Address') && line.includes('0x'),
+        );
+
+      const vaultAddressMatch = vaultLine?.match(/(0x[a-fA-F0-9]{40})/);
+      const dashboardAddressMatch = dashboardLine?.match(/(0x[a-fA-F0-9]{40})/);
+
+      const vaultAddress = vaultAddressMatch?.[1];
+      if (!vaultAddress) {
+        return reject(
+          new Error('Vault address not found in CLI output:\n' + stdout),
+        );
+      }
+      const dashboardAddress = dashboardAddressMatch?.[1];
+      if (!dashboardAddress) {
+        return reject(
+          new Error('Dashboard address not found in CLI output:\n' + stdout),
+        );
+      }
+
+      resolve({
+        vaultAddress: vaultAddress,
+        dashboardAddress: dashboardAddress,
+      });
+    });
+
+    cli.stdin.end();
+  });
+};
+
+export const grantRole = (
+  dashboardAddress: string,
+  roles: RoleAssignment[],
+): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    const cli = spawn('yarn', [
+      'lsvCLI',
+      'contracts',
+      'dashboard',
+      'w',
+      'role-grant',
+      dashboardAddress,
+      JSON.stringify(roles),
+      '--yes',
+    ]);
+
+    cli.on('close', (code) => {
+      if (code !== 0) {
+        reject(new Error(`CLI exited with code ${code}`));
+      } else {
+        resolve();
+      }
+    });
+  });
+};
+
+export const supplyVault = (
+  dashboardAddress: string,
+  amount: string,
+): Promise<void> =>
+  new Promise((resolve, reject) => {
+    const cli = spawn('yarn', [
+      'lsvCLI',
+      'contracts',
+      'dashboard',
+      'w',
+      'fund',
+      dashboardAddress,
+      amount,
+      '--yes',
+    ]);
+
+    cli.on('close', (code) => {
+      code !== 0
+        ? reject(new Error(`CLI exited with code ${code}`))
+        : resolve();
+    });
+  });
+
+export const lsvCLI = {
+  createVault,
+  grantRole,
+  supplyVault,
+};
