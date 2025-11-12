@@ -1,16 +1,20 @@
-import { Address } from 'viem';
+import { Hex } from 'viem';
 import { Option } from 'commander';
 
-import { getVaultViewerContract } from 'contracts';
-import { getAccount } from 'providers';
 import { VaultViewerAbi } from 'abi';
+import { getAccount } from 'providers';
+import {
+  getVaultsByAddress,
+  getVaultsByRoleMember,
+  getAllVaults,
+} from 'features';
+import { getVaultViewerContract } from 'contracts';
 import {
   generateReadCommands,
-  callReadMethod,
-  callReadMethodSilent,
   logTable,
   getCommandsJson,
   logInfo,
+  stringToHex,
 } from 'utils';
 
 import { vaultViewer } from './main.js';
@@ -36,15 +40,12 @@ generateReadCommands(
 
 vaultViewerRead
   .command('my')
-  .description('get my vaults')
+  .description('get all my vaults')
   .option('-s, --simple', 'simple output')
   .action(async ({ simple }: { simple: boolean }) => {
-    const contract = getVaultViewerContract();
     const account = await getAccount();
 
-    const vaults = await callReadMethodSilent(contract, 'vaultsByOwner', [
-      account.address,
-    ]);
+    const vaults = await getVaultsByAddress(account.address);
 
     if (simple) {
       console.info(vaults);
@@ -52,55 +53,25 @@ vaultViewerRead
     }
 
     logTable({
-      data: vaults.map((vault: string, idx: number) => [idx, vault]),
+      data: Object.entries(vaults).map(([vault, roles]) => [
+        vault,
+        roles.join(', '),
+      ]),
       params: {
-        head: ['Index', 'Vault Address'],
-      },
-    });
-  });
-
-vaultViewerRead
-  .command('my-bound')
-  .description('get my vaults - bound')
-  .argument('<from>', 'from - vault index')
-  .argument('<to>', 'to - vault index')
-  .option('-s, --simple', 'simple output')
-  .action(async (from: bigint, to: bigint, { simple }: { simple: boolean }) => {
-    const contract = getVaultViewerContract();
-    const account = await getAccount();
-
-    const [vaults] = await callReadMethod(contract, 'vaultsByOwnerBound', [
-      account.address,
-      from,
-      to,
-    ]);
-
-    if (simple) {
-      console.info(vaults);
-      return;
-    }
-
-    logTable({
-      data: vaults.map((vault: string, idx: number) => [idx, vault]),
-      params: {
-        head: ['Index', 'Vault Address'],
+        head: ['Vault Address', 'Roles'],
       },
     });
   });
 
 vaultViewerRead
   .command('my-by-role')
-  .description('get my vaults by role')
-  .argument('<role>', 'role')
+  .description('get all vaults where I have a role')
+  .argument('<role>', 'role', stringToHex)
   .option('-s, --simple', 'simple output')
-  .action(async (role: Address, { simple }: { simple: boolean }) => {
-    const contract = getVaultViewerContract();
+  .action(async (role: Hex, { simple }: { simple: boolean }) => {
     const account = await getAccount();
 
-    const vaults = await callReadMethodSilent(contract, 'vaultsByRole', [
-      role,
-      account.address,
-    ]);
+    const vaults = await getVaultsByRoleMember(role, account.address);
 
     if (simple) {
       console.info(vaults);
@@ -108,58 +79,19 @@ vaultViewerRead
     }
 
     logTable({
-      data: vaults.map((vault: string, idx: number) => [idx, vault]),
+      data: vaults.map((vault: string) => [vault]),
       params: {
-        head: ['Index', 'Vault Address'],
+        head: ['Vault Address'],
       },
     });
   });
 
 vaultViewerRead
-  .command('my-by-role-bound')
-  .description('get my vaults by role - bound')
-  .argument('<from>', 'from - vault index')
-  .argument('<to>', 'to - vault index')
-  .option('-s, --simple', 'simple output')
-  .action(
-    async (
-      role: Address,
-      from: bigint,
-      to: bigint,
-      { simple }: { simple: boolean },
-    ) => {
-      const contract = getVaultViewerContract();
-      const account = await getAccount();
-
-      const [vaults] = await callReadMethod(contract, 'vaultsByRoleBound', [
-        role,
-        account.address,
-        from,
-        to,
-      ]);
-
-      if (simple) {
-        console.info(vaults);
-        return;
-      }
-
-      logTable({
-        data: vaults.map((vault: string, idx: number) => [idx, vault]),
-        params: {
-          head: ['Index', 'Vault Address'],
-        },
-      });
-    },
-  );
-
-vaultViewerRead
-  .command('connected')
-  .description('get vaults connected to vault hub')
+  .command('all')
+  .description('get all vaults connected to vault hub')
   .option('-s, --simple', 'simple output')
   .action(async ({ simple }: { simple: boolean }) => {
-    const contract = getVaultViewerContract();
-
-    const vaults = await callReadMethodSilent(contract, 'vaultsConnected');
+    const vaults = await getAllVaults();
 
     if (simple) {
       console.info(vaults);
@@ -167,9 +99,10 @@ vaultViewerRead
     }
 
     logTable({
-      data: vaults.map((vault: string, idx: number) => [idx, vault]),
+      data: vaults.map((vault: string) => [vault]),
       params: {
-        head: ['Index', 'Vault Address'],
+        head: ['Vault Address'],
       },
     });
+    logInfo(`Total vaults: ${vaults.length}`);
   });
