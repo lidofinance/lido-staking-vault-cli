@@ -30,10 +30,43 @@ import {
   confirmOperation,
 } from 'utils';
 import { DashboardAbi } from 'abi';
+import assert from 'assert';
+
+export type ValidatorInfo = {
+  status: string;
+  balance: bigint;
+  index: string;
+};
+
+export type TargetAndSourceValidators = Map<
+  Hex,
+  {
+    info: ValidatorInfo;
+    sourceValidators: Map<Hex, ValidatorInfo>;
+  }
+>;
 
 // https://eips.ethereum.org/EIPS/eip-7251
 const CONSOLIDATION_REQUEST_PREDEPLOY_ADDRESS =
   '0x0000BBdDc7CE488642fb579F8B00f3a590007251';
+
+const flattenSourcePubkeys = (
+  targetAndSourceValidators: TargetAndSourceValidators,
+): `0x${string}`[] => {
+  const targetPubkeys = [...targetAndSourceValidators.keys()];
+  return targetPubkeys.map((target) => {
+    const sourceMap = targetAndSourceValidators.get(target);
+    if (!sourceMap) {
+      throw new Error(`Target validator ${target} not found in map`);
+    }
+
+    const merged = [...sourceMap.sourceValidators.keys()]
+      .map((p) => p.replace(/^0x/, ''))
+      .join('');
+
+    return `0x${merged}`;
+  }) as `0x${string}`[];
+};
 
 const getConsolidationRequestFee = async (): Promise<bigint> => {
   const publicClient = getPublicClient();
@@ -109,26 +142,25 @@ const addFeeExemption = async ({
   if (decodedBalanceToAdjust !== balanceToAdjust)
     throw new Error('decodedBalanceToAdjust is not equal to balanceToAdjust');
 
-  const hideSpinnerAddFeeExemption = showSpinner();
   await callWriteMethodWithReceipt({
     contract: getDashboardContract(dashboard),
     methodName: 'addFeeExemption',
     payload: [balanceToAdjust],
   });
-  hideSpinnerAddFeeExemption();
 };
 
 export const consolidationRequestsAndIncreaseFeeExemption = async (
-  sourcePubkeys: Hex[][],
-  targetPubkeys: Hex[],
+  targetAndSourceValidators: TargetAndSourceValidators,
   sourceValidatorsInfo: ValidatorsInfo,
   dashboard: Address,
 ) => {
   const publicClient = getPublicClient();
 
-  const sourcePubkeysFlattened = sourcePubkeys.map(
-    (group) => '0x' + group.map((p) => p.replace(/^0x/, '')).join(''),
-  ) as Hex[];
+  const targetPubkeys = [...targetAndSourceValidators.keys()];
+  const sourcePubkeysFlattened = flattenSourcePubkeys(
+    targetAndSourceValidators,
+  );
+
   const consolidationContract = getValidatorConsolidationRequestsContract();
   const totalBalance = sourceValidatorsInfo.data.reduce(
     (sum, validator) => sum + parseGwei(validator.balance),
@@ -175,57 +207,39 @@ export const consolidationRequestsAndIncreaseFeeExemption = async (
 };
 
 const getConsolidationRequestsAndFeeExemptionEncodedCalls = async (
-  sourcePubkeysFlattened: Hex[],
-  targetPubkeys: Hex[],
+  targetAndSourceValidators: TargetAndSourceValidators,
   dashboard: Address,
-  sourceValidatorsInfo: ValidatorsInfo,
+  feeExemption: bigint,
 ): Promise<[Hex, Hex[]]> => {
-  const consolidationContract = getValidatorConsolidationRequestsContract();
-  const totalBalance = sourceValidatorsInfo.data.reduce(
-    (sum, validator) => sum + parseGwei(validator.balance),
-    0n,
+  const targetPubkeys = [...targetAndSourceValidators.keys()];
+  const sourcePubkeysFlattened = flattenSourcePubkeys(
+    targetAndSourceValidators,
   );
+
+  const consolidationContract = getValidatorConsolidationRequestsContract();
   const [feeExemptionEncodedCall, consolidationRequestEncodedCalls] =
     await callReadMethodSilent(
       consolidationContract,
       'getConsolidationRequestsAndFeeExemptionEncodedCalls',
-      [sourcePubkeysFlattened, targetPubkeys, dashboard, totalBalance],
+      [sourcePubkeysFlattened, targetPubkeys, dashboard, feeExemption],
     );
-
   return [feeExemptionEncodedCall, consolidationRequestEncodedCalls as Hex[]];
 };
 
-const getBalanceToAdjustForConsolidationRequestInWei = (
-  sourceValidatorsInfo: ValidatorsInfo,
-  sourcePubkey: Hex,
-): bigint => {
-  const sourceValidatorInfo = sourceValidatorsInfo.data.find(
-    (validator) => validator.validator.pubkey === sourcePubkey,
-  );
-  if (!sourceValidatorInfo) throw new Error('source validator not found');
-  return parseGwei(sourceValidatorInfo.balance);
-};
-
 export const consolidateAndIncreaseFeeExemptionWithoutBatching = async (
-  sourcePubkeys: Hex[][],
-  targetPubkeys: Hex[],
-  sourceValidatorsInfo: ValidatorsInfo,
+  targetAndSourceValidators: TargetAndSourceValidators,
+  feeExemption: bigint,
   dashboard: Address,
 ) => {
-  try {
-    const sourcePubkeysFlattened = sourcePubkeys.map(
-      (group) => '0x' + group.map((p) => p.replace(/^0x/, '')).join(''),
-    ) as Hex[];
+  let currentFeeExemption = 0n;
 
+  try {
     const [feeExemptionEncodedCall, consolidationRequestEncodedCalls] =
       await getConsolidationRequestsAndFeeExemptionEncodedCalls(
-        sourcePubkeysFlattened,
-        targetPubkeys,
+        targetAndSourceValidators,
         dashboard,
-        sourceValidatorsInfo,
+        feeExemption,
       );
-
-    let balanceToAdjustInWei = 0n;
 
     for (const encodedCall of consolidationRequestEncodedCalls) {
       const encodedCallBytes = hexToBytes(encodedCall);
@@ -240,7 +254,7 @@ export const consolidateAndIncreaseFeeExemptionWithoutBatching = async (
 
       const lines = [
         'Are you sure you want to consolidate the following validators?\n',
-        `Target: ${targetPubkey}\nSource: ${sourcePubkey}\n`,
+        `Source: ${sourcePubkey}\nTarget: ${targetPubkey}\n`,
         `Fee Per Request: ${feePerRequest}`,
       ];
       const confirmFileContent = await confirmOperation(lines.join('\n'));
@@ -251,31 +265,34 @@ export const consolidateAndIncreaseFeeExemptionWithoutBatching = async (
         feePerRequest: feePerRequest,
       });
 
-      balanceToAdjustInWei += getBalanceToAdjustForConsolidationRequestInWei(
-        sourceValidatorsInfo,
-        sourcePubkey,
-      );
+      currentFeeExemption +=
+        targetAndSourceValidators
+          .get(targetPubkey)
+          ?.sourceValidators.get(sourcePubkey)?.balance ?? 0n;
     }
 
-    if (balanceToAdjustInWei > 0n) {
-      const lines = [
-        'Are you sure you want to increase the fee exemption amount?\n',
-        `Balance To Adjust: ${balanceToAdjustInWei} in wei`,
-      ];
-      const confirmFileContent = await confirmOperation(lines.join('\n'));
-      if (!confirmFileContent)
-        throw new Error('User cancelled increasing fee exemption amount');
+    assert(
+      currentFeeExemption === feeExemption,
+      'currentFeeExemption is not equal to feeExemption',
+    );
 
-      await addFeeExemption({
-        feeExemptionEncodedCall: feeExemptionEncodedCall,
-        balanceToAdjust: balanceToAdjustInWei,
-        dashboard: dashboard,
-      });
-    }
+    const lines = [
+      'Are you sure you want to increase the fee exemption amount?\n',
+      `Balance To Adjust: ${currentFeeExemption} in wei`,
+    ];
+    const confirmFileContent = await confirmOperation(lines.join('\n'));
+    if (!confirmFileContent)
+      throw new Error('User cancelled increasing fee exemption amount');
+
+    await addFeeExemption({
+      feeExemptionEncodedCall: feeExemptionEncodedCall,
+      balanceToAdjust: currentFeeExemption,
+      dashboard: dashboard,
+    });
   } catch (error) {
     printError(
       error,
-      'Error when consolidating and increasing fee exemption without batching',
+      `Error when consolidating and increasing fee exemption without batching.\nThe balance that should be consolidated is ${feeExemption} in wei.\nThe balance you have consolidated is ${currentFeeExemption} in wei.`,
     );
   }
 };
@@ -303,7 +320,7 @@ export const checkConsolidationInput = async (
   }
 };
 
-export const checkValidators = async (
+export const requestValidatorsInfo = async (
   sourcePubkeys: Hex[][],
   targetPubkeys: Hex[],
 ): Promise<{
@@ -317,16 +334,132 @@ export const checkValidators = async (
   if (sourceValidatorsInfo.data == null) {
     throw new Error('sourceValidatorsInfo.data is null');
   }
-  await checkSourceValidators(sourceValidatorsInfo.data, finalizedEpoch);
+  checkSourceValidators(sourceValidatorsInfo.data, finalizedEpoch);
 
   const targetValidatorsInfo = await fetchValidatorsInfo(targetPubkeys);
   if (targetValidatorsInfo.data == null) {
     throw new Error('targetValidatorsInfo.data is null');
   }
-  await checkTargetValidators(targetValidatorsInfo.data);
+  checkTargetValidators(targetValidatorsInfo.data);
 
   return {
     sourceValidatorsInfo,
     targetValidatorsInfo,
   };
+};
+
+export const removeInactiveValidators = (
+  targetAndSourceValidators: TargetAndSourceValidators,
+) => {
+  for (const [target, sourceMap] of targetAndSourceValidators.entries()) {
+    for (const [
+      source,
+      sourceValidatorInfo,
+    ] of sourceMap.sourceValidators.entries()) {
+      if (sourceValidatorInfo.status !== 'active_ongoing') {
+        sourceMap.sourceValidators.delete(source);
+      }
+    }
+    if (sourceMap.sourceValidators.size === 0) {
+      targetAndSourceValidators.delete(target);
+    }
+  }
+};
+
+export const getTargetAndSourceValidatorsInfo = (
+  targetPubkeys: Hex[],
+  sourcePubkeys: Hex[][],
+  sourceValidatorsInfo: ValidatorsInfo,
+  targetValidatorsInfo: ValidatorsInfo,
+): TargetAndSourceValidators => {
+  const targetAndSourceValidatorsInfo: TargetAndSourceValidators = new Map();
+  targetPubkeys.forEach((targetPubkey, i) => {
+    const sourcePubkeysGroup = sourcePubkeys[i] ?? [];
+    const targetValidatorInfo = targetValidatorsInfo.data.find(
+      (validator) => validator.validator.pubkey === targetPubkey,
+    );
+    if (!targetValidatorInfo) {
+      throw new Error(`Target validator with pubkey ${targetPubkey} not found`);
+    }
+    targetAndSourceValidatorsInfo.set(targetPubkey, {
+      info: {
+        status: targetValidatorInfo.status,
+        balance: parseGwei(targetValidatorInfo.balance),
+        index: targetValidatorInfo.index,
+      },
+      sourceValidators: new Map(),
+    });
+    sourcePubkeysGroup.forEach((sourcePubkey) => {
+      const sourceValidatorInfo = sourceValidatorsInfo.data.find(
+        (validator) => validator.validator.pubkey === sourcePubkey,
+      );
+      if (!sourceValidatorInfo) {
+        throw new Error(
+          `Source validator with pubkey ${targetPubkey} not found`,
+        );
+      }
+      targetAndSourceValidatorsInfo
+        .get(targetPubkey)
+        ?.sourceValidators.set(sourcePubkey, {
+          status: sourceValidatorInfo.status,
+          balance: parseGwei(sourceValidatorInfo.balance),
+          index: sourceValidatorInfo.index,
+        });
+    });
+  });
+  return targetAndSourceValidatorsInfo;
+};
+
+export const getFeeExemption = async (
+  targetAndSourceValidators: TargetAndSourceValidators,
+): Promise<bigint> => {
+  let feeExemption = 0n;
+  await forEachValidator(
+    targetAndSourceValidators,
+    async ({ source, sourceValidatorInfo }) => {
+      if (sourceValidatorInfo.status === 'active_ongoing') {
+        feeExemption += sourceValidatorInfo.balance;
+      } else {
+        const confirm = await confirmOperation(
+          `Validator with this pubkey ${source} is not in active state. Should we consider its balance for fee exemption?`,
+        );
+        if (confirm) {
+          feeExemption += sourceValidatorInfo.balance;
+        }
+      }
+    },
+  );
+  return feeExemption;
+};
+
+export interface WalkValidatorArgs {
+  target: Hex;
+  source: Hex;
+  targetValidatorInfo: ValidatorInfo;
+  sourceValidatorInfo: ValidatorInfo;
+}
+
+export const forEachValidator = async (
+  targetAndSourceValidators: TargetAndSourceValidators,
+  fn: (args: WalkValidatorArgs) => Promise<void> | void,
+): Promise<void> => {
+  for (const [
+    target,
+    targetValidatorInfo,
+  ] of targetAndSourceValidators.entries()) {
+    for (const [
+      source,
+      sourceValidatorInfo,
+    ] of targetValidatorInfo.sourceValidators.entries()) {
+      const result = fn({
+        target,
+        source,
+        targetValidatorInfo: targetValidatorInfo.info,
+        sourceValidatorInfo: sourceValidatorInfo,
+      });
+      if (result instanceof Promise) {
+        await result;
+      }
+    }
+  }
 };

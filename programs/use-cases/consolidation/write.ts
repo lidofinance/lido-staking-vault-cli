@@ -2,20 +2,25 @@ import {
   stringTo2dArray,
   stringToAddress,
   stringToHexArray,
-  callWriteMethodWithReceiptBatchCalls,
   jsonFileToPubkeys,
   confirmOperation,
   logTable,
   logInfo,
+  callWriteMethodWithReceiptBatchCalls,
 } from 'utils';
-import { Address, Hex, formatGwei } from 'viem';
+import { Address, Hex, formatUnits } from 'viem';
 import { consolidation } from './main.js';
 import {
   checkConsolidationInput,
-  checkValidators,
   consolidateAndIncreaseFeeExemptionWithoutBatching,
+  requestValidatorsInfo,
+  getTargetAndSourceValidatorsInfo,
+  getFeeExemption,
+  removeInactiveValidators,
+  TargetAndSourceValidators,
+  forEachValidator,
+  consolidationRequestsAndIncreaseFeeExemption,
 } from 'features/consolidation.js';
-import { consolidationRequestsAndIncreaseFeeExemption } from 'features/consolidation.js';
 import { PubkeyMap } from 'types/common.js';
 import { toHex } from 'utils/proof/merkle-utils.js';
 
@@ -66,58 +71,39 @@ consolidation
           'Provide --file or both --source_pubkeys and --target_pubkeys',
         );
       }
-      const sourcePubkeys = file ? Object.values(file) : (source_pubkeys ?? []);
+      const sourcePubkeys = file
+        ? (Object.values(file) as Hex[][])
+        : (source_pubkeys ?? []);
       const targetPubkeys = file
         ? Object.keys(file).map(toHex)
         : (target_pubkeys ?? []);
 
       await checkConsolidationInput(sourcePubkeys, targetPubkeys, dashboard);
-
       const { sourceValidatorsInfo, targetValidatorsInfo } =
-        await checkValidators(sourcePubkeys, targetPubkeys);
+        await requestValidatorsInfo(sourcePubkeys, targetPubkeys);
+      const targetAndSourceValidators = getTargetAndSourceValidatorsInfo(
+        targetPubkeys,
+        sourcePubkeys,
+        sourceValidatorsInfo,
+        targetValidatorsInfo,
+      );
+      const feeExemption = await getFeeExemption(targetAndSourceValidators);
+      logInfo(`Fee Exemption: ${formatUnits(feeExemption, 18)} ETH`);
 
-      logInfo('Source Validators Info');
-      logTable({
-        params: {
-          head: ['Pubkey', 'Status', 'Balance', 'index'],
-        },
-        data: sourceValidatorsInfo.data.map((validator) => [
-          validator.validator.pubkey,
-          validator.status,
-          `${formatGwei(BigInt(validator.balance))} ETH`,
-          validator.index,
-        ]),
-      });
+      removeInactiveValidators(targetAndSourceValidators);
 
-      logInfo('Target Validators Info');
-      logTable({
-        params: {
-          head: ['Pubkey', 'Status', 'Balance', 'index'],
-        },
-        // eslint-disable-next-line sonarjs/no-identical-functions
-        data: targetValidatorsInfo.data.map((validator) => [
-          validator.validator.pubkey,
-          validator.status,
-          `${formatGwei(BigInt(validator.balance))} ETH`,
-          validator.index,
-        ]),
-      });
+      await logAllSourceValidatorsTable(targetAndSourceValidators);
+      await logAllTargetValidatorsTable(targetAndSourceValidators);
 
-      const lines = [
-        'Are you sure you want to consolidate the following validators?\n',
-        ...targetPubkeys.map((target, index) => {
-          const sources = sourcePubkeys[index]?.join('\n') || '';
-          return `Target: ${target}\nSource: ${sources}\n`;
-        }),
-        `Dashboard: ${dashboard}`,
-      ];
-      const confirmFileContent = await confirmOperation(lines.join('\n'));
+      const confirmFileContent = await logConfirmToConsolidate(
+        targetAndSourceValidators,
+        dashboard,
+      );
       if (!confirmFileContent) return;
 
       if (batch) {
         const populatedTxs = await consolidationRequestsAndIncreaseFeeExemption(
-          sourcePubkeys,
-          targetPubkeys,
+          targetAndSourceValidators,
           sourceValidatorsInfo,
           dashboard,
         );
@@ -135,11 +121,76 @@ consolidation
         });
       } else {
         await consolidateAndIncreaseFeeExemptionWithoutBatching(
-          sourcePubkeys,
-          targetPubkeys,
-          sourceValidatorsInfo,
+          targetAndSourceValidators,
+          feeExemption,
           dashboard,
         );
       }
     },
   );
+
+const logAllTargetValidatorsTable = async (
+  targetAndSourceValidators: TargetAndSourceValidators,
+) => {
+  const rows: Array<[string, string, string, string]> = [];
+
+  await forEachValidator(
+    targetAndSourceValidators,
+    ({ target, targetValidatorInfo }) => {
+      rows.push([
+        target,
+        targetValidatorInfo.status,
+        `${formatUnits(targetValidatorInfo.balance, 18)} ETH`,
+        targetValidatorInfo.index,
+      ]);
+    },
+  );
+
+  logInfo('Target Validators Info');
+  logTable({
+    params: {
+      head: ['Pubkey', 'Status', 'Balance', 'index'],
+    },
+    data: rows,
+  });
+};
+
+const logAllSourceValidatorsTable = async (
+  targetAndSourceValidators: TargetAndSourceValidators,
+) => {
+  const rows: Array<[string, string, string, string]> = [];
+
+  await forEachValidator(
+    targetAndSourceValidators,
+    ({ source, sourceValidatorInfo }) => {
+      rows.push([
+        source,
+        sourceValidatorInfo.status,
+        `${formatUnits(sourceValidatorInfo.balance, 18)} ETH`,
+        sourceValidatorInfo.index,
+      ]);
+    },
+  );
+
+  logInfo('Source Validators Info');
+  logTable({
+    params: {
+      head: ['Pubkey', 'Status', 'Balance', 'index'],
+    },
+    data: rows,
+  });
+};
+
+const logConfirmToConsolidate = async (
+  targetAndSourceValidators: TargetAndSourceValidators,
+  dashboard: Address,
+): Promise<boolean> => {
+  const lines: string[] = [
+    'Are you sure you want to consolidate the following validators?\n',
+  ];
+  await forEachValidator(targetAndSourceValidators, ({ target, source }) => {
+    lines.push(`Source: ${source}\nTarget: ${target}\n`);
+  });
+  lines.push(`Dashboard: ${dashboard}`);
+  return confirmOperation(lines.join('\n'));
+};
