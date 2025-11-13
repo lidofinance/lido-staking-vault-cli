@@ -31,7 +31,6 @@ import {
   callWriteMethodWithReceiptBatchCalls,
 } from 'utils';
 import { DashboardAbi } from 'abi';
-import assert from 'assert';
 
 export type ValidatorInfo = {
   status: string;
@@ -229,51 +228,77 @@ export const consolidateAndIncreaseFeeExemptionWithoutBatching = async (
   let currentFeeExemption = 0n;
 
   try {
-    const [feeExemptionEncodedCall, consolidationRequestEncodedCalls] =
-      await getConsolidationRequestsAndFeeExemptionEncodedCalls(
-        targetAndSourceValidators,
-        dashboard,
-        feeExemption,
+    let feeExemptionEncodedCall;
+    let consolidationRequestEncodedCalls;
+
+    if (targetAndSourceValidators.size > 0) {
+      [feeExemptionEncodedCall, consolidationRequestEncodedCalls] =
+        await getConsolidationRequestsAndFeeExemptionEncodedCalls(
+          targetAndSourceValidators,
+          dashboard,
+          feeExemption,
+        );
+      for (const encodedCall of consolidationRequestEncodedCalls) {
+        const encodedCallBytes = hexToBytes(encodedCall);
+        const sourcePubkey = bytesToHex(
+          encodedCallBytes.slice(0, encodedCallBytes.length / 2),
+        );
+        const targetPubkey = bytesToHex(
+          encodedCallBytes.slice(encodedCallBytes.length / 2),
+        );
+
+        const feePerRequest = await getConsolidationRequestFee();
+
+        const lines = [
+          'Are you sure you want to consolidate the following validators?\n',
+          `Source: ${sourcePubkey}\nTarget: ${targetPubkey}\n`,
+          `Fee Per Request: ${feePerRequest}`,
+        ];
+        const confirmFileContent = await confirmOperation(lines.join('\n'));
+        if (!confirmFileContent)
+          throw new Error('User cancelled consolidation');
+
+        await consolidateRequest({
+          encodedCall: encodedCall,
+          feePerRequest: feePerRequest,
+        });
+
+        currentFeeExemption +=
+          targetAndSourceValidators
+            .get(targetPubkey)
+            ?.sourceValidators.get(sourcePubkey)?.balance ?? 0n;
+      }
+    } else {
+      targetAndSourceValidators.set(
+        '0x000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
+        {
+          info: {
+            status: 'active_ongoing',
+            balance: feeExemption,
+            index: '0',
+          },
+          sourceValidators: new Map([
+            [
+              '0x000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
+              {
+                status: 'active_ongoing',
+                balance: feeExemption,
+                index: '0',
+              },
+            ],
+          ]),
+        },
       );
-
-    for (const encodedCall of consolidationRequestEncodedCalls) {
-      const encodedCallBytes = hexToBytes(encodedCall);
-      const sourcePubkey = bytesToHex(
-        encodedCallBytes.slice(0, encodedCallBytes.length / 2),
-      );
-      const targetPubkey = bytesToHex(
-        encodedCallBytes.slice(encodedCallBytes.length / 2),
-      );
-
-      const feePerRequest = await getConsolidationRequestFee();
-
-      const lines = [
-        'Are you sure you want to consolidate the following validators?\n',
-        `Source: ${sourcePubkey}\nTarget: ${targetPubkey}\n`,
-        `Fee Per Request: ${feePerRequest}`,
-      ];
-      const confirmFileContent = await confirmOperation(lines.join('\n'));
-      if (!confirmFileContent) throw new Error('User cancelled consolidation');
-
-      await consolidateRequest({
-        encodedCall: encodedCall,
-        feePerRequest: feePerRequest,
-      });
-
-      currentFeeExemption +=
-        targetAndSourceValidators
-          .get(targetPubkey)
-          ?.sourceValidators.get(sourcePubkey)?.balance ?? 0n;
+      [feeExemptionEncodedCall] =
+        await getConsolidationRequestsAndFeeExemptionEncodedCalls(
+          targetAndSourceValidators,
+          dashboard,
+          feeExemption,
+        );
     }
-
-    assert(
-      currentFeeExemption === feeExemption,
-      'currentFeeExemption is not equal to feeExemption',
-    );
-
     const lines = [
       'Are you sure you want to increase the fee exemption amount?\n',
-      `Balance To Adjust: ${currentFeeExemption} in wei`,
+      `Balance To Adjust: ${feeExemption} in wei`,
     ];
     const confirmFileContent = await confirmOperation(lines.join('\n'));
     if (!confirmFileContent)
@@ -281,7 +306,7 @@ export const consolidateAndIncreaseFeeExemptionWithoutBatching = async (
 
     await addFeeExemption({
       feeExemptionEncodedCall: feeExemptionEncodedCall,
-      balanceToAdjust: currentFeeExemption,
+      balanceToAdjust: feeExemption,
       dashboard: dashboard,
     });
   } catch (error) {

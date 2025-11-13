@@ -92,14 +92,16 @@ consolidation
 
       removeInactiveValidators(targetAndSourceValidators);
 
-      await logAllSourceValidatorsTable(targetAndSourceValidators);
-      await logAllTargetValidatorsTable(targetAndSourceValidators);
+      if (targetAndSourceValidators.size > 0) {
+        await logAllSourceValidatorsTable(targetAndSourceValidators);
+        await logAllTargetValidatorsTable(targetAndSourceValidators);
 
-      const confirmFileContent = await logConfirmToConsolidate(
-        targetAndSourceValidators,
-        dashboard,
-      );
-      if (!confirmFileContent) return;
+        const confirmFileContent = await logConfirmToConsolidate(
+          targetAndSourceValidators,
+          dashboard,
+        );
+        if (!confirmFileContent) return;
+      }
 
       if (batch) {
         const populatedTxs = await consolidationRequestsAndIncreaseFeeExemption(
