@@ -24,26 +24,22 @@ yarn start contracts v-v -h
 
 ### Read
 
-| Command                                                      | Description                                                         |
-| ------------------------------------------------------------ | ------------------------------------------------------------------- |
-| DEFAULT_ADMIN_ROLE                                           | Calls the read-only function "DEFAULT_ADMIN_ROLE" on the contract.  |
-| LAZY_ORACLE                                                  | Calls the read-only function "LAZY_ORACLE" on the contract.         |
-| LIDO_LOCATOR                                                 | Calls the read-only function "LIDO_LOCATOR" on the contract.        |
-| VAULT_HUB                                                    | Calls the read-only function "VAULT_HUB" on the contract.           |
-| getRoleMembers \<vaultAddress> \<roles>                      | Calls the read-only function "getRoleMembers" on the contract.      |
-| getRoleMembersBatch \<vaultAddresses> \<roles>               | Calls the read-only function "getRoleMembersBatch" on the contract. |
-| getVaultData \<vault>                                        | Calls the read-only function "getVaultData" on the contract.        |
-| getVaultsDataBound \<\_from> \<\_to>                         | Calls the read-only function "getVaultsDataBound" on the contract.  |
-| has-role \<vault> \<member> \<role>                          | check if an address has a role in a vault                           |
-| isContract \<account>                                        | Calls the read-only function "isContract" on the contract.          |
-| is-owner \<vault> \<owner>                                   | check if an address is the owner of a vault                         |
-| by-owner \<owner>                                            | get vaults by owner                                                 |
-| by-owner-bound \<owner> \<from> \<to>                        | get vaults by owner - bound                                         |
-| by-role-address by-ra\<role> \<member>                       | get vaults by role and address                                      |
-| by-role-address-bound by-ra-b\<role> \<member> \<from> \<to> | get vaults by role and address - bound                              |
-| connected-bound \<from> \<to>                                | get vaults connected to vault hub - bound                           |
-| my                                                           | get my vaults                                                       |
-| my-bound \<from> \<to>                                       | get my vaults - bound                                               |
-| my-by-role \<role>                                           | get my vaults by role                                               |
-| my-by-role-bound \<from> \<to>                               | get my vaults by role - bound                                       |
-| connected                                                    | get vaults connected to vault hub                                   |
+| Command                                                         | Description                                                                       |
+| --------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| DEFAULT_ADMIN_ROLE                                              | Calls the read-only function "DEFAULT_ADMIN_ROLE" on the contract.                |
+| LAZY_ORACLE                                                     | Calls the read-only function "LAZY_ORACLE" on the contract.                       |
+| LIDO_LOCATOR                                                    | Calls the read-only function "LIDO_LOCATOR" on the contract.                      |
+| VAULT_HUB                                                       | Calls the read-only function "VAULT_HUB" on the contract.                         |
+| has-role \<vault> \<member> \<role>                             | check if an address has a role in a vault                                         |
+| isContract \<account>                                           | Calls the read-only function "isContract" on the contract.                        |
+| is-vault-owner \<vault address> \<owner>                        | checks if a given address is the owner of a connection vault                      |
+| role-members \<vault> \<roles>                                  | get the VaultMembers for each specified role on a single vault                    |
+| role-members-batch \<vault addresses> \<roles>                  | get VaultMembers for each role on multiple vaults                                 |
+| vault-data \<vault>                                             | get aggregated data for a single vault                                            |
+| by-owner-batch \<owner> \<offset> \<limit>                      | get vaults owned by `_owner` using batch pagination over the global vault list    |
+| by-role-address-batch by-ra\<role> \<member> \<offset> \<limit> | get vaults where `_member` has `_role`, scanning a batch of the global vault list |
+| vaults-count                                                    | get the number of vaults connected to the VaultHub                                |
+| vaults-data-batch \<offset> \<limit>                            | get aggregated data for a batch of vaults                                         |
+| my                                                              | get all my vaults                                                                 |
+| my-by-role \<role>                                              | get all vaults where I have a role                                                |
+| all                                                             | get all vaults connected to vault hub                                             |
