@@ -104,7 +104,7 @@ consolidation
       if (batch) {
         const populatedTxs = await consolidationRequestsAndIncreaseFeeExemption(
           targetAndSourceValidators,
-          sourceValidatorsInfo,
+          feeExemption,
           dashboard,
         );
 

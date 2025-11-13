@@ -151,7 +151,7 @@ const addFeeExemption = async ({
 
 export const consolidationRequestsAndIncreaseFeeExemption = async (
   targetAndSourceValidators: TargetAndSourceValidators,
-  sourceValidatorsInfo: ValidatorsInfo,
+  feeExemption: bigint,
   dashboard: Address,
 ) => {
   const publicClient = getPublicClient();
@@ -162,11 +162,6 @@ export const consolidationRequestsAndIncreaseFeeExemption = async (
   );
 
   const consolidationContract = getValidatorConsolidationRequestsContract();
-  const totalBalance = sourceValidatorsInfo.data.reduce(
-    (sum, validator) => sum + parseGwei(validator.balance),
-    0n,
-  );
-
   const { data } = await publicClient.call({
     to: CONSOLIDATION_REQUEST_PREDEPLOY_ADDRESS,
     data: '0x',
@@ -181,7 +176,7 @@ export const consolidationRequestsAndIncreaseFeeExemption = async (
     await callReadMethodSilent(
       consolidationContract,
       'getConsolidationRequestsAndFeeExemptionEncodedCalls',
-      [sourcePubkeysFlattened, targetPubkeys, dashboard, totalBalance],
+      [sourcePubkeysFlattened, targetPubkeys, dashboard, feeExemption],
     );
 
   // 2. Create populated transactions for consolidation requests
@@ -196,7 +191,7 @@ export const consolidationRequestsAndIncreaseFeeExemption = async (
   );
 
   // 3. Create populated transaction to increase the fee exemption amount
-  if (totalBalance > 0n) {
+  if (feeExemption > 0n) {
     populatedTxs.push({
       to: dashboard,
       data: feeExemptionEncodedCall,
