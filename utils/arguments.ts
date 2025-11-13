@@ -19,6 +19,10 @@ export const stringToHexArray = (value: string) => {
   return value.split(',').map(toHex);
 };
 
+export const stringToHex = (value: string) => {
+  return toHex(value);
+};
+
 export const jsonToPermit = (value: string) => {
   return JSON.parse(value) as Permit;
 };
@@ -37,6 +41,18 @@ export const stringToNumberArray = (value: string) => {
 
 export const etherToWei = (value: string) => {
   return parseEther(value, 'wei');
+};
+
+export const etherToGwei = (value: string) => {
+  return parseEther(value, 'gwei');
+};
+
+export const etherToWeiArray = (value: string) => {
+  return value.split(',').map(etherToWei);
+};
+
+export const etherToGweiArray = (value: string) => {
+  return value.split(',').map(etherToGwei);
 };
 
 export const stringToNumber = (value: string) => {
@@ -61,7 +77,7 @@ export const parseDeposit = (str: string): Deposit => {
   }
 
   const parsed = JSON.parse(trimmed, (key, value) => {
-    if (key === 'amount') return BigInt(value) * BigInt(10 ** 9); // to wei
+    if (key === 'amount') return BigInt(value) * BigInt(10 ** 9); // gwei to wei
     if (typeof value === 'string') {
       return toHex(value);
     }
@@ -87,7 +103,7 @@ export const parseDepositArray = (str: string): Deposit[] => {
   // eslint-disable-next-line sonarjs/no-identical-functions
   const parsed = JSON.parse(trimmed, (key, value) => {
     if (key === '') return value; // root array
-    if (key === 'amount') return BigInt(value) * BigInt(10 ** 9); // to wei
+    if (key === 'amount') return BigInt(value) * BigInt(10 ** 9); // gwei to wei
     if (typeof value === 'string') {
       return toHex(value);
     }
@@ -113,9 +129,10 @@ export const parseValidatorTopUpArray = (str: string): ValidatorTopUp[] => {
     return [];
   }
 
+  // eslint-disable-next-line sonarjs/no-identical-functions
   const parsed = JSON.parse(trimmed, (key, value) => {
     if (key === '') return value; // root array
-    if (key === 'amount') return BigInt(value);
+    if (key === 'amount') return BigInt(value) * BigInt(10 ** 9); // gwei to wei
     if (typeof value === 'string') {
       return toHex(value);
     }

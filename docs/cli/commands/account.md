@@ -29,13 +29,11 @@ Account commands manage user wallet accounts and token allowances for stETH and 
 
 ### Read
 
-| Command                                                              | Description                         |
-| -------------------------------------------------------------------- | ----------------------------------- |
-| info \<address>                                                      | general account info.               |
-| steth-allowance-populate-tx steth-allowance-tx\<address> \<amount>   | populate tx for steth allowance     |
-| get-steth-allowance \<address>                                       | get steth allowance for an address  |
-| wsteth-allowance-populate-tx wsteth-allowance-tx\<address> \<amount> | populate tx for wsteth allowance    |
-| get-wsteth-allowance \<address>                                      | get wsteth allowance for an address |
+| Command                         | Description                         |
+| ------------------------------- | ----------------------------------- |
+| info \<address>                 | general account info.               |
+| get-steth-allowance \<address>  | get steth allowance for an address  |
+| get-wsteth-allowance \<address> | get wsteth allowance for an address |
 
 ### Write
 
@@ -72,19 +70,6 @@ Displays comprehensive account information including ETH balance and stETH/wstET
 
 **Use Case:** Monitor account balances before performing vault operations or token transfers.
 
-### steth-allowance-populate-tx (steth-allowance-tx)
-
-Generates transaction data for setting stETH token allowance without executing the transaction.
-
-**Arguments:**
-
-- `<address>`: Address to set allowance for
-- `<amount>`: Amount of stETH to allow
-
-**Returns:** Raw transaction data that can be used for manual transaction submission
-
-**Use Case:** Prepare allowance transactions for external signing or batch operations.
-
 ### get-steth-allowance
 
 Retrieves the current stETH allowance granted to a specific address.
@@ -98,17 +83,6 @@ Retrieves the current stETH allowance granted to a specific address.
 - Gets current account from configuration
 - Queries stETH contract for allowance amount
 - Returns formatted allowance value
-
-### wsteth-allowance-populate-tx (wsteth-allowance-tx)
-
-Generates transaction data for setting wstETH token allowance without executing the transaction.
-
-**Arguments:**
-
-- `<address>`: Address to set allowance for
-- `<amount>`: Amount of wstETH to allow (in wstETH)
-
-**Returns:** Raw transaction data for manual transaction handling
 
 ### get-wsteth-allowance
 

@@ -26,44 +26,42 @@ export type RoleName =
   | 'COLLECT_VAULT_ERC20_ROLE'
   | 'NODE_OPERATOR_FEE_EXEMPT_ROLE'
   | 'NODE_OPERATOR_PROVE_UNKNOWN_VALIDATOR_ROLE'
-  | 'NODE_OPERATOR_UNGUARANTEED_DEPOSIT_ROLE'
-  | 'PAUSE_BEACON_CHAIN_DEPOSITS_ROLE';
+  | 'NODE_OPERATOR_UNGUARANTEED_DEPOSIT_ROLE';
+
+export const DASHBOARD_ROLES_KEYS: RoleName[] = [
+  'DEFAULT_ADMIN_ROLE',
+  'BURN_ROLE',
+  'FUND_ROLE',
+  'MINT_ROLE',
+  'WITHDRAW_ROLE',
+  'NODE_OPERATOR_MANAGER_ROLE',
+  'PAUSE_BEACON_CHAIN_DEPOSITS_ROLE',
+  'RESUME_BEACON_CHAIN_DEPOSITS_ROLE',
+  'REBALANCE_ROLE',
+  'REQUEST_VALIDATOR_EXIT_ROLE',
+  'TRIGGER_VALIDATOR_WITHDRAWAL_ROLE',
+  'VOLUNTARY_DISCONNECT_ROLE',
+  'VAULT_CONFIGURATION_ROLE',
+  'COLLECT_VAULT_ERC20_ROLE',
+  'NODE_OPERATOR_FEE_EXEMPT_ROLE',
+  'NODE_OPERATOR_PROVE_UNKNOWN_VALIDATOR_ROLE',
+  'NODE_OPERATOR_UNGUARANTEED_DEPOSIT_ROLE',
+];
 
 export const getVaultRolesByDashboard = async (contract: DashboardContract) => {
   const hideSpinner = showSpinner();
 
   try {
-    const roleKeys: RoleName[] = [
-      'DEFAULT_ADMIN_ROLE',
-      'BURN_ROLE',
-      'FUND_ROLE',
-      'MINT_ROLE',
-      'WITHDRAW_ROLE',
-      'NODE_OPERATOR_MANAGER_ROLE',
-      'PAUSE_BEACON_CHAIN_DEPOSITS_ROLE',
-      'RESUME_BEACON_CHAIN_DEPOSITS_ROLE',
-      'REBALANCE_ROLE',
-      'REQUEST_VALIDATOR_EXIT_ROLE',
-      'TRIGGER_VALIDATOR_WITHDRAWAL_ROLE',
-      'VOLUNTARY_DISCONNECT_ROLE',
-      'VAULT_CONFIGURATION_ROLE',
-      'COLLECT_VAULT_ERC20_ROLE',
-      'NODE_OPERATOR_FEE_EXEMPT_ROLE',
-      'NODE_OPERATOR_PROVE_UNKNOWN_VALIDATOR_ROLE',
-      'NODE_OPERATOR_UNGUARANTEED_DEPOSIT_ROLE',
-      'PAUSE_BEACON_CHAIN_DEPOSITS_ROLE',
-    ];
-
     const roleValues: Hex[] = await Promise.all(
-      roleKeys.map((key) => (contract.read as any)[key]()),
+      DASHBOARD_ROLES_KEYS.map((key) => (contract.read as any)[key]()),
     );
 
     const roles = Object.fromEntries(
-      roleKeys.map((key, index) => [key, roleValues[index]]),
-    ) as Record<(typeof roleKeys)[number], Hex>;
+      DASHBOARD_ROLES_KEYS.map((key, index) => [key, roleValues[index]]),
+    ) as Record<(typeof DASHBOARD_ROLES_KEYS)[number], Hex>;
 
     const result = await Promise.all(
-      roleKeys.map(async (key) => {
+      DASHBOARD_ROLES_KEYS.map(async (key) => {
         const accounts = await contract.read.getRoleMembers([roles[key]]);
         return {
           Role: key,

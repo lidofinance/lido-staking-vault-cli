@@ -4,15 +4,15 @@ sidebar_position: 6
 
 # Validator Deposits
 
-This guide covers validator deposit operations in Lido Staking Vaults, including predeposits, validator proving, and full deposits to the Beacon Chain.
+This guide covers validator deposit operations in Lido Staking Vaults, including predeposits, validator proving and activation, and balance management.
 
 ## Overview
 
 The deposit process involves several stages:
 
-1. **Predeposit**: Initial validator registration with 1 ETH from vault
-2. **Validator Proving**: Cryptographic proof that validator exists on Beacon Chain
-3. **Full Deposit**: Complete 32 ETH deposit to activate validator
+1. **Top Up Node Operator Balance**: Add ETH to node operator balance for covering predeposit requirements
+2. **Predeposit**: Initial validator registration with 1 ETH from vault
+3. **Validator Proving and Activation**: Cryptographic proof that validator exists on Beacon Chain and activation deposit of 31 ETH from staged balance of vault
 4. **Balance Management**: Node operator balance top-ups and withdrawals
 
 All deposit operations work through the PredepositGuarantee (PDG) contract which manages validator lifecycle and node operator balances.
@@ -95,12 +95,61 @@ This command displays:
 - Balance information (total, locked, unlocked)
 - Depositor address (with indication if it's your address)
 - Guarantor address (with indication if it's your address)
+- Claimable Refund amount (if the guarantor is not you)
+
+### Check Pending Activations
+
+Get the number of validators in PREDEPOSITED and PROVEN states but not ACTIVATED yet:
+
+```bash
+yarn start deposits r pending-activations
+```
+
+**Options:**
+
+| Option                 | Description   | Format |
+| ---------------------- | ------------- | ------ |
+| `-v, --vault <string>` | Vault address | 0x...  |
+
+**Example:**
+
+```bash
+yarn start deposits r pending-activations -v 0x1234567890123456789012345678901234567890
+```
+
+This command shows:
+
+- Pending Activations of validators
 
 ## Write Operations
 
+### Top Up Node Operator Balance
+
+Add ETH to node operator balance for covering predeposit requirements:
+
+```bash
+yarn start deposits w top-up-no <amount>
+```
+
+**Arguments and Options:**
+
+| Argument/Option        | Description             | Format            |
+| ---------------------- | ----------------------- | ----------------- |
+| `<amount>`             | Amount in ETH to top up | Decimal (e.g., 1) |
+| `-v, --vault <string>` | Vault address           | 0x...             |
+
+**Example:**
+
+```bash
+yarn start deposits w top-up-no 1 -v 0x1234567890123456789012345678901234567890
+
+# Interactive vault selection
+yarn start deposits w top-up-no 1
+```
+
 ### Predeposit Validators
 
-Register validators with 1 ETH predeposits from the vault and lock node operator balance:
+Deposits NO's validators with PREDEPOSIT_AMOUNT ether from StakingVault and locks up NO's balance
 
 ```bash
 yarn start deposits w predeposit '<deposits_json>'
@@ -144,12 +193,12 @@ yarn start deposits w predeposit '<deposits_json>' --no-bls-check
 
 ### Validator Proving
 
-#### Create Proof and Prove
+#### Create Proof and Prove, Activate
 
-Generate cryptographic proof that a validator exists on the Beacon Chain:
+Permissionless method to prove correct Withdrawal Credentials for the validator and to send the ACTIVATION_DEPOSIT_AMOUNT (31 ETH) from the staged balance of StakingVault:
 
 ```bash
-yarn start deposits w proof-and-prove
+yarn start deposits w prove-and-activate
 ```
 
 **Options:**
@@ -162,18 +211,24 @@ yarn start deposits w proof-and-prove
 
 ```bash
 # Interactive proof creation
-yarn start deposits w proof-and-prove
+yarn start deposits w prove-and-activate
 
 # Prove specific validator index
-yarn start deposits w proof-and-prove -i 12345
+yarn start deposits w prove-and-activate -i 12345
 ```
 
-#### Prove and Deposit (Shortcut)
+#### Prove and Top Up (Shortcut)
 
-Node operator shortcut command that proves validators, tops up balance if needed, and deposits:
+happy path shortcut for the node operator (or depositor) that allows:
+
+- to prove validator's WC to unlock NO balance
+- to activate the validator depositing ACTIVATION_DEPOSIT_AMOUNT (31 ETH) from StakingVault staged balance
+- to top up validator on top of ACTIVATION_DEPOSIT_AMOUNT (31 ETH)
+
+And do it for multiple validators at once by providing an array of validator indexes and amounts
 
 ```bash
-yarn start deposits w prove-and-deposit '<indexes>' '<deposits_json>'
+yarn start deposits w prove-and-top-up '<indexes>' '<amounts>'
 ```
 
 **Arguments and Options:**
@@ -195,48 +250,38 @@ yarn start deposits w prove-and-deposit '[12345, 12346, 12347]' '[{
 }]' -v 0x1234567890123456789012345678901234567890
 ```
 
-### Full Beacon Chain Deposit
+### Top Up Existing Validators
 
-:::warning
-
-There is a known issue with incremental validator deposits: if you top up a validator's balance in 1 ETH increments and reach exactly 32 ETH through multiple deposits, the validator may fail to activate. See [ethereum/consensus-specs#3049](https://github.com/ethereum/consensus-specs/issues/3049) for details.
-
-To avoid this, always deposit the remaining 31 ETH in a single transaction rather than splitting it into smaller amounts. This ensures proper validator activation without delays.
-
-:::
-
-Deposit the remaining 31 ETH to complete validator activation (total 32 ETH):
+Deposits ether to proven validators from StakingVault.
 
 ```bash
-yarn start deposits w deposit-to-beacon-chain '<deposits_json>'
+yarn start deposits w top-up-existing-validators '<topUps>'
 ```
 
 **Arguments and Options:**
 
-| Argument/Option        | Description           | Format                 |
-| ---------------------- | --------------------- | ---------------------- |
-| `<deposits>`           | Array of deposit data | JSON array (see above) |
-| `-v, --vault <string>` | Vault address         | 0x...                  |
+| Argument/Option        | Description                                             | Format                 |
+| ---------------------- | ------------------------------------------------------- | ---------------------- |
+| `<topUps>`             | Array of ValidatorTopUp structs with pubkey and amounts | JSON array (see above) |
+| `-v, --vault <string>` | Vault address                                           | 0x...                  |
 
 **Example:**
 
 ```bash
-yarn start deposits w deposit-to-beacon-chain '[{
-  "pubkey": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
-  "signature": "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef",
+yarn start deposits w top-up-existing-validators '[{
+  "pubkey": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
   "amount": "31000000000",
-  "deposit_data_root": "0xfedcbafedcbafedcbafedcbafedcbafedcbafedcbafedcbafedcbafedcbafedcba"
 }]' -v 0x1234567890123456789012345678901234567890
 ```
 
 ## Node Operator Balance Management
 
-### Top Up Balance
+### Top Up Node Operator Balance
 
 Add ETH to node operator balance for covering predeposit requirements:
 
 ```bash
-yarn start deposits w top-up <amount>
+yarn start deposits w top-up-no <amount>
 ```
 
 **Arguments and Options:**
@@ -250,10 +295,10 @@ yarn start deposits w top-up <amount>
 
 ```bash
 # Top up with 2 ETH (enough for 2 predeposits)
-yarn start deposits w top-up 2 -v 0x1234567890123456789012345678901234567890
+yarn start deposits w top-up-no 2 -v 0x1234567890123456789012345678901234567890
 
 # Interactive vault selection
-yarn start deposits w top-up 1
+yarn start deposits w top-up-no 1
 ```
 
 ### Withdraw Node Operator Balance
@@ -313,7 +358,7 @@ You can use this tool for generating deposit data: [Depositor](https://github.co
 Ensure sufficient balance for predeposits:
 
 ```bash
-yarn start deposits w top-up 1
+yarn start deposits w top-up-no 1
 ```
 
 #### 3. Make Predeposit
@@ -343,25 +388,36 @@ yarn start pdg-helpers validator-info 0x...
 yarn start deposits r validator-status 0x...
 ```
 
-#### 6. Prove Validator
+#### 6. Prove and Activate Validator
 
-Create proof once validator is visible:
+Create proof and activate validator once validator is visible:
 
 ```bash
-yarn start deposits w proof-and-prove -i <validator_index>
+yarn start deposits w prove-and-activate -i <validator_index>
 ```
 
-#### 7. Complete Deposit
+#### 7. Top UP Existing Validators
 
-Deposit remaining 31 ETH to activate validator:
+Deposit ether to proven validators from StakingVault.
 
 ```bash
-yarn start deposits w deposit-to-beacon-chain '[{
-  "pubkey": "0x...",
-  "signature": "0x...",
+yarn start deposits w top-up-existing-validators '<topUps>'
+```
+
+**Arguments and Options:**
+
+| Argument/Option        | Description                                             | Format                 |
+| ---------------------- | ------------------------------------------------------- | ---------------------- |
+| `<topUps>`             | Array of ValidatorTopUp structs with pubkey and amounts | JSON array (see above) |
+| `-v, --vault <string>` | Vault address                                           | 0x...                  |
+
+**Example:**
+
+```bash
+yarn start deposits w top-up-existing-validators '[{
+  "pubkey": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
   "amount": "31000000000",
-  "deposit_data_root": "0x..."
-}]'
+}]' -v 0x1234567890123456789012345678901234567890
 ```
 
 ## Security Considerations
@@ -393,7 +449,7 @@ yarn start deposits w deposit-to-beacon-chain '[{
 ```bash
 # Check current balance and top up
 yarn start deposits r info
-yarn start deposits w top-up <amount>
+yarn start deposits w top-up-no <amount>
 ```
 
 **Invalid BLS Signature**

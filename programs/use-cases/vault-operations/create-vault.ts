@@ -115,15 +115,18 @@ vaultOperationsCreateVault
             logInfo('Populated transaction data:', tx);
             return;
           }
+          // Gnosis safe case
+          if (!tx) return;
+
           logTable({
             data: [
-              ['Vault Address', tx?.vault],
-              ['Dashboard Address', tx?.dashboard],
-              ['Default Admin Address', tx?.owner],
+              ['Vault Address', tx.vault],
+              ['Dashboard Address', tx.dashboard],
+              ['Default Admin Address', tx.owner],
               ['Node Operator Address', nodeOperatorAddress],
               ['Node Operator Manager Address', nodeOperatorManagerAddress],
-              ['Transaction Hash', tx?.tx],
-              ['Block Number', tx?.blockNumber],
+              ['Transaction Hash', tx.tx],
+              ['Block Number', tx.blockNumber],
             ],
           });
         });
@@ -232,6 +235,9 @@ vaultOperationsCreateVault
             logInfo('Populated transaction data:', tx);
             return;
           }
+          // Gnosis safe case
+          if (!tx) return;
+
           logTable({
             data: [
               ['Vault Address', tx?.vault],

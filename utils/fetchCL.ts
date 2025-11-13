@@ -1,8 +1,10 @@
 import { RootHex, Slot } from '@lodestar/types';
 
 import { getConfig } from 'configs';
-import { printError } from 'utils';
+import { logError, printError } from 'utils';
 import { Hex } from 'viem';
+
+import { SupportedFork } from './proof/constants.js';
 
 export type BlockId = RootHex | Slot | 'head' | 'genesis' | 'finalized';
 export type StateId =
@@ -42,12 +44,6 @@ const endpoints = {
   state: (stateId: StateId): string => `eth/v2/debug/beacon/states/${stateId}`,
   validatorInfo: (validatorPubkey: Hex): string =>
     `eth/v1/beacon/states/head/validators/${validatorPubkey}`,
-};
-
-export const SupportedFork = {
-  capella: 'capella',
-  deneb: 'deneb',
-  electra: 'electra',
 };
 
 export const fetchBeaconHeader = async (stateId: StateId, clURL?: string) => {
@@ -103,8 +99,12 @@ export const fetchBeaconState = async (
     ) as keyof typeof SupportedFork;
 
     // Checks
-    if (!(forkName in SupportedFork))
+    if (!(forkName in SupportedFork)) {
+      logError(
+        `Looks like the CL headers don't contain the fork name (header: eth-consensus-version) or the fork name is not supported`,
+      );
       throw new Error(`Fork name [${forkName}] is not supported`);
+    }
 
     const stateBodyBytes = await beaconStateResp.arrayBuffer();
     if (!stateBodyBytes)

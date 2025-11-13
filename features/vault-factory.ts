@@ -12,6 +12,7 @@ import {
   transformAddressesToArray,
   validateAddressesMap,
   validateAddressMap,
+  logInfo,
 } from 'utils';
 import { program } from 'command';
 
@@ -108,6 +109,12 @@ export const createVault = async (
     return { tx: result.tx };
   }
   const { receipt, tx } = result;
+
+  // Gnosis safe case
+  if (!receipt) {
+    logInfo('Transaction has been sent');
+    return;
+  }
 
   const events = parseEventLogs({
     abi: VaultFactoryAbi,

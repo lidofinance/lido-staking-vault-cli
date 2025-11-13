@@ -114,6 +114,11 @@ depositsRead
       'nodeOperatorGuarantor',
       [nodeOperator],
     );
+    const claimableRefund = await callReadMethodSilent(
+      pdgContract,
+      'claimableRefund',
+      [guarantor],
+    );
     const isYourselfDepositor = depositor === currentAccount.address;
     const isYourselfGuarantor = guarantor === currentAccount.address;
 
@@ -124,6 +129,7 @@ depositsRead
         ['Unlocked', `${formatEther(unlockedBalance)} ETH`],
         ['Depositor', `${depositor} ${isYourselfDepositor ? '(you)' : ''}`],
         ['Guarantor', `${guarantor} ${isYourselfGuarantor ? '(you)' : ''}`],
+        ['Claimable Refund', `${formatEther(claimableRefund)} ETH`],
       ],
     });
   });
@@ -132,7 +138,7 @@ depositsRead
   .command('pending-activations')
   .aliases(['pd'])
   .description(
-    'get the amount of ether that is pending as predeposits but not proved yet',
+    'get the number of validators in PREDEPOSITED and PROVEN states but not ACTIVATED yet',
   )
   .option('-v, --vault <string>', 'vault address', stringToAddress)
   .action(async ({ vault }: { vault: Address }) => {
@@ -147,8 +153,6 @@ depositsRead
     );
 
     logResult({
-      data: [
-        ['Pending Activations amount, ETH', formatEther(pendingActivations)],
-      ],
+      data: [['Pending Activations of validators', pendingActivations]],
     });
   });

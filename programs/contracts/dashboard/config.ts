@@ -132,4 +132,9 @@ export const readCommandConfig: ReadProgramCommandConfig<typeof DashboardAbi> =
       description:
         'get the amount of ether required to cover obligations shortfall of the vault',
     },
+    feeLeftover: {
+      name: 'fee-leftover',
+      description:
+        'get the amount of node operator fees accrued on the moment of disconnection and secured to be recovered to the `feeRecipient` address using `recoverFeeLeftover` method',
+    },
   };
