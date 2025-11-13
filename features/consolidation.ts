@@ -28,6 +28,7 @@ import {
   callWriteMethodWithReceipt,
   printError,
   confirmOperation,
+  callWriteMethodWithReceiptBatchCalls,
 } from 'utils';
 import { DashboardAbi } from 'abi';
 import assert from 'assert';
@@ -108,18 +109,17 @@ const consolidateRequest = async ({
   encodedCall: Hex;
   feePerRequest: bigint;
 }): Promise<void> => {
-  const publicClient = getPublicClient();
-
-  const hideSpinnerConsolidationRequest = showSpinner();
-  const { data: consolidationRequestData } = await publicClient.call({
+  const populatedTx: PopulatedTx = {
     to: CONSOLIDATION_REQUEST_PREDEPLOY_ADDRESS,
     data: encodedCall,
     value: feePerRequest,
+  };
+  await callWriteMethodWithReceiptBatchCalls({
+    calls: [populatedTx],
+    withSpinner: true,
+    silent: false,
+    skipError: false,
   });
-  hideSpinnerConsolidationRequest();
-
-  if (!consolidationRequestData)
-    throw new Error('consolidation request call returned empty data');
 };
 
 const addFeeExemption = async ({
