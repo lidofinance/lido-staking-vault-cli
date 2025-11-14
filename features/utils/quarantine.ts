@@ -39,6 +39,7 @@ export const checkQuarantine = async (vault: Address) => {
   const pendingTotalValueIncrease = formatEther(
     quarantine.pendingTotalValueIncrease,
   );
+  const totalValueRemainder = formatEther(quarantine.totalValueRemainder);
 
   logInfo('⚠️ Warning: Part of the vault capital on CL is in quarantine');
   logInfo(
@@ -49,6 +50,7 @@ export const checkQuarantine = async (vault: Address) => {
       ['Vault', vault],
       ['Quarantine status', quarantine.isActive ? 'Active' : 'Inactive'],
       ['Pending total value increase, ETH', pendingTotalValueIncrease],
+      ['Total value remainder, ETH', totalValueRemainder],
       ['Start timestamp', `${quarantine.startTimestamp} (${startTimestamp})`],
       ['End timestamp', `${quarantine.endTimestamp} (${endTimestamp})`],
     ],
