@@ -18,7 +18,6 @@ import {
   getFeeExemption,
   removeInactiveValidators,
   TargetAndSourceValidators,
-  forEachValidator,
   consolidationRequestsAndIncreaseFeeExemption,
 } from 'features/consolidation.js';
 import { PubkeyMap } from 'types/common.js';
@@ -83,9 +82,9 @@ consolidation
         await requestValidatorsInfo(sourcePubkeys, targetPubkeys);
       const targetAndSourceValidators = getTargetAndSourceValidatorsInfo(
         targetPubkeys,
+        targetValidatorsInfo,
         sourcePubkeys,
         sourceValidatorsInfo,
-        targetValidatorsInfo,
       );
       const feeExemption = await getFeeExemption(targetAndSourceValidators);
       logInfo(`Fee Exemption: ${formatUnits(feeExemption, 18)} ETH`);
@@ -136,17 +135,17 @@ const logAllTargetValidatorsTable = async (
 ) => {
   const rows: Array<[string, string, string, string]> = [];
 
-  await forEachValidator(
-    targetAndSourceValidators,
-    ({ target, targetValidatorInfo }) => {
-      rows.push([
-        target,
-        targetValidatorInfo.status,
-        `${formatUnits(targetValidatorInfo.balance, 18)} ETH`,
-        targetValidatorInfo.index,
-      ]);
-    },
-  );
+  for (const [
+    target,
+    { info: targetValidatorInfo },
+  ] of targetAndSourceValidators) {
+    rows.push([
+      target,
+      targetValidatorInfo.status,
+      `${formatUnits(targetValidatorInfo.balance, 18)} ETH`,
+      targetValidatorInfo.index,
+    ]);
+  }
 
   logInfo('Target Validators Info');
   logTable({
@@ -162,17 +161,16 @@ const logAllSourceValidatorsTable = async (
 ) => {
   const rows: Array<[string, string, string, string]> = [];
 
-  await forEachValidator(
-    targetAndSourceValidators,
-    ({ source, sourceValidatorInfo }) => {
+  for (const [, { sourceValidators }] of targetAndSourceValidators) {
+    for (const [source, sourceValidatorInfo] of sourceValidators) {
       rows.push([
         source,
         sourceValidatorInfo.status,
         `${formatUnits(sourceValidatorInfo.balance, 18)} ETH`,
         sourceValidatorInfo.index,
       ]);
-    },
-  );
+    }
+  }
 
   logInfo('Source Validators Info');
   logTable({
@@ -190,9 +188,11 @@ const logConfirmToConsolidate = async (
   const lines: string[] = [
     'Are you sure you want to consolidate the following validators?\n',
   ];
-  await forEachValidator(targetAndSourceValidators, ({ target, source }) => {
-    lines.push(`Source: ${source}\nTarget: ${target}\n`);
-  });
+  for (const [target, { sourceValidators }] of targetAndSourceValidators) {
+    for (const [source] of sourceValidators) {
+      lines.push(`Source: ${source}\nTarget: ${target}\n`);
+    }
+  }
   lines.push(`Dashboard: ${dashboard}`);
   return confirmOperation(lines.join('\n'));
 };
