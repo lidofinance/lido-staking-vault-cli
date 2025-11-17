@@ -1,9 +1,11 @@
 import { Address, formatEther } from 'viem';
+import { mainnet } from 'viem/chains';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 import { Option } from 'commander';
 import { Keystore } from 'ox';
 
 import { getStethContract, getWstethContract } from 'contracts';
+import { getChain } from 'configs';
 import {
   getCommandsJson,
   logInfo,
@@ -32,6 +34,14 @@ accountWrite
     'generate a new key. Disclaimer: this command is not recommended for production use.',
   )
   .action(async () => {
+    const chainId = getChain().id;
+
+    const isMainnet = chainId === mainnet.id;
+    if (isMainnet) {
+      logInfo('⚠️⚠️ This command is not recommended for production use. ⚠️⚠️');
+      return;
+    }
+
     const privateKey = generatePrivateKey();
     logInfo(`Private key: ${privateKey}`);
   });
@@ -41,6 +51,14 @@ accountWrite
   .description('generate a new encrypted account')
   .argument('<password>', 'password for the encrypted account')
   .action(async (password: string) => {
+    const chainId = getChain().id;
+
+    const isMainnet = chainId === mainnet.id;
+    if (isMainnet) {
+      logInfo('⚠️⚠️ This command is not recommended for production use. ⚠️⚠️');
+      return;
+    }
+
     const randomPrivateKey = generatePrivateKey();
     const account = privateKeyToAccount(randomPrivateKey);
     const [key, opts] = Keystore.scrypt({

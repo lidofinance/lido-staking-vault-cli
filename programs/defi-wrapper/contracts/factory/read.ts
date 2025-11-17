@@ -36,24 +36,19 @@ factoryRead
     const [
       dummyImplementation,
       ggvStrategyFactory,
-      loopStrategyFactory,
       stvPoolFactory,
       stvStethPoolFactory,
-      stvStrategyPoolFactory,
       timelockFactory,
       vaultFactory,
       withdrawalQueueFactory,
       lazyOracle,
       steth,
       wsteth,
-      timelockMinDelay,
     ] = await Promise.all([
       callReadMethodSilent(contract, 'DUMMY_IMPLEMENTATION'),
       callReadMethodSilent(contract, 'GGV_STRATEGY_FACTORY'),
-      callReadMethodSilent(contract, 'LOOP_STRATEGY_FACTORY'),
       callReadMethodSilent(contract, 'STV_POOL_FACTORY'),
       callReadMethodSilent(contract, 'STV_STETH_POOL_FACTORY'),
-      callReadMethodSilent(contract, 'STV_STRATEGY_POOL_FACTORY'),
       callReadMethodSilent(contract, 'TIMELOCK_FACTORY'),
       callReadMethodSilent(contract, 'VAULT_FACTORY'),
       callReadMethodSilent(contract, 'WITHDRAWAL_QUEUE_FACTORY'),
@@ -61,25 +56,20 @@ factoryRead
       callReadMethodSilent(contract, 'LAZY_ORACLE'),
       callReadMethodSilent(contract, 'STETH'),
       callReadMethodSilent(contract, 'WSTETH'),
-
-      callReadMethodSilent(contract, 'TIMELOCK_MIN_DELAY'),
     ]);
 
     logResult({
       data: [
         ['dummyImplementation', dummyImplementation],
         ['ggvStrategyFactory', ggvStrategyFactory],
-        ['loopStrategyFactory', loopStrategyFactory],
         ['stvPoolFactory', stvPoolFactory],
         ['stvStethPoolFactory', stvStethPoolFactory],
-        ['stvStrategyPoolFactory', stvStrategyPoolFactory],
         ['timelockFactory', timelockFactory],
         ['vaultFactory', vaultFactory],
         ['withdrawalQueueFactory', withdrawalQueueFactory],
         ['lazyOracle', lazyOracle],
         ['steth', steth],
         ['wsteth', wsteth],
-        ['timelockMinDelay', timelockMinDelay],
       ],
     });
   });

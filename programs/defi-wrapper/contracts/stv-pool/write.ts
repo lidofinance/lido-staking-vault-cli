@@ -8,13 +8,11 @@ import {
   etherToWei,
   confirmOperation,
   stringToBigInt,
-  stringToBigIntArray,
-  stringToHexArray,
 } from 'utils';
 import { getAccount } from 'providers';
 
 import { stvPool } from './main.js';
-import { Address, formatEther, Hex } from 'viem';
+import { Address, formatEther } from 'viem';
 import { getStvPoolContract } from 'contracts/defi-wrapper/index.js';
 
 const stvPoolWrite = stvPool
@@ -31,7 +29,7 @@ stvPoolWrite.on('option:-cmd2json', function () {
 stvPoolWrite
   .command('deposit-eth')
   .description('convenience function to deposit ETH to msg.sender')
-  .argument('<address>', 'distributor address', stringToAddress)
+  .argument('<address>', 'pool address', stringToAddress)
   .argument('<amount>', 'amount of ETH to deposit (in ETH)', etherToWei)
   .argument('<referral>', 'address of the referral (if any)', stringToAddress)
   .option(
@@ -67,7 +65,7 @@ stvPoolWrite
   .description(
     'rebalance unassigned liability by repaying it with assets held by the vault',
   )
-  .argument('<address>', 'distributor address', stringToAddress)
+  .argument('<address>', 'pool address', stringToAddress)
   .argument(
     '<stethShares>',
     'amount of stETH shares to rebalance (in shares)',
@@ -92,7 +90,7 @@ stvPoolWrite
   .description(
     'rebalance unassigned liability by repaying it with external ether',
   )
-  .argument('<address>', 'distributor address', stringToAddress)
+  .argument('<address>', 'pool address', stringToAddress)
   .argument('<ether>', 'amount of ether to rebalance (in ETH)', etherToWei)
   .action(async (address: Address, ether: bigint) => {
     const contract = getStvPoolContract(address);
@@ -110,182 +108,73 @@ stvPoolWrite
   });
 
 stvPoolWrite
-  .command('request-withdrawal-eth')
+  .command('transfer-from-for-withdrawal-queue')
   .description(
-    'request a withdrawal by specifying the amount of assets to withdraw',
+    'transfer stv from user to WithdrawalQueue contract when enqueuing withdrawal requests',
   )
-  .argument('<address>', 'distributor address', stringToAddress)
+  .argument('<address>', 'pool address', stringToAddress)
+  .argument('<from>', 'address of the user', stringToAddress)
   .argument(
-    '<assetsToWithdraw>',
-    'the amount of assets to withdraw (18 decimals)',
+    '<stv>',
+    'the amount of assets to transfer (18 decimals)',
     stringToBigInt,
   )
-  .action(async (address: Address, assetsToWithdraw: bigint) => {
+  .action(async (address: Address, from: Address, stv: bigint) => {
     const contract = getStvPoolContract(address);
 
-    const confirmationMessage = `Are you sure you want to request a withdrawal of ${assetsToWithdraw} assets?`;
+    const confirmationMessage = `Are you sure you want to transfer ${stv} stv from ${from} to the withdrawal queue ${address}?`;
     const confirm = await confirmOperation(confirmationMessage);
     if (!confirm) return;
 
     await callWriteMethodWithReceipt({
       contract,
-      methodName: 'requestWithdrawalETH',
-      payload: [assetsToWithdraw],
+      methodName: 'transferFromForWithdrawalQueue',
+      payload: [from, stv],
     });
   });
 
 stvPoolWrite
-  .command('request-withdrawal')
-  .description(
-    'request a withdrawal by specifying the amount of stv to withdraw',
-  )
-  .argument('<address>', 'distributor address', stringToAddress)
-  .argument(
-    '<stvToWithdraw>',
-    'the amount of stv to withdraw (27 decimals)',
-    stringToBigInt,
-  )
-  .option(
-    '-r, --receiver <receiver>',
-    'the address to receive the claimed ether, or address(0)',
-    stringToAddress,
-  )
-  .action(
-    async (
-      address: Address,
-      stvToWithdraw: bigint,
-      { receiver }: { receiver: Address },
-    ) => {
-      const contract = getStvPoolContract(address);
-      const account = await getAccount();
+  .command('pause-deposits')
+  .description('pause deposits')
+  .argument('<address>', 'pool address', stringToAddress)
+  .action(async (address: Address) => {
+    const contract = getStvPoolContract(address);
 
-      const confirmationMessage = `Are you sure you want to request a withdrawal of ${stvToWithdraw} stv to ${receiver}?`;
-      const confirm = await confirmOperation(confirmationMessage);
-      if (!confirm) return;
+    const confirmationMessage = `Are you sure you want to pause deposits for the pool ${address}?`;
+    const confirm = await confirmOperation(confirmationMessage);
+    if (!confirm) return;
 
-      await callWriteMethodWithReceipt({
-        contract,
-        methodName: 'requestWithdrawal',
-        payload: [stvToWithdraw, receiver || account.address],
-      });
-    },
-  );
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'pauseDeposits',
+      payload: [],
+    });
+  });
 
 stvPoolWrite
-  .command('request-withdrawals')
-  .description(
-    'request multiple withdrawals by specifying the amounts of stv to withdraw',
-  )
-  .argument('<address>', 'distributor address', stringToAddress)
-  .argument(
-    '<stvToWithdraw>',
-    'the array of amounts of stv to withdraw (27 decimals)',
-    stringToBigIntArray,
-  )
-  .option(
-    '-r, --receiver <receiver>',
-    'the address to receive the claimed ether, or address(0)',
-    stringToAddress,
-  )
-  .action(
-    async (
-      address: Address,
-      stvToWithdraw: bigint[],
-      { receiver }: { receiver: Address },
-    ) => {
-      const contract = getStvPoolContract(address);
-      const account = await getAccount();
+  .command('resume-deposits')
+  .description('resume deposits')
+  .argument('<address>', 'pool address', stringToAddress)
+  .action(async (address: Address) => {
+    const contract = getStvPoolContract(address);
 
-      const confirmationMessage = `Are you sure you want to request multiple withdrawals of ${stvToWithdraw.join(', ')} stv to ${receiver}?`;
-      const confirm = await confirmOperation(confirmationMessage);
-      if (!confirm) return;
+    const confirmationMessage = `Are you sure you want to resume deposits for the pool ${address}?`;
+    const confirm = await confirmOperation(confirmationMessage);
+    if (!confirm) return;
 
-      await callWriteMethodWithReceipt({
-        contract,
-        methodName: 'requestWithdrawals',
-        payload: [stvToWithdraw, receiver || account.address],
-      });
-    },
-  );
-
-stvPoolWrite
-  .command('claim-withdrawal')
-  .description('claim finalized withdrawal request')
-  .argument('<address>', 'distributor address', stringToAddress)
-  .argument('<requestId>', 'the withdrawal request ID to claim', stringToBigInt)
-  .option(
-    '-r, --receiver <receiver>',
-    'the address to receive the claimed ether, or address(0)',
-    stringToAddress,
-  )
-  .action(
-    async (
-      address: Address,
-      requestId: bigint,
-      { receiver }: { receiver: Address },
-    ) => {
-      const contract = getStvPoolContract(address);
-      const account = await getAccount();
-
-      const confirmationMessage = `Are you sure you want to claim withdrawal request ${requestId} to ${receiver}?`;
-      const confirm = await confirmOperation(confirmationMessage);
-      if (!confirm) return;
-
-      await callWriteMethodWithReceipt({
-        contract,
-        methodName: 'claimWithdrawal',
-        payload: [requestId, receiver || account.address],
-      });
-    },
-  );
-
-stvPoolWrite
-  .command('claim-withdrawals')
-  .description('claim multiple finalized withdrawal requests')
-  .argument('<address>', 'distributor address', stringToAddress)
-  .argument(
-    '<requestIds>',
-    'the array of withdrawal request IDs to claim',
-    stringToBigIntArray,
-  )
-  .argument(
-    '<hints>',
-    'the checkpoint hints. Can be found with `WQ.findCheckpointHints(_requestIds, 1, getLastCheckpointIndex())`',
-    stringToBigIntArray,
-  )
-  .option(
-    '-r, --receiver <receiver>',
-    'the address to receive the claimed ether, or address(0)',
-    stringToAddress,
-  )
-  .action(
-    async (
-      address: Address,
-      requestIds: bigint[],
-      hints: bigint[],
-      { receiver }: { receiver: Address },
-    ) => {
-      const contract = getStvPoolContract(address);
-      const account = await getAccount();
-
-      const confirmationMessage = `Are you sure you want to claim withdrawal requests ${requestIds.join(', ')} to ${receiver}?`;
-      const confirm = await confirmOperation(confirmationMessage);
-      if (!confirm) return;
-
-      await callWriteMethodWithReceipt({
-        contract,
-        methodName: 'claimWithdrawals',
-        payload: [requestIds, hints, receiver || account.address],
-      });
-    },
-  );
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'resumeDeposits',
+      payload: [],
+    });
+  });
 
 stvPoolWrite
   .command('burn-stv-for-withdrawal-queue')
   .description(
     'burn stv from WithdrawalQueue contract when processing withdrawal requests',
   )
-  .argument('<address>', 'distributor address', stringToAddress)
+  .argument('<address>', 'pool address', stringToAddress)
   .argument('<stv>', 'amount of stv to burn (27 decimals)', stringToBigInt)
   .action(async (address: Address, stv: bigint) => {
     const contract = getStvPoolContract(address);
@@ -302,98 +191,9 @@ stvPoolWrite
   });
 
 stvPoolWrite
-  .command('disconnect-vault')
-  .description('initiates voluntary vault disconnection from VaultHub')
-  .argument('<address>', 'distributor address', stringToAddress)
-  .action(async (address: Address) => {
-    const contract = getStvPoolContract(address);
-
-    const confirmationMessage = `Are you sure you want to disconnect the vault ${address}?`;
-    const confirm = await confirmOperation(confirmationMessage);
-    if (!confirm) return;
-
-    await callWriteMethodWithReceipt({
-      contract,
-      methodName: 'disconnectVault',
-      payload: [],
-    });
-  });
-
-stvPoolWrite
-  .command('claim-connect-deposit')
-  .description('claims the connect deposit after vault has been disconnected')
-  .argument('<address>', 'distributor address', stringToAddress)
-  .option(
-    '-r, --receiver <receiver>',
-    'the address to receive the claimed ether, or address(0)',
-    stringToAddress,
-  )
-  .action(async (address: Address, { receiver }: { receiver: Address }) => {
-    const contract = getStvPoolContract(address);
-    const account = await getAccount();
-
-    const confirmationMessage = `Are you sure you want to claim the connect deposit for the vault ${address} to ${receiver}?`;
-    const confirm = await confirmOperation(confirmationMessage);
-    if (!confirm) return;
-
-    await callWriteMethodWithReceipt({
-      contract,
-      methodName: 'claimConnectDeposit',
-      payload: [receiver || account.address],
-    });
-  });
-
-stvPoolWrite
-  .command('trigger-validator-withdrawals')
-  .description('triggers validator withdrawals')
-  .argument('<address>', 'distributor address', stringToAddress)
-  .argument('<pubkeys>', 'validator public keys', stringToHexArray)
-  .argument('<amounts>', 'amounts to withdraw (in ETH)', stringToBigIntArray)
-  .argument('<refundRecipient>', 'refund recipient address', stringToAddress)
-  .action(
-    async (
-      address: Address,
-      pubkeys: Hex[],
-      amounts: bigint[],
-      refundRecipient: Address,
-    ) => {
-      const contract = getStvPoolContract(address);
-
-      const confirmationMessage = `Are you sure you want to trigger validator withdrawals for the vault ${address} with pubkeys ${pubkeys.join(', ')} and amounts ${amounts.map((amount) => formatEther(amount)).join(', ')} to ${refundRecipient}?`;
-      const confirm = await confirmOperation(confirmationMessage);
-      if (!confirm) return;
-
-      await callWriteMethodWithReceipt({
-        contract,
-        methodName: 'triggerValidatorWithdrawals',
-        payload: [pubkeys.join('') as Hex, amounts, refundRecipient],
-      });
-    },
-  );
-
-stvPoolWrite
-  .command('request-validator-exit')
-  .description('requests validator exit')
-  .argument('<address>', 'distributor address', stringToAddress)
-  .argument('<pubkeys>', 'validator public keys', stringToHexArray)
-  .action(async (address: Address, pubkeys: Hex[]) => {
-    const contract = getStvPoolContract(address);
-
-    const confirmationMessage = `Are you sure you want to request validator exit for the vault ${address} with pubkeys ${pubkeys.join(', ')}?`;
-    const confirm = await confirmOperation(confirmationMessage);
-    if (!confirm) return;
-
-    await callWriteMethodWithReceipt({
-      contract,
-      methodName: 'requestValidatorExit',
-      payload: [pubkeys.join('') as Hex],
-    });
-  });
-
-stvPoolWrite
   .command('add-to-allow-list')
   .description('add an address to the allowlist')
-  .argument('<address>', 'distributor address', stringToAddress)
+  .argument('<address>', 'pool address', stringToAddress)
   .argument('<user>', 'address to add to the allowlist', stringToAddress)
   .action(async (address: Address, user: Address) => {
     const contract = getStvPoolContract(address);
@@ -412,7 +212,7 @@ stvPoolWrite
 stvPoolWrite
   .command('remove-from-allow-list')
   .description('remove an address from the allowlist')
-  .argument('<address>', 'distributor address', stringToAddress)
+  .argument('<address>', 'pool address', stringToAddress)
   .argument('<user>', 'address to remove from the allowlist', stringToAddress)
   .action(async (address: Address, user: Address) => {
     const contract = getStvPoolContract(address);

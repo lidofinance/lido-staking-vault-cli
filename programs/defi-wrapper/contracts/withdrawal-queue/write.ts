@@ -38,7 +38,7 @@ withdrawalQueueWrite
 
     await callWriteMethodWithReceipt({
       contract,
-      methodName: 'pause',
+      methodName: 'pauseWithdrawals',
       payload: [],
     });
   });
@@ -56,7 +56,43 @@ withdrawalQueueWrite
 
     await callWriteMethodWithReceipt({
       contract,
-      methodName: 'resume',
+      methodName: 'resumeWithdrawals',
+      payload: [],
+    });
+  });
+
+withdrawalQueueWrite
+  .command('pause-finalization')
+  .description('pause withdrawal requests finalization')
+  .argument('<address>', 'withdrawal queue address', stringToAddress)
+  .action(async (address: Address) => {
+    const contract = getWithdrawalQueueContract(address);
+
+    const confirmationMessage = `Are you sure you want to pause withdrawal requests finalization for the withdrawal queue ${address}?`;
+    const confirm = await confirmOperation(confirmationMessage);
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'pauseFinalization',
+      payload: [],
+    });
+  });
+
+withdrawalQueueWrite
+  .command('resume-finalization')
+  .description('resume withdrawal requests finalization')
+  .argument('<address>', 'withdrawal queue address', stringToAddress)
+  .action(async (address: Address) => {
+    const contract = getWithdrawalQueueContract(address);
+
+    const confirmationMessage = `Are you sure you want to resume withdrawal requests finalization for the withdrawal queue ${address}?`;
+    const confirm = await confirmOperation(confirmationMessage);
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'resumeFinalization',
       payload: [],
     });
   });
@@ -91,8 +127,8 @@ withdrawalQueueWrite
 
       await callWriteMethodWithReceipt({
         contract,
-        methodName: 'requestWithdrawals',
-        payload: [stvToWithdraw, stethSharesToRebalance, owner],
+        methodName: 'requestWithdrawalBatch',
+        payload: [owner, stvToWithdraw, stethSharesToRebalance],
       });
     },
   );
@@ -124,7 +160,7 @@ withdrawalQueueWrite
       await callWriteMethodWithReceipt({
         contract,
         methodName: 'requestWithdrawal',
-        payload: [stvToWithdraw, stethSharesToRebalance, owner],
+        payload: [owner, stvToWithdraw, stethSharesToRebalance],
       });
     },
   );
@@ -138,19 +174,30 @@ withdrawalQueueWrite
     'the maximum number of requests to finalize',
     stringToBigInt,
   )
-  .action(async (address: Address, maxRequests: bigint) => {
-    const contract = getWithdrawalQueueContract(address);
+  .argument(
+    '<gasCostCoverageRecipient>',
+    'address to receive gas cost coverage',
+    stringToAddress,
+  )
+  .action(
+    async (
+      address: Address,
+      maxRequests: bigint,
+      gasCostCoverageRecipient: Address,
+    ) => {
+      const contract = getWithdrawalQueueContract(address);
 
-    const confirmationMessage = `Are you sure you want to finalize up to ${maxRequests} withdrawal requests for the withdrawal queue ${address}?`;
-    const confirm = await confirmOperation(confirmationMessage);
-    if (!confirm) return;
+      const confirmationMessage = `Are you sure you want to finalize up to ${maxRequests} withdrawal requests for the withdrawal queue ${address} to ${gasCostCoverageRecipient}?`;
+      const confirm = await confirmOperation(confirmationMessage);
+      if (!confirm) return;
 
-    await callWriteMethodWithReceipt({
-      contract,
-      methodName: 'finalize',
-      payload: [maxRequests],
-    });
-  });
+      await callWriteMethodWithReceipt({
+        contract,
+        methodName: 'finalize',
+        payload: [maxRequests, gasCostCoverageRecipient],
+      });
+    },
+  );
 
 withdrawalQueueWrite
   .command('claim-withdrawal')
@@ -160,35 +207,23 @@ withdrawalQueueWrite
   .argument('<address>', 'withdrawal queue address', stringToAddress)
   .argument('<requestId>', 'request id to claim', stringToBigInt)
   .argument(
-    '<requestor>',
-    'address of the request owner, should be equal to msg.sender on Wrapper side',
-    stringToAddress,
-  )
-  .argument(
     '<recipient>',
     'address where claimed ether will be sent to',
     stringToAddress,
   )
-  .action(
-    async (
-      address: Address,
-      requestId: bigint,
-      requestor: Address,
-      recipient: Address,
-    ) => {
-      const contract = getWithdrawalQueueContract(address);
+  .action(async (address: Address, requestId: bigint, recipient: Address) => {
+    const contract = getWithdrawalQueueContract(address);
 
-      const confirmationMessage = `Are you sure you want to claim request ${requestId} for ${requestor} and send the claimed ether to ${recipient} for the withdrawal queue ${address}?`;
-      const confirm = await confirmOperation(confirmationMessage);
-      if (!confirm) return;
+    const confirmationMessage = `Are you sure you want to claim request ${requestId} and send the claimed ether to ${recipient} for the withdrawal queue ${address}?`;
+    const confirm = await confirmOperation(confirmationMessage);
+    if (!confirm) return;
 
-      await callWriteMethodWithReceipt({
-        contract,
-        methodName: 'claimWithdrawal',
-        payload: [requestId, requestor, recipient],
-      });
-    },
-  );
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'claimWithdrawal',
+      payload: [recipient, requestId],
+    });
+  });
 
 withdrawalQueueWrite
   .command('claim-withdrawals')
@@ -207,11 +242,6 @@ withdrawalQueueWrite
     stringToBigIntArray,
   )
   .argument(
-    '<requestor>',
-    'address of the request owner, should be equal to msg.sender on Wrapper side',
-    stringToAddress,
-  )
-  .argument(
     '<recipient>',
     'address where claimed ether will be sent to',
     stringToAddress,
@@ -221,19 +251,18 @@ withdrawalQueueWrite
       address: Address,
       requestIds: bigint[],
       hints: bigint[],
-      requestor: Address,
       recipient: Address,
     ) => {
       const contract = getWithdrawalQueueContract(address);
 
-      const confirmationMessage = `Are you sure you want to claim requests ${requestIds.join(', ')} for ${requestor} and send the claimed ether to ${recipient} for the withdrawal queue ${address}?`;
+      const confirmationMessage = `Are you sure you want to claim requests ${requestIds.join(', ')} and send the claimed ether to ${recipient} for the withdrawal queue ${address}?`;
       const confirm = await confirmOperation(confirmationMessage);
       if (!confirm) return;
 
       await callWriteMethodWithReceipt({
         contract,
-        methodName: 'claimWithdrawals',
-        payload: [requestIds, hints, requestor, recipient],
+        methodName: 'claimWithdrawalBatch',
+        payload: [recipient, requestIds, hints],
       });
     },
   );

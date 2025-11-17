@@ -6,39 +6,16 @@ import {
 } from 'utils';
 
 export const readCommandConfig: ReadProgramCommandConfig<typeof StvPoolAbi> = {
-  withdrawableStvOf: {
-    name: 'withdrawable-stv-of',
-    description:
-      'get calculated amount of stv that can be withdrawn by an account',
-    arguments: {
-      _account: {
-        name: 'account',
-        description: 'the address of the account',
-        modifier: stringToAddress,
-      },
-    },
-  },
-  withdrawableEthOf: {
-    name: 'withdrawable-eth-of',
-    description:
-      'get calculated the amount of ETH that can be withdrawn by an account',
-    arguments: {
-      _account: {
-        name: 'account',
-        description: 'the address of the account',
-        modifier: stringToAddress,
-      },
-    },
-  },
-  vaultDisconnected: {
-    name: 'vault-disconnected',
-    description: 'get whether the vault is disconnected',
-  },
   totalUnassignedLiabilityShares: {
     name: 'total-unassigned-liability-shares',
-    aliases: ['tuls'],
+    aliases: ['tul-shares'],
     description:
       'get the total liability stETH shares that are not assigned to any users',
+  },
+  totalUnassignedLiabilitySteth: {
+    name: 'total-unassigned-liability-steth',
+    aliases: ['tul-steth'],
+    description: 'get the total unassigned liability in stETH',
   },
   totalAssets: {
     name: 'total-assets',
@@ -49,12 +26,6 @@ export const readCommandConfig: ReadProgramCommandConfig<typeof StvPoolAbi> = {
     name: 'total-liability-shares',
     aliases: ['tls'],
     description: 'get the total liability stETH shares issued to the vault',
-  },
-  totalExceedingMintedSteth: {
-    name: 'total-exceeding-minted-steth',
-    aliases: ['tems'],
-    description:
-      "get the amount of minted stETH exceeding the Staking Vault's liability",
   },
   previewWithdraw: {
     name: 'preview-withdraw',
@@ -89,6 +60,22 @@ export const readCommandConfig: ReadProgramCommandConfig<typeof StvPoolAbi> = {
         name: 'assets',
         description: 'the amount of assets to deposit (18 decimals)',
         modifier: stringToBigInt,
+      },
+    },
+  },
+  totalNominalAssets: {
+    name: 'total-nominal-assets',
+    aliases: ['tna'],
+    description: 'get the total nominal assets managed by the pool',
+  },
+  isAllowListed: {
+    name: 'is-allow-listed',
+    description: 'get whether the address is allow listed',
+    arguments: {
+      _user: {
+        name: 'user',
+        description: 'the address to check',
+        modifier: stringToAddress,
       },
     },
   },

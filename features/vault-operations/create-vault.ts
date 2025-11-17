@@ -47,10 +47,12 @@ const validateNodeOperatorFeeRate = (
     );
 };
 
-export const getConfirmExpiry = async (confirmExpiry?: number) => {
+export const getConfirmExpiry = async (
+  confirmExpiry?: number,
+): Promise<number> => {
   if (!confirmExpiry) {
     const confirmExpiryValue = await numberPrompt(
-      'Enter the confirm expiry (in hours)',
+      `Enter the confirm expiry (in hours) (min: ${MIN_CONFIRM_EXPIRY / 3600} hours, max: ${MAX_CONFIRM_EXPIRY / 3600} hours)`,
       'value',
     );
     if (!confirmExpiryValue.value) throw new Error('Invalid confirm expiry');
@@ -65,7 +67,9 @@ export const getConfirmExpiry = async (confirmExpiry?: number) => {
   return confirmExpiry;
 };
 
-export const getNodeOperatorFeeRate = async (nodeOperatorFeeRate?: number) => {
+export const getNodeOperatorFeeRate = async (
+  nodeOperatorFeeRate?: number,
+): Promise<number> => {
   if (!nodeOperatorFeeRate) {
     const chooseFeeType = await selectPrompt('Choose the fee type', 'feeType', [
       { title: 'basis points', value: 'basis points' },
@@ -74,7 +78,7 @@ export const getNodeOperatorFeeRate = async (nodeOperatorFeeRate?: number) => {
     if (!chooseFeeType.feeType) throw new Error('Invalid fee type');
 
     const nodeOperatorFeeRateValue = await numberPrompt(
-      `Enter the node operator fee rate (in ${chooseFeeType.feeType})`,
+      `Enter the node operator fee rate (in ${chooseFeeType.feeType}) (max: ${chooseFeeType.feeType === 'basis points' ? 10000 : 100})`,
       'value',
     );
     if (!nodeOperatorFeeRateValue.value)
