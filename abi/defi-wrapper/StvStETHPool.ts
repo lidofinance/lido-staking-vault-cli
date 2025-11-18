@@ -22,6 +22,16 @@ export const StvStETHPoolAbi = [
         type: 'address',
         internalType: 'address',
       },
+      {
+        name: '_distributor',
+        type: 'address',
+        internalType: 'address',
+      },
+      {
+        name: '_poolType',
+        type: 'bytes32',
+        internalType: 'bytes32',
+      },
     ],
     stateMutability: 'nonpayable',
   },
@@ -57,19 +67,6 @@ export const StvStETHPoolAbi = [
   },
   {
     type: 'function',
-    name: 'ASSET_DECIMALS',
-    inputs: [],
-    outputs: [
-      {
-        name: '',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
     name: 'DASHBOARD',
     inputs: [],
     outputs: [
@@ -83,20 +80,46 @@ export const StvStETHPoolAbi = [
   },
   {
     type: 'function',
-    name: 'DECIMALS',
+    name: 'DEFAULT_ADMIN_ROLE',
     inputs: [],
     outputs: [
       {
         name: '',
-        type: 'uint256',
-        internalType: 'uint256',
+        type: 'bytes32',
+        internalType: 'bytes32',
       },
     ],
     stateMutability: 'view',
   },
   {
     type: 'function',
-    name: 'DEFAULT_ADMIN_ROLE',
+    name: 'DEPOSITS_FEATURE',
+    inputs: [],
+    outputs: [
+      {
+        name: '',
+        type: 'bytes32',
+        internalType: 'bytes32',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'DEPOSITS_PAUSE_ROLE',
+    inputs: [],
+    outputs: [
+      {
+        name: '',
+        type: 'bytes32',
+        internalType: 'bytes32',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'DEPOSITS_RESUME_ROLE',
     inputs: [],
     outputs: [
       {
@@ -122,33 +145,20 @@ export const StvStETHPoolAbi = [
   },
   {
     type: 'function',
-    name: 'EXTRA_DECIMALS_BASE',
+    name: 'DISTRIBUTOR',
     inputs: [],
     outputs: [
       {
         name: '',
-        type: 'uint256',
-        internalType: 'uint256',
+        type: 'address',
+        internalType: 'contract Distributor',
       },
     ],
     stateMutability: 'view',
   },
   {
     type: 'function',
-    name: 'MAX_MINTABLE_AMOUNT',
-    inputs: [],
-    outputs: [
-      {
-        name: '',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'REQUEST_VALIDATOR_EXIT_ROLE',
+    name: 'LOSS_SOCIALIZER_ROLE',
     inputs: [],
     outputs: [
       {
@@ -161,13 +171,52 @@ export const StvStETHPoolAbi = [
   },
   {
     type: 'function',
-    name: 'STAKING_VAULT',
+    name: 'MINTING_FEATURE',
     inputs: [],
     outputs: [
       {
         name: '',
-        type: 'address',
-        internalType: 'address',
+        type: 'bytes32',
+        internalType: 'bytes32',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'MINTING_PAUSE_ROLE',
+    inputs: [],
+    outputs: [
+      {
+        name: '',
+        type: 'bytes32',
+        internalType: 'bytes32',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'MINTING_RESUME_ROLE',
+    inputs: [],
+    outputs: [
+      {
+        name: '',
+        type: 'bytes32',
+        internalType: 'bytes32',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'RESERVE_RATIO_GAP_BP',
+    inputs: [],
+    outputs: [
+      {
+        name: '',
+        type: 'uint256',
+        internalType: 'uint256',
       },
     ],
     stateMutability: 'view',
@@ -200,13 +249,13 @@ export const StvStETHPoolAbi = [
   },
   {
     type: 'function',
-    name: 'TRIGGER_VALIDATOR_WITHDRAWAL_ROLE',
+    name: 'VAULT',
     inputs: [],
     outputs: [
       {
         name: '',
-        type: 'bytes32',
-        internalType: 'bytes32',
+        type: 'address',
+        internalType: 'contract IStakingVault',
       },
     ],
     stateMutability: 'view',
@@ -239,13 +288,13 @@ export const StvStETHPoolAbi = [
   },
   {
     type: 'function',
-    name: 'WRAPPER_RR_BP',
+    name: 'WSTETH',
     inputs: [],
     outputs: [
       {
         name: '',
-        type: 'uint256',
-        internalType: 'uint256',
+        type: 'address',
+        internalType: 'contract IWstETH',
       },
     ],
     stateMutability: 'view',
@@ -377,6 +426,19 @@ export const StvStETHPoolAbi = [
   },
   {
     type: 'function',
+    name: 'burnWsteth',
+    inputs: [
+      {
+        name: '_wsteth',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+    ],
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
     name: 'calcAssetsToLockForStethShares',
     inputs: [
       {
@@ -453,72 +515,6 @@ export const StvStETHPoolAbi = [
   },
   {
     type: 'function',
-    name: 'claimConnectDeposit',
-    inputs: [
-      {
-        name: '_recipient',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    name: 'claimWithdrawal',
-    inputs: [
-      {
-        name: '_requestId',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_recipient',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
-    outputs: [
-      {
-        name: 'ethClaimed',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-    ],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    name: 'claimWithdrawals',
-    inputs: [
-      {
-        name: '_requestIds',
-        type: 'uint256[]',
-        internalType: 'uint256[]',
-      },
-      {
-        name: '_hints',
-        type: 'uint256[]',
-        internalType: 'uint256[]',
-      },
-      {
-        name: '_recipient',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
-    outputs: [
-      {
-        name: 'claimedEth',
-        type: 'uint256[]',
-        internalType: 'uint256[]',
-      },
-    ],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
     name: 'decimals',
     inputs: [],
     outputs: [
@@ -535,26 +531,7 @@ export const StvStETHPoolAbi = [
     name: 'depositETH',
     inputs: [
       {
-        name: '_referral',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
-    outputs: [
-      {
-        name: 'stv',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-    ],
-    stateMutability: 'payable',
-  },
-  {
-    type: 'function',
-    name: 'depositETH',
-    inputs: [
-      {
-        name: '_receiver',
+        name: '_recipient',
         type: 'address',
         internalType: 'address',
       },
@@ -575,13 +552,8 @@ export const StvStETHPoolAbi = [
   },
   {
     type: 'function',
-    name: 'depositETH',
+    name: 'depositETHAndMintStethShares',
     inputs: [
-      {
-        name: '_receiver',
-        type: 'address',
-        internalType: 'address',
-      },
       {
         name: '_referral',
         type: 'address',
@@ -604,8 +576,19 @@ export const StvStETHPoolAbi = [
   },
   {
     type: 'function',
-    name: 'depositETH',
-    inputs: [],
+    name: 'depositETHAndMintWsteth',
+    inputs: [
+      {
+        name: '_referral',
+        type: 'address',
+        internalType: 'address',
+      },
+      {
+        name: '_wstethToMint',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+    ],
     outputs: [
       {
         name: 'stv',
@@ -617,14 +600,7 @@ export const StvStETHPoolAbi = [
   },
   {
     type: 'function',
-    name: 'disconnectVault',
-    inputs: [],
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    name: 'exceedingMintedStethOf',
+    name: 'forceRebalance',
     inputs: [
       {
         name: '_account',
@@ -634,16 +610,16 @@ export const StvStETHPoolAbi = [
     ],
     outputs: [
       {
-        name: 'steth',
+        name: 'stvBurned',
         type: 'uint256',
         internalType: 'uint256',
       },
     ],
-    stateMutability: 'view',
+    stateMutability: 'nonpayable',
   },
   {
     type: 'function',
-    name: 'exceedingMintedStethSharesOf',
+    name: 'forceRebalanceAndSocializeLoss',
     inputs: [
       {
         name: '_account',
@@ -653,7 +629,20 @@ export const StvStETHPoolAbi = [
     ],
     outputs: [
       {
-        name: 'stethShares',
+        name: 'stvBurned',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+    ],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    name: 'forcedRebalanceThresholdBP',
+    inputs: [],
+    outputs: [
+      {
+        name: 'threshold',
         type: 'uint256',
         internalType: 'uint256',
       },
@@ -853,10 +842,74 @@ export const StvStETHPoolAbi = [
   },
   {
     type: 'function',
+    name: 'isFeaturePaused',
+    inputs: [
+      {
+        name: '_featureId',
+        type: 'bytes32',
+        internalType: 'bytes32',
+      },
+    ],
+    outputs: [
+      {
+        name: 'isPaused',
+        type: 'bool',
+        internalType: 'bool',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'isHealthyOf',
+    inputs: [
+      {
+        name: '_account',
+        type: 'address',
+        internalType: 'address',
+      },
+    ],
+    outputs: [
+      {
+        name: 'isHealthy',
+        type: 'bool',
+        internalType: 'bool',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'maxLossSocializationBP',
+    inputs: [],
+    outputs: [
+      {
+        name: 'maxSocializablePortionBP',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
     name: 'mintStethShares',
     inputs: [
       {
         name: '_stethShares',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+    ],
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    name: 'mintWsteth',
+    inputs: [
+      {
+        name: '_wsteth',
         type: 'uint256',
         internalType: 'uint256',
       },
@@ -877,25 +930,6 @@ export const StvStETHPoolAbi = [
     outputs: [
       {
         name: 'stethShares',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'mintingCapacitySharesOf',
-    inputs: [
-      {
-        name: '_account',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
-    outputs: [
-      {
-        name: 'stethSharesCapacity',
         type: 'uint256',
         internalType: 'uint256',
       },
@@ -936,6 +970,33 @@ export const StvStETHPoolAbi = [
   },
   {
     type: 'function',
+    name: 'pauseDeposits',
+    inputs: [],
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    name: 'pauseMinting',
+    inputs: [],
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    name: 'poolType',
+    inputs: [],
+    outputs: [
+      {
+        name: '',
+        type: 'bytes32',
+        internalType: 'bytes32',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
     name: 'previewDeposit',
     inputs: [
       {
@@ -949,6 +1010,35 @@ export const StvStETHPoolAbi = [
         name: 'stv',
         type: 'uint256',
         internalType: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'previewForceRebalance',
+    inputs: [
+      {
+        name: '_account',
+        type: 'address',
+        internalType: 'address',
+      },
+    ],
+    outputs: [
+      {
+        name: 'stethShares',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+      {
+        name: 'stv',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+      {
+        name: 'isUndercollateralized',
+        type: 'bool',
+        internalType: 'bool',
       },
     ],
     stateMutability: 'view',
@@ -993,7 +1083,7 @@ export const StvStETHPoolAbi = [
   },
   {
     type: 'function',
-    name: 'rebalanceMintedStethShares',
+    name: 'rebalanceMintedStethSharesForWithdrawalQueue',
     inputs: [
       {
         name: '_stethShares',
@@ -1008,7 +1098,7 @@ export const StvStETHPoolAbi = [
     ],
     outputs: [
       {
-        name: 'stvToBurn',
+        name: 'stvBurned',
         type: 'uint256',
         internalType: 'uint256',
       },
@@ -1037,8 +1127,13 @@ export const StvStETHPoolAbi = [
   },
   {
     type: 'function',
-    name: 'remainingMintingCapacityShares',
+    name: 'remainingMintingCapacitySharesOf',
     inputs: [
+      {
+        name: '_account',
+        type: 'address',
+        internalType: 'address',
+      },
       {
         name: '_ethToFund',
         type: 'uint256',
@@ -1087,169 +1182,29 @@ export const StvStETHPoolAbi = [
   },
   {
     type: 'function',
-    name: 'requestValidatorExit',
-    inputs: [
+    name: 'reserveRatioBP',
+    inputs: [],
+    outputs: [
       {
-        name: '_pubkeys',
-        type: 'bytes',
-        internalType: 'bytes',
+        name: 'reserveRatio',
+        type: 'uint256',
+        internalType: 'uint256',
       },
     ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'resumeDeposits',
+    inputs: [],
     outputs: [],
     stateMutability: 'nonpayable',
   },
   {
     type: 'function',
-    name: 'requestWithdrawal',
-    inputs: [
-      {
-        name: '_stvToWithdraw',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_receiver',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
-    outputs: [
-      {
-        name: 'requestId',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-    ],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    name: 'requestWithdrawal',
-    inputs: [
-      {
-        name: '_stvToWithdraw',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_stethSharesToBurn',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_stethSharesToRebalance',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_receiver',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
-    outputs: [
-      {
-        name: 'requestId',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-    ],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    name: 'requestWithdrawal',
-    inputs: [
-      {
-        name: '_stvToWithdraw',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-    ],
-    outputs: [
-      {
-        name: 'requestId',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-    ],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    name: 'requestWithdrawalETH',
-    inputs: [
-      {
-        name: '_assetsToWithdraw',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-    ],
-    outputs: [
-      {
-        name: 'requestId',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-    ],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    name: 'requestWithdrawals',
-    inputs: [
-      {
-        name: '_stvToWithdraw',
-        type: 'uint256[]',
-        internalType: 'uint256[]',
-      },
-      {
-        name: '_stethSharesToRebalance',
-        type: 'uint256[]',
-        internalType: 'uint256[]',
-      },
-      {
-        name: '_stethSharesToBurn',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_receiver',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
-    outputs: [
-      {
-        name: 'requestIds',
-        type: 'uint256[]',
-        internalType: 'uint256[]',
-      },
-    ],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    name: 'requestWithdrawals',
-    inputs: [
-      {
-        name: '_stvToWithdraw',
-        type: 'uint256[]',
-        internalType: 'uint256[]',
-      },
-      {
-        name: '_receiver',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
-    outputs: [
-      {
-        name: 'requestIds',
-        type: 'uint256[]',
-        internalType: 'uint256[]',
-      },
-    ],
+    name: 'resumeMinting',
+    inputs: [],
+    outputs: [],
     stateMutability: 'nonpayable',
   },
   {
@@ -1272,7 +1227,20 @@ export const StvStETHPoolAbi = [
   },
   {
     type: 'function',
-    name: 'stethSharesForWithdrawal',
+    name: 'setMaxLossSocializationBP',
+    inputs: [
+      {
+        name: '_maxSocializablePortionBP',
+        type: 'uint16',
+        internalType: 'uint16',
+      },
+    ],
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    name: 'stethSharesToBurnForStvOf',
     inputs: [
       {
         name: '_account',
@@ -1325,6 +1293,13 @@ export const StvStETHPoolAbi = [
       },
     ],
     stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'syncVaultParameters',
+    inputs: [],
+    outputs: [],
+    stateMutability: 'nonpayable',
   },
   {
     type: 'function',
@@ -1393,8 +1368,14 @@ export const StvStETHPoolAbi = [
   },
   {
     type: 'function',
-    name: 'totalMintingCapacityShares',
-    inputs: [],
+    name: 'totalMintingCapacitySharesOf',
+    inputs: [
+      {
+        name: '_account',
+        type: 'address',
+        internalType: 'address',
+      },
+    ],
     outputs: [
       {
         name: 'stethShares',
@@ -1437,6 +1418,19 @@ export const StvStETHPoolAbi = [
     outputs: [
       {
         name: 'unassignedLiabilityShares',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'totalUnassignedLiabilitySteth',
+    inputs: [],
+    outputs: [
+      {
+        name: 'unassignedLiabilitySteth',
         type: 'uint256',
         internalType: 'uint256',
       },
@@ -1498,6 +1492,47 @@ export const StvStETHPoolAbi = [
   },
   {
     type: 'function',
+    name: 'transferFromForWithdrawalQueue',
+    inputs: [
+      {
+        name: '_from',
+        type: 'address',
+        internalType: 'address',
+      },
+      {
+        name: '_stv',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+    ],
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    name: 'transferFromWithLiabilityForWithdrawalQueue',
+    inputs: [
+      {
+        name: '_from',
+        type: 'address',
+        internalType: 'address',
+      },
+      {
+        name: '_stv',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+      {
+        name: '_stethShares',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+    ],
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
     name: 'transferWithLiability',
     inputs: [
       {
@@ -1527,43 +1562,7 @@ export const StvStETHPoolAbi = [
   },
   {
     type: 'function',
-    name: 'triggerValidatorWithdrawals',
-    inputs: [
-      {
-        name: '_pubkeys',
-        type: 'bytes',
-        internalType: 'bytes',
-      },
-      {
-        name: '_amountsInGwei',
-        type: 'uint64[]',
-        internalType: 'uint64[]',
-      },
-      {
-        name: '_refundRecipient',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
-    outputs: [],
-    stateMutability: 'payable',
-  },
-  {
-    type: 'function',
-    name: 'vaultDisconnected',
-    inputs: [],
-    outputs: [
-      {
-        name: '',
-        type: 'bool',
-        internalType: 'bool',
-      },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'withdrawableEthOf',
+    name: 'unlockedAssetsOf',
     inputs: [
       {
         name: '_account',
@@ -1578,7 +1577,7 @@ export const StvStETHPoolAbi = [
     ],
     outputs: [
       {
-        name: 'ethAmount',
+        name: 'assets',
         type: 'uint256',
         internalType: 'uint256',
       },
@@ -1587,7 +1586,7 @@ export const StvStETHPoolAbi = [
   },
   {
     type: 'function',
-    name: 'withdrawableEthOf',
+    name: 'unlockedAssetsOf',
     inputs: [
       {
         name: '_account',
@@ -1597,7 +1596,7 @@ export const StvStETHPoolAbi = [
     ],
     outputs: [
       {
-        name: 'ethAmount',
+        name: 'assets',
         type: 'uint256',
         internalType: 'uint256',
       },
@@ -1606,7 +1605,26 @@ export const StvStETHPoolAbi = [
   },
   {
     type: 'function',
-    name: 'withdrawableStvOf',
+    name: 'unlockedStvOf',
+    inputs: [
+      {
+        name: '_account',
+        type: 'address',
+        internalType: 'address',
+      },
+    ],
+    outputs: [
+      {
+        name: 'stv',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'unlockedStvOf',
     inputs: [
       {
         name: '_account',
@@ -1627,51 +1645,6 @@ export const StvStETHPoolAbi = [
       },
     ],
     stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'withdrawableStvOf',
-    inputs: [
-      {
-        name: '_account',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
-    outputs: [
-      {
-        name: 'stv',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'withdrawalQueue',
-    inputs: [],
-    outputs: [
-      {
-        name: '',
-        type: 'address',
-        internalType: 'contract WithdrawalQueue',
-      },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'wrapperType',
-    inputs: [],
-    outputs: [
-      {
-        name: '',
-        type: 'string',
-        internalType: 'string',
-      },
-    ],
-    stateMutability: 'pure',
   },
   {
     type: 'event',
@@ -1726,25 +1699,6 @@ export const StvStETHPoolAbi = [
   },
   {
     type: 'event',
-    name: 'ConnectDepositClaimed',
-    inputs: [
-      {
-        name: 'recipient',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
-      {
-        name: 'amount',
-        type: 'uint256',
-        indexed: false,
-        internalType: 'uint256',
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: 'event',
     name: 'Deposit',
     inputs: [
       {
@@ -1754,7 +1708,7 @@ export const StvStETHPoolAbi = [
         internalType: 'address',
       },
       {
-        name: 'receiver',
+        name: 'recipient',
         type: 'address',
         indexed: true,
         internalType: 'address',
@@ -1782,6 +1736,44 @@ export const StvStETHPoolAbi = [
   },
   {
     type: 'event',
+    name: 'FeaturePaused',
+    inputs: [
+      {
+        name: 'featureId',
+        type: 'bytes32',
+        indexed: true,
+        internalType: 'bytes32',
+      },
+      {
+        name: 'account',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: 'event',
+    name: 'FeatureUnpaused',
+    inputs: [
+      {
+        name: 'featureId',
+        type: 'bytes32',
+        indexed: true,
+        internalType: 'bytes32',
+      },
+      {
+        name: 'account',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: 'event',
     name: 'Initialized',
     inputs: [
       {
@@ -1789,6 +1781,19 @@ export const StvStETHPoolAbi = [
         type: 'uint64',
         indexed: false,
         internalType: 'uint64',
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: 'event',
+    name: 'MaxLossSocializationUpdated',
+    inputs: [
+      {
+        name: 'newMaxLossSocializationBP',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
       },
     ],
     anonymous: false,
@@ -1884,6 +1889,12 @@ export const StvStETHPoolAbi = [
         indexed: false,
         internalType: 'uint256',
       },
+      {
+        name: 'maxLossSocializationBP',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
+      },
     ],
     anonymous: false,
   },
@@ -1929,6 +1940,12 @@ export const StvStETHPoolAbi = [
     type: 'event',
     name: 'StethSharesRebalanced',
     inputs: [
+      {
+        name: 'account',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
+      },
       {
         name: 'stethShares',
         type: 'uint256',
@@ -1980,7 +1997,7 @@ export const StvStETHPoolAbi = [
         internalType: 'uint256',
       },
       {
-        name: 'ethAmount',
+        name: 'ethFunded',
         type: 'uint256',
         indexed: false,
         internalType: 'uint256',
@@ -1990,55 +2007,16 @@ export const StvStETHPoolAbi = [
   },
   {
     type: 'event',
-    name: 'ValidatorExitRequested',
+    name: 'VaultParametersUpdated',
     inputs: [
       {
-        name: 'pubkeys',
-        type: 'bytes',
+        name: 'newReserveRatioBP',
+        type: 'uint256',
         indexed: false,
-        internalType: 'bytes',
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: 'event',
-    name: 'ValidatorWithdrawalsTriggered',
-    inputs: [
-      {
-        name: 'pubkeys',
-        type: 'bytes',
-        indexed: false,
-        internalType: 'bytes',
+        internalType: 'uint256',
       },
       {
-        name: 'amountsInGwei',
-        type: 'uint64[]',
-        indexed: false,
-        internalType: 'uint64[]',
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: 'event',
-    name: 'VaultDisconnected',
-    inputs: [
-      {
-        name: 'initiator',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: 'event',
-    name: 'VaultFunded',
-    inputs: [
-      {
-        name: 'amount',
+        name: 'newForcedRebalanceThresholdBP',
         type: 'uint256',
         indexed: false,
         internalType: 'uint256',
@@ -2093,6 +2071,11 @@ export const StvStETHPoolAbi = [
         internalType: 'uint256',
       },
     ],
+  },
+  {
+    type: 'error',
+    name: 'CollateralizedAccount',
+    inputs: [],
   },
   {
     type: 'error',
@@ -2182,6 +2165,33 @@ export const StvStETHPoolAbi = [
   },
   {
     type: 'error',
+    name: 'ExcessiveLossSocialization',
+    inputs: [],
+  },
+  {
+    type: 'error',
+    name: 'FeaturePauseEnforced',
+    inputs: [
+      {
+        name: 'featureId',
+        type: 'bytes32',
+        internalType: 'bytes32',
+      },
+    ],
+  },
+  {
+    type: 'error',
+    name: 'FeaturePauseExpected',
+    inputs: [
+      {
+        name: 'featureId',
+        type: 'bytes32',
+        internalType: 'bytes32',
+      },
+    ],
+  },
+  {
+    type: 'error',
     name: 'InsufficientBalance',
     inputs: [],
   },
@@ -2217,22 +2227,12 @@ export const StvStETHPoolAbi = [
   },
   {
     type: 'error',
-    name: 'InvalidReceiver',
+    name: 'InvalidRecipient',
     inputs: [],
   },
   {
     type: 'error',
-    name: 'InvalidRequestType',
-    inputs: [],
-  },
-  {
-    type: 'error',
-    name: 'MintingForThanTargetStSharesShareIsNotAllowed',
-    inputs: [],
-  },
-  {
-    type: 'error',
-    name: 'NoMintingCapacityAvailable',
+    name: 'InvalidValue',
     inputs: [],
   },
   {
@@ -2274,12 +2274,27 @@ export const StvStETHPoolAbi = [
   },
   {
     type: 'error',
-    name: 'TransferNotAllowed',
+    name: 'SameValue',
     inputs: [],
   },
   {
     type: 'error',
     name: 'UnassignedLiabilityOnVault',
+    inputs: [],
+  },
+  {
+    type: 'error',
+    name: 'UndercollateralizedAccount',
+    inputs: [],
+  },
+  {
+    type: 'error',
+    name: 'VaultInBadDebt',
+    inputs: [],
+  },
+  {
+    type: 'error',
+    name: 'VaultReportStale',
     inputs: [],
   },
   {
@@ -2290,11 +2305,6 @@ export const StvStETHPoolAbi = [
   {
     type: 'error',
     name: 'ZeroDeposit',
-    inputs: [],
-  },
-  {
-    type: 'error',
-    name: 'ZeroStv',
     inputs: [],
   },
 ] as const;

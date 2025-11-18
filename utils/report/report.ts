@@ -77,7 +77,7 @@ export const getVaultData = (
   };
 
   // TODO: for old reports without extraValues
-  const extraData = report.extraValues?.[vault] || {
+  const extraData = report.extraValues?.[match.value[0]] || {
     inOutDelta: '0',
     prevFee: '0',
     infraFee: '0',

@@ -34,42 +34,36 @@ stvPoolRead
     const contract = getStvPoolContract(address);
 
     const [
-      wrapperType,
+      poolType,
       DEFAULT_ADMIN_ROLE,
       DEPOSIT_ROLE,
-      REQUEST_VALIDATOR_EXIT_ROLE,
-      TRIGGER_VALIDATOR_WITHDRAWAL_ROLE,
       ALLOW_LIST_MANAGER_ROLE,
+      VAULT,
       DASHBOARD,
-      STAKING_VAULT,
       STETH,
       VAULT_HUB,
       WITHDRAWAL_QUEUE,
+      DISTRIBUTOR,
       ALLOW_LIST_ENABLED,
       name,
       symbol,
       totalAssets,
-      totalExceedingMintedSteth,
       totalLiabilityShares,
       totalNominalAssets,
       totalSupply,
       totalUnassignedLiabilityShares,
-      vaultDisconnected,
-      withdrawalQueue,
     ] = await Promise.all([
-      callReadMethodSilent(contract, 'wrapperType'),
-
+      callReadMethodSilent(contract, 'poolType'),
       callReadMethodSilent(contract, 'DEFAULT_ADMIN_ROLE'),
       callReadMethodSilent(contract, 'DEPOSIT_ROLE'),
-      callReadMethodSilent(contract, 'REQUEST_VALIDATOR_EXIT_ROLE'),
-      callReadMethodSilent(contract, 'TRIGGER_VALIDATOR_WITHDRAWAL_ROLE'),
       callReadMethodSilent(contract, 'ALLOW_LIST_MANAGER_ROLE'),
 
+      callReadMethodSilent(contract, 'VAULT'),
       callReadMethodSilent(contract, 'DASHBOARD'),
-      callReadMethodSilent(contract, 'STAKING_VAULT'),
       callReadMethodSilent(contract, 'STETH'),
       callReadMethodSilent(contract, 'VAULT_HUB'),
       callReadMethodSilent(contract, 'WITHDRAWAL_QUEUE'),
+      callReadMethodSilent(contract, 'DISTRIBUTOR'),
 
       callReadMethodSilent(contract, 'ALLOW_LIST_ENABLED'),
 
@@ -77,43 +71,32 @@ stvPoolRead
       callReadMethodSilent(contract, 'symbol'),
       callReadMethodSilent(contract, 'totalAssets'),
 
-      callReadMethodSilent(contract, 'totalExceedingMintedSteth'),
       callReadMethodSilent(contract, 'totalLiabilityShares'),
       callReadMethodSilent(contract, 'totalNominalAssets'),
       callReadMethodSilent(contract, 'totalSupply'),
       callReadMethodSilent(contract, 'totalUnassignedLiabilityShares'),
-
-      callReadMethodSilent(contract, 'vaultDisconnected'),
-      callReadMethodSilent(contract, 'withdrawalQueue'),
     ]);
 
     logResult({
       data: [
-        ['wrapperType', wrapperType],
+        ['poolType', poolType],
         ['DEFAULT_ADMIN_ROLE', DEFAULT_ADMIN_ROLE],
         ['DEPOSIT_ROLE', DEPOSIT_ROLE],
-        ['REQUEST_VALIDATOR_EXIT_ROLE', REQUEST_VALIDATOR_EXIT_ROLE],
-        [
-          'TRIGGER_VALIDATOR_WITHDRAWAL_ROLE',
-          TRIGGER_VALIDATOR_WITHDRAWAL_ROLE,
-        ],
         ['ALLOW_LIST_MANAGER_ROLE', ALLOW_LIST_MANAGER_ROLE],
+        ['VAULT', VAULT],
         ['DASHBOARD', DASHBOARD],
-        ['STAKING_VAULT', STAKING_VAULT],
         ['STETH', STETH],
         ['VAULT_HUB', VAULT_HUB],
         ['WITHDRAWAL_QUEUE', WITHDRAWAL_QUEUE],
+        ['DISTRIBUTOR', DISTRIBUTOR],
         ['ALLOW_LIST_ENABLED', ALLOW_LIST_ENABLED],
         ['name', name],
         ['symbol', symbol],
         ['totalAssets', totalAssets],
-        ['totalExceedingMintedSteth', totalExceedingMintedSteth],
         ['totalLiabilityShares', totalLiabilityShares],
         ['totalNominalAssets', totalNominalAssets],
         ['totalSupply', totalSupply],
         ['totalUnassignedLiabilityShares', totalUnassignedLiabilityShares],
-        ['vaultDisconnected', vaultDisconnected],
-        ['withdrawalQueue', withdrawalQueue],
       ],
     });
   });
