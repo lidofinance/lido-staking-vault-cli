@@ -109,7 +109,7 @@ export const getMinDelaySeconds = async (
 ): Promise<number> => {
   if (!minDelaySeconds) {
     const minDelaySecondsValue = await numberPrompt(
-      `Enter the min delay seconds (min: ${MIN_TIME_IN_HOURS / 3600} hours, max: ${MAX_TIME_IN_HOURS / 3600} hours)`,
+      `Enter the min execution delay for timelock governance (min: ${MIN_TIME_IN_HOURS / 3600} hours, max: ${MAX_TIME_IN_HOURS / 3600} hours)`,
       'value',
     );
     if (!minDelaySecondsValue.value)

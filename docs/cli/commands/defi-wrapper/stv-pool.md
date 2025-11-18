@@ -72,14 +72,13 @@ yarn start defi-wrapper contracts stv -h
 
 ### Write
 
-| Command                                                       | Description                                                                           |
-| ------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| deposit-eth \<address> \<amount> \<referral>                  | convenience function to deposit ETH to msg.sender                                     |
-| rebalance-unassigned-liability \<address> \<stethShares>      | rebalance unassigned liability by repaying it with assets held by the vault           |
-| rebalance-unassigned-liability-with-ether \<address> \<ether> | rebalance unassigned liability by repaying it with external ether                     |
-| transfer-from-for-withdrawal-queue \<address> \<from> \<stv>  | transfer stv from user to WithdrawalQueue contract when enqueuing withdrawal requests |
-| pause-deposits \<address>                                     | pause deposits                                                                        |
-| resume-deposits \<address>                                    | resume deposits                                                                       |
-| burn-stv-for-withdrawal-queue \<address> \<stv>               | burn stv from WithdrawalQueue contract when processing withdrawal requests            |
-| add-to-allow-list \<address> \<user>                          | add an address to the allowlist                                                       |
-| remove-from-allow-list \<address> \<user>                     | remove an address from the allowlist                                                  |
+| Command                                                       | Description                                                                 |
+| ------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| deposit-eth \<address> \<amount> \<referral>                  | convenience function to deposit ETH to msg.sender                           |
+| rebalance-unassigned-liability \<address> \<stethShares>      | rebalance unassigned liability by repaying it with assets held by the vault |
+| rebalance-unassigned-liability-with-ether \<address> \<ether> | rebalance unassigned liability by repaying it with external ether           |
+| pause-deposits \<address>                                     | pause deposits                                                              |
+| resume-deposits \<address>                                    | resume deposits                                                             |
+| burn-stv-for-withdrawal-queue \<address> \<stv>               | burn stv from WithdrawalQueue contract when processing withdrawal requests  |
+| add-to-allow-list \<address> \<user>                          | add an address to the allowlist                                             |
+| remove-from-allow-list \<address> \<user>                     | remove an address from the allowlist                                        |

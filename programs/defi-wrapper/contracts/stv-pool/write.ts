@@ -108,32 +108,6 @@ stvPoolWrite
   });
 
 stvPoolWrite
-  .command('transfer-from-for-withdrawal-queue')
-  .description(
-    'transfer stv from user to WithdrawalQueue contract when enqueuing withdrawal requests',
-  )
-  .argument('<address>', 'pool address', stringToAddress)
-  .argument('<from>', 'address of the user', stringToAddress)
-  .argument(
-    '<stv>',
-    'the amount of assets to transfer (18 decimals)',
-    stringToBigInt,
-  )
-  .action(async (address: Address, from: Address, stv: bigint) => {
-    const contract = getStvPoolContract(address);
-
-    const confirmationMessage = `Are you sure you want to transfer ${stv} stv from ${from} to the withdrawal queue ${address}?`;
-    const confirm = await confirmOperation(confirmationMessage);
-    if (!confirm) return;
-
-    await callWriteMethodWithReceipt({
-      contract,
-      methodName: 'transferFromForWithdrawalQueue',
-      payload: [from, stv],
-    });
-  });
-
-stvPoolWrite
   .command('pause-deposits')
   .description('pause deposits')
   .argument('<address>', 'pool address', stringToAddress)
@@ -166,27 +140,6 @@ stvPoolWrite
       contract,
       methodName: 'resumeDeposits',
       payload: [],
-    });
-  });
-
-stvPoolWrite
-  .command('burn-stv-for-withdrawal-queue')
-  .description(
-    'burn stv from WithdrawalQueue contract when processing withdrawal requests',
-  )
-  .argument('<address>', 'pool address', stringToAddress)
-  .argument('<stv>', 'amount of stv to burn (27 decimals)', stringToBigInt)
-  .action(async (address: Address, stv: bigint) => {
-    const contract = getStvPoolContract(address);
-
-    const confirmationMessage = `Are you sure you want to burn ${stv} stv for the withdrawal queue ${address}?`;
-    const confirm = await confirmOperation(confirmationMessage);
-    if (!confirm) return;
-
-    await callWriteMethodWithReceipt({
-      contract,
-      methodName: 'burnStvForWithdrawalQueue',
-      payload: [stv],
     });
   });
 

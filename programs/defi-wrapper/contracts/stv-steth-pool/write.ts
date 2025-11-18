@@ -137,65 +137,6 @@ stvStethPoolWrite
   });
 
 stvStethPoolWrite
-  .command('request-withdrawal-eth')
-  .description(
-    'transfer stv with liability from user to WithdrawalQueue contract when enqueuing withdrawal requests',
-  )
-  .argument('<address>', 'distributor address', stringToAddress)
-  .argument('<from>', 'address of the user', stringToAddress)
-  .argument(
-    '<stv>',
-    'the amount of stv to withdraw (27 decimals)',
-    stringToBigInt,
-  )
-  .argument(
-    '<stethShares>',
-    'the amount of stETH shares to withdraw (18 decimals)',
-    stringToBigInt,
-  )
-  .action(
-    async (
-      address: Address,
-      from: Address,
-      stv: bigint,
-      stethShares: bigint,
-    ) => {
-      const contract = getStvStethPoolContract(address);
-
-      const confirmationMessage = `Are you sure you want to transfer ${stv} stv from ${from} to the withdrawal queue ${address} with ${stethShares} stETH shares liability?`;
-      const confirm = await confirmOperation(confirmationMessage);
-      if (!confirm) return;
-
-      await callWriteMethodWithReceipt({
-        contract,
-        methodName: 'transferFromWithLiabilityForWithdrawalQueue',
-        payload: [from, stv, stethShares],
-      });
-    },
-  );
-
-stvStethPoolWrite
-  .command('burn-stv-for-withdrawal-queue')
-  .description(
-    'burn stv from WithdrawalQueue contract when processing withdrawal requests',
-  )
-  .argument('<address>', 'distributor address', stringToAddress)
-  .argument('<stv>', 'amount of stv to burn (27 decimals)', stringToBigInt)
-  .action(async (address: Address, stv: bigint) => {
-    const contract = getStvStethPoolContract(address);
-
-    const confirmationMessage = `Are you sure you want to burn ${stv} stv for the withdrawal queue ${address}?`;
-    const confirm = await confirmOperation(confirmationMessage);
-    if (!confirm) return;
-
-    await callWriteMethodWithReceipt({
-      contract,
-      methodName: 'burnStvForWithdrawalQueue',
-      payload: [stv],
-    });
-  });
-
-stvStethPoolWrite
   .command('add-to-allow-list')
   .description('add an address to the allowlist')
   .argument('<address>', 'distributor address', stringToAddress)
