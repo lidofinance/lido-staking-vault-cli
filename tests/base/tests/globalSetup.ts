@@ -14,6 +14,9 @@ test.use({
   nodeRunOptions: ['--dump-state=./state.json', '--state-interval=1'],
 });
 
+const CONFIRM_EXPIRY = 86400;
+const NO_FEE_RATE = 100;
+
 test('Create defaultVault', async ({
   ethereumNodeService,
   defaultVaultData,
@@ -35,8 +38,8 @@ test('Create defaultVault', async ({
       defaultAdmin: roles.defaultAdmin.address,
       nodeOperator: roles.nodeOperator.address,
       nodeOperatorManager: roles.nodeOperatorManager.address,
-      confirmExpiry: 86_400,
-      nodeOperatorFeeRate: 100,
+      confirmExpiry: CONFIRM_EXPIRY,
+      nodeOperatorFeeRate: NO_FEE_RATE,
       roles: additionalRoles,
     });
   });

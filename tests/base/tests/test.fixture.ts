@@ -15,15 +15,10 @@ export const test = base.extend<
 >({
   // nodeRunOptions param configured via globalSetup
   nodeRunOptions: [
-    // eslint-disable-next-line no-empty-pattern
-    async ({}, use) => {
-      // use fork state prepared in globalSetup.ts with load option to not save it per tests
-      await use(['--load-state=./state.json']); // default runOptions
-    },
+    ['--load-state=./state.json'], // default runOptions
     { scope: 'worker' },
   ],
   ethereumNodeService: [
-    // eslint-disable-next-line
     async ({ nodeRunOptions }, use) => {
       const rpcUrl = getStandConfig().networkConfig.rpcUrl;
       const ethereumNodeService = new EthereumNodeService({

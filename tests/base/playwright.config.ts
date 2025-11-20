@@ -7,11 +7,10 @@ export const pwConfig: PlaywrightTestConfig = {
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: 0,
-  // eslint-disable-next-line sonarjs/no-all-duplicated-branches
-  workers: process.env.CI ? 1 : 1,
+  workers: 1,
   reporter: getReportConfig(),
   use: {
-    actionTimeout: 15000,
+    actionTimeout: 15 * 1000,
     trace: 'retain-on-failure',
   },
   projects: [

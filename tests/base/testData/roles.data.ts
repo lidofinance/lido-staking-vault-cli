@@ -44,10 +44,7 @@ export const NO_ROLES: readonly RoleValue[] = [
   ROLES.NODE_OPERATOR_UNGUARANTEED_DEPOSIT,
 ];
 
-export const EXTENDED_ROLES: readonly RoleValue[] = [
-  // ROLES.VAULT_OWNER_AND_NoMANAGER,
-  ROLES.STRANGER,
-];
+export const EXTENDED_ROLES: readonly RoleValue[] = [ROLES.STRANGER];
 
 export const getPermissionRole = (
   role: (typeof ROLES)[keyof typeof ROLES],

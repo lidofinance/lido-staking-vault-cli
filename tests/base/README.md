@@ -55,7 +55,7 @@ yarn
 Run the full Playwright test suite:
 
 ```bash
-yarn test-widget
+yarn test
 ```
 
 This command expands to:

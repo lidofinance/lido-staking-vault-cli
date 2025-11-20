@@ -19,11 +19,6 @@ export const getStandConfig = (): StandConfig => {
 export interface StandConfig {
   networkConfig: NetworkConfig;
   deployed: string;
-  contracts: {
-    stake: string;
-    wrap: string;
-    withdraw: string;
-  };
 }
 
 export const STAND_ENV = {
@@ -40,11 +35,6 @@ export const STAND_CONFIGS = new Map<string, StandConfig>([
         rpcUrl: process.env.RPC_URL
           ? process.env.RPC_URL
           : NETWORKS_CONFIG.testnet.ETHEREUM_HOODI.rpcUrl,
-      },
-      contracts: {
-        stake: '0x3508A952176b3c15387C97BE809eaffB1982176a',
-        wrap: '0x7E99eE3C66636DE415D2d7C880938F2f40f94De4',
-        withdraw: '0xfe56573178f1bcdf53F01A6E9977670dcBBD9186',
       },
     },
   ],
