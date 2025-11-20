@@ -1,8 +1,9 @@
 import { spawn } from 'child_process';
+import { Address } from 'viem';
 
 type RoleAssignment = {
-  account: string; // Ethereum address
-  role: `0x${string}`; // hex role identifier
+  account: string;
+  role: Address;
 };
 
 type CreateVaultParams = {
