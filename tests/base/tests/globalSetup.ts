@@ -47,10 +47,6 @@ test('Create defaultVault', async ({
     });
   });
 
-  // Look out "🧑‍🔧 Debugging Tip" point for debug in Readme.md
-  // console.log(`Vault address ${vaultData.vaultAddress}`);
-  // console.log(`Dashboard address ${vaultData.dashboardAddress}`);
-
   await test.step('Grant additional NO related roles', async () => {
     const nomRolePK = ethereumNodeService.getAccount(
       getPermissionRole(ROLES.NODE_OPERATOR_MANAGER).index,

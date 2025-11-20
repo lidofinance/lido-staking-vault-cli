@@ -109,11 +109,11 @@ Subsequent workers load the snapshot via `--load-state=./state.json`, ensuring *
 
 For long debugging sessions or active test development, you can temporarily disable global setup to speed up iteration.
 
-1. Comment out the following lines in `globalSetup.ts`:
+1. Write out the following lines in `globalSetup.ts` after `createVault`:
 
    ```ts
-   // console.log(`Vault address ${vaultData.vaultAddress}`);
-   // console.log(`Dashboard address ${vaultData.dashboardAddress}`);
+   console.log(`Vault address ${vaultData.vaultAddress}`);
+   console.log(`Dashboard address ${vaultData.dashboardAddress}`);
    ```
 
 2. Run the tests once to trigger `globalSetup.ts` — this will generate and log the required addresses.
