@@ -12,6 +12,7 @@ type CreateVaultParams = {
   nodeOperatorManager: string;
   confirmExpiry: number;
   nodeOperatorFeeRate: number;
+  privateKey: string;
   quantity?: number;
   roles?: RoleAssignment[];
   deployedFile?: string;
@@ -22,6 +23,27 @@ type VaultCreationResult = {
   dashboardAddress: string;
 };
 
+const runCLICommand = (args: string[], privateKey: string): Promise<void> =>
+  new Promise((resolve, reject) => {
+    const cli = spawn('yarn', ['lsvCLI', ...args], {
+      env: {
+        ...process.env,
+        PRIVATE_KEY: privateKey,
+      },
+    });
+
+    let stderr = '';
+    cli.stderr.on('data', (data) => {
+      stderr += data.toString();
+    });
+
+    cli.on('close', (code) => {
+      code !== 0
+        ? reject(new Error(`CLI exited with code ${code}\n${stderr}`))
+        : resolve();
+    });
+  });
+
 export const createVault = async (
   params: CreateVaultParams,
 ): Promise<VaultCreationResult> => {
@@ -31,6 +53,7 @@ export const createVault = async (
     nodeOperatorManager,
     confirmExpiry,
     nodeOperatorFeeRate,
+    privateKey,
     quantity = 1,
     roles = [],
   } = params;
@@ -54,6 +77,10 @@ export const createVault = async (
     }
 
     const cli = spawn('yarn', ['lsvCLI', ...args], {
+      env: {
+        ...process.env,
+        PRIVATE_KEY: privateKey,
+      },
       stdio: ['pipe', 'pipe', 'pipe'],
     });
 
@@ -86,22 +113,21 @@ export const createVault = async (
       const vaultAddressMatch = vaultLine?.match(/(0x[a-fA-F0-9]{40})/);
       const dashboardAddressMatch = dashboardLine?.match(/(0x[a-fA-F0-9]{40})/);
 
-      const vaultAddress = vaultAddressMatch?.[1];
-      if (!vaultAddress) {
+      if (!vaultAddressMatch?.[1]) {
         return reject(
           new Error('Vault address not found in CLI output:\n' + stdout),
         );
       }
-      const dashboardAddress = dashboardAddressMatch?.[1];
-      if (!dashboardAddress) {
+
+      if (!dashboardAddressMatch?.[1]) {
         return reject(
           new Error('Dashboard address not found in CLI output:\n' + stdout),
         );
       }
 
       resolve({
-        vaultAddress: vaultAddress,
-        dashboardAddress: dashboardAddress,
+        vaultAddress: vaultAddressMatch[1],
+        dashboardAddress: dashboardAddressMatch[1],
       });
     });
 
@@ -112,10 +138,10 @@ export const createVault = async (
 export const grantRole = (
   dashboardAddress: string,
   roles: RoleAssignment[],
-): Promise<void> => {
-  return new Promise((resolve, reject) => {
-    const cli = spawn('yarn', [
-      'lsvCLI',
+  privateKey: string,
+): Promise<void> =>
+  runCLICommand(
+    [
       'contracts',
       'dashboard',
       'w',
@@ -123,40 +149,19 @@ export const grantRole = (
       dashboardAddress,
       JSON.stringify(roles),
       '--yes',
-    ]);
-
-    cli.on('close', (code) => {
-      if (code !== 0) {
-        reject(new Error(`CLI exited with code ${code}`));
-      } else {
-        resolve();
-      }
-    });
-  });
-};
+    ],
+    privateKey,
+  );
 
 export const supplyVault = (
   dashboardAddress: string,
   amount: string,
+  privateKey: string,
 ): Promise<void> =>
-  new Promise((resolve, reject) => {
-    const cli = spawn('yarn', [
-      'lsvCLI',
-      'contracts',
-      'dashboard',
-      'w',
-      'fund',
-      dashboardAddress,
-      amount,
-      '--yes',
-    ]);
-
-    cli.on('close', (code) => {
-      code !== 0
-        ? reject(new Error(`CLI exited with code ${code}`))
-        : resolve();
-    });
-  });
+  runCLICommand(
+    ['contracts', 'dashboard', 'w', 'fund', dashboardAddress, amount, '--yes'],
+    privateKey,
+  );
 
 export const lsvCLI = {
   createVault,

@@ -23,7 +23,6 @@ test('Create defaultVault', async ({
 }) => {
   await test.step('Setup env for CLI', async () => {
     if (ethereumNodeService.state) {
-      process.env.PRIVATE_KEY = ethereumNodeService.getAccount(0).secretKey;
       process.env.DEPLOYED = `../../../configs/${getStandConfig().deployed}`;
       process.env.EL_URL = ethereumNodeService.state.nodeUrl;
     } else throw new Error('EthereumNodeService node ready');
@@ -33,6 +32,9 @@ test('Create defaultVault', async ({
 
   const vaultData = await test.step('Create vault && configure', async () => {
     const additionalRoles = buildAdditionalRoles(ethereumNodeService);
+    const vaultCreatorPK = ethereumNodeService.getAccount(
+      getPermissionRole(ROLES.DEFAULT_ADMIN).index,
+    ).secretKey;
 
     return await lsvCLI.createVault({
       defaultAdmin: roles.defaultAdmin.address,
@@ -41,6 +43,7 @@ test('Create defaultVault', async ({
       confirmExpiry: CONFIRM_EXPIRY,
       nodeOperatorFeeRate: NO_FEE_RATE,
       roles: additionalRoles,
+      privateKey: vaultCreatorPK,
     });
   });
 
@@ -49,8 +52,7 @@ test('Create defaultVault', async ({
   // console.log(`Dashboard address ${vaultData.dashboardAddress}`);
 
   await test.step('Grant additional NO related roles', async () => {
-    // set PRIVATE_KEY to NOM
-    process.env.PRIVATE_KEY = ethereumNodeService.getAccount(
+    const nomRolePK = ethereumNodeService.getAccount(
       getPermissionRole(ROLES.NODE_OPERATOR_MANAGER).index,
     ).secretKey;
 
@@ -62,6 +64,7 @@ test('Create defaultVault', async ({
           account: ethereumNodeService.getAccount(index).address,
           role: keccak,
         })),
+      nomRolePK,
     );
 
     // pass default vault address to pw tests process

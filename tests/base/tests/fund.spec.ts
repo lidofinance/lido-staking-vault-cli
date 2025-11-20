@@ -10,11 +10,15 @@ ROLES_TO_CHECK.forEach((role) => {
     ethereumNodeService,
     defaultVaultData,
   }) => {
-    process.env.PRIVATE_KEY = ethereumNodeService.getAccount(
+    const supplyRolePK = ethereumNodeService.getAccount(
       getPermissionRole(role).index,
     ).secretKey;
 
-    await lsvCLI.supplyVault(defaultVaultData.dashboardAddress, supplyAmount);
+    await lsvCLI.supplyVault(
+      defaultVaultData.dashboardAddress,
+      supplyAmount,
+      supplyRolePK,
+    );
 
     // expect
   });
