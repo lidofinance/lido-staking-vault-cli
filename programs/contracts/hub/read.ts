@@ -1,3 +1,4 @@
+import { Address } from 'viem';
 import { Option } from 'commander';
 
 import { getVaultHubContract } from 'contracts';
@@ -9,6 +10,8 @@ import {
   logResult,
   getCommandsJson,
   logInfo,
+  stringToAddress,
+  callReadMethodSilent,
 } from 'utils';
 import { VaultHubAbi } from 'abi';
 
@@ -46,8 +49,6 @@ generateReadCommands(
   readCommandConfig,
 );
 
-// // Works fine
-
 VaultHubRead.command('vault-info-by-index')
   .aliases(['vi'])
   .description('get vault and vault connection parameters by index')
@@ -75,5 +76,74 @@ VaultHubRead.command('vault-info-by-index')
       });
     } catch (err) {
       printError(err, 'Error when getting vault and vault socket');
+    }
+  });
+
+VaultHubRead.command('v-record')
+  .aliases(['vr'])
+  .description('get the accounting record struct for the given vault')
+  .argument('<vault>', 'vault address', stringToAddress)
+  .action(async (vault: Address) => {
+    const contract = await getVaultHubContract();
+
+    try {
+      const vaultRecord = await callReadMethodSilent(contract, 'vaultRecord', [
+        vault,
+      ]);
+
+      logInfo('Vault Record');
+      logResult({
+        data: [
+          ['Max Liability Shares', vaultRecord.maxLiabilityShares.toString()],
+          ['Liability Shares', vaultRecord.liabilityShares.toString()],
+          ['Minimal Reserve', vaultRecord.minimalReserve.toString()],
+          ['Redemption Shares', vaultRecord.redemptionShares.toString()],
+          ['Cumulative Lido Fees', vaultRecord.cumulativeLidoFees.toString()],
+          ['Settled Lido Fees', vaultRecord.settledLidoFees.toString()],
+        ],
+      });
+
+      logInfo('Vault Report in hub contract');
+      logResult({
+        data: [
+          ['Report Total Value', vaultRecord.report.totalValue.toString()],
+          ['Report In Out Delta', vaultRecord.report.inOutDelta.toString()],
+          ['Report Timestamp', vaultRecord.report.timestamp.toString()],
+        ],
+      });
+
+      logInfo('InOutDelta value 0');
+      logResult({
+        data: [
+          ['InOutDelta Value', vaultRecord.inOutDelta[0]?.value.toString()],
+          [
+            'InOutDelta Value On Ref Slot',
+            vaultRecord.inOutDelta[0]?.valueOnRefSlot.toString(),
+          ],
+          [
+            'InOutDelta Ref Slot',
+            vaultRecord.inOutDelta[0]?.refSlot.toString(),
+          ],
+        ],
+      });
+      logInfo('InOutDelta value 1');
+      logResult({
+        data: [
+          ['InOutDelta Value', vaultRecord.inOutDelta[1]?.value.toString()],
+          [
+            'InOutDelta Value On Ref Slot',
+            vaultRecord.inOutDelta[1]?.valueOnRefSlot.toString(),
+          ],
+          [
+            'InOutDelta Ref Slot',
+            vaultRecord.inOutDelta[1]?.refSlot.toString(),
+          ],
+        ],
+      });
+    } catch (err) {
+      printError(
+        err,
+        'Error when getting the accounting record struct for the given vault',
+      );
     }
   });
