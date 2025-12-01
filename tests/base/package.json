@@ -10,11 +10,9 @@
     "@lidofinance/wallets-testing-nodes": "^1.6.0",
     "@lidofinance/wallets-testing-wallets": "^1.39.0",
     "@playwright/test": "^1.56.1",
-    "viem": "^2.39.3",
-    "zod": "^3.24.1"
+    "viem": "^2.39.3"
   },
   "devDependencies": {
-    "add": "^2.0.6",
     "dotenv": "^16.4.5",
     "tsx": "^4.19.3"
   }

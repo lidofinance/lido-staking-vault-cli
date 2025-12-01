@@ -1,13 +1,8 @@
 import path from 'path';
-
-import { z } from 'zod';
 import { config as envConfig } from 'dotenv';
 
-const envSchema = z.object({
-  CHAIN_ID: z.string(),
-});
-
 envConfig({ path: path.resolve(__dirname, '../.env') });
+
 class LsvCliEnvs {
   CHAIN_ID!: string;
 
@@ -16,19 +11,13 @@ class LsvCliEnvs {
   }
 
   private validateEnv() {
-    const result = envSchema.safeParse(process.env);
+    const { CHAIN_ID } = process.env;
 
-    if (!result.success) {
-      throw new Error(
-        `.env validation error for test run: ${JSON.stringify(
-          result.error.format(),
-        )}`,
-      );
+    if (!CHAIN_ID) {
+      throw new Error('Missing required env variable: CHAIN_ID');
     }
 
-    const validatedEnv = result.data;
-
-    this.CHAIN_ID = validatedEnv.CHAIN_ID;
+    this.CHAIN_ID = CHAIN_ID;
   }
 }
 
