@@ -31,7 +31,7 @@ factoryRead
   .description('get factory base info')
   .argument('<address>', 'factory address', stringToAddress)
   .action(async (address: Address) => {
-    const contract = getFactoryContract(address);
+    const contract = await getFactoryContract(address);
 
     const [
       dummyImplementation,

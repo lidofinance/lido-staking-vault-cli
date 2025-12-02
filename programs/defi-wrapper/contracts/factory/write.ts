@@ -124,7 +124,7 @@ factoryWrite
         symbol: string;
       },
     ) => {
-      const contract = getFactoryContract(address);
+      const contract = await getFactoryContract(address);
 
       const nodeOperatorAddress = await getAddress(
         nodeOperator,

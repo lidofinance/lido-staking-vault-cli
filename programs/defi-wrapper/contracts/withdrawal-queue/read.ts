@@ -31,7 +31,7 @@ withdrawalQueueRead
   .description('get withdrawal queue base info')
   .argument('<address>', 'withdrawal queue address', stringToAddress)
   .action(async (address: Address) => {
-    const contract = getWithdrawalQueueContract(address);
+    const contract = await getWithdrawalQueueContract(address);
 
     const [
       DEFAULT_ADMIN_ROLE,

@@ -17,7 +17,7 @@ type StatisticDataArgs = {
 
 export const getReportStatisticData = async (args: StatisticDataArgs) => {
   const { dashboard, reports } = args;
-  const dashboardContract = getDashboardContract(dashboard);
+  const dashboardContract = await getDashboardContract(dashboard);
   const reportRefBlockNumber = reports.current.blockNumber;
   const reportPrevBlockNumber = reports.previous.blockNumber;
 

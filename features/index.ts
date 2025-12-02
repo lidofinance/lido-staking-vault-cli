@@ -10,3 +10,4 @@ export * from './mint-burn/index.js';
 export * from './deposits/index.js';
 export * from './lazy-oracle.js';
 export * from './defi-wrapper/index.js';
+export * from './dev-tools/index.js';

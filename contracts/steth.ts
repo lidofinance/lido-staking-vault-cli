@@ -4,15 +4,16 @@ import { getChain, getElUrl } from 'configs';
 import { getLocatorContract } from 'contracts';
 
 export const getStethContract = async () => {
-  const locator = getLocatorContract();
+  const locator = await getLocatorContract();
   const elUrl = getElUrl();
+  const chain = await getChain();
   const address = await locator.read.lido();
 
   return getContract({
     address: address,
     abi: StEthAbi,
     client: createPublicClient({
-      chain: getChain(),
+      chain,
       transport: http(elUrl),
     }),
   });

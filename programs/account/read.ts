@@ -31,7 +31,7 @@ accountRead
   .description('general account info.')
   .argument('[address]', 'wallet address to check (optional)', stringToAddress)
   .action(async (providedAddress?: Address) => {
-    const publicClient = getPublicClient();
+    const publicClient = await getPublicClient();
     let address: Address;
 
     if (providedAddress) {

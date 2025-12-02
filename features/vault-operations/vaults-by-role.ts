@@ -26,7 +26,7 @@ export const getAllVaults = async () => {
   });
 
   try {
-    const contract = getVaultViewerContract();
+    const contract = await getVaultViewerContract();
     const totalVaults = await callReadMethodSilent(contract, 'vaultsCount');
     const vaultsByOwner: Address[] = [];
 
@@ -52,8 +52,8 @@ export const getAllVaults = async () => {
 export const getVaultsByAddress = async (
   address: Address,
 ): Promise<Record<Address, string[]>> => {
-  const contract = getVaultViewerContract();
-  const dashboardImpl = getDashboardImplContract();
+  const contract = await getVaultViewerContract();
+  const dashboardImpl = await getDashboardImplContract();
   const vaults = await getAllVaults();
   const vaultsWithMembers: VaultMembers[] = [];
 
@@ -106,7 +106,7 @@ export const getVaultsByAddress = async (
 };
 
 export const getVaultsByRoleMember = async (role: Hex, member: Address) => {
-  const contract = getVaultViewerContract();
+  const contract = await getVaultViewerContract();
   const vaults = await getAllVaults();
   const vaultsByRole: Address[] = [];
 
@@ -124,7 +124,7 @@ export const getVaultsByRoleMember = async (role: Hex, member: Address) => {
 };
 
 export const getVaultsByOwner = async (address: Address) => {
-  const contract = getVaultViewerContract();
+  const contract = await getVaultViewerContract();
   const totalVaults = await callReadMethodSilent(contract, 'vaultsCount');
   const vaultsByOwner: Address[] = [];
 

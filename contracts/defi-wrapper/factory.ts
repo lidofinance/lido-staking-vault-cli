@@ -7,13 +7,15 @@ import {
 import { FactoryAbi } from 'abi/defi-wrapper/index.js';
 import { getPublicClient } from 'providers';
 
-export const getFactoryContract = (
+export const getFactoryContract = async (
   address: Address,
-): GetContractReturnType<typeof FactoryAbi, WalletClient> => {
+): Promise<GetContractReturnType<typeof FactoryAbi, WalletClient>> => {
+  const publicClient = await getPublicClient();
+
   return getContract({
     address: address,
     abi: FactoryAbi,
-    client: getPublicClient(),
+    client: publicClient,
   });
 };
 

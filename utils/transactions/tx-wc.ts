@@ -28,7 +28,7 @@ export const simulateWCWriteTx = async (args: {
   skipError?: boolean;
 }): Promise<SimulateCallsReturnType<PopulatedTx[]>> => {
   const { calls, withSpinner = true, skipError = false } = args;
-  const publicClient = getPublicClient();
+  const publicClient = await getPublicClient();
 
   const hideSpinner = withSpinner
     ? showSpinner({
@@ -280,7 +280,7 @@ const callWalletConnectSendCalls = async (args: {
         })
       : () => {};
 
-    const publicClient = getPublicClient();
+    const publicClient = await getPublicClient();
     const receipt = await waitForTransactionReceipt(publicClient, {
       hash: txHash,
       confirmations: 3,

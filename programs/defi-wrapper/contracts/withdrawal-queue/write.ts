@@ -30,7 +30,7 @@ withdrawalQueueWrite
   .description('pause withdrawal requests placement and finalization')
   .argument('<address>', 'withdrawal queue address', stringToAddress)
   .action(async (address: Address) => {
-    const contract = getWithdrawalQueueContract(address);
+    const contract = await getWithdrawalQueueContract(address);
 
     const confirmationMessage = `Are you sure you want to pause withdrawal requests placement and finalization for the withdrawal queue ${address}?`;
     const confirm = await confirmOperation(confirmationMessage);
@@ -48,7 +48,7 @@ withdrawalQueueWrite
   .description('resume withdrawal requests placement and finalization')
   .argument('<address>', 'withdrawal queue address', stringToAddress)
   .action(async (address: Address) => {
-    const contract = getWithdrawalQueueContract(address);
+    const contract = await getWithdrawalQueueContract(address);
 
     const confirmationMessage = `Are you sure you want to resume withdrawal requests placement and finalization for the withdrawal queue ${address}?`;
     const confirm = await confirmOperation(confirmationMessage);
@@ -66,7 +66,7 @@ withdrawalQueueWrite
   .description('pause withdrawal requests finalization')
   .argument('<address>', 'withdrawal queue address', stringToAddress)
   .action(async (address: Address) => {
-    const contract = getWithdrawalQueueContract(address);
+    const contract = await getWithdrawalQueueContract(address);
 
     const confirmationMessage = `Are you sure you want to pause withdrawal requests finalization for the withdrawal queue ${address}?`;
     const confirm = await confirmOperation(confirmationMessage);
@@ -84,7 +84,7 @@ withdrawalQueueWrite
   .description('resume withdrawal requests finalization')
   .argument('<address>', 'withdrawal queue address', stringToAddress)
   .action(async (address: Address) => {
-    const contract = getWithdrawalQueueContract(address);
+    const contract = await getWithdrawalQueueContract(address);
 
     const confirmationMessage = `Are you sure you want to resume withdrawal requests finalization for the withdrawal queue ${address}?`;
     const confirm = await confirmOperation(confirmationMessage);
@@ -119,7 +119,7 @@ withdrawalQueueWrite
       stethSharesToRebalance: bigint[],
       owner: Address,
     ) => {
-      const contract = getWithdrawalQueueContract(address);
+      const contract = await getWithdrawalQueueContract(address);
 
       const confirmationMessage = `Are you sure you want to request multiple withdrawals for ${owner} with ${stvToWithdraw.join(', ')} stv and ${stethSharesToRebalance.join(', ')} steth shares for the withdrawal queue ${address}?`;
       const confirm = await confirmOperation(confirmationMessage);
@@ -151,7 +151,7 @@ withdrawalQueueWrite
       stethSharesToRebalance: bigint,
       owner: Address,
     ) => {
-      const contract = getWithdrawalQueueContract(address);
+      const contract = await getWithdrawalQueueContract(address);
 
       const confirmationMessage = `Are you sure you want to request a withdrawal for ${owner} with ${stvToWithdraw} stv and ${stethSharesToRebalance} steth shares for the withdrawal queue ${address}?`;
       const confirm = await confirmOperation(confirmationMessage);
@@ -185,7 +185,7 @@ withdrawalQueueWrite
       maxRequests: bigint,
       gasCostCoverageRecipient: Address,
     ) => {
-      const contract = getWithdrawalQueueContract(address);
+      const contract = await getWithdrawalQueueContract(address);
 
       const confirmationMessage = `Are you sure you want to finalize up to ${maxRequests} withdrawal requests for the withdrawal queue ${address} to ${gasCostCoverageRecipient}?`;
       const confirm = await confirmOperation(confirmationMessage);
@@ -212,7 +212,7 @@ withdrawalQueueWrite
     stringToAddress,
   )
   .action(async (address: Address, requestId: bigint, recipient: Address) => {
-    const contract = getWithdrawalQueueContract(address);
+    const contract = await getWithdrawalQueueContract(address);
 
     const confirmationMessage = `Are you sure you want to claim request ${requestId} and send the claimed ether to ${recipient} for the withdrawal queue ${address}?`;
     const confirm = await confirmOperation(confirmationMessage);
@@ -253,7 +253,7 @@ withdrawalQueueWrite
       hints: bigint[],
       recipient: Address,
     ) => {
-      const contract = getWithdrawalQueueContract(address);
+      const contract = await getWithdrawalQueueContract(address);
 
       const confirmationMessage = `Are you sure you want to claim requests ${requestIds.join(', ')} and send the claimed ether to ${recipient} for the withdrawal queue ${address}?`;
       const confirm = await confirmOperation(confirmationMessage);

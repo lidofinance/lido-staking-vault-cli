@@ -21,9 +21,9 @@ export const getDashboardByVault = async (vault: Address) => {
   );
 
   const vaultOwner = vaultConnection.owner;
-  const dashboard = getDashboardContract(vaultOwner);
+  const dashboard = await getDashboardContract(vaultOwner);
 
-  const publicClient = getPublicClient();
+  const publicClient = await getPublicClient();
   const bytecode = await publicClient.getCode({ address: vaultOwner });
 
   if (!bytecode || bytecode === '0x') {
@@ -52,8 +52,8 @@ export const chooseVaultAndGetDashboard = async (args: {
   }
 
   const dashboard = await getDashboardByVault(chosenVault);
-  const dashboardContract = getDashboardContract(dashboard);
-  const vaultContract = getStakingVaultContract(chosenVault);
+  const dashboardContract = await getDashboardContract(dashboard);
+  const vaultContract = await getStakingVaultContract(chosenVault);
 
   return {
     address: dashboard,
