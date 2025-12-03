@@ -1,7 +1,21 @@
-import { Hex, Address, zeroAddress, hexToBigInt, parseGwei } from 'viem';
+import {
+  Hex,
+  Address,
+  zeroAddress,
+  hexToBigInt,
+  parseGwei,
+  decodeFunctionData,
+  isHex,
+  hexToBytes,
+  bytesToHex,
+  formatUnits,
+} from 'viem';
 
 import { getPublicClient } from 'providers';
-import { getValidatorConsolidationRequestsContract } from 'contracts';
+import {
+  getDashboardContract,
+  getValidatorConsolidationRequestsContract,
+} from 'contracts';
 import {
   finalityCheckpoints,
   checkSourceValidators,
@@ -12,53 +26,160 @@ import {
   fetchValidatorsInfo,
   ValidatorsInfo,
   showSpinner,
+  callWriteMethodWithReceipt,
+  printError,
+  confirmOperation,
+  callWriteMethodWithReceiptBatchCalls,
 } from 'utils';
+import { DashboardAbi } from 'abi';
+
+export type ValidatorInfo = {
+  status: string;
+  balance: bigint;
+  index: string;
+};
+
+export type TargetAndSourceValidators = Map<
+  Hex,
+  {
+    info: ValidatorInfo;
+    sourceValidators: Map<Hex, ValidatorInfo>;
+  }
+>;
 
 // https://eips.ethereum.org/EIPS/eip-7251
 const CONSOLIDATION_REQUEST_PREDEPLOY_ADDRESS =
   '0x0000BBdDc7CE488642fb579F8B00f3a590007251';
 
+const flattenSourcePubkeys = (
+  targetAndSourceValidators: TargetAndSourceValidators,
+): `0x${string}`[] => {
+  const targetPubkeys = [...targetAndSourceValidators.keys()];
+  return targetPubkeys.map((target) => {
+    const sourceMap = targetAndSourceValidators.get(target);
+    if (!sourceMap) {
+      throw new Error(`Target validator ${target} not found in map`);
+    }
+
+    const merged = [...sourceMap.sourceValidators.keys()]
+      .map((p) => p.replace(/^0x/, ''))
+      .join('');
+
+    return `0x${merged}`;
+  }) as `0x${string}`[];
+};
+
+const getConsolidationRequestFee = async (): Promise<bigint> => {
+  const publicClient = getPublicClient();
+
+  const hideSpinnerGetFeePerRequest = showSpinner();
+
+  const { data: feePerRequestData } = await publicClient.call({
+    to: CONSOLIDATION_REQUEST_PREDEPLOY_ADDRESS,
+    data: '0x',
+    blockTag: 'latest',
+  });
+
+  hideSpinnerGetFeePerRequest();
+
+  if (!feePerRequestData || feePerRequestData === '0x') {
+    throw new Error('Fee read returned empty or invalid data');
+  }
+
+  if (!isHex(feePerRequestData)) {
+    throw new Error(`Unexpected data format: ${feePerRequestData}`);
+  }
+
+  const hexBody = feePerRequestData.startsWith('0x')
+    ? feePerRequestData.slice(2)
+    : feePerRequestData;
+  if (hexBody.length !== 64) {
+    throw new Error(
+      `Unexpected data length (${hexBody.length} hex chars, expected 64)`,
+    );
+  }
+
+  return hexToBigInt(feePerRequestData);
+};
+
+const consolidateRequest = async ({
+  encodedCall,
+  feePerRequest,
+}: {
+  encodedCall: Hex;
+  feePerRequest: bigint;
+}): Promise<void> => {
+  const populatedTx: PopulatedTx = {
+    to: CONSOLIDATION_REQUEST_PREDEPLOY_ADDRESS,
+    data: encodedCall,
+    value: feePerRequest,
+  };
+  await callWriteMethodWithReceiptBatchCalls({
+    calls: [populatedTx],
+    withSpinner: true,
+    silent: false,
+    skipError: false,
+  });
+};
+
+const addFeeExemption = async ({
+  feeExemptionEncodedCall,
+  balanceToAdjust,
+  dashboard,
+}: {
+  feeExemptionEncodedCall: Hex;
+  balanceToAdjust: bigint;
+  dashboard: Address;
+}): Promise<void> => {
+  const { functionName, args } = decodeFunctionData({
+    abi: DashboardAbi,
+    data: feeExemptionEncodedCall,
+  });
+
+  if (functionName !== 'addFeeExemption')
+    throw new Error('functionName is not addFeeExemption');
+  const decodedBalanceToAdjust = args[0];
+  if (decodedBalanceToAdjust !== balanceToAdjust)
+    throw new Error('decodedBalanceToAdjust is not equal to balanceToAdjust');
+
+  await callWriteMethodWithReceipt({
+    contract: getDashboardContract(dashboard),
+    methodName: 'addFeeExemption',
+    payload: [balanceToAdjust],
+  });
+};
+
 export const consolidationRequestsAndIncreaseFeeExemption = async (
-  sourcePubkeys: Hex[][],
-  targetPubkeys: Hex[],
-  sourceValidatorsInfo: ValidatorsInfo,
+  targetAndSourceValidators: TargetAndSourceValidators,
+  feeExemption: bigint,
   dashboard: Address,
 ) => {
   const publicClient = getPublicClient();
 
-  const hideFeeSpinner = showSpinner({
-    type: 'bouncingBar',
-    message: 'Waiting for fee to be read...',
-  });
+  const targetPubkeys = [...targetAndSourceValidators.keys()];
+  const sourcePubkeysFlattened = flattenSourcePubkeys(
+    targetAndSourceValidators,
+  );
 
-  // 1. Get fee per request
+  const consolidationContract = getValidatorConsolidationRequestsContract();
   const { data } = await publicClient.call({
     to: CONSOLIDATION_REQUEST_PREDEPLOY_ADDRESS,
     data: '0x',
     blockTag: 'latest',
   });
-  hideFeeSpinner();
 
   if (!data) throw new Error('Fee read returned empty data');
   const feePerRequest = hexToBigInt(data);
 
-  // 2. Fetch consolidation request encoded calls and increase fee exemption amount encoded call.
-  const sourcePubkeysFlattened = sourcePubkeys.map(
-    (group) => '0x' + group.map((p) => p.replace(/^0x/, '')).join(''),
-  ) as Hex[];
-  const consolidationContract = getValidatorConsolidationRequestsContract();
-  const totalBalance = sourceValidatorsInfo.data.reduce(
-    (sum, validator) => sum + parseGwei(validator.balance),
-    0n,
-  );
+  // 1. Fetch consolidation request encoded calls and increase fee exemption amount encoded call.
   const [feeExemptionEncodedCall, consolidationRequestEncodedCalls] =
     await callReadMethodSilent(
       consolidationContract,
       'getConsolidationRequestsAndFeeExemptionEncodedCalls',
-      [sourcePubkeysFlattened, targetPubkeys, dashboard, totalBalance],
+      [sourcePubkeysFlattened, targetPubkeys, dashboard, feeExemption],
     );
 
-  // 3. Create populated transactions for consolidation requests
+  // 2. Create populated transactions for consolidation requests
   const populatedTxs: PopulatedTx[] = consolidationRequestEncodedCalls.map(
     (call) => {
       return {
@@ -69,8 +190,8 @@ export const consolidationRequestsAndIncreaseFeeExemption = async (
     },
   );
 
-  // 4. Create populated transaction to increase the fee exemption amount
-  if (totalBalance > 0n) {
+  // 3. Create populated transaction to increase the fee exemption amount
+  if (feeExemption > 0n) {
     populatedTxs.push({
       to: dashboard,
       data: feeExemptionEncodedCall,
@@ -78,6 +199,140 @@ export const consolidationRequestsAndIncreaseFeeExemption = async (
   }
 
   return populatedTxs;
+};
+
+const getConsolidationRequestsAndFeeExemptionEncodedCalls = async (
+  targetAndSourceValidators: TargetAndSourceValidators,
+  dashboard: Address,
+  feeExemption: bigint,
+): Promise<[Hex, Hex[]]> => {
+  const targetPubkeys = [...targetAndSourceValidators.keys()];
+  const sourcePubkeysFlattened = flattenSourcePubkeys(
+    targetAndSourceValidators,
+  );
+
+  const consolidationContract = getValidatorConsolidationRequestsContract();
+  const [feeExemptionEncodedCall, consolidationRequestEncodedCalls] =
+    await callReadMethodSilent(
+      consolidationContract,
+      'getConsolidationRequestsAndFeeExemptionEncodedCalls',
+      [sourcePubkeysFlattened, targetPubkeys, dashboard, feeExemption],
+    );
+  return [feeExemptionEncodedCall, consolidationRequestEncodedCalls as Hex[]];
+};
+
+export const consolidateAndIncreaseFeeExemptionWithoutBatching = async (
+  targetAndSourceValidators: TargetAndSourceValidators,
+  feeExemption: bigint,
+  dashboard: Address,
+) => {
+  let currentFeeExemption = 0n;
+
+  try {
+    let feeExemptionEncodedCall: Hex;
+    let consolidationRequestEncodedCalls: Hex[];
+
+    if (targetAndSourceValidators.size > 0) {
+      [feeExemptionEncodedCall, consolidationRequestEncodedCalls] =
+        await getConsolidationRequestsAndFeeExemptionEncodedCalls(
+          targetAndSourceValidators,
+          dashboard,
+          feeExemption,
+        );
+      for (const encodedCall of consolidationRequestEncodedCalls) {
+        const { sourcePubkey, targetPubkey } =
+          getSourceAndTargetPubkeysFromEncodedCall(encodedCall);
+        const feePerRequest = await getConsolidationRequestFee();
+
+        const lines = [
+          'Are you sure you want to consolidate the following validators?\n',
+          `Source: ${sourcePubkey}\nTarget: ${targetPubkey}\n`,
+          `Fee Per Request: ${feePerRequest}`,
+        ];
+        const confirmFileContent = await confirmOperation(lines.join('\n'));
+        if (!confirmFileContent)
+          throw new Error('User cancelled consolidation');
+
+        await consolidateRequest({
+          encodedCall: encodedCall,
+          feePerRequest: feePerRequest,
+        });
+
+        currentFeeExemption +=
+          targetAndSourceValidators
+            .get(targetPubkey)
+            ?.sourceValidators.get(sourcePubkey)?.balance ?? 0n;
+      }
+    } else {
+      addDummyTargetAndSourceValidator(targetAndSourceValidators, feeExemption);
+      [feeExemptionEncodedCall] =
+        await getConsolidationRequestsAndFeeExemptionEncodedCalls(
+          targetAndSourceValidators,
+          dashboard,
+          feeExemption,
+        );
+    }
+    const lines = [
+      'Are you sure you want to increase the fee exemption amount?\n',
+      `Balance To Adjust: ${feeExemption} in wei`,
+    ];
+    const confirmFileContent = await confirmOperation(lines.join('\n'));
+    if (!confirmFileContent)
+      throw new Error('User cancelled increasing fee exemption amount');
+
+    await addFeeExemption({
+      feeExemptionEncodedCall: feeExemptionEncodedCall,
+      balanceToAdjust: feeExemption,
+      dashboard: dashboard,
+    });
+  } catch (error) {
+    printError(
+      error,
+      `Error when consolidating and increasing fee exemption without batching.
+       The balance that should be consolidated is ${formatUnits(feeExemption, 18)} ETH.
+       The balance you have consolidated is ${formatUnits(currentFeeExemption, 18)} ETH.`,
+    );
+  }
+};
+
+const getSourceAndTargetPubkeysFromEncodedCall = (
+  encodedCall: Hex,
+): { sourcePubkey: Hex; targetPubkey: Hex } => {
+  const encodedCallBytes = hexToBytes(encodedCall);
+  const sourcePubkey = bytesToHex(
+    encodedCallBytes.slice(0, encodedCallBytes.length / 2),
+  );
+  const targetPubkey = bytesToHex(
+    encodedCallBytes.slice(encodedCallBytes.length / 2),
+  );
+
+  return { sourcePubkey, targetPubkey };
+};
+
+const addDummyTargetAndSourceValidator = (
+  targetAndSourceValidators: TargetAndSourceValidators,
+  feeExemption: bigint,
+) => {
+  targetAndSourceValidators.set(
+    '0x000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
+    {
+      info: {
+        status: 'active_ongoing',
+        balance: feeExemption,
+        index: '0',
+      },
+      sourceValidators: new Map([
+        [
+          '0x000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
+          {
+            status: 'active_ongoing',
+            balance: feeExemption,
+            index: '0',
+          },
+        ],
+      ]),
+    },
+  );
 };
 
 export const checkConsolidationInput = async (
@@ -103,7 +358,7 @@ export const checkConsolidationInput = async (
   }
 };
 
-export const checkValidators = async (
+export const requestValidatorsInfo = async (
   sourcePubkeys: Hex[][],
   targetPubkeys: Hex[],
 ): Promise<{
@@ -117,16 +372,104 @@ export const checkValidators = async (
   if (sourceValidatorsInfo.data == null) {
     throw new Error('sourceValidatorsInfo.data is null');
   }
-  await checkSourceValidators(sourceValidatorsInfo.data, finalizedEpoch);
+  checkSourceValidators(sourceValidatorsInfo.data, finalizedEpoch);
 
   const targetValidatorsInfo = await fetchValidatorsInfo(targetPubkeys);
   if (targetValidatorsInfo.data == null) {
     throw new Error('targetValidatorsInfo.data is null');
   }
-  await checkTargetValidators(targetValidatorsInfo.data);
+  checkTargetValidators(targetValidatorsInfo.data);
 
   return {
     sourceValidatorsInfo,
     targetValidatorsInfo,
   };
+};
+
+export const removeInactiveValidators = (
+  targetAndSourceValidators: TargetAndSourceValidators,
+) => {
+  for (const [target, { sourceValidators }] of targetAndSourceValidators) {
+    const toDelete: Hex[] = [];
+    for (const [source, sourceValidatorInfo] of sourceValidators) {
+      if (sourceValidatorInfo.status !== 'active_ongoing') {
+        toDelete.push(source);
+      }
+    }
+
+    for (const source of toDelete) {
+      sourceValidators.delete(source);
+    }
+
+    if (sourceValidators.size === 0) {
+      targetAndSourceValidators.delete(target);
+    }
+  }
+};
+
+export const getTargetAndSourceValidatorsInfo = (
+  targetPubkeys: Hex[],
+  targetValidatorsInfo: ValidatorsInfo,
+  sourcePubkeys: Hex[][],
+  sourceValidatorsInfo: ValidatorsInfo,
+): TargetAndSourceValidators => {
+  const targetAndSourceValidatorsInfo: TargetAndSourceValidators = new Map();
+  targetPubkeys.forEach((targetPubkey, i) => {
+    const targetValidatorInfo = targetValidatorsInfo.data.find(
+      (validator) => validator.validator.pubkey === targetPubkey,
+    );
+    if (!targetValidatorInfo) {
+      throw new Error(`Target validator with pubkey ${targetPubkey} not found`);
+    }
+    targetAndSourceValidatorsInfo.set(targetPubkey, {
+      info: {
+        status: targetValidatorInfo.status,
+        balance: parseGwei(targetValidatorInfo.balance),
+        index: targetValidatorInfo.index,
+      },
+      sourceValidators: new Map(),
+    });
+    const sourcePubkeysGroup = sourcePubkeys[i] ?? [];
+    sourcePubkeysGroup.forEach((sourcePubkey) => {
+      const sourceValidatorInfo = sourceValidatorsInfo.data.find(
+        (validator) => validator.validator.pubkey === sourcePubkey,
+      );
+      if (!sourceValidatorInfo) {
+        throw new Error(
+          `Source validator with pubkey ${sourcePubkey} not found`,
+        );
+      }
+      targetAndSourceValidatorsInfo
+        .get(targetPubkey)
+        ?.sourceValidators.set(sourcePubkey, {
+          status: sourceValidatorInfo.status,
+          balance: parseGwei(sourceValidatorInfo.balance),
+          index: sourceValidatorInfo.index,
+        });
+    });
+  });
+  return targetAndSourceValidatorsInfo;
+};
+
+export const getFeeExemption = async (
+  targetAndSourceValidators: TargetAndSourceValidators,
+): Promise<bigint> => {
+  let feeExemption = 0n;
+
+  for (const [, { sourceValidators }] of targetAndSourceValidators) {
+    for (const [source, sourceValidatorInfo] of sourceValidators) {
+      if (sourceValidatorInfo.status === 'active_ongoing') {
+        feeExemption += sourceValidatorInfo.balance;
+      } else {
+        const confirm = await confirmOperation(
+          `Validator with this pubkey ${source} is not in active state. Should we consider its balance for fee exemption?`,
+        );
+        if (confirm) {
+          feeExemption += sourceValidatorInfo.balance;
+        }
+      }
+    }
+  }
+
+  return feeExemption;
 };

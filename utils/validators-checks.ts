@@ -1,19 +1,10 @@
 import { ValidatorsInfo } from './fetchCL.js';
 import assert from 'assert';
 
-export const checkSourceValidators = async (
+export const checkSourceValidators = (
   sourceValidatorsInfoData: ValidatorsInfo['data'],
   finalizedEpoch: number,
 ) => {
-  const notActiveValidators = sourceValidatorsInfoData.filter(
-    (validator) => validator.status !== 'active_ongoing',
-  );
-  assert(
-    notActiveValidators.length === 0,
-    'All source pubkeys must be active. Wrong pubkeys:' +
-      notActiveValidators.map((v) => v.validator.pubkey).join(', '),
-  );
-
   const correctWCSourceValidators = sourceValidatorsInfoData.filter(
     (validator) =>
       validator.validator.withdrawal_credentials.startsWith('0x01') ||
@@ -42,18 +33,9 @@ export const checkSourceValidators = async (
   );
 };
 
-export const checkTargetValidators = async (
+export const checkTargetValidators = (
   targetValidatorsInfoData: ValidatorsInfo['data'],
 ) => {
-  const notActiveTargetValidators = targetValidatorsInfoData.filter(
-    (validator) => validator.status !== 'active_ongoing',
-  );
-  assert(
-    notActiveTargetValidators.length === 0,
-    'All target pubkeys must be active. Wrong pubkeys:' +
-      notActiveTargetValidators.map((v) => v.validator.pubkey).join(', '),
-  );
-
   const wrongWCTargetValidators = targetValidatorsInfoData.filter(
     (validator) =>
       !validator.validator.withdrawal_credentials.startsWith('0x02'),
