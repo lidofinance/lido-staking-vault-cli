@@ -1,74 +1,173 @@
-import { Account } from 'viem';
+import { Address, Hex } from 'viem';
 
-import { getStakingVaultContract, getVaultViewerContract } from 'contracts';
-import { callReadMethodSilent, selectPrompt } from 'utils';
+import { getVaultViewerContract, getDashboardImplContract } from 'contracts';
+import {
+  callReadMethodSilent,
+  printError,
+  selectPrompt,
+  showSpinner,
+} from 'utils';
 import { getAccount } from 'providers';
 
-const getVaultsByOwner = async (account: Account) => {
-  const contract = getVaultViewerContract();
+import { DASHBOARD_ROLES_KEYS } from './vault-roles.js';
 
-  const vaults = await callReadMethodSilent(contract, 'vaultsByOwner', [
-    account.address,
-  ]);
-
-  return vaults;
+type VaultMembers = {
+  vault: Address;
+  owner: Address;
+  nodeOperator: Address;
+  members: readonly (readonly Address[])[];
 };
 
-const getVaultsByNO = async (account: Account) => {
-  const contract = getVaultViewerContract();
-  const vaults = await callReadMethodSilent(contract, 'vaultsConnected');
+const LIMIT = 100n;
 
-  const nodeOperators = await Promise.all(
-    vaults.map(async (vault) => {
-      const vaultContract = getStakingVaultContract(vault);
-      const nodeOperator = await callReadMethodSilent(
-        vaultContract,
-        'nodeOperator',
+export const getAllVaults = async () => {
+  const hideSpinner = showSpinner({
+    message: 'Getting vaults...',
+  });
+
+  try {
+    const contract = await getVaultViewerContract();
+    const totalVaults = await callReadMethodSilent(contract, 'vaultsCount');
+    const vaultsByOwner: Address[] = [];
+
+    for (let i = 0n; i < totalVaults; i += LIMIT) {
+      const vaults = await callReadMethodSilent(
+        contract,
+        'vaultAddressesBatch',
+        [i, LIMIT],
       );
-      return { vault, nodeOperator };
-    }),
-  );
+      vaultsByOwner.push(...vaults);
+    }
 
-  const vaultsByNO = nodeOperators.filter(
-    ({ nodeOperator }) => nodeOperator === account.address,
-  );
+    return vaultsByOwner;
+  } catch (err) {
+    hideSpinner();
+    printError(err, 'Error when getting vaults');
+    throw err;
+  } finally {
+    hideSpinner();
+  }
+};
 
-  return vaultsByNO.map(({ vault }) => vault);
+export const getVaultsByAddress = async (
+  address: Address,
+): Promise<Record<Address, string[]>> => {
+  const contract = await getVaultViewerContract();
+  const dashboardImpl = await getDashboardImplContract();
+  const vaults = await getAllVaults();
+  const vaultsWithMembers: VaultMembers[] = [];
+
+  const hideSpinner = showSpinner({
+    message: 'Getting roles...',
+  });
+  const rolesValues: Hex[] = await Promise.all(
+    DASHBOARD_ROLES_KEYS.map((key) => (dashboardImpl.read as any)[key]()),
+  );
+  hideSpinner();
+
+  for (let i = 0; i < vaults.length; i += Number(LIMIT)) {
+    const batch = await callReadMethodSilent(contract, 'roleMembersBatch', [
+      vaults.slice(i, i + Number(LIMIT)),
+      rolesValues,
+    ]);
+    vaultsWithMembers.push(...batch);
+  }
+
+  const addressLower = address.toLowerCase();
+  const vaultsByRole: Record<Address, string[]> = {};
+
+  for (const { vault, owner, nodeOperator, members } of vaultsWithMembers) {
+    const roles: string[] = [];
+
+    if (owner.toLowerCase() === addressLower) {
+      roles.push('Owner');
+    }
+
+    if (nodeOperator.toLowerCase() === addressLower) {
+      roles.push('Node Operator');
+    }
+
+    const membersLength = Math.min(members.length, DASHBOARD_ROLES_KEYS.length);
+    for (let i = 0; i < membersLength; i++) {
+      const roleMembers = members[i];
+      const roleName = DASHBOARD_ROLES_KEYS[i];
+
+      const isHasRole =
+        roleMembers &&
+        roleMembers.some((member) => member.toLowerCase() === addressLower);
+
+      if (isHasRole && roleName) roles.push(roleName);
+    }
+
+    if (roles.length > 0) vaultsByRole[vault] = roles;
+  }
+
+  return vaultsByRole;
+};
+
+export const getVaultsByRoleMember = async (role: Hex, member: Address) => {
+  const contract = await getVaultViewerContract();
+  const vaults = await getAllVaults();
+  const vaultsByRole: Address[] = [];
+
+  for (let i = 0; i < vaults.length; i += Number(LIMIT)) {
+    const vaults = await callReadMethodSilent(contract, 'vaultsByRoleBatch', [
+      role,
+      member,
+      BigInt(i),
+      BigInt(LIMIT),
+    ]);
+    vaultsByRole.push(...vaults);
+  }
+
+  return vaultsByRole;
+};
+
+export const getVaultsByOwner = async (address: Address) => {
+  const contract = await getVaultViewerContract();
+  const totalVaults = await callReadMethodSilent(contract, 'vaultsCount');
+  const vaultsByOwner: Address[] = [];
+
+  for (let i = 0n; i < totalVaults; i += LIMIT) {
+    const vaults = await callReadMethodSilent(contract, 'vaultsByOwnerBatch', [
+      address,
+      i,
+      LIMIT,
+    ]);
+    vaultsByOwner.push(...vaults);
+  }
+
+  return vaultsByOwner;
 };
 
 export const chooseVault = async () => {
   const account = await getAccount();
 
-  const [vaultsByOwner, vaultsByNO] = await Promise.all([
-    getVaultsByOwner(account),
-    getVaultsByNO(account),
-  ]);
+  const vaultsByAddress = await getVaultsByAddress(account.address);
 
-  if (vaultsByOwner.length === 0 && vaultsByNO.length === 0) {
-    throw new Error(
-      `No vaults found for account ${account.address}. Please check your account address and try again.`,
+  if (Object.keys(vaultsByAddress).length === 0) {
+    printError(
+      new Error(`No vaults found for account ${account.address}`),
+      'No vaults found for account. Please check your account address and try again.',
     );
   }
 
-  const uniqueVaults = [...new Set([...vaultsByOwner, ...vaultsByNO])];
-  const vaultsWithRole = uniqueVaults.map((vault) => {
-    let title = '';
-
-    if (vaultsByNO.includes(vault)) {
-      title = `Node Operator`;
-    }
-
-    if (vaultsByOwner.includes(vault)) {
-      const separator = title.length > 0 ? ', ' : '';
-      title = `${title}${separator}Owner`;
-    }
-
-    return { title: `${vault} (${title})`, value: vault };
-  });
+  const vaultsWithRole = Object.entries(vaultsByAddress).map(
+    ([vault, roles]) => {
+      return {
+        title: `${vault} (${roles.join(', ')})`,
+        value: vault,
+      };
+    },
+  );
 
   const vault = await selectPrompt('Choose a vault', 'address', vaultsWithRole);
 
-  if (!vault.address) throw new Error('No vault selected');
+  if (!vault.address)
+    printError(
+      new Error('No vault selected'),
+      'No vault selected. Please select a vault or use the --vault flag',
+    );
 
   return vault.address;
 };

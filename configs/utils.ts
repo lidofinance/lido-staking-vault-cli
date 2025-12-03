@@ -37,3 +37,9 @@ export const getValidatorConsolidationRequestsAddress = (): Address => {
   }
   return deployed.validatorConsolidationRequests.address as Address;
 };
+
+export const getDashboardImplAddress = (): Address => {
+  const deployed = getDeployed();
+
+  return deployed.dashboardImpl.address as Address;
+};

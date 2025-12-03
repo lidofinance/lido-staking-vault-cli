@@ -14,14 +14,15 @@ export const getLazyOracleContract = async (): Promise<
   GetContractReturnType<typeof LazyOracleAbi, WalletClient>
 > => {
   const elUrl = getElUrl();
-  const locator = getLocatorContract();
+  const chain = await getChain();
+  const locator = await getLocatorContract();
   const address = await locator.read.lazyOracle();
 
   return getContract({
     address,
     abi: LazyOracleAbi,
     client: createPublicClient({
-      chain: getChain(),
+      chain,
       transport: http(elUrl),
     }),
   });

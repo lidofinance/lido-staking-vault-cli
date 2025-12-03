@@ -229,6 +229,19 @@ export const LazyOracleAbi = [
     anonymous: false,
     inputs: [
       {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'totalValueReminder',
+        type: 'uint256',
+      },
+    ],
+    name: 'QuarantineUpdated',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
         indexed: true,
         internalType: 'bytes32',
         name: 'role',
@@ -442,12 +455,29 @@ export const LazyOracleAbi = [
         type: 'bytes[]',
       },
     ],
-    name: 'batchValidatorStages',
+    name: 'batchValidatorStatuses',
     outputs: [
       {
-        internalType: 'enum IPredepositGuarantee.ValidatorStage[]',
+        components: [
+          {
+            internalType: 'enum IPredepositGuarantee.ValidatorStage',
+            name: 'stage',
+            type: 'uint8',
+          },
+          {
+            internalType: 'contract IStakingVault',
+            name: 'stakingVault',
+            type: 'address',
+          },
+          {
+            internalType: 'address',
+            name: 'nodeOperator',
+            type: 'address',
+          },
+        ],
+        internalType: 'struct IPredepositGuarantee.ValidatorStatus[]',
         name: 'batch',
-        type: 'uint8[]',
+        type: 'tuple[]',
       },
     ],
     stateMutability: 'view',
@@ -788,6 +818,25 @@ export const LazyOracleAbi = [
         type: 'address',
       },
     ],
+    name: 'quarantineValue',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: '_vault',
+        type: 'address',
+      },
+    ],
     name: 'removeVaultQuarantine',
     outputs: [],
     stateMutability: 'nonpayable',
@@ -1063,6 +1112,11 @@ export const LazyOracleAbi = [
           {
             internalType: 'uint256',
             name: 'endTimestamp',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint256',
+            name: 'totalValueRemainder',
             type: 'uint256',
           },
         ],

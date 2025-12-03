@@ -1,4 +1,4 @@
-export const AccessControlConfirmableAbi = [
+export const AccessControlConfirmableErrorsAbi = [
   {
     inputs: [],
     name: 'AccessControlBadConfirmation',
@@ -35,6 +35,9 @@ export const AccessControlConfirmableAbi = [
     name: 'ZeroConfirmingRoles',
     type: 'error',
   },
+] as const;
+
+export const AccessControlConfirmableAbi = [
   {
     anonymous: false,
     inputs: [

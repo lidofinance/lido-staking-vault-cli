@@ -12,17 +12,20 @@ import { getLocatorContract } from 'contracts';
 export const getOperatorGridContract = async (): Promise<
   GetContractReturnType<typeof OperatorGridAbi, WalletClient>
 > => {
-  const locator = getLocatorContract();
+  const locator = await getLocatorContract();
+  const chain = await getChain();
   const address = await locator.read.operatorGrid();
 
   return getContract({
     address,
     abi: OperatorGridAbi,
     client: createPublicClient({
-      chain: getChain(),
+      chain,
       transport: http(getElUrl()),
     }),
   });
 };
 
-export type OperatorGridContract = ReturnType<typeof getOperatorGridContract>;
+export type OperatorGridContract = Awaited<
+  ReturnType<typeof getOperatorGridContract>
+>;

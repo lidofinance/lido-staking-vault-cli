@@ -80,7 +80,7 @@ export const fetchAndCalculateVaultHealthWithNewValue = async (
     callReadMethodSilent(stethContract, 'getPooledEthBySharesRoundUp', [
       newLiabilityShares,
     ]),
-    callReadMethodSilent(stethContract, 'getPooledEthBySharesRoundUp', [value]),
+    callReadMethodSilent(stethContract, 'getPooledEthByShares', [value]),
   ]);
 
   const currentVaultHealth = calculateHealth({

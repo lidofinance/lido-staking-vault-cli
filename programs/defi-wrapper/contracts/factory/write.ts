@@ -1,20 +1,50 @@
+import { Address, parseEther, fromHex } from 'viem';
 import { Option } from 'commander';
 
 import {
   logInfo,
   logResult,
+  logError,
   getCommandsJson,
   stringToAddress,
   callWriteMethodWithReceipt,
   confirmOperation,
-  stringToBigInt,
   stringToNumber,
 } from 'utils';
 import { getFactoryContract } from 'contracts/defi-wrapper/index.js';
-import { getCreateVaultEventData } from 'features';
+import {
+  getCreatePoolEventData,
+  getFinalizePoolEventData,
+  getAddress,
+  getNodeOperatorFeeRate,
+  getConfirmExpiry,
+  getMinWithdrawalDelayTime,
+  getPoolTokenName,
+  getPoolTokenSymbol,
+  getMinDelaySeconds,
+  getReserveRatioGapBP,
+} from 'features';
 
 import { factory } from './main.js';
-import { Address } from 'viem';
+
+type VaultConfig = {
+  nodeOperator: Address; // Address of the node operator managing the vault
+  nodeOperatorManager: Address; // Address authorized to manage node operator settings
+  nodeOperatorFeeBP: bigint; // Node operator fee in basis points (1 BP = 0.01%)
+  confirmExpiry: bigint; // Time period for confirmation expiry
+};
+
+type TimelockConfig = {
+  minDelaySeconds: bigint; // Minimum delay before executing queued operations
+  proposer: Address; // Address authorized to propose operations
+  executor: Address; // Address authorized to execute operations
+};
+
+type CommonPoolConfig = {
+  minWithdrawalDelayTime: bigint; // Minimum delay time for processing withdrawals
+  name: string; // ERC20 token name for the pool shares
+  symbol: string; // ERC20 token symbol for the pool shares
+};
 
 const factoryWrite = factory
   .command('write')
@@ -28,472 +58,272 @@ factoryWrite.on('option:-cmd2json', function () {
 });
 
 factoryWrite
-  .command('create-vault-with-configured-wrapper')
-  .description('create a new vault with a configured wrapper')
+  .command('create-pool-ggv')
+  .description('initiates deployment of a GGV strategy pool')
   .argument('<address>', 'factory address', stringToAddress)
-  .argument('<nodeOperator>', 'node operator address', stringToAddress)
-  .argument(
-    '<nodeOperatorManager>',
+  .option('-no, --nodeOperator <nodeOperator>', 'node operator address')
+  .option(
+    '-nom, --nodeOperatorManager <nodeOperatorManager>',
     'node operator manager address',
-    stringToAddress,
   )
-  .argument(
-    '<nodeOperatorFeeBP>',
-    'node operator fee basis points',
-    stringToBigInt,
+  .option(
+    '-nof , --nodeOperatorFeeRate <nodeOperatorFeeRate>',
+    'Node operator fee rate in basis points, for e.g. 100 == 1%',
+    stringToNumber,
   )
-  .argument('<confirmExpiry>', 'confirm expiry', stringToBigInt)
-  .argument('<maxFinalizationTime>', 'max finalization time', stringToBigInt)
-  .argument(
-    '<minWithdrawalDelayTime>',
-    'min withdrawal delay time',
-    stringToBigInt,
+  .option(
+    '-ce, --confirmExpiry <confirmExpiry>',
+    'confirm expiry in seconds',
+    stringToNumber,
   )
-  .argument('<configuration>', 'configuration', stringToNumber)
-  .argument('<strategy>', 'strategy address', stringToAddress)
-  .argument('<allowlistEnabled>', 'allowlist enabled', Boolean)
-  .argument(
-    '<reserveRatioGapBP>',
-    'reserve ratio gap basis points',
-    stringToBigInt,
+  .option(
+    '-md, --minDelaySeconds <minDelaySeconds>',
+    'minimum delay in seconds',
+    stringToNumber,
   )
-  .argument('<timelockExecutor>', 'timelock executor address', stringToAddress)
+  .option(
+    '-mwd, --minWithdrawalDelayTime <minWithdrawalDelayTime>',
+    'minimum withdrawal delay time in seconds',
+    stringToNumber,
+  )
+  .option('-n, --name <name>', 'name of the pool shares')
+  .option('-s, --symbol <symbol>', 'symbol of the pool shares')
+  .option('-p, --proposer <proposer>', 'proposer address', stringToAddress)
+  .option('-e, --executor <executor>', 'executor address', stringToAddress)
+  .option(
+    '-rrg, --reserveRatioGapBP <reserveRatioGapBP>',
+    'reserve ratio gap in basis points',
+    stringToNumber,
+  )
   .action(
     async (
       address: Address,
-      nodeOperator: Address,
-      nodeOperatorManager: Address,
-      nodeOperatorFeeBP: bigint,
-      confirmExpiry: bigint,
-      maxFinalizationTime: bigint,
-      minWithdrawalDelayTime: bigint,
-      configuration: number,
-      strategy: Address,
-      allowlistEnabled: boolean,
-      reserveRatioGapBP: bigint,
-      timelockExecutor: Address,
+      {
+        nodeOperator,
+        nodeOperatorManager,
+        nodeOperatorFeeRate,
+        confirmExpiry,
+        minDelaySeconds,
+        reserveRatioGapBP,
+        proposer,
+        executor,
+        minWithdrawalDelayTime,
+        name,
+        symbol,
+      }: {
+        nodeOperator: Address;
+        nodeOperatorManager: Address;
+        nodeOperatorFeeRate: number;
+        confirmExpiry: number;
+        minDelaySeconds: number;
+        reserveRatioGapBP: number;
+        proposer: Address;
+        executor: Address;
+        minWithdrawalDelayTime: number;
+        name: string;
+        symbol: string;
+      },
     ) => {
-      const contract = getFactoryContract(address);
+      const contract = await getFactoryContract(address);
 
-      const confirmationMessage = `Are you sure you want to create a new vault with a configured wrapper?\n
-      nodeOperator: ${nodeOperator}
-      nodeOperatorManager: ${nodeOperatorManager}
-      nodeOperatorFeeBP: ${nodeOperatorFeeBP}
-      confirmExpiry: ${confirmExpiry}
-      maxFinalizationTime: ${maxFinalizationTime}
-      minWithdrawalDelayTime: ${minWithdrawalDelayTime}
-      configuration: ${configuration}
-      strategy: ${strategy}
-      allowlistEnabled: ${allowlistEnabled}
-      reserveRatioGapBP: ${reserveRatioGapBP}
-      timelockExecutor: ${timelockExecutor}\n`;
+      const nodeOperatorAddress = await getAddress(
+        nodeOperator,
+        'Node Operator',
+      );
+      const nodeOperatorManagerAddress = await getAddress(
+        nodeOperatorManager,
+        'Node Operator Manager',
+      );
+
+      const nodeOperatorFeeRateValue =
+        await getNodeOperatorFeeRate(nodeOperatorFeeRate);
+      const confirmExpiryValue = await getConfirmExpiry(confirmExpiry);
+
+      const minDelaySecondsValue = await getMinDelaySeconds(minDelaySeconds);
+      const proposerAddress = await getAddress(proposer, 'Proposer');
+      const executorAddress = await getAddress(executor, 'Executor');
+
+      const minWithdrawalDelayTimeValue = await getMinWithdrawalDelayTime(
+        minWithdrawalDelayTime,
+      );
+
+      const nameValue = await getPoolTokenName(name);
+      const symbolValue = await getPoolTokenSymbol(symbol);
+
+      const vaultConfig: VaultConfig = {
+        nodeOperator: nodeOperatorAddress,
+        nodeOperatorManager: nodeOperatorManagerAddress,
+        nodeOperatorFeeBP: BigInt(nodeOperatorFeeRateValue),
+        confirmExpiry: BigInt(confirmExpiryValue),
+      };
+      const timelockConfig: TimelockConfig = {
+        minDelaySeconds: BigInt(minDelaySecondsValue),
+        proposer: proposerAddress,
+        executor: executorAddress,
+      };
+      const commonPoolConfig: CommonPoolConfig = {
+        minWithdrawalDelayTime: BigInt(minWithdrawalDelayTimeValue),
+        name: nameValue,
+        symbol: symbolValue,
+      };
+
+      const reserveRatioGapBPValue =
+        await getReserveRatioGapBP(reserveRatioGapBP);
+
+      const confirmationMessage = `Are you sure you want to create a new pool GGV strategy with a configured wrapper?\n
+        nodeOperator: ${nodeOperatorAddress}
+        nodeOperatorManager: ${nodeOperatorManagerAddress}
+        nodeOperatorFeeBP: ${nodeOperatorFeeRateValue}
+        confirmExpiry: ${confirmExpiryValue}
+        minDelaySeconds: ${minDelaySecondsValue}
+        proposer: ${proposerAddress}
+        executor: ${executorAddress}
+        minWithdrawalDelayTime: ${minWithdrawalDelayTimeValue}
+        name: ${nameValue}
+        symbol: ${symbolValue}
+        reserveRatioGapBP: ${reserveRatioGapBPValue}\n`;
       const confirm = await confirmOperation(confirmationMessage);
       if (!confirm) return;
 
       const result = await callWriteMethodWithReceipt({
         contract,
-        methodName: 'createVaultWithConfiguredWrapper',
+        methodName: 'createPoolGGVStart',
         payload: [
-          nodeOperator,
-          nodeOperatorManager,
-          nodeOperatorFeeBP,
-          confirmExpiry,
-          maxFinalizationTime,
-          minWithdrawalDelayTime,
-          configuration,
-          strategy,
-          allowlistEnabled,
-          reserveRatioGapBP,
-          timelockExecutor,
+          vaultConfig,
+          timelockConfig,
+          commonPoolConfig,
+          BigInt(reserveRatioGapBPValue),
         ],
+        value: parseEther('1'), // TODO: from contract
       });
 
-      const eventData = await getCreateVaultEventData(
-        result.receipt,
-        result.tx,
-      );
+      if (!result.receipt || !result.tx) {
+        logInfo('Transaction has been sent');
+        return;
+      }
 
+      const eventData = await getCreatePoolEventData(result.receipt, result.tx);
+
+      logInfo('Pool Creation Started');
       logResult({
         data: [
-          ['Vault Address', eventData.vault],
-          ['Pool Address', eventData.pool],
-          ['Withdrawal Queue Address', eventData.withdrawalQueue],
-          ['Strategy Address', eventData.strategy],
-          ['Configuration', eventData.configuration],
+          ['Sender', eventData.sender],
+          ['Strategy Factory', eventData.strategyFactory],
+          ['Strategy Deploy Bytes', eventData.strategyDeployBytes],
+          ['Finish Deadline', eventData.finishDeadline],
           ['Transaction Hash', result.tx],
           ['Block Number', eventData.blockNumber],
         ],
       });
-    },
-  );
 
-factoryWrite
-  .command('create-vault-with-no-minting-no-strategy')
-  .description('create a new vault with no minting no strategy')
-  .argument('<address>', 'factory address', stringToAddress)
-  .argument('<nodeOperator>', 'node operator address', stringToAddress)
-  .argument(
-    '<nodeOperatorManager>',
-    'node operator manager address',
-    stringToAddress,
-  )
-  .argument(
-    '<nodeOperatorFeeBP>',
-    'node operator fee basis points',
-    stringToBigInt,
-  )
-  .argument('<confirmExpiry>', 'confirm expiry', stringToBigInt)
-  .argument('<maxFinalizationTime>', 'max finalization time', stringToBigInt)
-  .argument(
-    '<minWithdrawalDelayTime>',
-    'min withdrawal delay time',
-    stringToBigInt,
-  )
-  .argument('<allowlistEnabled>', 'allowlist enabled', Boolean)
-  .option('-te, --timelockExecutor', 'timelockExecutor', stringToAddress)
-  .action(
-    async (
-      address: Address,
-      nodeOperator: Address,
-      nodeOperatorManager: Address,
-      nodeOperatorFeeBP: bigint,
-      confirmExpiry: bigint,
-      maxFinalizationTime: bigint,
-      minWithdrawalDelayTime: bigint,
-      allowlistEnabled: boolean,
-      { timelockExecutor }: { timelockExecutor: Address },
-    ) => {
-      const contract = getFactoryContract(address);
+      logInfo('Vault Config');
+      logResult({
+        data: [
+          ['Node Operator', eventData.vaultConfig?.nodeOperator],
+          ['Node Operator Manager', eventData.vaultConfig?.nodeOperatorManager],
+          ['Node Operator Fee BP', eventData.vaultConfig?.nodeOperatorFeeBP],
+          ['Confirm Expiry', eventData.vaultConfig?.confirmExpiry],
+        ],
+      });
 
-      const confirmationMessage = `Are you sure you want to create a new vault with no minting no strategy?\n
-      nodeOperator: ${nodeOperator}
-      nodeOperatorManager: ${nodeOperatorManager}
-      nodeOperatorFeeBP: ${nodeOperatorFeeBP}
-      confirmExpiry: ${confirmExpiry}
-      maxFinalizationTime: ${maxFinalizationTime}
-      minWithdrawalDelayTime: ${minWithdrawalDelayTime}
-      allowlistEnabled: ${allowlistEnabled}
-      timelockExecutor: ${timelockExecutor ?? 'undefined'}\n`;
-      const confirm = await confirmOperation(confirmationMessage);
-      if (!confirm) return;
+      logInfo('Common Pool Config');
+      logResult({
+        data: [
+          [
+            'Min Withdrawal Delay Time',
+            eventData.commonPoolConfig?.minWithdrawalDelayTime,
+          ],
+          ['Name', eventData.commonPoolConfig?.name],
+          ['Symbol', eventData.commonPoolConfig?.symbol],
+        ],
+      });
 
-      const result = await callWriteMethodWithReceipt({
+      logInfo('Auxiliary Config');
+      logResult({
+        data: [
+          ['Allowlist Enabled', eventData.auxiliaryConfig?.allowlistEnabled],
+          ['Minting Enabled', eventData.auxiliaryConfig?.mintingEnabled],
+          [
+            'Reserve Ratio Gap BP',
+            eventData.auxiliaryConfig?.reserveRatioGapBP,
+          ],
+        ],
+      });
+
+      logInfo('Timelock Config');
+      logResult({
+        data: [
+          ['Min Delay Seconds', eventData.timelockConfig?.minDelaySeconds],
+          ['Proposer', eventData.timelockConfig?.proposer],
+          ['Executor', eventData.timelockConfig?.executor],
+        ],
+      });
+
+      logInfo('Intermediate');
+      logResult({
+        data: [
+          ['Dashboard', eventData.intermediate?.dashboard],
+          ['Pool Proxy', eventData.intermediate?.poolProxy],
+          [
+            'Withdrawal Queue Proxy',
+            eventData.intermediate?.withdrawalQueueProxy,
+          ],
+          ['Timelock', eventData.intermediate?.timelock],
+        ],
+      });
+
+      if (
+        !eventData.auxiliaryConfig ||
+        !eventData.strategyFactory ||
+        !eventData.strategyDeployBytes ||
+        !eventData.intermediate
+      ) {
+        logError('Missing required data for pool creation finalize');
+        return;
+      }
+
+      logInfo('Pool Creation Finalize');
+
+      const finalizeResult = await callWriteMethodWithReceipt({
         contract,
-        methodName: 'createVaultWithNoMintingNoStrategy',
+        methodName: 'createPoolFinish',
         payload: [
-          nodeOperator,
-          nodeOperatorManager,
-          nodeOperatorFeeBP,
-          confirmExpiry,
-          maxFinalizationTime,
-          minWithdrawalDelayTime,
-          allowlistEnabled,
-          timelockExecutor ?? undefined,
+          vaultConfig,
+          commonPoolConfig,
+          eventData.auxiliaryConfig,
+          timelockConfig,
+          eventData.strategyFactory,
+          eventData.strategyDeployBytes,
+          eventData.intermediate,
         ],
       });
 
-      const eventData = await getCreateVaultEventData(
-        result.receipt,
-        result.tx,
+      if (!finalizeResult.receipt || !finalizeResult.tx) {
+        logInfo('Transaction has been sent');
+        return;
+      }
+
+      const finalizeEventData = await getFinalizePoolEventData(
+        finalizeResult.receipt,
+        finalizeResult.tx,
       );
 
+      const poolType =
+        finalizeEventData.poolType &&
+        fromHex(finalizeEventData.poolType, 'string').replace(/\W/g, '');
+
+      logInfo('Pool Creation Finalized');
       logResult({
         data: [
-          ['Vault Address', eventData.vault],
-          ['Pool Address', eventData.pool],
-          ['Withdrawal Queue Address', eventData.withdrawalQueue],
-          ['Strategy Address', eventData.strategy],
-          ['Configuration', eventData.configuration],
-          ['Transaction Hash', result.tx],
-          ['Block Number', eventData.blockNumber],
-        ],
-      });
-    },
-  );
-
-factoryWrite
-  .command('create-vault-with-minting-no-strategy')
-  .description('create a new vault with minting no strategy')
-  .argument('<address>', 'factory address', stringToAddress)
-  .argument('<nodeOperator>', 'node operator address', stringToAddress)
-  .argument(
-    '<nodeOperatorManager>',
-    'node operator manager address',
-    stringToAddress,
-  )
-  .argument(
-    '<nodeOperatorFeeBP>',
-    'node operator fee basis points',
-    stringToBigInt,
-  )
-  .argument('<confirmExpiry>', 'confirm expiry', stringToBigInt)
-  .argument('<maxFinalizationTime>', 'max finalization time', stringToBigInt)
-  .argument(
-    '<minWithdrawalDelayTime>',
-    'min withdrawal delay time',
-    stringToBigInt,
-  )
-  .argument('<allowlistEnabled>', 'allowlist enabled', Boolean)
-  .argument(
-    '<reserveRatioGapBP>',
-    'reserve ratio gap basis points',
-    stringToBigInt,
-  )
-  .option('-te, --timelockExecutor', 'timelockExecutor', stringToAddress)
-  .action(
-    async (
-      address: Address,
-      nodeOperator: Address,
-      nodeOperatorManager: Address,
-      nodeOperatorFeeBP: bigint,
-      confirmExpiry: bigint,
-      maxFinalizationTime: bigint,
-      minWithdrawalDelayTime: bigint,
-      allowlistEnabled: boolean,
-      reserveRatioGapBP: bigint,
-      { timelockExecutor }: { timelockExecutor: Address },
-    ) => {
-      const contract = getFactoryContract(address);
-
-      const confirmationMessage = `Are you sure you want to create a new vault with minting no strategy?\n
-      nodeOperator: ${nodeOperator}
-      nodeOperatorManager: ${nodeOperatorManager}
-      nodeOperatorFeeBP: ${nodeOperatorFeeBP}
-      confirmExpiry: ${confirmExpiry}
-      maxFinalizationTime: ${maxFinalizationTime}
-      minWithdrawalDelayTime: ${minWithdrawalDelayTime}
-      allowlistEnabled: ${allowlistEnabled}
-      reserveRatioGapBP: ${reserveRatioGapBP}
-      timelockExecutor: ${timelockExecutor ?? 'undefined'}\n`;
-      const confirm = await confirmOperation(confirmationMessage);
-      if (!confirm) return;
-
-      const result = await callWriteMethodWithReceipt({
-        contract,
-        methodName: 'createVaultWithMintingNoStrategy',
-        payload: [
-          nodeOperator,
-          nodeOperatorManager,
-          nodeOperatorFeeBP,
-          confirmExpiry,
-          maxFinalizationTime,
-          minWithdrawalDelayTime,
-          allowlistEnabled,
-          reserveRatioGapBP,
-          timelockExecutor ?? undefined,
-        ],
-      });
-
-      const eventData = await getCreateVaultEventData(
-        result.receipt,
-        result.tx,
-      );
-
-      logResult({
-        data: [
-          ['Vault Address', eventData.vault],
-          ['Pool Address', eventData.pool],
-          ['Withdrawal Queue Address', eventData.withdrawalQueue],
-          ['Strategy Address', eventData.strategy],
-          ['Configuration', eventData.configuration],
-          ['Transaction Hash', result.tx],
-          ['Block Number', eventData.blockNumber],
-        ],
-      });
-    },
-  );
-
-factoryWrite
-  .command('create-vault-with-loop-strategy')
-  .description('create a new vault with loop strategy')
-  .argument('<address>', 'factory address', stringToAddress)
-  .argument('<nodeOperator>', 'node operator address', stringToAddress)
-  .argument(
-    '<nodeOperatorManager>',
-    'node operator manager address',
-    stringToAddress,
-  )
-  .argument(
-    '<nodeOperatorFeeBP>',
-    'node operator fee basis points',
-    stringToBigInt,
-  )
-  .argument('<confirmExpiry>', 'confirm expiry', stringToBigInt)
-  .argument('<maxFinalizationTime>', 'max finalization time', stringToBigInt)
-  .argument(
-    '<minWithdrawalDelayTime>',
-    'min withdrawal delay time',
-    stringToBigInt,
-  )
-  .argument('<allowlistEnabled>', 'allowlist enabled', Boolean)
-  .argument(
-    '<reserveRatioGapBP>',
-    'reserve ratio gap basis points',
-    stringToBigInt,
-  )
-  .argument('<loops>', 'loops', stringToBigInt)
-  .option('-te, --timelockExecutor', 'timelockExecutor', stringToAddress)
-  .action(
-    async (
-      address: Address,
-      nodeOperator: Address,
-      nodeOperatorManager: Address,
-      nodeOperatorFeeBP: bigint,
-      confirmExpiry: bigint,
-      maxFinalizationTime: bigint,
-      minWithdrawalDelayTime: bigint,
-      allowlistEnabled: boolean,
-      reserveRatioGapBP: bigint,
-      loops: bigint,
-      { timelockExecutor }: { timelockExecutor: Address },
-    ) => {
-      const contract = getFactoryContract(address);
-
-      const confirmationMessage = `Are you sure you want to create a new vault with loop strategy?\n
-      nodeOperator: ${nodeOperator}
-      nodeOperatorManager: ${nodeOperatorManager}
-      nodeOperatorFeeBP: ${nodeOperatorFeeBP}
-      confirmExpiry: ${confirmExpiry}
-      maxFinalizationTime: ${maxFinalizationTime}
-      minWithdrawalDelayTime: ${minWithdrawalDelayTime}
-      allowlistEnabled: ${allowlistEnabled}
-      reserveRatioGapBP: ${reserveRatioGapBP}
-      loops: ${loops}
-      timelockExecutor: ${timelockExecutor ?? 'undefined'}\n`;
-      const confirm = await confirmOperation(confirmationMessage);
-      if (!confirm) return;
-
-      const result = await callWriteMethodWithReceipt({
-        contract,
-        methodName: 'createVaultWithLoopStrategy',
-        payload: [
-          nodeOperator,
-          nodeOperatorManager,
-          nodeOperatorFeeBP,
-          confirmExpiry,
-          maxFinalizationTime,
-          minWithdrawalDelayTime,
-          allowlistEnabled,
-          reserveRatioGapBP,
-          loops,
-          timelockExecutor ?? undefined,
-        ],
-      });
-
-      const eventData = await getCreateVaultEventData(
-        result.receipt,
-        result.tx,
-      );
-
-      logResult({
-        data: [
-          ['Vault Address', eventData.vault],
-          ['Pool Address', eventData.pool],
-          ['Withdrawal Queue Address', eventData.withdrawalQueue],
-          ['Strategy Address', eventData.strategy],
-          ['Configuration', eventData.configuration],
-          ['Transaction Hash', result.tx],
-          ['Block Number', eventData.blockNumber],
-        ],
-      });
-    },
-  );
-
-factoryWrite
-  .command('create-vault-with-ggv-strategy')
-  .description('create a new vault with ggv strategy')
-  .argument('<address>', 'factory address', stringToAddress)
-  .argument('<nodeOperator>', 'node operator address', stringToAddress)
-  .argument(
-    '<nodeOperatorManager>',
-    'node operator manager address',
-    stringToAddress,
-  )
-  .argument(
-    '<nodeOperatorFeeBP>',
-    'node operator fee basis points',
-    stringToBigInt,
-  )
-  .argument('<confirmExpiry>', 'confirm expiry', stringToBigInt)
-  .argument('<maxFinalizationTime>', 'max finalization time', stringToBigInt)
-  .argument(
-    '<minWithdrawalDelayTime>',
-    'min withdrawal delay time',
-    stringToBigInt,
-  )
-  .argument('<allowlistEnabled>', 'allowlist enabled', Boolean)
-  .argument(
-    '<reserveRatioGapBP>',
-    'reserve ratio gap basis points',
-    stringToBigInt,
-  )
-  .argument('<teller>', 'teller address', stringToAddress)
-  .argument('<boringQueue>', 'boring queue address', stringToAddress)
-  .option('-te, --timelockExecutor', 'timelockExecutor', stringToAddress)
-  .action(
-    async (
-      address: Address,
-      nodeOperator: Address,
-      nodeOperatorManager: Address,
-      nodeOperatorFeeBP: bigint,
-      confirmExpiry: bigint,
-      maxFinalizationTime: bigint,
-      minWithdrawalDelayTime: bigint,
-      allowlistEnabled: boolean,
-      reserveRatioGapBP: bigint,
-      teller: Address,
-      boringQueue: Address,
-      { timelockExecutor }: { timelockExecutor: Address },
-    ) => {
-      const contract = getFactoryContract(address);
-
-      const confirmationMessage = `Are you sure you want to create a new vault with ggv strategy?\n
-      nodeOperator: ${nodeOperator}
-      nodeOperatorManager: ${nodeOperatorManager}
-      nodeOperatorFeeBP: ${nodeOperatorFeeBP}
-      confirmExpiry: ${confirmExpiry}
-      maxFinalizationTime: ${maxFinalizationTime}
-      minWithdrawalDelayTime: ${minWithdrawalDelayTime}
-      allowlistEnabled: ${allowlistEnabled}
-      reserveRatioGapBP: ${reserveRatioGapBP}
-      teller: ${teller}
-      boringQueue: ${boringQueue}
-      timelockExecutor: ${timelockExecutor ?? 'undefined'}\n`;
-      const confirm = await confirmOperation(confirmationMessage);
-      if (!confirm) return;
-
-      const result = await callWriteMethodWithReceipt({
-        contract,
-        methodName: 'createVaultWithGGVStrategy',
-        payload: [
-          nodeOperator,
-          nodeOperatorManager,
-          nodeOperatorFeeBP,
-          confirmExpiry,
-          maxFinalizationTime,
-          minWithdrawalDelayTime,
-          allowlistEnabled,
-          reserveRatioGapBP,
-          teller,
-          boringQueue,
-          timelockExecutor ?? undefined,
-        ],
-      });
-
-      const eventData = await getCreateVaultEventData(
-        result.receipt,
-        result.tx,
-      );
-
-      logResult({
-        data: [
-          ['Vault Address', eventData.vault],
-          ['Pool Address', eventData.pool],
-          ['Withdrawal Queue Address', eventData.withdrawalQueue],
-          ['Strategy Address', eventData.strategy],
-          ['Configuration', eventData.configuration],
-          ['Transaction Hash', result.tx],
-          ['Block Number', eventData.blockNumber],
+          ['Vault', finalizeEventData.vault],
+          ['Pool', finalizeEventData.pool],
+          ['Pool Type', poolType],
+          ['Withdrawal Queue', finalizeEventData.withdrawalQueue],
+          ['Strategy Factory', finalizeEventData.strategyFactory],
+          ['Strategy Deploy Bytes', finalizeEventData.strategyDeployBytes],
+          ['Strategy', finalizeEventData.strategy],
+          ['Transaction Hash', finalizeResult.tx],
+          ['Block Number', finalizeEventData.blockNumber],
         ],
       });
     },

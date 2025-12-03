@@ -17,6 +17,16 @@ export const StvPoolAbi = [
         type: 'address',
         internalType: 'address',
       },
+      {
+        name: '_distributor',
+        type: 'address',
+        internalType: 'address',
+      },
+      {
+        name: '_poolType',
+        type: 'bytes32',
+        internalType: 'bytes32',
+      },
     ],
     stateMutability: 'nonpayable',
   },
@@ -52,19 +62,6 @@ export const StvPoolAbi = [
   },
   {
     type: 'function',
-    name: 'ASSET_DECIMALS',
-    inputs: [],
-    outputs: [
-      {
-        name: '',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
     name: 'DASHBOARD',
     inputs: [],
     outputs: [
@@ -78,20 +75,46 @@ export const StvPoolAbi = [
   },
   {
     type: 'function',
-    name: 'DECIMALS',
+    name: 'DEFAULT_ADMIN_ROLE',
     inputs: [],
     outputs: [
       {
         name: '',
-        type: 'uint256',
-        internalType: 'uint256',
+        type: 'bytes32',
+        internalType: 'bytes32',
       },
     ],
     stateMutability: 'view',
   },
   {
     type: 'function',
-    name: 'DEFAULT_ADMIN_ROLE',
+    name: 'DEPOSITS_FEATURE',
+    inputs: [],
+    outputs: [
+      {
+        name: '',
+        type: 'bytes32',
+        internalType: 'bytes32',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'DEPOSITS_PAUSE_ROLE',
+    inputs: [],
+    outputs: [
+      {
+        name: '',
+        type: 'bytes32',
+        internalType: 'bytes32',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'DEPOSITS_RESUME_ROLE',
     inputs: [],
     outputs: [
       {
@@ -117,39 +140,13 @@ export const StvPoolAbi = [
   },
   {
     type: 'function',
-    name: 'EXTRA_DECIMALS_BASE',
-    inputs: [],
-    outputs: [
-      {
-        name: '',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'REQUEST_VALIDATOR_EXIT_ROLE',
-    inputs: [],
-    outputs: [
-      {
-        name: '',
-        type: 'bytes32',
-        internalType: 'bytes32',
-      },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'STAKING_VAULT',
+    name: 'DISTRIBUTOR',
     inputs: [],
     outputs: [
       {
         name: '',
         type: 'address',
-        internalType: 'address',
+        internalType: 'contract Distributor',
       },
     ],
     stateMutability: 'view',
@@ -182,13 +179,13 @@ export const StvPoolAbi = [
   },
   {
     type: 'function',
-    name: 'TRIGGER_VALIDATOR_WITHDRAWAL_ROLE',
+    name: 'VAULT',
     inputs: [],
     outputs: [
       {
         name: '',
-        type: 'bytes32',
-        internalType: 'bytes32',
+        type: 'address',
+        internalType: 'contract IStakingVault',
       },
     ],
     stateMutability: 'view',
@@ -333,72 +330,6 @@ export const StvPoolAbi = [
   },
   {
     type: 'function',
-    name: 'claimConnectDeposit',
-    inputs: [
-      {
-        name: '_recipient',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    name: 'claimWithdrawal',
-    inputs: [
-      {
-        name: '_requestId',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_recipient',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
-    outputs: [
-      {
-        name: 'ethClaimed',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-    ],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    name: 'claimWithdrawals',
-    inputs: [
-      {
-        name: '_requestIds',
-        type: 'uint256[]',
-        internalType: 'uint256[]',
-      },
-      {
-        name: '_hints',
-        type: 'uint256[]',
-        internalType: 'uint256[]',
-      },
-      {
-        name: '_recipient',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
-    outputs: [
-      {
-        name: 'claimedEth',
-        type: 'uint256[]',
-        internalType: 'uint256[]',
-      },
-    ],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
     name: 'decimals',
     inputs: [],
     outputs: [
@@ -415,26 +346,7 @@ export const StvPoolAbi = [
     name: 'depositETH',
     inputs: [
       {
-        name: '_referral',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
-    outputs: [
-      {
-        name: 'stv',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-    ],
-    stateMutability: 'payable',
-  },
-  {
-    type: 'function',
-    name: 'depositETH',
-    inputs: [
-      {
-        name: '_receiver',
+        name: '_recipient',
         type: 'address',
         internalType: 'address',
       },
@@ -452,26 +364,6 @@ export const StvPoolAbi = [
       },
     ],
     stateMutability: 'payable',
-  },
-  {
-    type: 'function',
-    name: 'depositETH',
-    inputs: [],
-    outputs: [
-      {
-        name: 'stv',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-    ],
-    stateMutability: 'payable',
-  },
-  {
-    type: 'function',
-    name: 'disconnectVault',
-    inputs: [],
-    outputs: [],
-    stateMutability: 'nonpayable',
   },
   {
     type: 'function',
@@ -666,6 +558,25 @@ export const StvPoolAbi = [
   },
   {
     type: 'function',
+    name: 'isFeaturePaused',
+    inputs: [
+      {
+        name: '_featureId',
+        type: 'bytes32',
+        internalType: 'bytes32',
+      },
+    ],
+    outputs: [
+      {
+        name: 'isPaused',
+        type: 'bool',
+        internalType: 'bool',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
     name: 'name',
     inputs: [],
     outputs: [
@@ -692,6 +603,26 @@ export const StvPoolAbi = [
         name: 'assets',
         type: 'uint256',
         internalType: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'pauseDeposits',
+    inputs: [],
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    name: 'poolType',
+    inputs: [],
+    outputs: [
+      {
+        name: '',
+        type: 'bytes32',
+        internalType: 'bytes32',
       },
     ],
     stateMutability: 'view',
@@ -806,101 +737,9 @@ export const StvPoolAbi = [
   },
   {
     type: 'function',
-    name: 'requestValidatorExit',
-    inputs: [
-      {
-        name: '_pubkeys',
-        type: 'bytes',
-        internalType: 'bytes',
-      },
-    ],
+    name: 'resumeDeposits',
+    inputs: [],
     outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    name: 'requestWithdrawal',
-    inputs: [
-      {
-        name: '_stvToWithdraw',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_receiver',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
-    outputs: [
-      {
-        name: 'requestId',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-    ],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    name: 'requestWithdrawal',
-    inputs: [
-      {
-        name: '_stvToWithdraw',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-    ],
-    outputs: [
-      {
-        name: 'requestId',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-    ],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    name: 'requestWithdrawalETH',
-    inputs: [
-      {
-        name: '_assetsToWithdraw',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-    ],
-    outputs: [
-      {
-        name: 'requestId',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-    ],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    name: 'requestWithdrawals',
-    inputs: [
-      {
-        name: '_stvToWithdraw',
-        type: 'uint256[]',
-        internalType: 'uint256[]',
-      },
-      {
-        name: '_receiver',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
-    outputs: [
-      {
-        name: 'requestIds',
-        type: 'uint256[]',
-        internalType: 'uint256[]',
-      },
-    ],
     stateMutability: 'nonpayable',
   },
   {
@@ -968,19 +807,6 @@ export const StvPoolAbi = [
   },
   {
     type: 'function',
-    name: 'totalExceedingMintedSteth',
-    inputs: [],
-    outputs: [
-      {
-        name: 'steth',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
     name: 'totalLiabilityShares',
     inputs: [],
     outputs: [
@@ -1025,6 +851,19 @@ export const StvPoolAbi = [
     outputs: [
       {
         name: 'unassignedLiabilityShares',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'totalUnassignedLiabilitySteth',
+    inputs: [],
+    outputs: [
+      {
+        name: 'unassignedLiabilitySteth',
         type: 'uint256',
         internalType: 'uint256',
       },
@@ -1086,103 +925,21 @@ export const StvPoolAbi = [
   },
   {
     type: 'function',
-    name: 'triggerValidatorWithdrawals',
+    name: 'transferFromForWithdrawalQueue',
     inputs: [
       {
-        name: '_pubkeys',
-        type: 'bytes',
-        internalType: 'bytes',
-      },
-      {
-        name: '_amountsInGwei',
-        type: 'uint64[]',
-        internalType: 'uint64[]',
-      },
-      {
-        name: '_refundRecipient',
+        name: '_from',
         type: 'address',
         internalType: 'address',
+      },
+      {
+        name: '_stv',
+        type: 'uint256',
+        internalType: 'uint256',
       },
     ],
     outputs: [],
-    stateMutability: 'payable',
-  },
-  {
-    type: 'function',
-    name: 'vaultDisconnected',
-    inputs: [],
-    outputs: [
-      {
-        name: '',
-        type: 'bool',
-        internalType: 'bool',
-      },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'withdrawableEthOf',
-    inputs: [
-      {
-        name: '_account',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
-    outputs: [
-      {
-        name: 'ethAmount',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'withdrawableStvOf',
-    inputs: [
-      {
-        name: '_account',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
-    outputs: [
-      {
-        name: 'stv',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'withdrawalQueue',
-    inputs: [],
-    outputs: [
-      {
-        name: '',
-        type: 'address',
-        internalType: 'contract WithdrawalQueue',
-      },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'wrapperType',
-    inputs: [],
-    outputs: [
-      {
-        name: '',
-        type: 'string',
-        internalType: 'string',
-      },
-    ],
-    stateMutability: 'pure',
+    stateMutability: 'nonpayable',
   },
   {
     type: 'event',
@@ -1237,25 +994,6 @@ export const StvPoolAbi = [
   },
   {
     type: 'event',
-    name: 'ConnectDepositClaimed',
-    inputs: [
-      {
-        name: 'recipient',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
-      {
-        name: 'amount',
-        type: 'uint256',
-        indexed: false,
-        internalType: 'uint256',
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: 'event',
     name: 'Deposit',
     inputs: [
       {
@@ -1265,7 +1003,7 @@ export const StvPoolAbi = [
         internalType: 'address',
       },
       {
-        name: 'receiver',
+        name: 'recipient',
         type: 'address',
         indexed: true,
         internalType: 'address',
@@ -1287,6 +1025,44 @@ export const StvPoolAbi = [
         type: 'uint256',
         indexed: false,
         internalType: 'uint256',
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: 'event',
+    name: 'FeaturePaused',
+    inputs: [
+      {
+        name: 'featureId',
+        type: 'bytes32',
+        indexed: true,
+        internalType: 'bytes32',
+      },
+      {
+        name: 'account',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: 'event',
+    name: 'FeatureUnpaused',
+    inputs: [
+      {
+        name: 'featureId',
+        type: 'bytes32',
+        indexed: true,
+        internalType: 'bytes32',
+      },
+      {
+        name: 'account',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
     ],
     anonymous: false,
@@ -1415,65 +1191,7 @@ export const StvPoolAbi = [
         internalType: 'uint256',
       },
       {
-        name: 'ethAmount',
-        type: 'uint256',
-        indexed: false,
-        internalType: 'uint256',
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: 'event',
-    name: 'ValidatorExitRequested',
-    inputs: [
-      {
-        name: 'pubkeys',
-        type: 'bytes',
-        indexed: false,
-        internalType: 'bytes',
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: 'event',
-    name: 'ValidatorWithdrawalsTriggered',
-    inputs: [
-      {
-        name: 'pubkeys',
-        type: 'bytes',
-        indexed: false,
-        internalType: 'bytes',
-      },
-      {
-        name: 'amountsInGwei',
-        type: 'uint64[]',
-        indexed: false,
-        internalType: 'uint64[]',
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: 'event',
-    name: 'VaultDisconnected',
-    inputs: [
-      {
-        name: 'initiator',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: 'event',
-    name: 'VaultFunded',
-    inputs: [
-      {
-        name: 'amount',
+        name: 'ethFunded',
         type: 'uint256',
         indexed: false,
         internalType: 'uint256',
@@ -1601,22 +1319,34 @@ export const StvPoolAbi = [
   },
   {
     type: 'error',
+    name: 'FeaturePauseEnforced',
+    inputs: [
+      {
+        name: 'featureId',
+        type: 'bytes32',
+        internalType: 'bytes32',
+      },
+    ],
+  },
+  {
+    type: 'error',
+    name: 'FeaturePauseExpected',
+    inputs: [
+      {
+        name: 'featureId',
+        type: 'bytes32',
+        internalType: 'bytes32',
+      },
+    ],
+  },
+  {
+    type: 'error',
     name: 'InvalidInitialization',
     inputs: [],
   },
   {
     type: 'error',
-    name: 'InvalidReceiver',
-    inputs: [],
-  },
-  {
-    type: 'error',
-    name: 'InvalidRequestType',
-    inputs: [],
-  },
-  {
-    type: 'error',
-    name: 'NoMintingCapacityAvailable',
+    name: 'InvalidRecipient',
     inputs: [],
   },
   {
@@ -1658,22 +1388,22 @@ export const StvPoolAbi = [
   },
   {
     type: 'error',
-    name: 'TransferNotAllowed',
-    inputs: [],
-  },
-  {
-    type: 'error',
     name: 'UnassignedLiabilityOnVault',
     inputs: [],
   },
   {
     type: 'error',
-    name: 'ZeroDeposit',
+    name: 'VaultInBadDebt',
     inputs: [],
   },
   {
     type: 'error',
-    name: 'ZeroStv',
+    name: 'VaultReportStale',
+    inputs: [],
+  },
+  {
+    type: 'error',
+    name: 'ZeroDeposit',
     inputs: [],
   },
 ] as const;

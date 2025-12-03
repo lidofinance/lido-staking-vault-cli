@@ -36,7 +36,7 @@ export const renderSimpleCharts = async ({
   limit?: number;
   cacheUse?: boolean;
 }) => {
-  const dashboardContract = getDashboardContract(dashboard);
+  const dashboardContract = await getDashboardContract(dashboard);
   const vault = await callReadMethodSilent(dashboardContract, 'stakingVault');
 
   logInfo(

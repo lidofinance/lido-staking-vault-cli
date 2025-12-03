@@ -8,12 +8,12 @@ import {
 import { getPredepositGuaranteeContract } from 'contracts';
 import { Hex } from 'viem';
 
-const VALIDATORS_STATUS = {
+export const VALIDATOR_STAGES = {
   0: 'NONE',
   1: 'PREDEPOSITED',
   2: 'PROVEN',
-  3: 'DISPROVEN',
-  4: 'COMPENSATED',
+  3: 'ACTIVATED',
+  5: 'COMPENSATED',
 };
 
 // Get base info
@@ -138,11 +138,12 @@ export const getValidatorStatus = async (validatorPubkey: Hex) => {
 
     hideSpinner();
 
-    const status = VALIDATORS_STATUS[stage as keyof typeof VALIDATORS_STATUS];
+    const validatorStage =
+      VALIDATOR_STAGES[stage as keyof typeof VALIDATOR_STAGES];
     logResult({
       data: [
         ['Validator pubkey', hexValidatorPubkey],
-        ['Status', `${status} (${stage})`],
+        ['Stage', `${validatorStage} (${stage})`],
         ['Staking vault', stakingVault],
         ['Node operator', nodeOperator],
       ],

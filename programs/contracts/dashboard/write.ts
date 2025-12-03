@@ -12,7 +12,6 @@ import {
   mintSteth,
   burnSteth,
   checkIsReportFresh,
-  confirmSettledGrowth,
   checkBLSDeposits,
 } from 'features';
 import {
@@ -60,7 +59,7 @@ dashboardWrite
   .argument('<address>', 'dashboard address', stringToAddress)
   .argument('<newOwner>', 'address of the new owner', stringToAddress)
   .action(async (address: Address, newOwner: Address) => {
-    const contract = getDashboardContract(address);
+    const contract = await getDashboardContract(address);
     const vault = await callReadMethod(contract, 'stakingVault');
 
     const confirm = await confirmOperation(
@@ -80,13 +79,16 @@ dashboardWrite
   .description('disconnects the staking vault from the vault hub')
   .argument('<address>', 'dashboard address', stringToAddress)
   .action(async (address: Address) => {
-    const contract = getDashboardContract(address);
+    const contract = await getDashboardContract(address);
     const vault = await callReadMethod(contract, 'stakingVault');
 
     const confirm = await confirmOperation(
       `Are you sure you want to disconnect the staking vault ${vault}?`,
     );
     if (!confirm) return;
+
+    const isReportFresh = await checkIsReportFresh(vault);
+    if (!isReportFresh) return;
 
     await callWriteMethodWithReceipt({
       contract,
@@ -101,7 +103,7 @@ dashboardWrite
   .argument('<address>', 'dashboard address', stringToAddress)
   .argument('<ether>', 'amount of ether to be funded (in ETH)')
   .action(async (address: Address, ether: string) => {
-    const contract = getDashboardContract(address);
+    const contract = await getDashboardContract(address);
     const vault = await callReadMethod(contract, 'stakingVault');
 
     const confirm = await confirmOperation(
@@ -124,7 +126,7 @@ dashboardWrite
   .argument('<recipient>', 'address of the recipient', stringToAddress)
   .argument('<eth>', 'amount of ether to withdraw (in ETH)')
   .action(async (address: Address, recipient: Address, ether: string) => {
-    const contract = getDashboardContract(address);
+    const contract = await getDashboardContract(address);
     const vault = await callReadMethod(contract, 'stakingVault');
 
     const confirm = await confirmOperation(
@@ -148,7 +150,7 @@ dashboardWrite
   .argument('<address>', 'dashboard address', stringToAddress)
   .argument('<validatorPubKey>', 'public key of the validator to exit')
   .action(async (address: Address, validatorPubKey: Address) => {
-    const contract = getDashboardContract(address);
+    const contract = await getDashboardContract(address);
     const vault = await callReadMethod(contract, 'stakingVault');
 
     const confirm = await confirmOperation(
@@ -187,9 +189,9 @@ dashboardWrite
     ) => {
       const mergedPubkeys: Hex = pubkeys.join('') as Hex;
 
-      const contract = getDashboardContract(address);
+      const contract = await getDashboardContract(address);
       const vault = await callReadMethod(contract, 'stakingVault');
-      const vaultContract = getStakingVaultContract(vault);
+      const vaultContract = await getStakingVaultContract(vault);
       const fee = await callReadMethod(
         vaultContract,
         'calculateValidatorWithdrawalFee',
@@ -225,7 +227,7 @@ dashboardWrite
   .argument('<amountOfShares>', 'amount of shares to mint (in Shares)')
   .action(
     async (address: Address, recipient: Address, amountOfShares: string) => {
-      const contract = getDashboardContract(address);
+      const contract = await getDashboardContract(address);
       const vault = await callReadMethod(contract, 'stakingVault');
 
       await mintShares(
@@ -246,7 +248,7 @@ dashboardWrite
   .argument('<amountOfSteth>', 'amount of stETH to mint')
   .action(
     async (address: Address, recipient: Address, amountOfSteth: string) => {
-      const contract = getDashboardContract(address);
+      const contract = await getDashboardContract(address);
       const vault = await callReadMethod(contract, 'stakingVault');
 
       await mintSteth(contract, recipient, parseEther(amountOfSteth), vault);
@@ -261,7 +263,7 @@ dashboardWrite
   .argument('<amountOfWsteth>', 'amount of wstETH to mint')
   .action(
     async (address: Address, recipient: Address, amountOfWsteth: string) => {
-      const contract = getDashboardContract(address);
+      const contract = await getDashboardContract(address);
       const vault = await callReadMethod(contract, 'stakingVault');
 
       await mintShares(
@@ -283,7 +285,7 @@ dashboardWrite
   .argument('<address>', 'dashboard address', stringToAddress)
   .argument('<amountOfShares>', 'amount of shares to burn (in Shares)')
   .action(async (address: Address, amountOfShares: string) => {
-    const contract = getDashboardContract(address);
+    const contract = await getDashboardContract(address);
     const vault = await callReadMethod(contract, 'stakingVault');
 
     await burnShares(contract, parseEther(amountOfShares), vault, 'burnShares');
@@ -297,7 +299,7 @@ dashboardWrite
   .argument('<address>', 'dashboard address', stringToAddress)
   .argument('<amountOfShares>', 'amount of shares to burn (in stETH)')
   .action(async (address: Address, amountOfShares: string) => {
-    const contract = getDashboardContract(address);
+    const contract = await getDashboardContract(address);
     const vault = await callReadMethod(contract, 'stakingVault');
 
     await burnSteth(contract, parseEther(amountOfShares), vault);
@@ -309,7 +311,7 @@ dashboardWrite
   .argument('<address>', 'dashboard address', stringToAddress)
   .argument('<tokens>', 'amount of wstETH tokens to burn (in wstETH)')
   .action(async (address: Address, tokens: string) => {
-    const contract = getDashboardContract(address);
+    const contract = await getDashboardContract(address);
     const vault = await callReadMethod(contract, 'stakingVault');
 
     await burnShares(contract, parseEther(tokens), vault, 'burnWstETH');
@@ -321,7 +323,7 @@ dashboardWrite
   .argument('<address>', 'dashboard address', stringToAddress)
   .argument('<ether>', 'amount of ether to rebalance (in ETH)', etherToWei)
   .action(async (address: Address, ether: bigint) => {
-    const contract = getDashboardContract(address);
+    const contract = await getDashboardContract(address);
     const vault = await callReadMethod(contract, 'stakingVault');
 
     const confirm = await confirmOperation(
@@ -343,7 +345,7 @@ dashboardWrite
   .argument('<address>', 'dashboard address', stringToAddress)
   .argument('<shares>', 'amount of shares to rebalance (in shares)', etherToWei)
   .action(async (address: Address, shares: bigint) => {
-    const contract = getDashboardContract(address);
+    const contract = await getDashboardContract(address);
     const vault = await callReadMethod(contract, 'stakingVault');
 
     const confirm = await confirmOperation(
@@ -382,7 +384,7 @@ dashboardWrite
       amount: bigint,
       recipient: Address,
     ) => {
-      const contract = getDashboardContract(address);
+      const contract = await getDashboardContract(address);
 
       const confirm = await confirmOperation(
         `Are you sure you want to recover the token ${token} with amount ${formatEther(amount)} from the dashboard contract ${address} to ${recipient}?`,
@@ -421,7 +423,7 @@ dashboardWrite
       amount: bigint,
       recipient: Address,
     ) => {
-      const contract = getDashboardContract(address);
+      const contract = await getDashboardContract(address);
 
       const confirm = await confirmOperation(
         `Are you sure you want to recover the token ${token} with amount ${formatEther(amount)} from the dashboard contract ${address} to ${recipient}?`,
@@ -441,7 +443,7 @@ dashboardWrite
   .description('Pauses beacon chain deposits on the staking vault.')
   .argument('<address>', 'dashboard address', stringToAddress)
   .action(async (address: Address) => {
-    const contract = getDashboardContract(address);
+    const contract = await getDashboardContract(address);
     const vault = await callReadMethod(contract, 'stakingVault');
 
     const confirm = await confirmOperation(
@@ -461,7 +463,7 @@ dashboardWrite
   .description('resumes deposits to beacon chain')
   .argument('<address>', 'dashboard address', stringToAddress)
   .action(async (address: Address) => {
-    const contract = getDashboardContract(address);
+    const contract = await getDashboardContract(address);
     const vault = await callReadMethod(contract, 'stakingVault');
 
     const confirm = await confirmOperation(
@@ -496,7 +498,7 @@ dashboardWrite
     ...]`,
   )
   .action(async (address: Address, roleAssignment: RoleAssignment[]) => {
-    const contract = getDashboardContract(address);
+    const contract = await getDashboardContract(address);
     if (!Array.isArray(roleAssignment)) {
       throw new Error(
         'the 2nd argument should be an array of role assignments',
@@ -538,7 +540,7 @@ dashboardWrite
     ...]`,
   )
   .action(async (address: Address, roleAssignment: RoleAssignment[]) => {
-    const contract = getDashboardContract(address);
+    const contract = await getDashboardContract(address);
     if (!Array.isArray(roleAssignment)) {
       throw new Error(
         'the 2nd argument should be an array of role assignments',
@@ -591,9 +593,9 @@ dashboardWrite
       deposits: Deposit[],
       { blsCheck }: { blsCheck: boolean },
     ) => {
-      const contract = getDashboardContract(address);
+      const contract = await getDashboardContract(address);
       const vault = await callReadMethod(contract, 'stakingVault');
-      const vaultContract = getStakingVaultContract(vault);
+      const vaultContract = await getStakingVaultContract(vault);
 
       const confirm = await confirmOperation(
         `Are you sure you want to unguaranteed deposit ${deposits.length} deposits to the beacon chain in the staking vault ${vault}?
@@ -620,9 +622,9 @@ dashboardWrite
   .argument('<address>', 'dashboard address', stringToAddress)
   .argument('<validatorIndex...>', 'index of the validator to prove')
   .action(async (address: Address, validatorIndexes: string[]) => {
-    const contract = getDashboardContract(address);
+    const contract = await getDashboardContract(address);
     const vault = await callReadMethod(contract, 'stakingVault');
-    const vaultContract = getStakingVaultContract(vault);
+    const vaultContract = await getStakingVaultContract(vault);
     const pdgContract = await callReadMethodSilent(vaultContract, 'depositor');
 
     const payload: ValidatorWitness[] = [];
@@ -679,7 +681,7 @@ dashboardWrite
   .argument('<address>', 'dashboard address', stringToAddress)
   .argument('<newOwner>', 'new owner address', stringToAddress)
   .action(async (address: Address, newOwner: Address) => {
-    const contract = getDashboardContract(address);
+    const contract = await getDashboardContract(address);
     const vault = await callReadMethod(contract, 'stakingVault');
 
     const confirm = await confirmOperation(
@@ -697,30 +699,32 @@ dashboardWrite
 dashboardWrite
   .command('connect-to-vault-hub')
   .alias('connect-hub')
-  .description('connects to VaultHub, transferring ownership to VaultHub.')
+  .description(
+    'connects to VaultHub, transferring underlying StakingVault ownership to VaultHub.',
+  )
   .argument('<address>', 'dashboard address', stringToAddress)
+  .addHelpText(
+    'after',
+    `Reverts if settledGrowth is not corrected after the vault is disconnected`,
+  )
   .action(async (address: Address) => {
-    const contract = getDashboardContract(address);
+    const contract = await getDashboardContract(address);
     const vault = await callReadMethod(contract, 'stakingVault');
     const currentSettledGrowth = await callReadMethodSilent(
       contract,
       'settledGrowth',
     );
 
-    const confirmedSettledGrowth =
-      await confirmSettledGrowth(currentSettledGrowth);
-    if (confirmedSettledGrowth === false) return;
-
     const confirm = await confirmOperation(
       `Are you sure you want to connect the dashboard ${address} (vault: ${vault}) to VaultHub?
-      Settled growth: ${formatEther(confirmedSettledGrowth)}`,
+      Current settled growth: ${formatEther(currentSettledGrowth)}`,
     );
     if (!confirm) return;
 
     await callWriteMethodWithReceipt({
       contract,
       methodName: 'connectToVaultHub',
-      payload: [confirmedSettledGrowth],
+      payload: [],
     });
   });
 
@@ -731,28 +735,28 @@ dashboardWrite
     'accepts the ownership over the StakingVault and connects to VaultHub. Can be called to reconnect to the hub after voluntaryDisconnect()',
   )
   .argument('<address>', 'dashboard address', stringToAddress)
+  .addHelpText(
+    'after',
+    `Reverts if settledGrowth is not corrected after the vault is disconnected`,
+  )
   .action(async (address: Address) => {
-    const contract = getDashboardContract(address);
+    const contract = await getDashboardContract(address);
     const vault = await callReadMethod(contract, 'stakingVault');
     const currentSettledGrowth = await callReadMethodSilent(
       contract,
       'settledGrowth',
     );
 
-    const confirmedSettledGrowth =
-      await confirmSettledGrowth(currentSettledGrowth);
-    if (confirmedSettledGrowth === false) return;
-
     const confirm = await confirmOperation(
       `Are you sure you want to reconnect the dashboard ${address} (vault: ${vault}) to VaultHub?
-      Settled growth: ${formatEther(confirmedSettledGrowth)}`,
+      Current settled growth: ${formatEther(currentSettledGrowth)}`,
     );
     if (!confirm) return;
 
     await callWriteMethodWithReceipt({
       contract,
       methodName: 'reconnectToVaultHub',
-      payload: [confirmedSettledGrowth],
+      payload: [],
     });
   });
 
@@ -768,6 +772,10 @@ dashboardWrite
     etherToWei,
   )
   .option('-f, --fund', 'optional fund the vault with 1 ETH', false)
+  .addHelpText(
+    'after',
+    `Reverts if settledGrowth is not corrected after the vault is disconnected`,
+  )
   .action(
     async (
       address: Address,
@@ -775,28 +783,24 @@ dashboardWrite
       requestedShareLimit: bigint,
       { fund }: { fund: boolean },
     ) => {
-      const contract = getDashboardContract(address);
+      const contract = await getDashboardContract(address);
       const vault = await callReadMethod(contract, 'stakingVault');
       const currentSettledGrowth = await callReadMethodSilent(
         contract,
         'settledGrowth',
       );
 
-      const confirmedSettledGrowth =
-        await confirmSettledGrowth(currentSettledGrowth);
-      if (confirmedSettledGrowth === false) return;
-
       const confirm = await confirmOperation(
         `Are you sure you want to change the tier of the vault ${vault} to ${tier} and connect to VaultHub?
         Requested share limit: ${formatEther(requestedShareLimit)}
-        Settled growth: ${formatEther(confirmedSettledGrowth)}`,
+        Current settled growth: ${formatEther(currentSettledGrowth)}`,
       );
       if (!confirm) return;
 
       await callWriteMethodWithReceipt({
         contract,
         methodName: 'connectAndAcceptTier',
-        payload: [tier, requestedShareLimit, confirmedSettledGrowth],
+        payload: [tier, requestedShareLimit],
         value: fund ? parseEther('1') : undefined,
       });
     },
@@ -807,8 +811,15 @@ dashboardWrite
   .description('set the PDG policy')
   .argument('<address>', 'dashboard address', stringToAddress)
   .argument('<policy>', 'policy to set the PDG policy to', stringToNumber)
+  .addHelpText(
+    'after',
+    `Policy values:
+    0: STRICT
+    1: ALLOW_PROVE
+    2: ALLOW_DEPOSIT_AND_PROVE`,
+  )
   .action(async (address: Address, policy: number) => {
-    const contract = getDashboardContract(address);
+    const contract = await getDashboardContract(address);
 
     const PDG_POLICY = {
       0: 'STRICT',
@@ -839,7 +850,7 @@ dashboardWrite
     stringToAddress,
   )
   .action(async (address: Address, recipient: Address) => {
-    const contract = getDashboardContract(address);
+    const contract = await getDashboardContract(address);
 
     const confirm = await confirmOperation(
       `Are you sure you want to set the node operator fee recipient to ${recipient}?`,
@@ -858,7 +869,7 @@ dashboardWrite
   .description('Confirms a proposal')
   .argument('<address>', 'dashboard address', stringToAddress)
   .action(async (address: Address) => {
-    const contract = getDashboardContract(address);
+    const contract = await getDashboardContract(address);
     const vault = await callReadMethodSilent(contract, 'stakingVault');
     const operatorGridContract = await getOperatorGridContract();
     const log = await confirmProposal({
@@ -889,7 +900,7 @@ dashboardWrite
   .argument('<address>', 'dashboard address', stringToAddress)
   .argument('<expiry>', 'expiry in seconds', stringToBigInt)
   .action(async (address: Address, expiry: bigint) => {
-    const contract = getDashboardContract(address);
+    const contract = await getDashboardContract(address);
 
     const hours = Number(expiry) / 3600;
     const confirm = await confirmOperation(
@@ -914,7 +925,7 @@ dashboardWrite
     stringToBigInt,
   )
   .action(async (address: Address, fee: bigint) => {
-    const contract = getDashboardContract(address);
+    const contract = await getDashboardContract(address);
 
     const percentage = formatBP(fee);
     const confirm = await confirmOperation(
@@ -936,7 +947,7 @@ dashboardWrite
   )
   .argument('<address>', 'dashboard address', stringToAddress)
   .action(async (address: Address) => {
-    const contract = getDashboardContract(address);
+    const contract = await getDashboardContract(address);
     const nodeOperatorFeeRecipient = await callReadMethodSilent(
       contract,
       'feeRecipient',
@@ -967,7 +978,7 @@ dashboardWrite
   )
   .action(
     async (address: Address, tierId: bigint, requestedShareLimit: bigint) => {
-      const contract = getDashboardContract(address);
+      const contract = await getDashboardContract(address);
       const vault = await callReadMethod(contract, 'stakingVault');
 
       const confirm = await confirmOperation(
@@ -996,7 +1007,7 @@ dashboardWrite
      - Confirmations expire after the configured period (default: 1 day)`,
   )
   .action(async (address: Address) => {
-    const contract = getDashboardContract(address);
+    const contract = await getDashboardContract(address);
     const vault = await callReadMethod(contract, 'stakingVault');
 
     const confirm = await confirmOperation(
@@ -1018,7 +1029,7 @@ dashboardWrite
   .argument('<address>', 'dashboard address', stringToAddress)
   .argument('<shareLimit>', 'share limit', etherToWei)
   .action(async (address: Address, shareLimit: bigint) => {
-    const contract = getDashboardContract(address);
+    const contract = await getDashboardContract(address);
     const vault = await callReadMethod(contract, 'stakingVault');
 
     const confirm = await confirmOperation(
@@ -1040,7 +1051,7 @@ dashboardWrite
   )
   .argument('<address>', 'dashboard address', stringToAddress)
   .action(async (address: Address) => {
-    const contract = getDashboardContract(address);
+    const contract = await getDashboardContract(address);
 
     const confirm = await confirmOperation(
       'Are you sure you want to disburse an abnormally high fee as `DEFAULT_ADMIN_ROLE`?',
@@ -1062,7 +1073,7 @@ dashboardWrite
   .argument('<address>', 'dashboard address', stringToAddress)
   .argument('<newSettledGrowth>', 'new settled growth', etherToWei)
   .action(async (address: Address, newSettledGrowth: bigint) => {
-    const contract = getDashboardContract(address);
+    const contract = await getDashboardContract(address);
     const currentSettledGrowth = await callReadMethodSilent(
       contract,
       'settledGrowth',
@@ -1078,5 +1089,29 @@ dashboardWrite
       contract,
       methodName: 'correctSettledGrowth',
       payload: [newSettledGrowth, currentSettledGrowth],
+    });
+  });
+
+dashboardWrite
+  .command('recover-fee-leftover')
+  .alias('rfl')
+  .description(
+    'Recovers the previously collected fees to the feeRecipient address',
+  )
+  .argument('<address>', 'dashboard address', stringToAddress)
+  .action(async (address: Address) => {
+    const contract = await getDashboardContract(address);
+    const feeLeftover = await callReadMethodSilent(contract, 'feeLeftover');
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to recover the fee leftover from the dashboard contract ${address}?
+      Fee leftover: ${formatEther(feeLeftover)}`,
+    );
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'recoverFeeLeftover',
+      payload: [],
     });
   });

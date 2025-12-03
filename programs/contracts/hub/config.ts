@@ -40,16 +40,6 @@ export const readCommandConfig: ReadProgramCommandConfig<typeof VaultHubAbi> = {
       },
     },
   },
-  vaultRecord: {
-    name: 'v-record',
-    description: 'get the accounting record struct for the given vault',
-    arguments: {
-      _vault: {
-        name: 'vault',
-        description: 'vault address',
-      },
-    },
-  },
   isVaultConnected: {
     name: 'is-v-connected',
     description: 'check if the vault is connected to the hub',

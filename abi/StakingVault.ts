@@ -1,4 +1,7 @@
+import { AccessControlConfirmableErrorsAbi } from './AccessControlConfirmable.js';
+
 export const StakingVaultErrorsAbi = [
+  ...AccessControlConfirmableErrorsAbi,
   {
     inputs: [],
     name: 'AlreadyOssified',

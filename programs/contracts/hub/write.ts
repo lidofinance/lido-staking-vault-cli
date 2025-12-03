@@ -388,7 +388,7 @@ VaultHubWrite.command('trigger-validator-withdrawals')
       const confirm = await confirmOperation(confirmationMessage);
       if (!confirm) return;
 
-      const vaultContract = getStakingVaultContract(address);
+      const vaultContract = await getStakingVaultContract(address);
       const fee = await callReadMethod(
         vaultContract,
         'calculateValidatorWithdrawalFee',

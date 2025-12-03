@@ -2,6 +2,8 @@
 
 import { program } from './command/index.js';
 import { logError } from './utils/logging/console.js';
+import { withInterruptHandling } from './utils/interrupt-handler.js';
+
 import './programs/index.js';
 
 export * from './utils/index.js';
@@ -27,8 +29,12 @@ program.addHelpText('afterAll', () => {
   return '';
 });
 
-program
-  .parseAsync(process.argv)
+// Add interrupt handling to the CLI
+const runCLI = withInterruptHandling(async () => {
+  await program.parseAsync(process.argv);
+});
+
+runCLI()
   .catch((error) => {
     logError('CLI Error:', error.message);
     process.exit(1);

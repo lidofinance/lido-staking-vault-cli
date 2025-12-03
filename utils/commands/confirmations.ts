@@ -89,7 +89,7 @@ export const getConfirmationsInfo = async <T extends ConfirmationContract>(
   contract: T,
   abi: Abi,
 ) => {
-  const publicClient = getPublicClient();
+  const publicClient = await getPublicClient();
   const confirmExpire = await contract.read.getConfirmExpiry();
   const currentBlock = await publicClient.getBlockNumber();
   const confirmExpireInBlocks = confirmExpire / AVG_BLOCK_TIME_SEC;

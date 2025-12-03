@@ -33,14 +33,14 @@ export const WithdrawalQueueAbi = [
         internalType: 'address',
       },
       {
-        name: '_maxAcceptableWQFinalizationTimeInSeconds',
+        name: '_minWithdrawalDelayTimeInSeconds',
         type: 'uint256',
         internalType: 'uint256',
       },
       {
-        name: '_minWithdrawalDelayTimeInSeconds',
-        type: 'uint256',
-        internalType: 'uint256',
+        name: '_isRebalancingSupported',
+        type: 'bool',
+        internalType: 'bool',
       },
     ],
     stateMutability: 'nonpayable',
@@ -103,6 +103,45 @@ export const WithdrawalQueueAbi = [
   },
   {
     type: 'function',
+    name: 'FINALIZE_FEATURE',
+    inputs: [],
+    outputs: [
+      {
+        name: '',
+        type: 'bytes32',
+        internalType: 'bytes32',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'FINALIZE_PAUSE_ROLE',
+    inputs: [],
+    outputs: [
+      {
+        name: '',
+        type: 'bytes32',
+        internalType: 'bytes32',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'FINALIZE_RESUME_ROLE',
+    inputs: [],
+    outputs: [
+      {
+        name: '',
+        type: 'bytes32',
+        internalType: 'bytes32',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
     name: 'FINALIZE_ROLE',
     inputs: [],
     outputs: [
@@ -110,6 +149,19 @@ export const WithdrawalQueueAbi = [
         name: '',
         type: 'bytes32',
         internalType: 'bytes32',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'IS_REBALANCING_SUPPORTED',
+    inputs: [],
+    outputs: [
+      {
+        name: '',
+        type: 'bool',
+        internalType: 'bool',
       },
     ],
     stateMutability: 'view',
@@ -129,7 +181,7 @@ export const WithdrawalQueueAbi = [
   },
   {
     type: 'function',
-    name: 'MAX_ACCEPTABLE_WQ_FINALIZATION_TIME_IN_SECONDS',
+    name: 'MAX_GAS_COST_COVERAGE',
     inputs: [],
     outputs: [
       {
@@ -142,20 +194,7 @@ export const WithdrawalQueueAbi = [
   },
   {
     type: 'function',
-    name: 'MAX_WITHDRAWAL_AMOUNT',
-    inputs: [],
-    outputs: [
-      {
-        name: '',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'MIN_WITHDRAWAL_AMOUNT',
+    name: 'MAX_WITHDRAWAL_ASSETS',
     inputs: [],
     outputs: [
       {
@@ -181,39 +220,26 @@ export const WithdrawalQueueAbi = [
   },
   {
     type: 'function',
-    name: 'PAUSE_ROLE',
+    name: 'MIN_WITHDRAWAL_VALUE',
     inputs: [],
     outputs: [
       {
         name: '',
-        type: 'bytes32',
-        internalType: 'bytes32',
+        type: 'uint256',
+        internalType: 'uint256',
       },
     ],
     stateMutability: 'view',
   },
   {
     type: 'function',
-    name: 'RESUME_ROLE',
-    inputs: [],
-    outputs: [
-      {
-        name: '',
-        type: 'bytes32',
-        internalType: 'bytes32',
-      },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'STAKING_VAULT',
+    name: 'POOL',
     inputs: [],
     outputs: [
       {
         name: '',
         type: 'address',
-        internalType: 'contract IStakingVault',
+        internalType: 'contract IStvStETHPool',
       },
     ],
     stateMutability: 'view',
@@ -233,6 +259,19 @@ export const WithdrawalQueueAbi = [
   },
   {
     type: 'function',
+    name: 'VAULT',
+    inputs: [],
+    outputs: [
+      {
+        name: '',
+        type: 'address',
+        internalType: 'contract IStakingVault',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
     name: 'VAULT_HUB',
     inputs: [],
     outputs: [
@@ -246,23 +285,42 @@ export const WithdrawalQueueAbi = [
   },
   {
     type: 'function',
-    name: 'WRAPPER',
+    name: 'WITHDRAWALS_FEATURE',
     inputs: [],
     outputs: [
       {
         name: '',
-        type: 'address',
-        internalType: 'contract IWrapper',
+        type: 'bytes32',
+        internalType: 'bytes32',
       },
     ],
     stateMutability: 'view',
   },
   {
     type: 'function',
-    name: 'activateEmergencyExit',
+    name: 'WITHDRAWALS_PAUSE_ROLE',
     inputs: [],
-    outputs: [],
-    stateMutability: 'nonpayable',
+    outputs: [
+      {
+        name: '',
+        type: 'bytes32',
+        internalType: 'bytes32',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'WITHDRAWALS_RESUME_ROLE',
+    inputs: [],
+    outputs: [
+      {
+        name: '',
+        type: 'bytes32',
+        internalType: 'bytes32',
+      },
+    ],
+    stateMutability: 'view',
   },
   {
     type: 'function',
@@ -295,19 +353,14 @@ export const WithdrawalQueueAbi = [
     name: 'claimWithdrawal',
     inputs: [
       {
-        name: '_requestId',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_requestor',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
         name: '_recipient',
         type: 'address',
         internalType: 'address',
+      },
+      {
+        name: '_requestId',
+        type: 'uint256',
+        internalType: 'uint256',
       },
     ],
     outputs: [
@@ -321,8 +374,13 @@ export const WithdrawalQueueAbi = [
   },
   {
     type: 'function',
-    name: 'claimWithdrawals',
+    name: 'claimWithdrawalBatch',
     inputs: [
+      {
+        name: '_recipient',
+        type: 'address',
+        internalType: 'address',
+      },
       {
         name: '_requestIds',
         type: 'uint256[]',
@@ -332,16 +390,6 @@ export const WithdrawalQueueAbi = [
         name: '_hints',
         type: 'uint256[]',
         internalType: 'uint256[]',
-      },
-      {
-        name: '_requestor',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: '_recipient',
-        type: 'address',
-        internalType: 'address',
       },
     ],
     outputs: [
@@ -362,6 +410,11 @@ export const WithdrawalQueueAbi = [
         type: 'uint256',
         internalType: 'uint256',
       },
+      {
+        name: '_gasCostCoverageRecipient',
+        type: 'address',
+        internalType: 'address',
+      },
     ],
     outputs: [
       {
@@ -374,7 +427,36 @@ export const WithdrawalQueueAbi = [
   },
   {
     type: 'function',
-    name: 'findCheckpointHints',
+    name: 'findCheckpointHint',
+    inputs: [
+      {
+        name: '_requestId',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+      {
+        name: '_start',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+      {
+        name: '_end',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+    ],
+    outputs: [
+      {
+        name: '',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'findCheckpointHintBatch',
     inputs: [
       {
         name: '_requestIds',
@@ -406,6 +488,25 @@ export const WithdrawalQueueAbi = [
     name: 'getClaimableEther',
     inputs: [
       {
+        name: '_requestId',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+    ],
+    outputs: [
+      {
+        name: 'claimableEth',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'getClaimableEtherBatch',
+    inputs: [
+      {
         name: '_requestIds',
         type: 'uint256[]',
         internalType: 'uint256[]',
@@ -427,17 +528,11 @@ export const WithdrawalQueueAbi = [
   },
   {
     type: 'function',
-    name: 'getClaimableEther',
-    inputs: [
-      {
-        name: '_requestId',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-    ],
+    name: 'getFinalizationGasCostCoverage',
+    inputs: [],
     outputs: [
       {
-        name: 'claimableEth',
+        name: 'coverage',
         type: 'uint256',
         internalType: 'uint256',
       },
@@ -566,73 +661,6 @@ export const WithdrawalQueueAbi = [
   },
   {
     type: 'function',
-    name: 'getWithdrawalRequests',
-    inputs: [
-      {
-        name: '_owner',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: '_start',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_end',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-    ],
-    outputs: [
-      {
-        name: 'requestIds',
-        type: 'uint256[]',
-        internalType: 'uint256[]',
-      },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'getWithdrawalRequests',
-    inputs: [
-      {
-        name: '_owner',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
-    outputs: [
-      {
-        name: 'requestIds',
-        type: 'uint256[]',
-        internalType: 'uint256[]',
-      },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'getWithdrawalRequestsLength',
-    inputs: [
-      {
-        name: '_owner',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
-    outputs: [
-      {
-        name: 'length',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
     name: 'getWithdrawalStatus',
     inputs: [
       {
@@ -689,7 +717,7 @@ export const WithdrawalQueueAbi = [
   },
   {
     type: 'function',
-    name: 'getWithdrawalsStatus',
+    name: 'getWithdrawalStatusBatch',
     inputs: [
       {
         name: '_requestIds',
@@ -795,7 +823,7 @@ export const WithdrawalQueueAbi = [
         internalType: 'address',
       },
       {
-        name: '_finalizeRoleHolder',
+        name: '_finalizer',
         type: 'address',
         internalType: 'address',
       },
@@ -805,11 +833,17 @@ export const WithdrawalQueueAbi = [
   },
   {
     type: 'function',
-    name: 'isEmergencyExitActivated',
-    inputs: [],
+    name: 'isFeaturePaused',
+    inputs: [
+      {
+        name: '_featureId',
+        type: 'bytes32',
+        internalType: 'bytes32',
+      },
+    ],
     outputs: [
       {
-        name: 'isActivate',
+        name: 'isPaused',
         type: 'bool',
         internalType: 'bool',
       },
@@ -818,36 +852,17 @@ export const WithdrawalQueueAbi = [
   },
   {
     type: 'function',
-    name: 'isWithdrawalQueueStuck',
-    inputs: [],
-    outputs: [
-      {
-        name: 'isStuck',
-        type: 'bool',
-        internalType: 'bool',
-      },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'pause',
+    name: 'pauseFinalization',
     inputs: [],
     outputs: [],
     stateMutability: 'nonpayable',
   },
   {
     type: 'function',
-    name: 'paused',
+    name: 'pauseWithdrawals',
     inputs: [],
-    outputs: [
-      {
-        name: '',
-        type: 'bool',
-        internalType: 'bool',
-      },
-    ],
-    stateMutability: 'view',
+    outputs: [],
+    stateMutability: 'nonpayable',
   },
   {
     type: 'function',
@@ -872,6 +887,11 @@ export const WithdrawalQueueAbi = [
     name: 'requestWithdrawal',
     inputs: [
       {
+        name: '_owner',
+        type: 'address',
+        internalType: 'address',
+      },
+      {
         name: '_stvToWithdraw',
         type: 'uint256',
         internalType: 'uint256',
@@ -880,11 +900,6 @@ export const WithdrawalQueueAbi = [
         name: '_stethSharesToRebalance',
         type: 'uint256',
         internalType: 'uint256',
-      },
-      {
-        name: '_owner',
-        type: 'address',
-        internalType: 'address',
       },
     ],
     outputs: [
@@ -898,8 +913,13 @@ export const WithdrawalQueueAbi = [
   },
   {
     type: 'function',
-    name: 'requestWithdrawals',
+    name: 'requestWithdrawalBatch',
     inputs: [
+      {
+        name: '_owner',
+        type: 'address',
+        internalType: 'address',
+      },
       {
         name: '_stvToWithdraw',
         type: 'uint256[]',
@@ -909,11 +929,6 @@ export const WithdrawalQueueAbi = [
         name: '_stethSharesToRebalance',
         type: 'uint256[]',
         internalType: 'uint256[]',
-      },
-      {
-        name: '_owner',
-        type: 'address',
-        internalType: 'address',
       },
     ],
     outputs: [
@@ -927,7 +942,14 @@ export const WithdrawalQueueAbi = [
   },
   {
     type: 'function',
-    name: 'resume',
+    name: 'resumeFinalization',
+    inputs: [],
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    name: 'resumeWithdrawals',
     inputs: [],
     outputs: [],
     stateMutability: 'nonpayable',
@@ -945,6 +967,19 @@ export const WithdrawalQueueAbi = [
         name: 'account',
         type: 'address',
         internalType: 'address',
+      },
+    ],
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    name: 'setFinalizationGasCostCoverage',
+    inputs: [
+      {
+        name: '_coverage',
+        type: 'uint256',
+        internalType: 'uint256',
       },
     ],
     outputs: [],
@@ -984,11 +1019,24 @@ export const WithdrawalQueueAbi = [
   },
   {
     type: 'function',
-    name: 'unfinalizedRequestNumber',
+    name: 'unfinalizedRequestsNumber',
     inputs: [],
     outputs: [
       {
-        name: 'requestNumber',
+        name: 'requestsNumber',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'unfinalizedStethShares',
+    inputs: [],
+    outputs: [
+      {
+        name: 'stethShares',
         type: 'uint256',
         internalType: 'uint256',
       },
@@ -1009,27 +1057,119 @@ export const WithdrawalQueueAbi = [
     stateMutability: 'view',
   },
   {
-    type: 'event',
-    name: 'EmergencyExitActivated',
+    type: 'function',
+    name: 'withdrawalRequestsInRangeOf',
     inputs: [
       {
-        name: 'timestamp',
+        name: '_owner',
+        type: 'address',
+        internalType: 'address',
+      },
+      {
+        name: '_start',
         type: 'uint256',
-        indexed: false,
         internalType: 'uint256',
+      },
+      {
+        name: '_end',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+    ],
+    outputs: [
+      {
+        name: 'requestIds',
+        type: 'uint256[]',
+        internalType: 'uint256[]',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'withdrawalRequestsLengthOf',
+    inputs: [
+      {
+        name: '_owner',
+        type: 'address',
+        internalType: 'address',
+      },
+    ],
+    outputs: [
+      {
+        name: 'length',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'withdrawalRequestsOf',
+    inputs: [
+      {
+        name: '_owner',
+        type: 'address',
+        internalType: 'address',
+      },
+    ],
+    outputs: [
+      {
+        name: 'requestIds',
+        type: 'uint256[]',
+        internalType: 'uint256[]',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'event',
+    name: 'FeaturePaused',
+    inputs: [
+      {
+        name: 'featureId',
+        type: 'bytes32',
+        indexed: true,
+        internalType: 'bytes32',
+      },
+      {
+        name: 'account',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
       },
     ],
     anonymous: false,
   },
   {
     type: 'event',
-    name: 'ImplementationUpgraded',
+    name: 'FeatureUnpaused',
     inputs: [
       {
-        name: 'newImplementation',
+        name: 'featureId',
+        type: 'bytes32',
+        indexed: true,
+        internalType: 'bytes32',
+      },
+      {
+        name: 'account',
         type: 'address',
-        indexed: false,
+        indexed: true,
         internalType: 'address',
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: 'event',
+    name: 'GasCostCoverageSet',
+    inputs: [
+      {
+        name: 'newCoverage',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
       },
     ],
     anonymous: false,
@@ -1057,17 +1197,10 @@ export const WithdrawalQueueAbi = [
         indexed: true,
         internalType: 'address',
       },
-    ],
-    anonymous: false,
-  },
-  {
-    type: 'event',
-    name: 'Paused',
-    inputs: [
       {
-        name: 'account',
+        name: 'finalizer',
         type: 'address',
-        indexed: false,
+        indexed: true,
         internalType: 'address',
       },
     ],
@@ -1150,19 +1283,6 @@ export const WithdrawalQueueAbi = [
   },
   {
     type: 'event',
-    name: 'Unpaused',
-    inputs: [
-      {
-        name: 'account',
-        type: 'address',
-        indexed: false,
-        internalType: 'address',
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: 'event',
     name: 'WithdrawalClaimed',
     inputs: [
       {
@@ -1178,7 +1298,7 @@ export const WithdrawalQueueAbi = [
         internalType: 'address',
       },
       {
-        name: 'receiver',
+        name: 'recipient',
         type: 'address',
         indexed: true,
         internalType: 'address',
@@ -1247,6 +1367,12 @@ export const WithdrawalQueueAbi = [
       },
       {
         name: 'ethLocked',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
+      },
+      {
+        name: 'ethForGasCoverage',
         type: 'uint256',
         indexed: false,
         internalType: 'uint256',
@@ -1322,18 +1448,36 @@ export const WithdrawalQueueAbi = [
   },
   {
     type: 'error',
-    name: 'EnforcedPause',
-    inputs: [],
+    name: 'FeaturePauseEnforced',
+    inputs: [
+      {
+        name: 'featureId',
+        type: 'bytes32',
+        internalType: 'bytes32',
+      },
+    ],
   },
   {
     type: 'error',
-    name: 'ExpectedPause',
-    inputs: [],
+    name: 'FeaturePauseExpected',
+    inputs: [
+      {
+        name: 'featureId',
+        type: 'bytes32',
+        internalType: 'bytes32',
+      },
+    ],
   },
   {
     type: 'error',
-    name: 'InvalidEmergencyExitActivation',
-    inputs: [],
+    name: 'GasCostCoverageTooLarge',
+    inputs: [
+      {
+        name: 'amount',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+    ],
   },
   {
     type: 'error',
@@ -1380,6 +1524,11 @@ export const WithdrawalQueueAbi = [
   },
   {
     type: 'error',
+    name: 'InvalidWithdrawalDelay',
+    inputs: [],
+  },
+  {
+    type: 'error',
     name: 'NoRequestsToFinalize',
     inputs: [],
   },
@@ -1406,7 +1555,7 @@ export const WithdrawalQueueAbi = [
   },
   {
     type: 'error',
-    name: 'OnlyStvStrategyPoolan',
+    name: 'RebalancingIsNotSupported',
     inputs: [],
   },
   {
@@ -1422,18 +1571,7 @@ export const WithdrawalQueueAbi = [
   },
   {
     type: 'error',
-    name: 'RequestAmountTooLarge',
-    inputs: [
-      {
-        name: 'amount',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-    ],
-  },
-  {
-    type: 'error',
-    name: 'RequestAmountTooSmall',
+    name: 'RequestAssetsTooLarge',
     inputs: [
       {
         name: 'amount',
@@ -1453,6 +1591,17 @@ export const WithdrawalQueueAbi = [
     inputs: [
       {
         name: 'requestId',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+    ],
+  },
+  {
+    type: 'error',
+    name: 'RequestValueTooSmall',
+    inputs: [
+      {
+        name: 'amount',
         type: 'uint256',
         internalType: 'uint256',
       },

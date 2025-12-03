@@ -6,6 +6,9 @@ import {
   createWalletClient,
   http,
   WalletClient,
+  createTestClient,
+  walletActions,
+  publicActions,
 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { Keystore } from 'ox';
@@ -60,7 +63,7 @@ export const getAccount = async () => {
   const id = getChainId();
 
   if (program.opts().walletConnect) {
-    const walletConnectClient = await getWalletConnectClient();
+    const { walletConnectClient } = await getWalletConnectClient();
 
     if (!walletConnectClient.account) {
       throw new Error('Wallet connect account is not found');
@@ -78,23 +81,38 @@ export const getAccount = async () => {
   return privateKeyToAccount(privateKey as Address);
 };
 
-export const getPublicClient = () => {
+export const getPublicClient = async () => {
   return createPublicClient({
-    chain: getChain(),
+    chain: await getChain(),
     transport: http(getElUrl()),
   });
+};
+
+export const getTestClient = async () => {
+  return createTestClient({
+    chain: await getChain(),
+    mode: 'anvil',
+    transport: http(getElUrl()),
+  })
+    .extend(publicActions)
+    .extend(walletActions);
 };
 
 export const getWalletWithAccount = async (): Promise<WalletClient> => {
   const account = await getAccount();
+  const chain = await getChain();
+
   return createWalletClient({
     account,
-    chain: getChain(),
+    chain,
     transport: http(getElUrl()),
   });
 };
 
-export const getWalletConnectClient = async () => {
+export const getWalletConnectClient = async (): Promise<{
+  walletConnectClient: WalletClient;
+  isGnosis: boolean;
+}> => {
   const walletConnectClient = await createWalletConnectClient();
 
   return walletConnectClient;

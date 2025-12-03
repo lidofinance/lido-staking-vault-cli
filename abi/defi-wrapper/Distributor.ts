@@ -7,6 +7,11 @@ export const DistributorAbi = [
         type: 'address',
         internalType: 'address',
       },
+      {
+        name: '_manager',
+        type: 'address',
+        internalType: 'address',
+      },
     ],
     stateMutability: 'nonpayable',
   },
@@ -77,7 +82,7 @@ export const DistributorAbi = [
         internalType: 'address',
       },
       {
-        name: '_amount',
+        name: '_cumulativeAmount',
         type: 'uint256',
         internalType: 'uint256',
       },
@@ -271,6 +276,40 @@ export const DistributorAbi = [
   },
   {
     type: 'function',
+    name: 'previewClaim',
+    inputs: [
+      {
+        name: '_recipient',
+        type: 'address',
+        internalType: 'address',
+      },
+      {
+        name: '_token',
+        type: 'address',
+        internalType: 'address',
+      },
+      {
+        name: '_cumulativeAmount',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+      {
+        name: '_proof',
+        type: 'bytes32[]',
+        internalType: 'bytes32[]',
+      },
+    ],
+    outputs: [
+      {
+        name: 'claimable',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
     name: 'renounceRole',
     inputs: [
       {
@@ -393,7 +432,7 @@ export const DistributorAbi = [
       {
         name: 'newRoot',
         type: 'bytes32',
-        indexed: false,
+        indexed: true,
         internalType: 'bytes32',
       },
       {
@@ -566,6 +605,17 @@ export const DistributorAbi = [
   {
     type: 'error',
     name: 'TokenAlreadyAdded',
+    inputs: [
+      {
+        name: 'token',
+        type: 'address',
+        internalType: 'address',
+      },
+    ],
+  },
+  {
+    type: 'error',
+    name: 'TokenNotSupported',
     inputs: [
       {
         name: 'token',

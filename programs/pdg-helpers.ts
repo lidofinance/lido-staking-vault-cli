@@ -158,10 +158,14 @@ predepositGuaranteeHelpers
       let withdrawalCredentials = options.withdrawalCredentials;
 
       if (!vault && !withdrawalCredentials) {
-        logError('You must provide either vault or withdrawal credentials');
+        logError(
+          'You must provide either vault (-a, --vault) or withdrawal credentials (-w, --withdrawalCredentials)',
+        );
         return;
       } else if (vault && withdrawalCredentials) {
-        logError('You can only provide one of vault or withdrawal credentials');
+        logError(
+          'You can only provide one of vault (-a, --vault) or withdrawal credentials (-w, --withdrawalCredentials)',
+        );
         return;
       }
       const hideMetadataSpinner = showSpinner({
@@ -172,7 +176,7 @@ predepositGuaranteeHelpers
       const PREDEPOSIT_AMOUNT = await callReadMethod(pdg, 'PREDEPOSIT_AMOUNT');
 
       if (vault) {
-        const vaultContract = getStakingVaultContract(vault);
+        const vaultContract = await getStakingVaultContract(vault);
         const wc = await callReadMethod(vaultContract, 'withdrawalCredentials');
         withdrawalCredentials = wc;
       }
@@ -207,7 +211,10 @@ predepositGuaranteeHelpers
         }
 
         // local BLS check
-        const isBLSValid = isValidBLSDeposit(deposit, withdrawalCredentials);
+        const isBLSValid = await isValidBLSDeposit(
+          deposit,
+          withdrawalCredentials,
+        );
         if (!isBLSValid) {
           logError(
             `❌ Offchain - BLS signature is not valid for Pubkey ${deposit.pubkey}`,

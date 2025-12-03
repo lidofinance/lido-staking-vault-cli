@@ -1,91 +1,73 @@
 import { VaultViewerAbi } from 'abi';
-import { ReadProgramCommandConfig } from 'utils';
+import { ReadProgramCommandConfig, stringToAddress, stringToHex } from 'utils';
 
 export const readCommandConfig: ReadProgramCommandConfig<
   typeof VaultViewerAbi
 > = {
-  vaultsConnected: {
+  vaultAddressesBatch: {
     hidden: true,
-    name: 'connected',
-    description: 'get vaults connected to vault hub',
+    name: 'addresses-batch',
+    description: 'get vault addresses for a range of vaults',
+    arguments: {
+      _offset: {
+        name: 'offset',
+        description: 'offset',
+        modifier: (value) => BigInt(value),
+      },
+      _limit: {
+        name: 'limit',
+        description: 'limit',
+        modifier: (value) => BigInt(value),
+      },
+    },
   },
-  vaultsByRole: {
-    name: 'by-role-address',
+  vaultsByRoleBatch: {
+    name: 'by-role-address-batch',
     aliases: ['by-ra'],
-    description: 'get vaults by role and address',
+    description:
+      'get vaults where `_member` has `_role`, scanning a batch of the global vault list',
     arguments: {
       _role: {
         name: 'role',
         description: 'role',
+        modifier: (value) => stringToHex(value),
       },
       _member: {
         name: 'member',
         description: 'member address',
+        modifier: (value) => stringToAddress(value),
+      },
+      _offset: {
+        name: 'offset',
+        description: 'offset',
+        modifier: (value) => BigInt(value),
+      },
+      _limit: {
+        name: 'limit',
+        description: 'limit',
+        modifier: (value) => BigInt(value),
       },
     },
   },
-  vaultsConnectedBound: {
-    name: 'connected-bound',
-    description: 'get vaults connected to vault hub - bound',
-    arguments: {
-      _from: {
-        name: 'from',
-        description: 'from',
-      },
-      _to: {
-        name: 'to',
-        description: 'to',
-      },
-    },
-  },
-  vaultsByRoleBound: {
-    name: 'by-role-address-bound',
-    aliases: ['by-ra-b'],
-    description: 'get vaults by role and address - bound',
-    arguments: {
-      _role: {
-        name: 'role',
-        description: 'role',
-      },
-      _member: {
-        name: 'member',
-        description: 'member address',
-      },
-      _from: {
-        name: 'from',
-        description: 'from',
-      },
-      _to: {
-        name: 'to',
-        description: 'to',
-      },
-    },
-  },
-  vaultsByOwner: {
-    name: 'by-owner',
-    description: 'get vaults by owner',
+  vaultsByOwnerBatch: {
+    name: 'by-owner-batch',
+    description:
+      'get vaults owned by `_owner` using batch pagination over the global vault list',
     arguments: {
       _owner: {
         name: 'owner',
         description: 'owner address',
+        modifier: (value) => stringToAddress(value),
       },
-    },
-  },
-  vaultsByOwnerBound: {
-    name: 'by-owner-bound',
-    description: 'get vaults by owner - bound',
-    arguments: {
-      _owner: {
-        name: 'owner',
-        description: 'owner address',
+      _offset: {
+        name: 'offset',
+        description: 'offset',
+        modifier: (value) => BigInt(value),
       },
-      _from: {
-        name: 'from',
-        description: 'from',
-      },
-      _to: {
-        name: 'to',
-        description: 'to',
+      _limit: {
+        name: 'limit',
+        description: 'limit',
+        modifier: (value) => BigInt(value),
       },
     },
   },
@@ -107,17 +89,80 @@ export const readCommandConfig: ReadProgramCommandConfig<
       },
     },
   },
-  isOwner: {
-    name: 'is-owner',
-    description: 'check if an address is the owner of a vault',
+  vaultsDataBatch: {
+    name: 'vaults-data-batch',
+    description: 'get aggregated data for a batch of vaults',
+    arguments: {
+      _offset: {
+        name: 'offset',
+        description: 'offset',
+        modifier: (value) => BigInt(value),
+      },
+      _limit: {
+        name: 'limit',
+        description: 'limit',
+        modifier: (value) => BigInt(value),
+      },
+    },
+  },
+  vaultData: {
+    name: 'vault-data',
+    description: 'get aggregated data for a single vault',
     arguments: {
       vault: {
         name: 'vault',
         description: 'vault address',
+        modifier: (value) => stringToAddress(value),
+      },
+    },
+  },
+  vaultsCount: {
+    name: 'vaults-count',
+    description: 'get the number of vaults connected to the VaultHub',
+  },
+  roleMembersBatch: {
+    name: 'role-members-batch',
+    description: 'get VaultMembers for each role on multiple vaults',
+    arguments: {
+      vaultAddresses: {
+        name: 'vault addresses',
+        description: 'array of vault addresses',
+      },
+      roles: {
+        name: 'roles',
+        description: 'array of roles',
+      },
+    },
+  },
+  roleMembers: {
+    name: 'role-members',
+    description:
+      'get the VaultMembers for each specified role on a single vault',
+    arguments: {
+      vaultAddress: {
+        name: 'vault',
+        description: 'vault address',
+        modifier: (value) => stringToAddress(value),
+      },
+      roles: {
+        name: 'roles',
+        description: 'array of roles',
+      },
+    },
+  },
+  isVaultOwner: {
+    name: 'is-vault-owner',
+    description: 'checks if a given address is the owner of a connection vault',
+    arguments: {
+      vault: {
+        name: 'vault address',
+        description: 'vault address',
+        modifier: (value) => stringToAddress(value),
       },
       _owner: {
         name: 'owner',
         description: 'owner address',
+        modifier: (value) => stringToAddress(value),
       },
     },
   },

@@ -53,7 +53,7 @@ export const callSimulateWriteMethod = async <
     const method = contract.simulate[methodName];
     const result = await method?.(payload, {
       account: await getAccount(),
-      chain: getChain(),
+      chain: await getChain(),
       value,
       authorizationList,
     });
@@ -115,7 +115,7 @@ export const callWriteMethod = async <
     const method = contract.write[methodName];
     const tx = await method?.(payload, {
       account: await getAccount(),
-      chain: getChain(),
+      chain: await getChain(),
       value,
       authorizationList,
     });
@@ -221,7 +221,7 @@ export const callReadMethodSilent = async <
 };
 
 export const isContractAddress = async (address: Address) => {
-  const publicClient = getPublicClient();
+  const publicClient = await getPublicClient();
   const bytecode = await publicClient.getCode({
     address: address,
   });
@@ -256,7 +256,7 @@ export const callWriteMethodWithReceipt = async <
   M extends keyof T['write'] & string,
 >(
   args: WriteTxArgs<T, M>,
-): Promise<{ receipt: TransactionReceipt; tx: Address }> => {
+): Promise<{ receipt?: TransactionReceipt; tx?: Address }> => {
   const {
     contract,
     methodName,
@@ -284,7 +284,7 @@ export const callWriteMethodWithReceipt = async <
       ],
     });
 
-    return { receipt: undefined as any, tx: data as any };
+    return { receipt: undefined, tx: data as any };
   }
 
   if (program.opts().walletConnect) {
@@ -305,7 +305,7 @@ export const callWriteMethodWithReceipt = async <
     return { receipt: data.receipt, tx: data.txHash };
   }
 
-  const publicClient = getPublicClient();
+  const publicClient = await getPublicClient();
 
   const tx = await callWriteMethod({
     contract,
@@ -373,7 +373,7 @@ export const callWriteMethodWithReceiptBatchCalls = async (args: {
     return;
   }
 
-  const publicClient = getPublicClient();
+  const publicClient = await getPublicClient();
   const walletClient = await getWalletWithAccount();
 
   if (!walletClient.account) {
@@ -392,7 +392,7 @@ export const callWriteMethodWithReceiptBatchCalls = async (args: {
   for (const call of calls) {
     const tx = await walletClient.sendTransaction({
       account: walletClient.account,
-      chain: getChain(),
+      chain: await getChain(),
       to: call.to,
       data: call.data,
       value: call.value,

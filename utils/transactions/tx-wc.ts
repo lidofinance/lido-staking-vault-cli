@@ -14,6 +14,7 @@ import {
   printError,
   logResult,
   disconnectWalletConnect,
+  logInfo,
 } from 'utils';
 
 import { PartialContract, PopulatedTx, BatchTxArgs } from './types.js';
@@ -27,7 +28,7 @@ export const simulateWCWriteTx = async (args: {
   skipError?: boolean;
 }): Promise<SimulateCallsReturnType<PopulatedTx[]>> => {
   const { calls, withSpinner = true, skipError = false } = args;
-  const publicClient = getPublicClient();
+  const publicClient = await getPublicClient();
 
   const hideSpinner = withSpinner
     ? showSpinner({
@@ -37,7 +38,7 @@ export const simulateWCWriteTx = async (args: {
     : () => {};
 
   try {
-    const walletConnectClient = await getWalletConnectClient();
+    const { walletConnectClient } = await getWalletConnectClient();
 
     const simulateResult = await publicClient.simulateCalls({
       account: walletConnectClient.account,
@@ -81,7 +82,7 @@ export const callWCWriteMethodWithReceipt = async (args: {
 }) => {
   const { calls, withSpinner = true, silent = false, skipError = false } = args;
 
-  const walletConnectClient = await getWalletConnectClient();
+  const { walletConnectClient } = await getWalletConnectClient();
 
   if (!walletConnectClient || !walletConnectClient.account) {
     throw new Error(
@@ -96,17 +97,23 @@ export const callWCWriteMethodWithReceipt = async (args: {
     skipError,
   });
 
+  const data = [
+    ['Batch calls', calls.length],
+    ['Batch ID', result.id],
+    result.callStatus ? ['Batch status', result.callStatus.status] : undefined,
+    result.txHash ? ['Transaction', result.txHash] : undefined,
+    result.receipt ? ['Transaction status', result.receipt.status] : undefined,
+    result.receipt
+      ? ['Transaction block number', Number(result.receipt.blockNumber)]
+      : undefined,
+    result.receipt
+      ? ['Transaction gas used', Number(result.receipt.gasUsed)]
+      : undefined,
+  ].filter((d) => d !== undefined);
+
   !silent &&
     logResult({
-      data: [
-        ['Batch calls', calls.length],
-        ['Batch ID', result.id],
-        ['Batch status', result.callStatus.status],
-        ['Transaction', result.txHash],
-        ['Transaction status', result.receipt.status],
-        ['Transaction block number', Number(result.receipt.blockNumber)],
-        ['Transaction gas used', Number(result.receipt.gasUsed)],
-      ],
+      data,
     });
 
   return result;
@@ -149,20 +156,28 @@ export const callWCWriteMethodWithReceiptPayloads = async <
     skipError,
   });
 
+  const data = [
+    ['Method name', methodName],
+    ['Contract', contract.address],
+    ['Batch calls', payloads.length],
+    ['Batch ID', result.id],
+    result.callStatus ? ['Batch status', result.callStatus.status] : undefined,
+    result.txHash ? ['Transaction', result.txHash] : undefined,
+    result.receipt ? ['Transaction status', result.receipt.status] : undefined,
+    result.receipt
+      ? ['Transaction block number', Number(result.receipt.blockNumber)]
+      : undefined,
+    result.receipt
+      ? ['Transaction gas used', Number(result.receipt.gasUsed)]
+      : undefined,
+  ].filter((d) => d !== undefined);
+
   !silent &&
     logResult({
-      data: [
-        ['Method name', methodName],
-        ['Contract', contract.address],
-        ['Batch calls', payloads.length],
-        ['Batch ID', result.id],
-        ['Batch status', result.callStatus.status],
-        ['Transaction', result.txHash],
-        ['Transaction status', result.receipt.status],
-        ['Transaction block number', Number(result.receipt.blockNumber)],
-        ['Transaction gas used', Number(result.receipt.gasUsed)],
-      ],
+      data,
     });
+
+  return result;
 };
 
 const callWalletConnectSendCalls = async (args: {
@@ -179,7 +194,7 @@ const callWalletConnectSendCalls = async (args: {
   }
 
   try {
-    const walletConnectClient = await getWalletConnectClient();
+    const { walletConnectClient, isGnosis } = await getWalletConnectClient();
 
     if (!walletConnectClient || !walletConnectClient.account) {
       throw new Error(
@@ -209,6 +224,16 @@ const callWalletConnectSendCalls = async (args: {
     });
 
     hideSubmitSpinner();
+
+    if (isGnosis) {
+      logInfo('Transaction submitted to Gnosis Safe for signing.');
+      logInfo('Please sign and execute the transaction in the Gnosis Safe UI.');
+      logInfo(
+        'Note: The CLI will not wait for execution completion as signing time is unlimited.',
+      );
+
+      return { id: result.id as Hex };
+    }
 
     const hideStatusSpinner = withSpinner
       ? showSpinner({
@@ -255,7 +280,7 @@ const callWalletConnectSendCalls = async (args: {
         })
       : () => {};
 
-    const publicClient = getPublicClient();
+    const publicClient = await getPublicClient();
     const receipt = await waitForTransactionReceipt(publicClient, {
       hash: txHash,
       confirmations: 3,

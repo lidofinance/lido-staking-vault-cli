@@ -12,6 +12,7 @@ import {
   transformAddressesToArray,
   validateAddressesMap,
   validateAddressMap,
+  logInfo,
 } from 'utils';
 import { program } from 'command';
 
@@ -78,7 +79,7 @@ export const createVault = async (
     | 'createVaultWithDashboard'
     | 'createVaultWithDashboardWithoutConnectingToVaultHub' = 'createVaultWithDashboard',
 ) => {
-  const contract = getVaultFactoryContract();
+  const contract = await getVaultFactoryContract();
 
   const {
     defaultAdmin,
@@ -109,6 +110,12 @@ export const createVault = async (
   }
   const { receipt, tx } = result;
 
+  // Gnosis safe case
+  if (!receipt) {
+    logInfo('Transaction has been sent');
+    return;
+  }
+
   const events = parseEventLogs({
     abi: VaultFactoryAbi,
     logs: receipt.logs,
@@ -133,7 +140,7 @@ export const createVault = async (
 };
 
 export const getVaultFactoryInfo = async () => {
-  const contract = getVaultFactoryContract();
+  const contract = await getVaultFactoryContract();
   const hideSpinner = showSpinner();
   try {
     const BEACON = await contract.read.BEACON();

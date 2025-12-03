@@ -30,7 +30,7 @@ yarn start contracts pdg -h
 | info                                                                     | get PredepositGuarantee base info                                                                  |
 | roles                                                                    | get PredepositGuarantee roles                                                                      |
 | validator-status v-status\<validatorPubkey>                              | get validator status                                                                               |
-| pending-activations pd\<vault>                                           | get the amount of ether that is pending as predeposits but not proved yet                          |
+| pending-activations pd\<vault>                                           | get the number of validators in PREDEPOSITED and PROVEN states but not ACTIVATED yet               |
 | ACTIVATION_DEPOSIT_AMOUNT                                                | get amount of ether to be deposited after the predeposit to activate the validator                 |
 | BEACON_ROOTS                                                             | get beacon roots address                                                                           |
 | DEFAULT_ADMIN_ROLE                                                       | get default admin role                                                                             |
@@ -68,14 +68,16 @@ yarn start contracts pdg -h
 | Command                                                             | Description                                                                                                        |
 | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | predeposit \<vault> \<deposits>                                     | deposits NO's validators with PREDEPOSIT_AMOUNT ether from StakingVault and locks up NO's balance                  |
-| proof-and-prove prove\<index>                                       | permissionless method to prove correct Withdrawal Credentials for the validator and to send the activation deposit |
+| prove-and-activate prove\<index>                                    | permissionless method to prove correct Withdrawal Credentials for the validator and to send the activation deposit |
 | prove-and-top-up \<indexes> \<amounts>                              | prove validators to unlock NO balance, activate the validators from stash, and optionally top up NO balance        |
-| top-up-existing-validators top-up-val\<topUps>                      | deposits ether to proven validators from staking vault                                                             |
+| top-up-existing-validators top-up-val\<topUps>                      | deposits ether to proven validators from staking vault.                                                            |
 | top-up-no \<nodeOperator> \<amount>                                 | top up Node Operator balance                                                                                       |
 | prove-invalid-validator-wc \<index> \<invalidWithdrawalCredentials> | permissionless method to prove and compensate incorrect Withdrawal Credentials for the validator on CL             |
 | withdraw-no-balance \<nodeOperator> \<amount> \<recipient>          | withdraw node operator balance                                                                                     |
 | set-no-guarantor set-no-g\<guarantor>                               | set node operator guarantor                                                                                        |
 | claim-guarantor-refund claim-g-refund\<recipient>                   | claim guarantor refund                                                                                             |
+| activate-validator activate\<pubkey>                                | permissionless method to activate the proven validator depositing 31 ETH from the staged balance of StakingVault   |
+| set-no-depositor set-no-d\<depositor>                               | sets the depositor for the NO                                                                                      |
 
 **\<deposits>**
 

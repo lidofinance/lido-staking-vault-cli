@@ -8,8 +8,32 @@ import {
   logInfo,
 } from 'utils';
 
+const checkIsDisconnected = async (vault: Address) => {
+  const vaultHubContract = await getVaultHubContract();
+  const connection = await callReadMethodSilent(
+    vaultHubContract,
+    'vaultConnection',
+    [vault],
+  );
+
+  const isDisconnected =
+    connection.owner === '0x0000000000000000000000000000000000000000' ||
+    connection.vaultIndex === 0n;
+
+  if (isDisconnected) {
+    logInfo('⚠️  The vault is not connected to VaultHub  ⚠️');
+    return true;
+  }
+
+  return false;
+};
+
 export const checkIsReportFresh = async (vault: Address) => {
   const vaultHubContract = await getVaultHubContract();
+  const isDisconnected = await checkIsDisconnected(vault);
+
+  if (isDisconnected) return true;
+
   const isReportFresh = await callReadMethodSilent(
     vaultHubContract,
     'isReportFresh',
@@ -35,6 +59,10 @@ export const checkIsReportFresh = async (vault: Address) => {
 
 export const reportFreshWarning = async (vault: Address): Promise<boolean> => {
   const vaultHubContract = await getVaultHubContract();
+  const isDisconnected = await checkIsDisconnected(vault);
+
+  if (isDisconnected) return true;
+
   const isReportFresh = await callReadMethodSilent(
     vaultHubContract,
     'isReportFresh',

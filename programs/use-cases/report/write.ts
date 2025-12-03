@@ -34,6 +34,10 @@ reportWrite
   .description('submit report by vault')
   .option('-v, --vault <string>', 'vault address')
   .option('-g, --gateway', 'ipfs gateway url')
+  .addHelpText(
+    'after',
+    '\n\u2192 Submitting report is permissionless operation. Anyone can submit a report for any stVault.',
+  )
   .action(async ({ vault, gateway }) => {
     const { vault: vaultAddress } = await chooseVaultAndGetDashboard({ vault });
 
@@ -48,6 +52,10 @@ reportWrite
   .argument('<vaults...>', 'vaults addresses')
   .option('-g, --gateway', 'ipfs gateway url')
   .option('-e, --skip-error', 'skip error')
+  .addHelpText(
+    'after',
+    '\n\u2192 Submitting report is permissionless operation. Anyone can submit a report for any stVault.',
+  )
   .action(
     withInterruptHandling(async (vaults: Address[], { gateway, skipError }) => {
       const lazyOracleContract = await getLazyOracleContract();
@@ -100,6 +108,10 @@ reportWrite
   .description('submit report for all vaults')
   .option('-g, --gateway', 'ipfs gateway url')
   .option('-e, --skip-error', 'skip error')
+  .addHelpText(
+    'after',
+    '\n\u2192 Submitting report is permissionless operation. Anyone can submit a report for any stVault.',
+  )
   .action(
     withInterruptHandling(async ({ gateway, skipError }) => {
       const lazyOracleContract = await getLazyOracleContract();

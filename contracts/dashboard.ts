@@ -7,14 +7,18 @@ import {
 import { DashboardAbi } from 'abi';
 import { getPublicClient } from 'providers';
 
-export const getDashboardContract = (
+export const getDashboardContract = async (
   address: Address,
-): GetContractReturnType<typeof DashboardAbi, WalletClient> => {
+): Promise<GetContractReturnType<typeof DashboardAbi, WalletClient>> => {
+  const publicClient = await getPublicClient();
+
   return getContract({
     address: address,
     abi: DashboardAbi,
-    client: getPublicClient(),
+    client: publicClient,
   });
 };
 
-export type DashboardContract = ReturnType<typeof getDashboardContract>;
+export type DashboardContract = Awaited<
+  ReturnType<typeof getDashboardContract>
+>;

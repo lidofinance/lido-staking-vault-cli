@@ -1,4 +1,4 @@
-import { formatEther, parseEther, type Address } from 'viem';
+import { formatEther, Hex, parseEther, type Address } from 'viem';
 import { Option } from 'commander';
 
 import {
@@ -13,8 +13,10 @@ import {
   stringToNumberArray,
   stringToNumber,
   etherToWei,
-  stringToBigIntArray,
+  etherToWeiArray,
   parseValidatorTopUpArray,
+  stringToHex,
+  callReadMethodSilent,
 } from 'utils';
 import {
   chooseVaultAndGetDashboard,
@@ -26,6 +28,9 @@ import {
   checkAndSpecifyNodeOperatorForTopUpOrWithdraw,
   getGuarantor,
   checkBLSWithAmountDeposits,
+  VALIDATOR_STAGES,
+  checkValidatorStageAndStagedBalanceForActivation,
+  checkBLSDeposits,
 } from 'features';
 import { Deposit, ValidatorTopUp } from 'types';
 import {
@@ -34,6 +39,7 @@ import {
 } from 'contracts';
 
 import { deposits } from './main.js';
+import { getAccount } from 'providers';
 
 const depositsWrite = deposits
   .command('write')
@@ -75,7 +81,7 @@ depositsWrite
         vault,
       });
       const pdgContract = await getPredepositGuaranteeContract();
-      const vaultContract = getStakingVaultContract(vaultAddress);
+      const vaultContract = await getStakingVaultContract(vaultAddress);
 
       const nodeOperator = await checkNodeOperatorForDeposit(vaultContract);
 
@@ -116,7 +122,7 @@ depositsWrite
   );
 
 depositsWrite
-  .command('proof-and-prove')
+  .command('prove-and-activate')
   .aliases(['prove'])
   .description(
     'permissionless method to prove correct Withdrawal Credentials for the validator and to send the activation deposit',
@@ -130,6 +136,8 @@ depositsWrite
 
     const { proof, pubkey, childBlockTimestamp, slot, proposerIndex } =
       await makePDGProofByIndex(validatorIndex);
+
+    await checkValidatorStageAndStagedBalanceForActivation(pdgContract, pubkey);
 
     await callWriteMethodWithReceipt({
       contract: pdgContract,
@@ -155,8 +163,8 @@ depositsWrite
   .argument('<indexes>', 'validator indexes', stringToNumberArray)
   .argument(
     '<amounts>',
-    'array of amounts to top up NO balance',
-    stringToBigIntArray,
+    'array of amounts (in ETH) to deposit to proven validator on top of ACTIVATION_DEPOSIT_AMOUNT',
+    etherToWeiArray,
   )
   .option('-v, --vault <string>', 'vault address', stringToAddress)
   .action(
@@ -169,7 +177,7 @@ depositsWrite
         vault,
       });
       const pdgContract = await getPredepositGuaranteeContract();
-      const vaultContract = getStakingVaultContract(vaultAddress);
+      const vaultContract = await getStakingVaultContract(vaultAddress);
 
       await checkNodeOperatorForDeposit(vaultContract);
 
@@ -207,7 +215,7 @@ depositsWrite
   .action(async (topUps: ValidatorTopUp[], { vault }: { vault: Address }) => {
     const { vault: vaultAddress } = await chooseVaultAndGetDashboard({ vault });
     const pdgContract = await getPredepositGuaranteeContract();
-    const vaultContract = getStakingVaultContract(vaultAddress);
+    const vaultContract = await getStakingVaultContract(vaultAddress);
 
     await checkNodeOperatorForDeposit(vaultContract);
 
@@ -234,7 +242,7 @@ depositsWrite
       vault,
       isNotMember: true,
     });
-    const vaultContract = getStakingVaultContract(vaultAddress);
+    const vaultContract = await getStakingVaultContract(vaultAddress);
 
     const nodeOperator = await checkAndSpecifyNodeOperatorForTopUpOrWithdraw(
       vaultContract,
@@ -275,7 +283,7 @@ depositsWrite
         vault,
         isNotMember: true,
       });
-      const vaultContract = getStakingVaultContract(vaultAddress);
+      const vaultContract = await getStakingVaultContract(vaultAddress);
 
       const nodeOperator = await checkAndSpecifyNodeOperatorForTopUpOrWithdraw(
         vaultContract,
@@ -317,3 +325,145 @@ depositsWrite
       payload: [newGuarantor],
     });
   });
+
+depositsWrite
+  .command('claim-guarantor-refund')
+  .aliases(['claim-g-refund'])
+  .description('claims refund for the previous guarantor of the NO')
+  .option('-r, --recipient <string>', 'recipient address', stringToAddress)
+  .action(async (recipient: Address) => {
+    const pdgContract = await getPredepositGuaranteeContract();
+
+    const recipientAddress = await getAddress(recipient, 'recipient');
+
+    await callWriteMethodWithReceipt({
+      contract: pdgContract,
+      methodName: 'claimGuarantorRefund',
+      payload: [recipientAddress],
+    });
+  });
+
+depositsWrite
+  .command('activate-validator')
+  .aliases(['activate'])
+  .description(
+    'permissionless method to activate the proven validator depositing 31 ETH from the staged balance of StakingVault',
+  )
+  .argument('<pubkey>', 'validator pubkey', stringToHex)
+  .action(async (pubkey: Hex) => {
+    const pdgContract = await getPredepositGuaranteeContract();
+    const { stage, stakingVault } = await callReadMethodSilent(
+      pdgContract,
+      'validatorStatus',
+      [pubkey],
+    );
+    const vaultStagedBalance = await callReadMethodSilent(
+      await getStakingVaultContract(stakingVault),
+      'stagedBalance',
+    );
+    const ACTIVATION_DEPOSIT_AMOUNT = await callReadMethodSilent(
+      pdgContract,
+      'ACTIVATION_DEPOSIT_AMOUNT',
+    );
+
+    if (vaultStagedBalance < ACTIVATION_DEPOSIT_AMOUNT) {
+      throw new Error(
+        `Staged balance is less than ${formatEther(ACTIVATION_DEPOSIT_AMOUNT)} ETH (current: ${formatEther(vaultStagedBalance)} ETH)`,
+      );
+    }
+
+    const validatorStage =
+      VALIDATOR_STAGES[stage as keyof typeof VALIDATOR_STAGES];
+    if (validatorStage !== 'PROVEN') {
+      throw new Error(
+        `Validator is not in PROVEN stage (current: ${validatorStage}, ${stage})`,
+      );
+    }
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to activate the validator ${pubkey} and deposit ${formatEther(ACTIVATION_DEPOSIT_AMOUNT)} ETH from the staged balance of StakingVault?`,
+    );
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt({
+      contract: pdgContract,
+      methodName: 'activateValidator',
+      payload: [pubkey],
+    });
+  });
+
+depositsWrite
+  .command('set-no-depositor')
+  .alias('set-no-d')
+  .description('sets the depositor for the NO')
+  .option('-d, --depositor <string>', 'depositor address', stringToAddress)
+  .action(async ({ depositor }: { depositor: Address }) => {
+    const pdgContract = await getPredepositGuaranteeContract();
+    const account = await getAccount();
+
+    const depositorAddress = await getAddress(depositor, 'depositor');
+    if (!depositorAddress) return;
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to set the node operator (${account.address}) depositor to ${depositorAddress}?`,
+    );
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt({
+      contract: pdgContract,
+      methodName: 'setNodeOperatorDepositor',
+      payload: [depositorAddress],
+    });
+  });
+
+depositsWrite
+  .command('unguaranteed-deposit-to-beacon-chain')
+  .alias('unguaranteed-deposit')
+  .description(
+    'withdraws ether from vault and deposits directly to provided validators bypassing the default PDG process',
+  )
+  .argument(
+    '<deposits>',
+    'array of IStakingVault.Deposit structs containing deposit data',
+    parseDepositArray,
+  )
+  .option('-v, --vault <string>', 'vault address', stringToAddress)
+  .option('--no-bls-check', 'skip bls signature check')
+  .addHelpText(
+    'after',
+    `Deposit format (amount are in gwei):
+    '[{
+      "pubkey": "...",
+      "signature": "...",
+      "amount": "...",
+      "deposit_data_root": "..."
+    }
+    {second deposit}
+    ...]'`,
+  )
+  .action(
+    async (
+      deposits: Deposit[],
+      { vault, blsCheck }: { vault: Address; blsCheck: boolean },
+    ) => {
+      const { vault: vaultAddress, contract } =
+        await chooseVaultAndGetDashboard({
+          vault,
+        });
+      const vaultContract = await getStakingVaultContract(vaultAddress);
+
+      const confirm = await confirmOperation(
+        `Are you sure you want to unguaranteed deposit ${deposits.length} deposits to the beacon chain in the staking vault ${vaultAddress}?
+      Pubkeys: ${deposits.map((i) => i.pubkey).join(', ')}`,
+      );
+      if (!confirm) return;
+
+      if (blsCheck) await checkBLSDeposits(vaultContract, deposits);
+
+      await callWriteMethodWithReceipt({
+        contract,
+        methodName: 'unguaranteedDepositToBeaconChain',
+        payload: [deposits],
+      });
+    },
+  );

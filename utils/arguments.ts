@@ -34,6 +34,10 @@ export const stringToHexArray = (value: string) => {
   return value.split(',').map(toHex);
 };
 
+export const stringToHex = (value: string) => {
+  return toHex(value);
+};
+
 export const jsonToPermit = (value: string) => {
   return JSON.parse(value) as Permit;
 };
@@ -82,6 +86,18 @@ export const stringToNumberArray = (value: string) => {
 
 export const etherToWei = (value: string) => {
   return parseEther(value, 'wei');
+};
+
+export const etherToGwei = (value: string) => {
+  return parseEther(value, 'gwei');
+};
+
+export const etherToWeiArray = (value: string) => {
+  return value.split(',').map(etherToWei);
+};
+
+export const etherToGweiArray = (value: string) => {
+  return value.split(',').map(etherToGwei);
 };
 
 export const stringToNumber = (value: string) => {
