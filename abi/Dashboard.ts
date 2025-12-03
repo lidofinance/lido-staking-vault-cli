@@ -128,6 +128,11 @@ export const DashboardErrorsAbi = [
     type: 'error',
   },
   {
+    inputs: [],
+    name: 'RoleRenouncementDisabled',
+    type: 'error',
+  },
+  {
     inputs: [
       {
         internalType: 'uint8',
@@ -211,7 +216,6 @@ export const DashboardAbi = [
   ...StakingVaultErrorsAbi,
   ...OperatorGridErrorsAbi,
   ...VaultHubErrorsAbi,
-
   {
     inputs: [
       {
@@ -1685,18 +1689,18 @@ export const DashboardAbi = [
     inputs: [
       {
         internalType: 'bytes32',
-        name: 'role',
+        name: '',
         type: 'bytes32',
       },
       {
         internalType: 'address',
-        name: 'callerConfirmation',
+        name: '',
         type: 'address',
       },
     ],
     name: 'renounceRole',
     outputs: [],
-    stateMutability: 'nonpayable',
+    stateMutability: 'pure',
     type: 'function',
   },
   {
