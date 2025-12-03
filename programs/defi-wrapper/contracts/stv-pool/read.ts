@@ -1,4 +1,4 @@
-import { type Address } from 'viem';
+import { type Address, formatEther, formatUnits } from 'viem';
 import { Option } from 'commander';
 
 import { StvPoolAbi } from 'abi/defi-wrapper/index.js';
@@ -31,7 +31,7 @@ stvPoolRead
   .description('get stv pool base info')
   .argument('<address>', 'stv pool address', stringToAddress)
   .action(async (address: Address) => {
-    const contract = getStvPoolContract(address);
+    const contract = await getStvPoolContract(address);
 
     const [
       poolType,
@@ -92,11 +92,14 @@ stvPoolRead
         ['ALLOW_LIST_ENABLED', ALLOW_LIST_ENABLED],
         ['name', name],
         ['symbol', symbol],
-        ['totalAssets', totalAssets],
-        ['totalLiabilityShares', totalLiabilityShares],
-        ['totalNominalAssets', totalNominalAssets],
-        ['totalSupply', totalSupply],
-        ['totalUnassignedLiabilityShares', totalUnassignedLiabilityShares],
+        ['totalAssets', formatEther(totalAssets)],
+        ['totalLiabilityShares', formatEther(totalLiabilityShares)],
+        ['totalNominalAssets', formatUnits(totalNominalAssets, 27)],
+        ['totalSupply', formatUnits(totalSupply, 27)],
+        [
+          'totalUnassignedLiabilityShares',
+          formatEther(totalUnassignedLiabilityShares),
+        ],
       ],
     });
   });

@@ -34,7 +34,7 @@ accountWrite
     'generate a new key. Disclaimer: this command is not recommended for production use.',
   )
   .action(async () => {
-    const chainId = getChain().id;
+    const chainId = (await getChain()).id;
 
     const isMainnet = chainId === mainnet.id;
     if (isMainnet) {
@@ -51,7 +51,7 @@ accountWrite
   .description('generate a new encrypted account')
   .argument('<password>', 'password for the encrypted account')
   .action(async (password: string) => {
-    const chainId = getChain().id;
+    const chainId = (await getChain()).id;
 
     const isMainnet = chainId === mainnet.id;
     if (isMainnet) {

@@ -1,4 +1,4 @@
-import { type Address } from 'viem';
+import { type Address, formatEther, formatUnits } from 'viem';
 import { Option } from 'commander';
 
 import { StvStETHPoolAbi } from 'abi/defi-wrapper/index.js';
@@ -31,7 +31,7 @@ stvStethPoolRead
   .description('get stv pool base info')
   .argument('<address>', 'stv pool address', stringToAddress)
   .action(async (address: Address) => {
-    const contract = getStvStethPoolContract(address);
+    const contract = await getStvStethPoolContract(address);
 
     const [
       poolType,
@@ -92,12 +92,15 @@ stvStethPoolRead
         ['ALLOW_LIST_ENABLED', ALLOW_LIST_ENABLED],
         ['name', name],
         ['symbol', symbol],
-        ['totalAssets', totalAssets],
-        ['totalExceedingMintedSteth', totalExceedingMintedSteth],
-        ['totalLiabilityShares', totalLiabilityShares],
-        ['totalNominalAssets', totalNominalAssets],
-        ['totalSupply', totalSupply],
-        ['totalUnassignedLiabilityShares', totalUnassignedLiabilityShares],
+        ['totalAssets', formatEther(totalAssets)],
+        ['totalExceedingMintedSteth', formatEther(totalExceedingMintedSteth)],
+        ['totalLiabilityShares', formatEther(totalLiabilityShares)],
+        ['totalNominalAssets', formatEther(totalNominalAssets)],
+        ['totalSupply', formatUnits(totalSupply, 27)],
+        [
+          'totalUnassignedLiabilityShares',
+          formatEther(totalUnassignedLiabilityShares),
+        ],
       ],
     });
   });

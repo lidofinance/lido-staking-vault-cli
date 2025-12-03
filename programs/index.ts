@@ -3,3 +3,4 @@ export * from './defi-wrapper/index.js';
 export * from './account/index.js';
 export * from './pdg-helpers.js';
 export * from './use-cases/index.js';
+export * from './dev-tools/index.js';

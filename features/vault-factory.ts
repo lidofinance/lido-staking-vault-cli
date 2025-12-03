@@ -79,7 +79,7 @@ export const createVault = async (
     | 'createVaultWithDashboard'
     | 'createVaultWithDashboardWithoutConnectingToVaultHub' = 'createVaultWithDashboard',
 ) => {
-  const contract = getVaultFactoryContract();
+  const contract = await getVaultFactoryContract();
 
   const {
     defaultAdmin,
@@ -140,7 +140,7 @@ export const createVault = async (
 };
 
 export const getVaultFactoryInfo = async () => {
-  const contract = getVaultFactoryContract();
+  const contract = await getVaultFactoryContract();
   const hideSpinner = showSpinner();
   try {
     const BEACON = await contract.read.BEACON();

@@ -44,7 +44,7 @@ stvPoolWrite
       referral: Address,
       { receiver }: { receiver: Address },
     ) => {
-      const contract = getStvPoolContract(address);
+      const contract = await getStvPoolContract(address);
       const account = await getAccount();
 
       const confirmationMessage = `Are you sure you want to deposit ETH to the stv pool? (referral: ${referral}, receiver: ${receiver || account.address}, amount: ${formatEther(amount)})`;
@@ -72,7 +72,7 @@ stvPoolWrite
     stringToBigInt,
   )
   .action(async (address: Address, stethShares: bigint) => {
-    const contract = getStvPoolContract(address);
+    const contract = await getStvPoolContract(address);
 
     const confirmationMessage = `Are you sure you want to rebalance unassigned liability with ${stethShares} stETH shares?`;
     const confirm = await confirmOperation(confirmationMessage);
@@ -93,7 +93,7 @@ stvPoolWrite
   .argument('<address>', 'pool address', stringToAddress)
   .argument('<ether>', 'amount of ether to rebalance (in ETH)', etherToWei)
   .action(async (address: Address, ether: bigint) => {
-    const contract = getStvPoolContract(address);
+    const contract = await getStvPoolContract(address);
 
     const confirmationMessage = `Are you sure you want to rebalance unassigned liability with ${formatEther(ether)} ether?`;
     const confirm = await confirmOperation(confirmationMessage);
@@ -112,7 +112,7 @@ stvPoolWrite
   .description('pause deposits')
   .argument('<address>', 'pool address', stringToAddress)
   .action(async (address: Address) => {
-    const contract = getStvPoolContract(address);
+    const contract = await getStvPoolContract(address);
 
     const confirmationMessage = `Are you sure you want to pause deposits for the pool ${address}?`;
     const confirm = await confirmOperation(confirmationMessage);
@@ -130,7 +130,7 @@ stvPoolWrite
   .description('resume deposits')
   .argument('<address>', 'pool address', stringToAddress)
   .action(async (address: Address) => {
-    const contract = getStvPoolContract(address);
+    const contract = await getStvPoolContract(address);
 
     const confirmationMessage = `Are you sure you want to resume deposits for the pool ${address}?`;
     const confirm = await confirmOperation(confirmationMessage);
@@ -149,7 +149,7 @@ stvPoolWrite
   .argument('<address>', 'pool address', stringToAddress)
   .argument('<user>', 'address to add to the allowlist', stringToAddress)
   .action(async (address: Address, user: Address) => {
-    const contract = getStvPoolContract(address);
+    const contract = await getStvPoolContract(address);
 
     const confirmationMessage = `Are you sure you want to add ${user} to the allowlist for the vault ${address}?`;
     const confirm = await confirmOperation(confirmationMessage);
@@ -168,7 +168,7 @@ stvPoolWrite
   .argument('<address>', 'pool address', stringToAddress)
   .argument('<user>', 'address to remove from the allowlist', stringToAddress)
   .action(async (address: Address, user: Address) => {
-    const contract = getStvPoolContract(address);
+    const contract = await getStvPoolContract(address);
 
     const confirmationMessage = `Are you sure you want to remove ${user} from the allowlist for the vault ${address}?`;
     const confirm = await confirmOperation(confirmationMessage);

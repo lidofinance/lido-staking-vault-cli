@@ -81,7 +81,7 @@ depositsWrite
         vault,
       });
       const pdgContract = await getPredepositGuaranteeContract();
-      const vaultContract = getStakingVaultContract(vaultAddress);
+      const vaultContract = await getStakingVaultContract(vaultAddress);
 
       const nodeOperator = await checkNodeOperatorForDeposit(vaultContract);
 
@@ -177,7 +177,7 @@ depositsWrite
         vault,
       });
       const pdgContract = await getPredepositGuaranteeContract();
-      const vaultContract = getStakingVaultContract(vaultAddress);
+      const vaultContract = await getStakingVaultContract(vaultAddress);
 
       await checkNodeOperatorForDeposit(vaultContract);
 
@@ -215,7 +215,7 @@ depositsWrite
   .action(async (topUps: ValidatorTopUp[], { vault }: { vault: Address }) => {
     const { vault: vaultAddress } = await chooseVaultAndGetDashboard({ vault });
     const pdgContract = await getPredepositGuaranteeContract();
-    const vaultContract = getStakingVaultContract(vaultAddress);
+    const vaultContract = await getStakingVaultContract(vaultAddress);
 
     await checkNodeOperatorForDeposit(vaultContract);
 
@@ -242,7 +242,7 @@ depositsWrite
       vault,
       isNotMember: true,
     });
-    const vaultContract = getStakingVaultContract(vaultAddress);
+    const vaultContract = await getStakingVaultContract(vaultAddress);
 
     const nodeOperator = await checkAndSpecifyNodeOperatorForTopUpOrWithdraw(
       vaultContract,
@@ -283,7 +283,7 @@ depositsWrite
         vault,
         isNotMember: true,
       });
-      const vaultContract = getStakingVaultContract(vaultAddress);
+      const vaultContract = await getStakingVaultContract(vaultAddress);
 
       const nodeOperator = await checkAndSpecifyNodeOperatorForTopUpOrWithdraw(
         vaultContract,
@@ -358,7 +358,7 @@ depositsWrite
       [pubkey],
     );
     const vaultStagedBalance = await callReadMethodSilent(
-      getStakingVaultContract(stakingVault),
+      await getStakingVaultContract(stakingVault),
       'stagedBalance',
     );
     const ACTIVATION_DEPOSIT_AMOUNT = await callReadMethodSilent(
@@ -450,7 +450,7 @@ depositsWrite
         await chooseVaultAndGetDashboard({
           vault,
         });
-      const vaultContract = getStakingVaultContract(vaultAddress);
+      const vaultContract = await getStakingVaultContract(vaultAddress);
 
       const confirm = await confirmOperation(
         `Are you sure you want to unguaranteed deposit ${deposits.length} deposits to the beacon chain in the staking vault ${vaultAddress}?

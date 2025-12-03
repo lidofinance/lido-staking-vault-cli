@@ -12,14 +12,15 @@ import { getLocatorContract } from 'contracts';
 export const getPredepositGuaranteeContract = async (): Promise<
   GetContractReturnType<typeof PredepositGuaranteeAbi, WalletClient>
 > => {
-  const locator = getLocatorContract();
+  const locator = await getLocatorContract();
+  const chain = await getChain();
   const address = await locator.read.predepositGuarantee();
 
   return getContract({
     address,
     abi: PredepositGuaranteeAbi,
     client: createPublicClient({
-      chain: getChain(),
+      chain,
       transport: http(getElUrl()),
     }),
   });

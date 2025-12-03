@@ -27,7 +27,7 @@ export const checkValidatorStageAndStagedBalanceForActivation = async (
     [pubkey],
   );
   const vaultStagedBalance = await callReadMethodSilent(
-    getStakingVaultContract(stakingVault),
+    await getStakingVaultContract(stakingVault),
     'stagedBalance',
   );
   const ACTIVATION_DEPOSIT_AMOUNT = await callReadMethodSilent(

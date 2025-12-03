@@ -7,14 +7,16 @@ import {
 import { StvPoolAbi } from 'abi/defi-wrapper/index.js';
 import { getPublicClient } from 'providers';
 
-export const getStvPoolContract = (
+export const getStvPoolContract = async (
   address: Address,
-): GetContractReturnType<typeof StvPoolAbi, WalletClient> => {
+): Promise<GetContractReturnType<typeof StvPoolAbi, WalletClient>> => {
+  const publicClient = await getPublicClient();
+
   return getContract({
     address: address,
     abi: StvPoolAbi,
-    client: getPublicClient(),
+    client: publicClient,
   });
 };
 
-export type StvPoolContract = ReturnType<typeof getStvPoolContract>;
+export type StvPoolContract = Awaited<ReturnType<typeof getStvPoolContract>>;

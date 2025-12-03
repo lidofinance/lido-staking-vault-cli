@@ -33,7 +33,7 @@ export const getVaultOverviewByDashboard = async (
   await reportFreshWarning(vault);
 
   const hideSpinner = showSpinner();
-  const publicClient = getPublicClient();
+  const publicClient = await getPublicClient();
 
   let report: VaultReport | null = null;
 

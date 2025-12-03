@@ -176,7 +176,7 @@ predepositGuaranteeHelpers
       const PREDEPOSIT_AMOUNT = await callReadMethod(pdg, 'PREDEPOSIT_AMOUNT');
 
       if (vault) {
-        const vaultContract = getStakingVaultContract(vault);
+        const vaultContract = await getStakingVaultContract(vault);
         const wc = await callReadMethod(vaultContract, 'withdrawalCredentials');
         withdrawalCredentials = wc;
       }
@@ -211,7 +211,10 @@ predepositGuaranteeHelpers
         }
 
         // local BLS check
-        const isBLSValid = isValidBLSDeposit(deposit, withdrawalCredentials);
+        const isBLSValid = await isValidBLSDeposit(
+          deposit,
+          withdrawalCredentials,
+        );
         if (!isBLSValid) {
           logError(
             `❌ Offchain - BLS signature is not valid for Pubkey ${deposit.pubkey}`,

@@ -76,14 +76,17 @@ pdgWrite
           pdgContract,
           'PREDEPOSIT_AMOUNT',
         );
-        const vaultContract = getStakingVaultContract(vault);
+        const vaultContract = await getStakingVaultContract(vault);
         const withdrawalCredentials = await callReadMethod(
           vaultContract,
           'withdrawalCredentials',
         );
 
         for (const deposit of deposits) {
-          const isBLSValid = isValidBLSDeposit(deposit, withdrawalCredentials);
+          const isBLSValid = await isValidBLSDeposit(
+            deposit,
+            withdrawalCredentials,
+          );
 
           if (deposit.amount !== PREDEPOSIT_AMOUNT) {
             console.info(

@@ -13,14 +13,15 @@ export const getVaultHubContract = async (): Promise<
   GetContractReturnType<typeof VaultHubAbi, WalletClient>
 > => {
   const elUrl = getElUrl();
-  const locator = getLocatorContract();
+  const chain = await getChain();
+  const locator = await getLocatorContract();
   const address = await locator.read.vaultHub();
 
   return getContract({
     address,
     abi: VaultHubAbi,
     client: createPublicClient({
-      chain: getChain(),
+      chain,
       transport: http(elUrl),
     }),
   });

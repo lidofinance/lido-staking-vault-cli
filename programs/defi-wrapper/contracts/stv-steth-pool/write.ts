@@ -43,7 +43,7 @@ stvStethPoolWrite
   )
   .action(
     async (address: Address, referral: Address, stethSharesToMint: bigint) => {
-      const contract = getStvStethPoolContract(address);
+      const contract = await getStvStethPoolContract(address);
 
       const confirmationMessage = `Are you sure you want to deposit ETH to the stv steth pool? (referral: ${referral}, stethSharesToMint: ${stethSharesToMint})`;
       const confirm = await confirmOperation(confirmationMessage);
@@ -75,7 +75,7 @@ stvStethPoolWrite
   )
   .action(
     async (address: Address, referral: Address, stethSharesToMint: bigint) => {
-      const contract = getStvStethPoolContract(address);
+      const contract = await getStvStethPoolContract(address);
 
       const confirmationMessage = `Are you sure you want to deposit ETH to the stv steth pool? (referral: ${referral}, stethSharesToMint: ${stethSharesToMint})`;
       const confirm = await confirmOperation(confirmationMessage);
@@ -101,7 +101,7 @@ stvStethPoolWrite
     stringToBigInt,
   )
   .action(async (address: Address, stethShares: bigint) => {
-    const contract = getStvStethPoolContract(address);
+    const contract = await getStvStethPoolContract(address);
 
     const confirmationMessage = `Are you sure you want to rebalance unassigned liability with ${stethShares} stETH shares?`;
     const confirm = await confirmOperation(confirmationMessage);
@@ -122,7 +122,7 @@ stvStethPoolWrite
   .argument('<address>', 'distributor address', stringToAddress)
   .argument('<ether>', 'amount of ether to rebalance (in ETH)', etherToWei)
   .action(async (address: Address, ether: bigint) => {
-    const contract = getStvStethPoolContract(address);
+    const contract = await getStvStethPoolContract(address);
 
     const confirmationMessage = `Are you sure you want to rebalance unassigned liability with ${formatEther(ether)} ether?`;
     const confirm = await confirmOperation(confirmationMessage);
@@ -142,7 +142,7 @@ stvStethPoolWrite
   .argument('<address>', 'distributor address', stringToAddress)
   .argument('<user>', 'address to add to the allowlist', stringToAddress)
   .action(async (address: Address, user: Address) => {
-    const contract = getStvStethPoolContract(address);
+    const contract = await getStvStethPoolContract(address);
 
     const confirmationMessage = `Are you sure you want to add ${user} to the allowlist for the vault ${address}?`;
     const confirm = await confirmOperation(confirmationMessage);
@@ -161,7 +161,7 @@ stvStethPoolWrite
   .argument('<address>', 'distributor address', stringToAddress)
   .argument('<user>', 'address to remove from the allowlist', stringToAddress)
   .action(async (address: Address, user: Address) => {
-    const contract = getStvStethPoolContract(address);
+    const contract = await getStvStethPoolContract(address);
 
     const confirmationMessage = `Are you sure you want to remove ${user} from the allowlist for the vault ${address}?`;
     const confirm = await confirmOperation(confirmationMessage);
@@ -184,7 +184,7 @@ stvStethPoolWrite
     stringToBigInt,
   )
   .action(async (address: Address, stethShares: bigint) => {
-    const contract = getStvStethPoolContract(address);
+    const contract = await getStvStethPoolContract(address);
 
     const confirmationMessage = `Are you sure you want to mint stETH shares up to the user's minting capacity for the vault ${address}? (stethShares: ${stethShares})`;
     const confirm = await confirmOperation(confirmationMessage);
@@ -207,7 +207,7 @@ stvStethPoolWrite
     stringToBigInt,
   )
   .action(async (address: Address, stethShares: bigint) => {
-    const contract = getStvStethPoolContract(address);
+    const contract = await getStvStethPoolContract(address);
 
     const confirmationMessage = `Are you sure you want to burn stETH shares to reduce the user's minted stETH obligation for the vault ${address}? (stethShares: ${stethShares})`;
     const confirm = await confirmOperation(confirmationMessage);
@@ -233,7 +233,7 @@ stvStethPoolWrite
   )
   .action(
     async (address: Address, to: Address, stv: bigint, stethShares: bigint) => {
-      const contract = getStvStethPoolContract(address);
+      const contract = await getStvStethPoolContract(address);
 
       const confirmationMessage = `Are you sure you want to transfer ${stv} stv and ${stethShares} stETH shares liability to ${to} for the vault ${address}?`;
       const confirm = await confirmOperation(confirmationMessage);

@@ -61,7 +61,7 @@ const isGnosisSafe = (peer: Peer) => {
 // Create a wallet connect client
 export const createWalletConnectClient = async () => {
   try {
-    const chain = getChain();
+    const chain = await getChain();
 
     // If the wallet connect client is already created, return it
     if (cachedWalletConnectClient) {
@@ -93,7 +93,7 @@ export const createWalletConnectClient = async () => {
     // Create a wallet connect client
     const walletConnectClient = createWalletClient({
       account,
-      chain: getChain(),
+      chain,
       transport: custom({
         async request({ method, params }) {
           return await cachedSignClient?.request({
@@ -174,7 +174,7 @@ const connectWalletConnectWithTimeout = async (
 };
 
 const connectWalletConnect = async () => {
-  const chain = getChain();
+  const chain = await getChain();
   const { WALLET_CONNECT_PROJECT_ID } = getConfig();
 
   // Initialize the wallet connect client
