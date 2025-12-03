@@ -1,9 +1,7 @@
 import {
   Hex,
   Address,
-  zeroAddress,
   hexToBigInt,
-  parseGwei,
   decodeFunctionData,
   isHex,
   hexToBytes,
@@ -17,14 +15,8 @@ import {
   getValidatorConsolidationRequestsContract,
 } from 'contracts';
 import {
-  finalityCheckpoints,
-  checkSourceValidators,
-  checkTargetValidators,
   callReadMethodSilent,
-  checkPubkeys,
   PopulatedTx,
-  fetchValidatorsInfo,
-  ValidatorsInfo,
   showSpinner,
   callWriteMethodWithReceipt,
   printError,
@@ -32,20 +24,7 @@ import {
   callWriteMethodWithReceiptBatchCalls,
 } from 'utils';
 import { DashboardAbi } from 'abi';
-
-export type ValidatorInfo = {
-  status: string;
-  balance: bigint;
-  index: string;
-};
-
-export type TargetAndSourceValidators = Map<
-  Hex,
-  {
-    info: ValidatorInfo;
-    sourceValidators: Map<Hex, ValidatorInfo>;
-  }
->;
+import { TargetAndSourceValidators } from 'utils/consolidation/types.js';
 
 // https://eips.ethereum.org/EIPS/eip-7251
 const CONSOLIDATION_REQUEST_PREDEPLOY_ADDRESS =
@@ -70,7 +49,7 @@ const flattenSourcePubkeys = (
 };
 
 const getConsolidationRequestFee = async (): Promise<bigint> => {
-  const publicClient = getPublicClient();
+  const publicClient = await getPublicClient();
 
   const hideSpinnerGetFeePerRequest = showSpinner();
 
@@ -143,7 +122,7 @@ const addFeeExemption = async ({
     throw new Error('decodedBalanceToAdjust is not equal to balanceToAdjust');
 
   await callWriteMethodWithReceipt({
-    contract: getDashboardContract(dashboard),
+    contract: await getDashboardContract(dashboard),
     methodName: 'addFeeExemption',
     payload: [balanceToAdjust],
   });
@@ -154,7 +133,7 @@ export const consolidationRequestsAndIncreaseFeeExemption = async (
   feeExemption: bigint,
   dashboard: Address,
 ) => {
-  const publicClient = getPublicClient();
+  const publicClient = await getPublicClient();
 
   const targetPubkeys = [...targetAndSourceValidators.keys()];
   const sourcePubkeysFlattened = flattenSourcePubkeys(
@@ -333,143 +312,4 @@ const addDummyTargetAndSourceValidator = (
       ]),
     },
   );
-};
-
-export const checkConsolidationInput = async (
-  sourcePubkeys: Hex[][],
-  targetPubkeys: Hex[],
-  dashboard: Address,
-  refundRecipient?: Address,
-) => {
-  const sourcePubkeysFlat = sourcePubkeys.flat();
-  checkPubkeys(sourcePubkeysFlat);
-  checkPubkeys(targetPubkeys);
-
-  if (sourcePubkeys.length !== targetPubkeys.length) {
-    throw new Error(
-      'sourcePubkeys and targetPubkeys must have the same length',
-    );
-  }
-  if (refundRecipient != null && refundRecipient === zeroAddress) {
-    throw new Error('refundRecipient must be non-zero address');
-  }
-  if (dashboard === zeroAddress) {
-    throw new Error('dashboard address must be non-zero address');
-  }
-};
-
-export const requestValidatorsInfo = async (
-  sourcePubkeys: Hex[][],
-  targetPubkeys: Hex[],
-): Promise<{
-  sourceValidatorsInfo: ValidatorsInfo;
-  targetValidatorsInfo: ValidatorsInfo;
-}> => {
-  const finalityCheckpointsInfo = await finalityCheckpoints();
-  const finalizedEpoch = Number(finalityCheckpointsInfo.data.finalized.epoch);
-  const sourcePubkeysFlat = sourcePubkeys.flat();
-  const sourceValidatorsInfo = await fetchValidatorsInfo(sourcePubkeysFlat);
-  if (sourceValidatorsInfo.data == null) {
-    throw new Error('sourceValidatorsInfo.data is null');
-  }
-  checkSourceValidators(sourceValidatorsInfo.data, finalizedEpoch);
-
-  const targetValidatorsInfo = await fetchValidatorsInfo(targetPubkeys);
-  if (targetValidatorsInfo.data == null) {
-    throw new Error('targetValidatorsInfo.data is null');
-  }
-  checkTargetValidators(targetValidatorsInfo.data);
-
-  return {
-    sourceValidatorsInfo,
-    targetValidatorsInfo,
-  };
-};
-
-export const removeInactiveValidators = (
-  targetAndSourceValidators: TargetAndSourceValidators,
-) => {
-  for (const [target, { sourceValidators }] of targetAndSourceValidators) {
-    const toDelete: Hex[] = [];
-    for (const [source, sourceValidatorInfo] of sourceValidators) {
-      if (sourceValidatorInfo.status !== 'active_ongoing') {
-        toDelete.push(source);
-      }
-    }
-
-    for (const source of toDelete) {
-      sourceValidators.delete(source);
-    }
-
-    if (sourceValidators.size === 0) {
-      targetAndSourceValidators.delete(target);
-    }
-  }
-};
-
-export const getTargetAndSourceValidatorsInfo = (
-  targetPubkeys: Hex[],
-  targetValidatorsInfo: ValidatorsInfo,
-  sourcePubkeys: Hex[][],
-  sourceValidatorsInfo: ValidatorsInfo,
-): TargetAndSourceValidators => {
-  const targetAndSourceValidatorsInfo: TargetAndSourceValidators = new Map();
-  targetPubkeys.forEach((targetPubkey, i) => {
-    const targetValidatorInfo = targetValidatorsInfo.data.find(
-      (validator) => validator.validator.pubkey === targetPubkey,
-    );
-    if (!targetValidatorInfo) {
-      throw new Error(`Target validator with pubkey ${targetPubkey} not found`);
-    }
-    targetAndSourceValidatorsInfo.set(targetPubkey, {
-      info: {
-        status: targetValidatorInfo.status,
-        balance: parseGwei(targetValidatorInfo.balance),
-        index: targetValidatorInfo.index,
-      },
-      sourceValidators: new Map(),
-    });
-    const sourcePubkeysGroup = sourcePubkeys[i] ?? [];
-    sourcePubkeysGroup.forEach((sourcePubkey) => {
-      const sourceValidatorInfo = sourceValidatorsInfo.data.find(
-        (validator) => validator.validator.pubkey === sourcePubkey,
-      );
-      if (!sourceValidatorInfo) {
-        throw new Error(
-          `Source validator with pubkey ${sourcePubkey} not found`,
-        );
-      }
-      targetAndSourceValidatorsInfo
-        .get(targetPubkey)
-        ?.sourceValidators.set(sourcePubkey, {
-          status: sourceValidatorInfo.status,
-          balance: parseGwei(sourceValidatorInfo.balance),
-          index: sourceValidatorInfo.index,
-        });
-    });
-  });
-  return targetAndSourceValidatorsInfo;
-};
-
-export const getFeeExemption = async (
-  targetAndSourceValidators: TargetAndSourceValidators,
-): Promise<bigint> => {
-  let feeExemption = 0n;
-
-  for (const [, { sourceValidators }] of targetAndSourceValidators) {
-    for (const [source, sourceValidatorInfo] of sourceValidators) {
-      if (sourceValidatorInfo.status === 'active_ongoing') {
-        feeExemption += sourceValidatorInfo.balance;
-      } else {
-        const confirm = await confirmOperation(
-          `Validator with this pubkey ${source} is not in active state. Should we consider its balance for fee exemption?`,
-        );
-        if (confirm) {
-          feeExemption += sourceValidatorInfo.balance;
-        }
-      }
-    }
-  }
-
-  return feeExemption;
 };

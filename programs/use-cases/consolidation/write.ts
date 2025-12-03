@@ -4,24 +4,27 @@ import {
   stringToHexArray,
   jsonFileToPubkeys,
   confirmOperation,
-  logTable,
   logInfo,
   callWriteMethodWithReceiptBatchCalls,
 } from 'utils';
-import { Address, Hex, formatUnits } from 'viem';
+import { Address, Hex } from 'viem';
 import { consolidation } from './main.js';
 import {
-  checkConsolidationInput,
   consolidateAndIncreaseFeeExemptionWithoutBatching,
-  requestValidatorsInfo,
-  getTargetAndSourceValidatorsInfo,
-  getFeeExemption,
-  removeInactiveValidators,
-  TargetAndSourceValidators,
   consolidationRequestsAndIncreaseFeeExemption,
 } from 'features/consolidation.js';
-import { PubkeyMap } from 'types/common.js';
-import { toHex } from 'utils/proof/merkle-utils.js';
+import {
+  checkPubkeysArgs,
+  validateConsolidationInput,
+  getValidatorsInfo,
+  getTargetAndSourceValidatorsInfo,
+  logAllSourceValidatorsTable,
+  logAllTargetValidatorsTable,
+  confirmToConsolidate,
+  calculateAndConfirmFeeExemption,
+  removeInactiveValidators,
+} from 'utils';
+import { PubkeyMap } from 'utils/consolidation/types.js';
 
 consolidation
   .command('write')
@@ -31,12 +34,12 @@ consolidation
   )
   .argument('<dashboard>', 'dashboard address', stringToAddress)
   .option(
-    '-s, --source_pubkeys <source_pubkeys>',
+    '-s, --source <source>',
     '2D array of source validator pubkeys: each inner list will be consolidated into a single target validator',
     stringTo2dArray,
   )
   .option(
-    '-t, --target_pubkeys <target_pubkeys>',
+    '-t, --target <target>',
     'List of target validator public keys to consolidate into. One target pubkey per group of source pubkeys',
     stringToHexArray,
   )
@@ -54,53 +57,47 @@ consolidation
     async (
       dashboard: Address,
       {
-        source_pubkeys,
-        target_pubkeys,
+        source,
+        target,
         file,
         batch,
       }: {
-        source_pubkeys: Hex[][];
-        target_pubkeys: Hex[];
+        source: Hex[][];
+        target: Hex[];
         file: PubkeyMap;
         batch?: boolean;
       },
     ) => {
-      if (!file && !(source_pubkeys && target_pubkeys)) {
-        throw new Error(
-          'Provide --file or both --source_pubkeys and --target_pubkeys',
-        );
-      }
-      const sourcePubkeys = file
-        ? (Object.values(file) as Hex[][])
-        : (source_pubkeys ?? []);
-      const targetPubkeys = file
-        ? Object.keys(file).map(toHex)
-        : (target_pubkeys ?? []);
+      // Validation
+      const { sourcePubkeys, targetPubkeys } = checkPubkeysArgs(
+        file,
+        source,
+        target,
+      );
+      validateConsolidationInput(sourcePubkeys, targetPubkeys, dashboard);
 
-      await checkConsolidationInput(sourcePubkeys, targetPubkeys, dashboard);
       const { sourceValidatorsInfo, targetValidatorsInfo } =
-        await requestValidatorsInfo(sourcePubkeys, targetPubkeys);
+        await getValidatorsInfo(sourcePubkeys, targetPubkeys);
       const targetAndSourceValidators = getTargetAndSourceValidatorsInfo(
         targetPubkeys,
         targetValidatorsInfo,
         sourcePubkeys,
         sourceValidatorsInfo,
       );
-      const feeExemption = await getFeeExemption(targetAndSourceValidators);
-      logInfo(`Fee Exemption: ${formatUnits(feeExemption, 18)} ETH`);
+      const feeExemption = await calculateAndConfirmFeeExemption(
+        targetAndSourceValidators,
+      );
 
       removeInactiveValidators(targetAndSourceValidators);
 
-      if (targetAndSourceValidators.size > 0) {
-        await logAllSourceValidatorsTable(targetAndSourceValidators);
-        await logAllTargetValidatorsTable(targetAndSourceValidators);
-
-        const confirmFileContent = await logConfirmToConsolidate(
-          targetAndSourceValidators,
-          dashboard,
-        );
-        if (!confirmFileContent) return;
+      if (targetAndSourceValidators.size === 0) {
+        logInfo('No validators to consolidate');
+        return;
       }
+
+      await logAllSourceValidatorsTable(targetAndSourceValidators);
+      await logAllTargetValidatorsTable(targetAndSourceValidators);
+      await confirmToConsolidate(targetAndSourceValidators, dashboard);
 
       if (batch) {
         const populatedTxs = await consolidationRequestsAndIncreaseFeeExemption(
@@ -129,70 +126,3 @@ consolidation
       }
     },
   );
-
-const logAllTargetValidatorsTable = async (
-  targetAndSourceValidators: TargetAndSourceValidators,
-) => {
-  const rows: Array<[string, string, string, string]> = [];
-
-  for (const [
-    target,
-    { info: targetValidatorInfo },
-  ] of targetAndSourceValidators) {
-    rows.push([
-      target,
-      targetValidatorInfo.status,
-      `${formatUnits(targetValidatorInfo.balance, 18)} ETH`,
-      targetValidatorInfo.index,
-    ]);
-  }
-
-  logInfo('Target Validators Info');
-  logTable({
-    params: {
-      head: ['Pubkey', 'Status', 'Balance', 'index'],
-    },
-    data: rows,
-  });
-};
-
-const logAllSourceValidatorsTable = async (
-  targetAndSourceValidators: TargetAndSourceValidators,
-) => {
-  const rows: Array<[string, string, string, string]> = [];
-
-  for (const [, { sourceValidators }] of targetAndSourceValidators) {
-    for (const [source, sourceValidatorInfo] of sourceValidators) {
-      rows.push([
-        source,
-        sourceValidatorInfo.status,
-        `${formatUnits(sourceValidatorInfo.balance, 18)} ETH`,
-        sourceValidatorInfo.index,
-      ]);
-    }
-  }
-
-  logInfo('Source Validators Info');
-  logTable({
-    params: {
-      head: ['Pubkey', 'Status', 'Balance', 'index'],
-    },
-    data: rows,
-  });
-};
-
-const logConfirmToConsolidate = async (
-  targetAndSourceValidators: TargetAndSourceValidators,
-  dashboard: Address,
-): Promise<boolean> => {
-  const lines: string[] = [
-    'Are you sure you want to consolidate the following validators?\n',
-  ];
-  for (const [target, { sourceValidators }] of targetAndSourceValidators) {
-    for (const [source] of sourceValidators) {
-      lines.push(`Source: ${source}\nTarget: ${target}\n`);
-    }
-  }
-  lines.push(`Dashboard: ${dashboard}`);
-  return confirmOperation(lines.join('\n'));
-};

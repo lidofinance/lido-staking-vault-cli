@@ -56,7 +56,9 @@ type FinalityCheckpoints = {
   };
 };
 
-const isFinalityCheckpoints = (obj: any): obj is FinalityCheckpoints => {
+const isFinalityCheckpoints = (
+  obj: FinalityCheckpoints,
+): obj is FinalityCheckpoints => {
   return (
     obj &&
     typeof obj === 'object' &&
@@ -133,7 +135,7 @@ const isValidator = (
   );
 };
 
-const isValidatorsInfo_Array = (obj: any): obj is ValidatorsInfo => {
+const isValidatorsInfoArray = (obj: ValidatorsInfo): obj is ValidatorsInfo => {
   return (
     obj &&
     typeof obj === 'object' &&
@@ -163,36 +165,26 @@ export const finalityCheckpoints = async (
   if (!url) {
     throw new Error('CL_URL is not set. CL_URL is required for fetching epoch');
   }
+
   try {
     const epochResp = await fetch(
       `${url.endsWith('/') ? url : url + '/'}${endpoints.finalityCheckpoints}`,
     );
 
-    const bodyText = await epochResp.text();
-
     if (!epochResp.ok) {
       throw new Error(
-        `HTTP ${epochResp.status} ${epochResp.statusText}. URL: ${url}\n` +
-          bodyText.slice(0, 800),
+        `HTTP ${epochResp.status} ${epochResp.statusText}. URL: ${url}\n`,
       );
     }
 
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(bodyText);
-    } catch {
+    const body: FinalityCheckpoints = await epochResp.json();
+    if (!isFinalityCheckpoints(body)) {
       throw new Error(
-        `Invalid JSON received from ${url}.\nSnippet: ${bodyText.slice(0, 800)}`,
+        `Response JSON is not of type FinalityCheckpoints.\nSnippet: ${JSON.stringify(body)}`,
       );
     }
 
-    if (!isFinalityCheckpoints(parsed)) {
-      throw new Error(
-        `Response JSON is not of type FinalityCheckpoints.\nSnippet: ${bodyText.slice(0, 800)}`,
-      );
-    }
-
-    return parsed;
+    return body;
   } catch (error) {
     printError(
       error,
@@ -320,31 +312,21 @@ export const fetchValidatorsInfo = async (
     const validatorsInfoResp = await fetch(
       `${url.endsWith('/') ? url : url + '/'}${endpoints.validatorsInfo('?id=' + validatorPubkeys.join(','))}`,
     );
-    const bodyText = await validatorsInfoResp.text();
 
     if (!validatorsInfoResp.ok) {
       throw new Error(
-        `HTTP ${validatorsInfoResp.status} ${validatorsInfoResp.statusText}. URL: ${url}\n` +
-          bodyText.slice(0, 800),
+        `HTTP ${validatorsInfoResp.status} ${validatorsInfoResp.statusText}. URL: ${url}\n`,
       );
     }
 
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(bodyText);
-    } catch {
+    const body: ValidatorsInfo = await validatorsInfoResp.json();
+    if (!isValidatorsInfoArray(body)) {
       throw new Error(
-        `Invalid JSON received from ${url}.\nSnippet: ${bodyText.slice(0, 800)}`,
+        `Response JSON is not of type ValidatorsInfo.\nSnippet: ${JSON.stringify(body)}`,
       );
     }
 
-    if (!isValidatorsInfo_Array(parsed)) {
-      throw new Error(
-        `Response JSON is not of type ValidatorsInfo.\nSnippet: ${bodyText.slice(0, 800)}`,
-      );
-    }
-
-    return parsed;
+    return body;
   } catch (error) {
     printError(
       error,
