@@ -300,6 +300,7 @@ export const callWriteMethodWithReceipt = async <
       withSpinner,
       silent,
       skipError,
+      abi: contract.abi,
     });
 
     return { receipt: data.receipt, tx: data.txHash };

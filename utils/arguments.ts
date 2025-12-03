@@ -1,16 +1,11 @@
 import { program } from 'commander';
-import {
-  Permit,
-  RoleAssignment,
-  Tier,
-  Deposit,
-  PubkeyMap,
-  ValidatorTopUp,
-} from 'types';
+import { readFileSync } from 'fs';
+import { Permit, RoleAssignment, Tier, Deposit, ValidatorTopUp } from 'types';
 import { Address, isAddress, isHex, parseEther } from 'viem';
 
+import { PubkeyMap } from 'utils/consolidation/types.js';
+
 import { toHex } from './proof/merkle-utils.js';
-import { readFileSync } from 'fs';
 
 const toCamelCase = (str: string): string =>
   str.replace(/_([a-z])/g, (_, char) => char.toUpperCase());

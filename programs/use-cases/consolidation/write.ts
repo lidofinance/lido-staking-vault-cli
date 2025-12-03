@@ -6,6 +6,7 @@ import {
   confirmOperation,
   logInfo,
   callWriteMethodWithReceiptBatchCalls,
+  logCancel,
 } from 'utils';
 import { Address, Hex } from 'viem';
 import { consolidation } from './main.js';
@@ -50,7 +51,7 @@ consolidation
   )
   .option(
     '-b, --batch',
-    'Batch the consolidation requests and increase fee exemption amount',
+    'Batch the consolidation requests and increase fee exemption amount. Use this option if your wallet supports batching.',
     false,
   )
   .action(
@@ -109,7 +110,10 @@ consolidation
         const confirm = await confirmOperation(
           `Are you sure you want to proceed with the consolidation? There are will be ${populatedTxs.length} operations to be executed`,
         );
-        if (!confirm) return;
+        if (!confirm) {
+          logCancel('User cancelled consolidation');
+          return;
+        }
 
         await callWriteMethodWithReceiptBatchCalls({
           calls: populatedTxs,

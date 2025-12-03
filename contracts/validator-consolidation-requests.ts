@@ -4,14 +4,18 @@ import { getPublicClient } from 'providers';
 import { WalletClient } from 'viem';
 import { getValidatorConsolidationRequestsAddress } from 'configs';
 
-export const getValidatorConsolidationRequestsContract =
-  (): GetContractReturnType<
-    typeof validatorConsolidationRequestsAbi,
-    WalletClient
-  > => {
-    return getContract({
-      address: getValidatorConsolidationRequestsAddress(),
-      abi: validatorConsolidationRequestsAbi,
-      client: getPublicClient(),
-    });
-  };
+export const getValidatorConsolidationRequestsContract = async (): Promise<
+  GetContractReturnType<typeof validatorConsolidationRequestsAbi, WalletClient>
+> => {
+  const publicClient = await getPublicClient();
+
+  return getContract({
+    address: getValidatorConsolidationRequestsAddress(),
+    abi: validatorConsolidationRequestsAbi,
+    client: publicClient,
+  });
+};
+
+export type ValidatorConsolidationRequestsContract = Awaited<
+  ReturnType<typeof getValidatorConsolidationRequestsContract>
+>;

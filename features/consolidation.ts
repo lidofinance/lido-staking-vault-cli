@@ -4,8 +4,6 @@ import {
   hexToBigInt,
   decodeFunctionData,
   isHex,
-  hexToBytes,
-  bytesToHex,
   formatUnits,
 } from 'viem';
 
@@ -22,6 +20,9 @@ import {
   printError,
   confirmOperation,
   callWriteMethodWithReceiptBatchCalls,
+  flattenSourcePubkeys,
+  getSourceAndTargetPubkeysFromEncodedCall,
+  addDummyTargetAndSourceValidator,
 } from 'utils';
 import { DashboardAbi } from 'abi';
 import { TargetAndSourceValidators } from 'utils/consolidation/types.js';
@@ -29,24 +30,6 @@ import { TargetAndSourceValidators } from 'utils/consolidation/types.js';
 // https://eips.ethereum.org/EIPS/eip-7251
 const CONSOLIDATION_REQUEST_PREDEPLOY_ADDRESS =
   '0x0000BBdDc7CE488642fb579F8B00f3a590007251';
-
-const flattenSourcePubkeys = (
-  targetAndSourceValidators: TargetAndSourceValidators,
-): `0x${string}`[] => {
-  const targetPubkeys = [...targetAndSourceValidators.keys()];
-  return targetPubkeys.map((target) => {
-    const sourceMap = targetAndSourceValidators.get(target);
-    if (!sourceMap) {
-      throw new Error(`Target validator ${target} not found in map`);
-    }
-
-    const merged = [...sourceMap.sourceValidators.keys()]
-      .map((p) => p.replace(/^0x/, ''))
-      .join('');
-
-    return `0x${merged}`;
-  }) as `0x${string}`[];
-};
 
 const getConsolidationRequestFee = async (): Promise<bigint> => {
   const publicClient = await getPublicClient();
@@ -72,6 +55,7 @@ const getConsolidationRequestFee = async (): Promise<bigint> => {
   const hexBody = feePerRequestData.startsWith('0x')
     ? feePerRequestData.slice(2)
     : feePerRequestData;
+
   if (hexBody.length !== 64) {
     throw new Error(
       `Unexpected data length (${hexBody.length} hex chars, expected 64)`,
@@ -117,6 +101,7 @@ const addFeeExemption = async ({
 
   if (functionName !== 'addFeeExemption')
     throw new Error('functionName is not addFeeExemption');
+
   const decodedBalanceToAdjust = args[0];
   if (decodedBalanceToAdjust !== balanceToAdjust)
     throw new Error('decodedBalanceToAdjust is not equal to balanceToAdjust');
@@ -140,14 +125,16 @@ export const consolidationRequestsAndIncreaseFeeExemption = async (
     targetAndSourceValidators,
   );
 
-  const consolidationContract = getValidatorConsolidationRequestsContract();
+  const consolidationContract =
+    await getValidatorConsolidationRequestsContract();
+
   const { data } = await publicClient.call({
     to: CONSOLIDATION_REQUEST_PREDEPLOY_ADDRESS,
     data: '0x',
     blockTag: 'latest',
   });
 
-  if (!data) throw new Error('Fee read returned empty data');
+  if (!data) throw new Error('Fee per request read method returned empty data');
   const feePerRequest = hexToBigInt(data);
 
   // 1. Fetch consolidation request encoded calls and increase fee exemption amount encoded call.
@@ -184,20 +171,22 @@ const getConsolidationRequestsAndFeeExemptionEncodedCalls = async (
   targetAndSourceValidators: TargetAndSourceValidators,
   dashboard: Address,
   feeExemption: bigint,
-): Promise<[Hex, Hex[]]> => {
+): Promise<[Hex, readonly Hex[]]> => {
   const targetPubkeys = [...targetAndSourceValidators.keys()];
   const sourcePubkeysFlattened = flattenSourcePubkeys(
     targetAndSourceValidators,
   );
 
-  const consolidationContract = getValidatorConsolidationRequestsContract();
+  const consolidationContract =
+    await getValidatorConsolidationRequestsContract();
+
   const [feeExemptionEncodedCall, consolidationRequestEncodedCalls] =
     await callReadMethodSilent(
       consolidationContract,
       'getConsolidationRequestsAndFeeExemptionEncodedCalls',
       [sourcePubkeysFlattened, targetPubkeys, dashboard, feeExemption],
     );
-  return [feeExemptionEncodedCall, consolidationRequestEncodedCalls as Hex[]];
+  return [feeExemptionEncodedCall, consolidationRequestEncodedCalls];
 };
 
 export const consolidateAndIncreaseFeeExemptionWithoutBatching = async (
@@ -209,7 +198,7 @@ export const consolidateAndIncreaseFeeExemptionWithoutBatching = async (
 
   try {
     let feeExemptionEncodedCall: Hex;
-    let consolidationRequestEncodedCalls: Hex[];
+    let consolidationRequestEncodedCalls: readonly Hex[];
 
     if (targetAndSourceValidators.size > 0) {
       [feeExemptionEncodedCall, consolidationRequestEncodedCalls] =
@@ -218,6 +207,7 @@ export const consolidateAndIncreaseFeeExemptionWithoutBatching = async (
           dashboard,
           feeExemption,
         );
+
       for (const encodedCall of consolidationRequestEncodedCalls) {
         const { sourcePubkey, targetPubkey } =
           getSourceAndTargetPubkeysFromEncodedCall(encodedCall);
@@ -243,6 +233,8 @@ export const consolidateAndIncreaseFeeExemptionWithoutBatching = async (
             ?.sourceValidators.get(sourcePubkey)?.balance ?? 0n;
       }
     } else {
+      // If there are no validators to consolidate,
+      // add a dummy target and source validator to call addFeeExemption method only
       addDummyTargetAndSourceValidator(targetAndSourceValidators, feeExemption);
       [feeExemptionEncodedCall] =
         await getConsolidationRequestsAndFeeExemptionEncodedCalls(
@@ -269,47 +261,8 @@ export const consolidateAndIncreaseFeeExemptionWithoutBatching = async (
       error,
       `Error when consolidating and increasing fee exemption without batching.
        The balance that should be consolidated is ${formatUnits(feeExemption, 18)} ETH.
-       The balance you have consolidated is ${formatUnits(currentFeeExemption, 18)} ETH.`,
+       The balance you have consolidated is ${formatUnits(currentFeeExemption, 18)} ETH.
+       The remaining balance to be consolidated is ${formatUnits(feeExemption - currentFeeExemption, 18)} ETH.`,
     );
   }
-};
-
-const getSourceAndTargetPubkeysFromEncodedCall = (
-  encodedCall: Hex,
-): { sourcePubkey: Hex; targetPubkey: Hex } => {
-  const encodedCallBytes = hexToBytes(encodedCall);
-  const sourcePubkey = bytesToHex(
-    encodedCallBytes.slice(0, encodedCallBytes.length / 2),
-  );
-  const targetPubkey = bytesToHex(
-    encodedCallBytes.slice(encodedCallBytes.length / 2),
-  );
-
-  return { sourcePubkey, targetPubkey };
-};
-
-const addDummyTargetAndSourceValidator = (
-  targetAndSourceValidators: TargetAndSourceValidators,
-  feeExemption: bigint,
-) => {
-  targetAndSourceValidators.set(
-    '0x000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
-    {
-      info: {
-        status: 'active_ongoing',
-        balance: feeExemption,
-        index: '0',
-      },
-      sourceValidators: new Map([
-        [
-          '0x000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
-          {
-            status: 'active_ongoing',
-            balance: feeExemption,
-            index: '0',
-          },
-        ],
-      ]),
-    },
-  );
 };
