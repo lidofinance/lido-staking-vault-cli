@@ -27,11 +27,16 @@ import {
 } from 'utils';
 import { PubkeyMap } from 'utils/consolidation/types.js';
 
-consolidation
+export const consolidationWrite = consolidation
   .command('write')
   .aliases(['w'])
+  .description('consolidation write commands');
+
+consolidationWrite
+  .command('consolidate-validators')
+  .aliases(['consolidate'])
   .description(
-    'Consolidate validators and increase rewards adjustment to fix fee calculation for node-operator',
+    'consolidate validators and increase rewards adjustment to fix fee calculation for node-operator',
   )
   .argument('<dashboard>', 'dashboard address', stringToAddress)
   .option(
