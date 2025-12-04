@@ -1,3 +1,3 @@
-import { hoodi } from 'viem/chains';
+import { hoodi, mainnet } from 'viem/chains';
 
-export const SUPPORTED_CHAINS_LIST = [hoodi];
+export const SUPPORTED_CHAINS_LIST = [hoodi, mainnet];
