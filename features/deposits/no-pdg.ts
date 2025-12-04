@@ -117,15 +117,6 @@ export const checkNodeOperatorOrDepositorForDeposit = async (
     );
   }
 
-  if (
-    vaultNodeOperator.toLocaleLowerCase() !==
-    currentAccount.address.toLocaleLowerCase()
-  ) {
-    throw new Error(
-      `You are not the node operator of the vault ${vault.address}. Only node operator or depositor can deposit from the vault.`,
-    );
-  }
-
   return vaultNodeOperator;
 };
 
