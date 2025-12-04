@@ -98,18 +98,31 @@ export const checkNOBalancePDGforDeposits = async (
   return { amountToTopUp, isNeedTopUp };
 };
 
-export const checkNodeOperatorForDeposit = async (
+export const checkNodeOperatorOrDepositorForDeposit = async (
   vault: StakingVaultContract,
+  pdg: PredepositGuaranteeContract,
 ) => {
   const currentAccount = await getAccount();
   const vaultNodeOperator = await callReadMethodSilent(vault, 'nodeOperator');
+  const noDepositor = await callReadMethodSilent(pdg, 'nodeOperatorDepositor', [
+    vaultNodeOperator,
+  ]);
+
+  if (
+    noDepositor.toLocaleLowerCase() !==
+    currentAccount.address.toLocaleLowerCase()
+  ) {
+    throw new Error(
+      `You are not the depositor of the node operator ${vaultNodeOperator}. Only depositor can deposit from the vault.`,
+    );
+  }
 
   if (
     vaultNodeOperator.toLocaleLowerCase() !==
     currentAccount.address.toLocaleLowerCase()
   ) {
     throw new Error(
-      `You are not the node operator of the vault ${vault.address}. Only node operator can deposit from the vault.`,
+      `You are not the node operator of the vault ${vault.address}. Only node operator or depositor can deposit from the vault.`,
     );
   }
 
