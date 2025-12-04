@@ -108,9 +108,9 @@ export const getChainId = async () => {
   const chainId = config.CHAIN_ID;
   const rpcChainId = await getRpcChainId(elURL);
 
-  if (chainId !== deployed.chainId) {
+  if (chainId !== deployed.networkId) {
     throw new Error(
-      `ChainId in env and deployed file mismatch. ENV: ${chainId} DEPLOYED: ${deployed.chainId}`,
+      `ChainId in env and deployed file mismatch. ENV: ${chainId} DEPLOYED: ${deployed.networkId}`,
     );
   }
 

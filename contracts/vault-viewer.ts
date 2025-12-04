@@ -6,6 +6,8 @@ import {
   PublicClient,
   GetContractReturnType,
 } from 'viem';
+import { mainnet } from 'viem/chains';
+
 import { hoodi } from 'viem/chains';
 
 import { VaultViewerAbi } from 'abi';
@@ -13,6 +15,7 @@ import { getChain, getElUrl } from 'configs';
 
 const VaultViewerAddresses: Record<number, Address> = {
   [hoodi.id]: '0x510b4CE9CdA8E5C9268D242a51356fF9Dc2bd73b',
+  [mainnet.id]: '0x9E90338495FfD691bDDC680e47D94b60cF66dDad', // TODO: update to the redeployed address
 };
 
 export const getVaultViewerContract = async (): Promise<
