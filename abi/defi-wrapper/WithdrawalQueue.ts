@@ -827,6 +827,16 @@ export const WithdrawalQueueAbi = [
         type: 'address',
         internalType: 'address',
       },
+      {
+        name: '_withdrawalsPauser',
+        type: 'address',
+        internalType: 'address',
+      },
+      {
+        name: '_finalizePauser',
+        type: 'address',
+        internalType: 'address',
+      },
     ],
     outputs: [],
     stateMutability: 'nonpayable',
@@ -1602,6 +1612,22 @@ export const WithdrawalQueueAbi = [
     inputs: [
       {
         name: 'amount',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+    ],
+  },
+  {
+    type: 'error',
+    name: 'SafeCastOverflowedUintDowncast',
+    inputs: [
+      {
+        name: 'bits',
+        type: 'uint8',
+        internalType: 'uint8',
+      },
+      {
+        name: 'value',
         type: 'uint256',
         internalType: 'uint256',
       },

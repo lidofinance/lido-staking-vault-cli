@@ -350,6 +350,11 @@ export const FactoryAbi = [
             type: 'string',
             internalType: 'string',
           },
+          {
+            name: 'emergencyCommittee',
+            type: 'address',
+            internalType: 'address',
+          },
         ],
       },
       {
@@ -422,7 +427,17 @@ export const FactoryAbi = [
             internalType: 'address',
           },
           {
+            name: 'poolImpl',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
             name: 'withdrawalQueueProxy',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'wqImpl',
             type: 'address',
             internalType: 'address',
           },
@@ -475,6 +490,28 @@ export const FactoryAbi = [
         ],
       },
       {
+        name: '_timelockConfig',
+        type: 'tuple',
+        internalType: 'struct Factory.TimelockConfig',
+        components: [
+          {
+            name: 'minDelaySeconds',
+            type: 'uint256',
+            internalType: 'uint256',
+          },
+          {
+            name: 'proposer',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'executor',
+            type: 'address',
+            internalType: 'address',
+          },
+        ],
+      },
+      {
         name: '_commonPoolConfig',
         type: 'tuple',
         internalType: 'struct Factory.CommonPoolConfig',
@@ -493,6 +530,11 @@ export const FactoryAbi = [
             name: 'symbol',
             type: 'string',
             internalType: 'string',
+          },
+          {
+            name: 'emergencyCommittee',
+            type: 'address',
+            internalType: 'address',
           },
         ],
       },
@@ -515,28 +557,6 @@ export const FactoryAbi = [
             name: 'reserveRatioGapBP',
             type: 'uint256',
             internalType: 'uint256',
-          },
-        ],
-      },
-      {
-        name: '_timelockConfig',
-        type: 'tuple',
-        internalType: 'struct Factory.TimelockConfig',
-        components: [
-          {
-            name: 'minDelaySeconds',
-            type: 'uint256',
-            internalType: 'uint256',
-          },
-          {
-            name: 'proposer',
-            type: 'address',
-            internalType: 'address',
-          },
-          {
-            name: 'executor',
-            type: 'address',
-            internalType: 'address',
           },
         ],
       },
@@ -566,7 +586,17 @@ export const FactoryAbi = [
             internalType: 'address',
           },
           {
+            name: 'poolImpl',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
             name: 'withdrawalQueueProxy',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'wqImpl',
             type: 'address',
             internalType: 'address',
           },
@@ -627,7 +657,7 @@ export const FactoryAbi = [
         ],
       },
     ],
-    stateMutability: 'nonpayable',
+    stateMutability: 'payable',
   },
   {
     type: 'function',
@@ -702,6 +732,11 @@ export const FactoryAbi = [
             type: 'string',
             internalType: 'string',
           },
+          {
+            name: 'emergencyCommittee',
+            type: 'address',
+            internalType: 'address',
+          },
         ],
       },
       {
@@ -727,7 +762,17 @@ export const FactoryAbi = [
             internalType: 'address',
           },
           {
+            name: 'poolImpl',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
             name: 'withdrawalQueueProxy',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'wqImpl',
             type: 'address',
             internalType: 'address',
           },
@@ -739,7 +784,7 @@ export const FactoryAbi = [
         ],
       },
     ],
-    stateMutability: 'payable',
+    stateMutability: 'nonpayable',
   },
   {
     type: 'function',
@@ -773,6 +818,28 @@ export const FactoryAbi = [
         ],
       },
       {
+        name: '_timelockConfig',
+        type: 'tuple',
+        internalType: 'struct Factory.TimelockConfig',
+        components: [
+          {
+            name: 'minDelaySeconds',
+            type: 'uint256',
+            internalType: 'uint256',
+          },
+          {
+            name: 'proposer',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'executor',
+            type: 'address',
+            internalType: 'address',
+          },
+        ],
+      },
+      {
         name: '_commonPoolConfig',
         type: 'tuple',
         internalType: 'struct Factory.CommonPoolConfig',
@@ -791,6 +858,11 @@ export const FactoryAbi = [
             name: 'symbol',
             type: 'string',
             internalType: 'string',
+          },
+          {
+            name: 'emergencyCommittee',
+            type: 'address',
+            internalType: 'address',
           },
         ],
       },
@@ -813,28 +885,6 @@ export const FactoryAbi = [
             name: 'reserveRatioGapBP',
             type: 'uint256',
             internalType: 'uint256',
-          },
-        ],
-      },
-      {
-        name: '_timelockConfig',
-        type: 'tuple',
-        internalType: 'struct Factory.TimelockConfig',
-        components: [
-          {
-            name: 'minDelaySeconds',
-            type: 'uint256',
-            internalType: 'uint256',
-          },
-          {
-            name: 'proposer',
-            type: 'address',
-            internalType: 'address',
-          },
-          {
-            name: 'executor',
-            type: 'address',
-            internalType: 'address',
           },
         ],
       },
@@ -866,7 +916,17 @@ export const FactoryAbi = [
             internalType: 'address',
           },
           {
+            name: 'poolImpl',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
             name: 'withdrawalQueueProxy',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'wqImpl',
             type: 'address',
             internalType: 'address',
           },
@@ -878,7 +938,7 @@ export const FactoryAbi = [
         ],
       },
     ],
-    stateMutability: 'payable',
+    stateMutability: 'nonpayable',
   },
   {
     type: 'function',
@@ -953,6 +1013,11 @@ export const FactoryAbi = [
             type: 'string',
             internalType: 'string',
           },
+          {
+            name: 'emergencyCommittee',
+            type: 'address',
+            internalType: 'address',
+          },
         ],
       },
       {
@@ -983,7 +1048,17 @@ export const FactoryAbi = [
             internalType: 'address',
           },
           {
+            name: 'poolImpl',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
             name: 'withdrawalQueueProxy',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'wqImpl',
             type: 'address',
             internalType: 'address',
           },
@@ -995,7 +1070,7 @@ export const FactoryAbi = [
         ],
       },
     ],
-    stateMutability: 'payable',
+    stateMutability: 'nonpayable',
   },
   {
     type: 'function',
@@ -1070,6 +1145,11 @@ export const FactoryAbi = [
             type: 'string',
             internalType: 'string',
           },
+          {
+            name: 'emergencyCommittee',
+            type: 'address',
+            internalType: 'address',
+          },
         ],
       },
       {
@@ -1095,7 +1175,17 @@ export const FactoryAbi = [
             internalType: 'address',
           },
           {
+            name: 'poolImpl',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
             name: 'withdrawalQueueProxy',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'wqImpl',
             type: 'address',
             internalType: 'address',
           },
@@ -1107,7 +1197,7 @@ export const FactoryAbi = [
         ],
       },
     ],
-    stateMutability: 'payable',
+    stateMutability: 'nonpayable',
   },
   {
     type: 'function',
@@ -1277,6 +1367,11 @@ export const FactoryAbi = [
             type: 'string',
             internalType: 'string',
           },
+          {
+            name: 'emergencyCommittee',
+            type: 'address',
+            internalType: 'address',
+          },
         ],
       },
       {
@@ -1354,7 +1449,17 @@ export const FactoryAbi = [
             internalType: 'address',
           },
           {
+            name: 'poolImpl',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
             name: 'withdrawalQueueProxy',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'wqImpl',
             type: 'address',
             internalType: 'address',
           },
@@ -1396,6 +1501,17 @@ export const FactoryAbi = [
     inputs: [
       {
         name: 'reason',
+        type: 'string',
+        internalType: 'string',
+      },
+    ],
+  },
+  {
+    type: 'error',
+    name: 'StringTooLong',
+    inputs: [
+      {
+        name: 'str',
         type: 'string',
         internalType: 'string',
       },
