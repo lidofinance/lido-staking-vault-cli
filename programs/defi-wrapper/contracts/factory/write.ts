@@ -339,5 +339,14 @@ factoryWrite
           ['Block Number', finalizeEventData.blockNumber],
         ],
       });
+
+      logInfo('UI Environment Variables:');
+      logResult({
+        data: [
+          ['VITE_POOL_TYPE', poolType],
+          ['VITE_POOL_ADDRESS', finalizeEventData.pool],
+          ['VITE_STRATEGY_ADDRESS', finalizeEventData.strategy],
+        ],
+      });
     },
   );
