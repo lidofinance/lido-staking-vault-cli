@@ -14,6 +14,8 @@ import {
   consolidateAndIncreaseFeeExemptionWithoutBatching,
   consolidationRequestsAndIncreaseFeeExemption,
 } from 'features/consolidation.js';
+import { checkVaultRole } from 'features';
+import { getAccount } from 'providers';
 import {
   checkPubkeysArgs,
   validateConsolidationInput,
@@ -26,6 +28,7 @@ import {
   removeInactiveValidators,
 } from 'utils';
 import { PubkeyMap } from 'utils/consolidation/types.js';
+import { getDashboardContract } from 'contracts';
 
 export const consolidationWrite = consolidation
   .command('write')
@@ -81,6 +84,16 @@ consolidationWrite
         target,
       );
       validateConsolidationInput(sourcePubkeys, targetPubkeys, dashboard);
+
+      const [account, dashboardContract] = await Promise.all([
+        getAccount(),
+        getDashboardContract(dashboard),
+      ]);
+      await checkVaultRole(
+        dashboardContract,
+        'NODE_OPERATOR_FEE_EXEMPT_ROLE',
+        account.address,
+      );
 
       const { sourceValidatorsInfo, targetValidatorsInfo } =
         await getValidatorsInfo(sourcePubkeys, targetPubkeys);
