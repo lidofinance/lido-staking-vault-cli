@@ -100,7 +100,6 @@ consolidationWrite
         await logAllSourceValidatorsTable(targetAndSourceValidators);
         await logAllTargetValidatorsTable(targetAndSourceValidators);
         await confirmToConsolidate(targetAndSourceValidators, dashboard);
-        return;
       }
 
       if (batch) {
