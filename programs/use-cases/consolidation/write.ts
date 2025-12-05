@@ -4,6 +4,7 @@ import {
   stringToHexArray,
   jsonFileToPubkeys,
   confirmOperation,
+  // logInfo,
   callWriteMethodWithReceiptBatchCalls,
   logCancel,
 } from 'utils';
@@ -95,14 +96,12 @@ consolidationWrite
 
       removeInactiveValidators(targetAndSourceValidators);
 
-      // if (targetAndSourceValidators.size === 0) {
-      //   logInfo('No validators to consolidate');
-      //   return;
-      // }
-
-      await logAllSourceValidatorsTable(targetAndSourceValidators);
-      await logAllTargetValidatorsTable(targetAndSourceValidators);
-      await confirmToConsolidate(targetAndSourceValidators, dashboard);
+      if (targetAndSourceValidators.size > 0) {
+        await logAllSourceValidatorsTable(targetAndSourceValidators);
+        await logAllTargetValidatorsTable(targetAndSourceValidators);
+        await confirmToConsolidate(targetAndSourceValidators, dashboard);
+        return;
+      }
 
       if (batch) {
         const populatedTxs = await consolidationRequestsAndIncreaseFeeExemption(
