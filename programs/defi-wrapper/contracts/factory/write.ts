@@ -44,6 +44,7 @@ type CommonPoolConfig = {
   minWithdrawalDelayTime: bigint; // Minimum delay time for processing withdrawals
   name: string; // ERC20 token name for the pool shares
   symbol: string; // ERC20 token symbol for the pool shares
+  emergencyCommittee: Address; // Address of the emergency committee for pausing operations
 };
 
 const factoryWrite = factory
@@ -91,6 +92,11 @@ factoryWrite
   .option('-p, --proposer <proposer>', 'proposer address', stringToAddress)
   .option('-e, --executor <executor>', 'executor address', stringToAddress)
   .option(
+    '-ec, --emergencyCommittee <emergencyCommittee>',
+    'emergency committee address',
+    stringToAddress,
+  )
+  .option(
     '-rrg, --reserveRatioGapBP <reserveRatioGapBP>',
     'reserve ratio gap in basis points',
     stringToNumber,
@@ -107,6 +113,7 @@ factoryWrite
         reserveRatioGapBP,
         proposer,
         executor,
+        emergencyCommittee,
         minWithdrawalDelayTime,
         name,
         symbol,
@@ -117,6 +124,7 @@ factoryWrite
         confirmExpiry: number;
         minDelaySeconds: number;
         reserveRatioGapBP: number;
+        emergencyCommittee: Address;
         proposer: Address;
         executor: Address;
         minWithdrawalDelayTime: number;
@@ -142,6 +150,10 @@ factoryWrite
       const minDelaySecondsValue = await getMinDelaySeconds(minDelaySeconds);
       const proposerAddress = await getAddress(proposer, 'Proposer');
       const executorAddress = await getAddress(executor, 'Executor');
+      const emergencyCommitteeAddress = await getAddress(
+        emergencyCommittee,
+        'Emergency Committee',
+      );
 
       const minWithdrawalDelayTimeValue = await getMinWithdrawalDelayTime(
         minWithdrawalDelayTime,
@@ -165,6 +177,7 @@ factoryWrite
         minWithdrawalDelayTime: BigInt(minWithdrawalDelayTimeValue),
         name: nameValue,
         symbol: symbolValue,
+        emergencyCommittee: emergencyCommitteeAddress,
       };
 
       const reserveRatioGapBPValue =
@@ -289,9 +302,9 @@ factoryWrite
         methodName: 'createPoolFinish',
         payload: [
           vaultConfig,
+          timelockConfig,
           commonPoolConfig,
           eventData.auxiliaryConfig,
-          timelockConfig,
           eventData.strategyFactory,
           eventData.strategyDeployBytes,
           eventData.intermediate,
