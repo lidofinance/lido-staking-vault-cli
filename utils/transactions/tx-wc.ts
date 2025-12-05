@@ -268,6 +268,8 @@ const callWalletConnectSendCalls = async (args: {
     hideStatusSpinner();
 
     if (callStatus.status === 'failure') {
+      // eslint-disable-next-line no-console
+      console.log(callStatus);
       throw new Error('Transaction failed. Check your wallet for details.');
     }
 
