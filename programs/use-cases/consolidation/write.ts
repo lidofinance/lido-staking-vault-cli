@@ -4,7 +4,6 @@ import {
   stringToHexArray,
   jsonFileToPubkeys,
   confirmOperation,
-  logInfo,
   callWriteMethodWithReceiptBatchCalls,
   logCancel,
 } from 'utils';
@@ -96,10 +95,10 @@ consolidationWrite
 
       removeInactiveValidators(targetAndSourceValidators);
 
-      if (targetAndSourceValidators.size === 0) {
-        logInfo('No validators to consolidate');
-        return;
-      }
+      // if (targetAndSourceValidators.size === 0) {
+      //   logInfo('No validators to consolidate');
+      //   return;
+      // }
 
       await logAllSourceValidatorsTable(targetAndSourceValidators);
       await logAllTargetValidatorsTable(targetAndSourceValidators);
