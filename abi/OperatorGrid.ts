@@ -183,6 +183,22 @@ export const OperatorGridErrorsAbi = [
     inputs: [
       {
         internalType: 'uint256',
+        name: 'requestedSHareLimit',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: 'vaultShares',
+        type: 'uint256',
+      },
+    ],
+    name: 'RequestedShareLimitTooLow',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
         name: 'tierId',
         type: 'uint256',
       },

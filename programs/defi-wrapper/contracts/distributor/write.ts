@@ -31,7 +31,7 @@ distributorWrite
   .argument('<address>', 'distributor address', stringToAddress)
   .argument('<token>', 'token address', stringToAddress)
   .action(async (address: Address, token: Address) => {
-    const contract = getDistributorContract(address);
+    const contract = await getDistributorContract(address);
 
     const confirmationMessage = `Are you sure you want to add the token ${token} to the list of supported tokens?`;
     const confirm = await confirmOperation(confirmationMessage);
@@ -51,7 +51,7 @@ distributorWrite
   .argument('<root>', 'root', stringToHex)
   .argument('<cid>', 'cid', stringToHex)
   .action(async (address: Address, root: Hex, cid: Hex) => {
-    const contract = getDistributorContract(address);
+    const contract = await getDistributorContract(address);
 
     const confirmationMessage = `Are you sure you want to set the Merkle root ${root} and CID ${cid}?`;
     const confirm = await confirmOperation(confirmationMessage);
@@ -80,7 +80,7 @@ distributorWrite
       amount: bigint,
       proof: Hex[],
     ) => {
-      const contract = getDistributorContract(address);
+      const contract = await getDistributorContract(address);
 
       const confirmationMessage = `Are you sure you want to claim ${formatEther(amount)} ${token} for ${recipient}?`;
       const confirm = await confirmOperation(confirmationMessage);

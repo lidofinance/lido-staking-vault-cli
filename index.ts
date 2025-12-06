@@ -1,7 +1,10 @@
 #! /usr/bin/env node
 
+import { getChain } from 'configs';
+
 import { program } from './command/index.js';
-import { logError } from './utils/logging/console.js';
+import { logError, logInfo } from './utils/logging/console.js';
+import { withInterruptHandling } from './utils/interrupt-handler.js';
 import './programs/index.js';
 
 export * from './utils/index.js';
@@ -27,8 +30,16 @@ program.addHelpText('afterAll', () => {
   return '';
 });
 
-program
-  .parseAsync(process.argv)
+// Add interrupt handling to the CLI
+const runCLI = withInterruptHandling(async () => {
+  const chain = await getChain();
+  logInfo(`${'-'.repeat(100)}`);
+  logInfo(`Using chain: Name: ${chain.name}, Chain ID: ${chain.id}`);
+  logInfo(`${'-'.repeat(100)}`);
+  await program.parseAsync(process.argv);
+});
+
+runCLI()
   .catch((error) => {
     logError('CLI Error:', error.message);
     process.exit(1);

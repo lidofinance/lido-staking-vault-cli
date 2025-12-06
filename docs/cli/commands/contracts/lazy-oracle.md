@@ -33,7 +33,7 @@ yarn start contracts lazy-oracle -h
 | MAX_QUARANTINE_PERIOD                | Calls the read-only function "MAX_QUARANTINE_PERIOD" on the contract.               |
 | MAX_REWARD_RATIO                     | Calls the read-only function "MAX_REWARD_RATIO" on the contract.                    |
 | UPDATE_SANITY_PARAMS_ROLE            | Calls the read-only function "UPDATE_SANITY_PARAMS_ROLE" on the contract.           |
-| batchValidatorStages \<\_pubkeys>    | Calls the read-only function "batchValidatorStages" on the contract.                |
+| batch-validator-statuses \<pubkeys>  | get batch to mass check the validator statuses in PredepositGuarantee contract      |
 | batch-vaults-info \<offset> \<limit> | get batch vaults info                                                               |
 | getRoleAdmin \<role>                 | Calls the read-only function "getRoleAdmin" on the contract.                        |
 | getRoleMember \<role> \<index>       | Calls the read-only function "getRoleMember" on the contract.                       |
@@ -47,6 +47,6 @@ yarn start contracts lazy-oracle -h
 | quarantine-period qp                 | get quarantine period                                                               |
 | quarantine-value qv\<vault>          | get the amount of total value that is pending in the quarantine for the given vault |
 | supportsInterface \<interfaceId>     | Calls the read-only function "supportsInterface" on the contract.                   |
-| vaultInfo \<\_vault>                 | Calls the read-only function "vaultInfo" on the contract.                           |
+| vault-info vi\<vault>                | get the vault data info                                                             |
 | vault-quarantine vq\<vault>          | get vault quarantine                                                                |
 | vaults-count vc                      | get vaults count                                                                    |

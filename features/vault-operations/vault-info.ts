@@ -18,7 +18,7 @@ export const getVaultInfoByDashboard = async (contract: DashboardContract) => {
   await reportFreshWarning(vault);
 
   const hideSpinner = showSpinner();
-  const publicClient = getPublicClient();
+  const publicClient = await getPublicClient();
 
   try {
     const [

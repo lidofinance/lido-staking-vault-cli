@@ -6,6 +6,10 @@ sidebar_position: 5
 
 This guide covers vault reporting operations for Lido Staking Vaults. The CLI interacts with existing oracle reports stored on IPFS and submits them to the LazyOracle contract for on-chain processing.
 
+:::tip **Submitting report is permissionless operation**
+Anyone can submit a report for any stVault.
+:::
+
 ## Overview
 
 The reporting system works with oracle-generated reports through:

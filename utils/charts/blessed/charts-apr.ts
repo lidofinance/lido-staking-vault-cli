@@ -36,7 +36,7 @@ export const fetchAprChartsData = async ({
   limit = LIMIT,
   cacheUse = true,
 }: FetchAprChartsDataArgs) => {
-  const dashboardContract = getDashboardContract(dashboard);
+  const dashboardContract = await getDashboardContract(dashboard);
   const vault = await callReadMethodSilent(dashboardContract, 'stakingVault');
   const history = await getVaultReportHistory(
     {

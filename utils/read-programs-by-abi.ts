@@ -29,7 +29,7 @@ export type ReadProgramCommandConfig<T extends Abi> = {
 
 export function generateReadCommands<T, U extends Abi>(
   abi: U,
-  createContract: (address: T) => ReadContract,
+  createContract: (address: T) => Promise<ReadContract>,
   command: Command,
   commandConfig: ReadProgramCommandConfig<U>,
 ): Command;
@@ -48,8 +48,8 @@ export function generateReadCommands<U extends Abi>(
 // eslint-disable-next-line func-style
 export function generateReadCommands<T, U extends Abi>(
   abi: U,
-  createContractOrContract:
-    | ((address: T) => ReadContract)
+  createContractAsync:
+    | ((address: T) => Promise<ReadContract>)
     | (() => Promise<ReadContract>),
   command: Command,
   commandConfig: ReadProgramCommandConfig<U>,
@@ -66,8 +66,8 @@ export function generateReadCommands<T, U extends Abi>(
   // Check if the contract is already created
   const isNeedsAddress =
     (
-      createContractOrContract as
-        | ((address: T) => ReadContract)
+      createContractAsync as
+        | ((address: T) => Promise<ReadContract>)
         | (() => Promise<ReadContract>)
     ).length === 1;
 
@@ -130,27 +130,9 @@ export function generateReadCommands<T, U extends Abi>(
 
     fnCommand.action(async (...cliArgs: any[]) => {
       try {
-        let contract: ReadContract;
-        let fnArgs: any[] | undefined;
-
-        if (isNeedsAddress) {
-          // The first argument is the contract address
-          const address = cliArgs[0];
-          // The rest are the function arguments
-          fnArgs = cliArgs.slice(1);
-          // Create the contract
-          contract = (createContractOrContract as (address: T) => ReadContract)(
-            address,
-          );
-        } else {
-          // Create the contract async
-          contract = await (
-            createContractOrContract as () => Promise<ReadContract>
-          )();
-          fnArgs = cliArgs; // all the passed arguments are the function arguments
-        }
-
-        fnArgs = inputs.length > 0 ? fnArgs.slice(0, inputs.length) : undefined;
+        const contract = await createContractAsync(cliArgs[0]);
+        const fnArgs =
+          inputs.length > 0 ? cliArgs.slice(0, inputs.length) : undefined;
 
         if (fnArgs) await callReadMethod(contract, fnName, fnArgs);
         else await callReadMethod(contract, fnName);

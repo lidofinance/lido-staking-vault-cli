@@ -40,7 +40,7 @@ dashboardRead
   .description('get dashboard base info')
   .argument('<address>', 'dashboard address', stringToAddress)
   .action(async (address: Address) => {
-    const contract = getDashboardContract(address);
+    const contract = await getDashboardContract(address);
 
     await getDashboardBaseInfo(contract);
   });
@@ -50,7 +50,7 @@ dashboardRead
   .description('get dashboard overview')
   .argument('<address>', 'dashboard address', stringToAddress)
   .action(async (address: Address) => {
-    const contract = getDashboardContract(address);
+    const contract = await getDashboardContract(address);
     await getDashboardOverview(contract);
   });
 
@@ -59,7 +59,7 @@ dashboardRead
   .description('get dashboard roles')
   .argument('<address>', 'dashboard address', stringToAddress)
   .action(async (address: Address) => {
-    const contract = getDashboardContract(address);
+    const contract = await getDashboardContract(address);
     await getDashboardRoles(contract);
   });
 
@@ -68,7 +68,7 @@ dashboardRead
   .description('get vault health info')
   .argument('<address>', 'dashboard address', stringToAddress)
   .action(async (address: Address) => {
-    const contract = getDashboardContract(address);
+    const contract = await getDashboardContract(address);
     await getDashboardHealth(contract);
   });
 
@@ -94,7 +94,7 @@ dashboardRead
   .description('get vault address by dashboard')
   .argument('<dashboard>', 'dashboard address', stringToAddress)
   .action(async (dashboard: Address) => {
-    const dashboardContract = getDashboardContract(dashboard);
+    const dashboardContract = await getDashboardContract(dashboard);
     const vault = await callReadMethodSilent(dashboardContract, 'stakingVault');
 
     logResult({
@@ -107,7 +107,7 @@ dashboardRead
   .description('get pending confirmations')
   .argument('<address>', 'dashboard address', stringToAddress)
   .action(async (address: Address) => {
-    const contract = getDashboardContract(address);
+    const contract = await getDashboardContract(address);
     const confirmations = await getConfirmationsInfo(
       contract as any,
       contract.abi,
@@ -155,7 +155,7 @@ dashboardRead
   )
   .argument('<address>', 'dashboard address', stringToAddress)
   .action(async (address: Address) => {
-    const contract = getDashboardContract(address);
+    const contract = await getDashboardContract(address);
     const confirmingRoles = await callReadMethodSilent(
       contract,
       'confirmingRoles',

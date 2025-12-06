@@ -12,7 +12,7 @@ export const checkBLSDeposits = async (
   );
 
   for (const deposit of deposits) {
-    const isBLSValid = isValidBLSDeposit(deposit, withdrawalCredentials);
+    const isBLSValid = await isValidBLSDeposit(deposit, withdrawalCredentials);
 
     if (!isBLSValid) {
       throw new Error(
@@ -37,7 +37,7 @@ export const checkBLSWithAmountDeposits = async (
   );
 
   for (const deposit of deposits) {
-    const isBLSValid = isValidBLSDeposit(deposit, withdrawalCredentials);
+    const isBLSValid = await isValidBLSDeposit(deposit, withdrawalCredentials);
 
     if (deposit.amount !== PREDEPOSIT_AMOUNT) {
       throw new Error(

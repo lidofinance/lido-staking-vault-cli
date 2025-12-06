@@ -3,30 +3,15 @@ export const FactoryAbi = [
     type: 'constructor',
     inputs: [
       {
-        name: 'poolConfig',
+        name: '_locatorAddress',
+        type: 'address',
+        internalType: 'address',
+      },
+      {
+        name: '_subFactories',
         type: 'tuple',
-        internalType: 'struct Factory.WrapperConfig',
+        internalType: 'struct Factory.SubFactories',
         components: [
-          {
-            name: 'vaultFactory',
-            type: 'address',
-            internalType: 'address',
-          },
-          {
-            name: 'steth',
-            type: 'address',
-            internalType: 'address',
-          },
-          {
-            name: 'wsteth',
-            type: 'address',
-            internalType: 'address',
-          },
-          {
-            name: 'lazyOracle',
-            type: 'address',
-            internalType: 'address',
-          },
           {
             name: 'stvPoolFactory',
             type: 'address',
@@ -38,27 +23,17 @@ export const FactoryAbi = [
             internalType: 'address',
           },
           {
-            name: 'stvStrategyPoolFactory',
-            type: 'address',
-            internalType: 'address',
-          },
-          {
             name: 'withdrawalQueueFactory',
             type: 'address',
             internalType: 'address',
           },
           {
-            name: 'loopStrategyFactory',
+            name: 'distributorFactory',
             type: 'address',
             internalType: 'address',
           },
           {
             name: 'ggvStrategyFactory',
-            type: 'address',
-            internalType: 'address',
-          },
-          {
-            name: 'dummyImplementation',
             type: 'address',
             internalType: 'address',
           },
@@ -69,20 +44,60 @@ export const FactoryAbi = [
           },
         ],
       },
-      {
-        name: 'timelockConfig',
-        type: 'tuple',
-        internalType: 'struct Factory.TimelockConfig',
-        components: [
-          {
-            name: 'minDelaySeconds',
-            type: 'uint256',
-            internalType: 'uint256',
-          },
-        ],
-      },
     ],
     stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    name: 'DEFAULT_ADMIN_ROLE',
+    inputs: [],
+    outputs: [
+      {
+        name: '',
+        type: 'bytes32',
+        internalType: 'bytes32',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'DEPLOY_FINISHED',
+    inputs: [],
+    outputs: [
+      {
+        name: '',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'DEPLOY_START_FINISH_SPAN_SECONDS',
+    inputs: [],
+    outputs: [
+      {
+        name: '',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'DISTRIBUTOR_FACTORY',
+    inputs: [],
+    outputs: [
+      {
+        name: '',
+        type: 'address',
+        internalType: 'contract DistributorFactory',
+      },
+    ],
+    stateMutability: 'view',
   },
   {
     type: 'function',
@@ -125,19 +140,6 @@ export const FactoryAbi = [
   },
   {
     type: 'function',
-    name: 'LOOP_STRATEGY_FACTORY',
-    inputs: [],
-    outputs: [
-      {
-        name: '',
-        type: 'address',
-        internalType: 'contract LoopStrategyFactory',
-      },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
     name: 'STETH',
     inputs: [],
     outputs: [
@@ -145,6 +147,19 @@ export const FactoryAbi = [
         name: '',
         type: 'address',
         internalType: 'address',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'STRATEGY_POOL_TYPE',
+    inputs: [],
+    outputs: [
+      {
+        name: '',
+        type: 'bytes32',
+        internalType: 'bytes32',
       },
     ],
     stateMutability: 'view',
@@ -164,6 +179,19 @@ export const FactoryAbi = [
   },
   {
     type: 'function',
+    name: 'STV_POOL_TYPE',
+    inputs: [],
+    outputs: [
+      {
+        name: '',
+        type: 'bytes32',
+        internalType: 'bytes32',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
     name: 'STV_STETH_POOL_FACTORY',
     inputs: [],
     outputs: [
@@ -177,13 +205,13 @@ export const FactoryAbi = [
   },
   {
     type: 'function',
-    name: 'STV_STRATEGY_POOL_FACTORY',
+    name: 'STV_STETH_POOL_TYPE',
     inputs: [],
     outputs: [
       {
         name: '',
-        type: 'address',
-        internalType: 'contract StvStrategyPoolFactory',
+        type: 'bytes32',
+        internalType: 'bytes32',
       },
     ],
     stateMutability: 'view',
@@ -203,7 +231,7 @@ export const FactoryAbi = [
   },
   {
     type: 'function',
-    name: 'TIMELOCK_MIN_DELAY',
+    name: 'TOTAL_BASIS_POINTS',
     inputs: [],
     outputs: [
       {
@@ -223,6 +251,19 @@ export const FactoryAbi = [
         name: '',
         type: 'address',
         internalType: 'contract IVaultFactory',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'VAULT_HUB',
+    inputs: [],
+    outputs: [
+      {
+        name: '',
+        type: 'address',
+        internalType: 'contract IVaultHub',
       },
     ],
     stateMutability: 'view',
@@ -255,442 +296,413 @@ export const FactoryAbi = [
   },
   {
     type: 'function',
-    name: 'createVaultWithConfiguredWrapper',
+    name: '_hashDeploymentConfiguration',
     inputs: [
       {
-        name: '_nodeOperator',
+        name: '_sender',
         type: 'address',
         internalType: 'address',
       },
       {
-        name: '_nodeOperatorManager',
+        name: '_vaultConfig',
+        type: 'tuple',
+        internalType: 'struct Factory.VaultConfig',
+        components: [
+          {
+            name: 'nodeOperator',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'nodeOperatorManager',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'nodeOperatorFeeBP',
+            type: 'uint256',
+            internalType: 'uint256',
+          },
+          {
+            name: 'confirmExpiry',
+            type: 'uint256',
+            internalType: 'uint256',
+          },
+        ],
+      },
+      {
+        name: '_commonPoolConfig',
+        type: 'tuple',
+        internalType: 'struct Factory.CommonPoolConfig',
+        components: [
+          {
+            name: 'minWithdrawalDelayTime',
+            type: 'uint256',
+            internalType: 'uint256',
+          },
+          {
+            name: 'name',
+            type: 'string',
+            internalType: 'string',
+          },
+          {
+            name: 'symbol',
+            type: 'string',
+            internalType: 'string',
+          },
+        ],
+      },
+      {
+        name: '_auxiliaryConfig',
+        type: 'tuple',
+        internalType: 'struct Factory.AuxiliaryPoolConfig',
+        components: [
+          {
+            name: 'allowlistEnabled',
+            type: 'bool',
+            internalType: 'bool',
+          },
+          {
+            name: 'mintingEnabled',
+            type: 'bool',
+            internalType: 'bool',
+          },
+          {
+            name: 'reserveRatioGapBP',
+            type: 'uint256',
+            internalType: 'uint256',
+          },
+        ],
+      },
+      {
+        name: '_timelockConfig',
+        type: 'tuple',
+        internalType: 'struct Factory.TimelockConfig',
+        components: [
+          {
+            name: 'minDelaySeconds',
+            type: 'uint256',
+            internalType: 'uint256',
+          },
+          {
+            name: 'proposer',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'executor',
+            type: 'address',
+            internalType: 'address',
+          },
+        ],
+      },
+      {
+        name: '_strategyFactory',
         type: 'address',
         internalType: 'address',
       },
       {
-        name: '_nodeOperatorFeeBP',
-        type: 'uint256',
-        internalType: 'uint256',
+        name: '_strategyDeployBytes',
+        type: 'bytes',
+        internalType: 'bytes',
       },
       {
-        name: '_confirmExpiry',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_maxFinalizationTime',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_minWithdrawalDelayTime',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_configuration',
-        type: 'uint8',
-        internalType: 'enum Factory.WrapperType',
-      },
-      {
-        name: '_strategy',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: '_allowlistEnabled',
-        type: 'bool',
-        internalType: 'bool',
-      },
-      {
-        name: '_reserveRatioGapBP',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_timelockExecutor',
-        type: 'address',
-        internalType: 'address',
+        name: '_intermediate',
+        type: 'tuple',
+        internalType: 'struct Factory.PoolIntermediate',
+        components: [
+          {
+            name: 'dashboard',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'poolProxy',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'withdrawalQueueProxy',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'timelock',
+            type: 'address',
+            internalType: 'address',
+          },
+        ],
       },
     ],
     outputs: [
       {
-        name: 'vault',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: 'dashboard',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: 'poolProxy',
-        type: 'address',
-        internalType: 'address payable',
-      },
-      {
-        name: 'withdrawalQueueProxy',
-        type: 'address',
-        internalType: 'address',
+        name: 'result',
+        type: 'bytes32',
+        internalType: 'bytes32',
       },
     ],
-    stateMutability: 'payable',
+    stateMutability: 'pure',
   },
   {
     type: 'function',
-    name: 'createVaultWithGGVStrategy',
+    name: 'createPoolFinish',
     inputs: [
       {
-        name: '_nodeOperator',
+        name: '_vaultConfig',
+        type: 'tuple',
+        internalType: 'struct Factory.VaultConfig',
+        components: [
+          {
+            name: 'nodeOperator',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'nodeOperatorManager',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'nodeOperatorFeeBP',
+            type: 'uint256',
+            internalType: 'uint256',
+          },
+          {
+            name: 'confirmExpiry',
+            type: 'uint256',
+            internalType: 'uint256',
+          },
+        ],
+      },
+      {
+        name: '_commonPoolConfig',
+        type: 'tuple',
+        internalType: 'struct Factory.CommonPoolConfig',
+        components: [
+          {
+            name: 'minWithdrawalDelayTime',
+            type: 'uint256',
+            internalType: 'uint256',
+          },
+          {
+            name: 'name',
+            type: 'string',
+            internalType: 'string',
+          },
+          {
+            name: 'symbol',
+            type: 'string',
+            internalType: 'string',
+          },
+        ],
+      },
+      {
+        name: '_auxiliaryConfig',
+        type: 'tuple',
+        internalType: 'struct Factory.AuxiliaryPoolConfig',
+        components: [
+          {
+            name: 'allowlistEnabled',
+            type: 'bool',
+            internalType: 'bool',
+          },
+          {
+            name: 'mintingEnabled',
+            type: 'bool',
+            internalType: 'bool',
+          },
+          {
+            name: 'reserveRatioGapBP',
+            type: 'uint256',
+            internalType: 'uint256',
+          },
+        ],
+      },
+      {
+        name: '_timelockConfig',
+        type: 'tuple',
+        internalType: 'struct Factory.TimelockConfig',
+        components: [
+          {
+            name: 'minDelaySeconds',
+            type: 'uint256',
+            internalType: 'uint256',
+          },
+          {
+            name: 'proposer',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'executor',
+            type: 'address',
+            internalType: 'address',
+          },
+        ],
+      },
+      {
+        name: '_strategyFactory',
         type: 'address',
         internalType: 'address',
       },
       {
-        name: '_nodeOperatorManager',
-        type: 'address',
-        internalType: 'address',
+        name: '_strategyDeployBytes',
+        type: 'bytes',
+        internalType: 'bytes',
       },
       {
-        name: '_nodeOperatorFeeBP',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_confirmExpiry',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_maxFinalizationTime',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_minWithdrawalDelayTime',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_allowlistEnabled',
-        type: 'bool',
-        internalType: 'bool',
-      },
-      {
-        name: '_reserveRatioGapBP',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_teller',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: '_boringQueue',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: '_timelockExecutor',
-        type: 'address',
-        internalType: 'address',
+        name: '_intermediate',
+        type: 'tuple',
+        internalType: 'struct Factory.PoolIntermediate',
+        components: [
+          {
+            name: 'dashboard',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'poolProxy',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'withdrawalQueueProxy',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'timelock',
+            type: 'address',
+            internalType: 'address',
+          },
+        ],
       },
     ],
     outputs: [
       {
-        name: 'vault',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: 'dashboard',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: 'poolProxy',
-        type: 'address',
-        internalType: 'address payable',
-      },
-      {
-        name: 'withdrawalQueueProxy',
-        type: 'address',
-        internalType: 'address',
+        name: 'deployment',
+        type: 'tuple',
+        internalType: 'struct Factory.PoolDeployment',
+        components: [
+          {
+            name: 'poolType',
+            type: 'bytes32',
+            internalType: 'bytes32',
+          },
+          {
+            name: 'vault',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'dashboard',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'pool',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'withdrawalQueue',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'distributor',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'timelock',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'strategy',
+            type: 'address',
+            internalType: 'address',
+          },
+        ],
       },
     ],
-    stateMutability: 'payable',
+    stateMutability: 'nonpayable',
   },
   {
     type: 'function',
-    name: 'createVaultWithGGVStrategy',
+    name: 'createPoolGGVStart',
     inputs: [
       {
-        name: '_nodeOperator',
-        type: 'address',
-        internalType: 'address',
+        name: '_vaultConfig',
+        type: 'tuple',
+        internalType: 'struct Factory.VaultConfig',
+        components: [
+          {
+            name: 'nodeOperator',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'nodeOperatorManager',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'nodeOperatorFeeBP',
+            type: 'uint256',
+            internalType: 'uint256',
+          },
+          {
+            name: 'confirmExpiry',
+            type: 'uint256',
+            internalType: 'uint256',
+          },
+        ],
       },
       {
-        name: '_nodeOperatorManager',
-        type: 'address',
-        internalType: 'address',
+        name: '_timelockConfig',
+        type: 'tuple',
+        internalType: 'struct Factory.TimelockConfig',
+        components: [
+          {
+            name: 'minDelaySeconds',
+            type: 'uint256',
+            internalType: 'uint256',
+          },
+          {
+            name: 'proposer',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'executor',
+            type: 'address',
+            internalType: 'address',
+          },
+        ],
       },
       {
-        name: '_nodeOperatorFeeBP',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_confirmExpiry',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_maxFinalizationTime',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_minWithdrawalDelayTime',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_allowlistEnabled',
-        type: 'bool',
-        internalType: 'bool',
-      },
-      {
-        name: '_reserveRatioGapBP',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_teller',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: '_boringQueue',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
-    outputs: [
-      {
-        name: 'vault',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: 'dashboard',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: 'poolProxy',
-        type: 'address',
-        internalType: 'address payable',
-      },
-      {
-        name: 'withdrawalQueueProxy',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
-    stateMutability: 'payable',
-  },
-  {
-    type: 'function',
-    name: 'createVaultWithLoopStrategy',
-    inputs: [
-      {
-        name: '_nodeOperator',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: '_nodeOperatorManager',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: '_nodeOperatorFeeBP',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_confirmExpiry',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_maxFinalizationTime',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_minWithdrawalDelayTime',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_allowlistEnabled',
-        type: 'bool',
-        internalType: 'bool',
-      },
-      {
-        name: '_reserveRatioGapBP',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_loops',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-    ],
-    outputs: [
-      {
-        name: 'vault',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: 'dashboard',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: 'poolProxy',
-        type: 'address',
-        internalType: 'address payable',
-      },
-      {
-        name: 'withdrawalQueueProxy',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
-    stateMutability: 'payable',
-  },
-  {
-    type: 'function',
-    name: 'createVaultWithLoopStrategy',
-    inputs: [
-      {
-        name: '_nodeOperator',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: '_nodeOperatorManager',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: '_nodeOperatorFeeBP',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_confirmExpiry',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_maxFinalizationTime',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_minWithdrawalDelayTime',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_allowlistEnabled',
-        type: 'bool',
-        internalType: 'bool',
-      },
-      {
-        name: '_reserveRatioGapBP',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_loops',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_timelockExecutor',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
-    outputs: [
-      {
-        name: 'vault',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: 'dashboard',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: 'poolProxy',
-        type: 'address',
-        internalType: 'address payable',
-      },
-      {
-        name: 'withdrawalQueueProxy',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
-    stateMutability: 'payable',
-  },
-  {
-    type: 'function',
-    name: 'createVaultWithMintingNoStrategy',
-    inputs: [
-      {
-        name: '_nodeOperator',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: '_nodeOperatorManager',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: '_nodeOperatorFeeBP',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_confirmExpiry',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_maxFinalizationTime',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_minWithdrawalDelayTime',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_allowlistEnabled',
-        type: 'bool',
-        internalType: 'bool',
+        name: '_commonPoolConfig',
+        type: 'tuple',
+        internalType: 'struct Factory.CommonPoolConfig',
+        components: [
+          {
+            name: 'minWithdrawalDelayTime',
+            type: 'uint256',
+            internalType: 'uint256',
+          },
+          {
+            name: 'name',
+            type: 'string',
+            internalType: 'string',
+          },
+          {
+            name: 'symbol',
+            type: 'string',
+            internalType: 'string',
+          },
+        ],
       },
       {
         name: '_reserveRatioGapBP',
@@ -700,64 +712,251 @@ export const FactoryAbi = [
     ],
     outputs: [
       {
-        name: 'vault',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: 'dashboard',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: 'poolProxy',
-        type: 'address',
-        internalType: 'address payable',
-      },
-      {
-        name: 'withdrawalQueueProxy',
-        type: 'address',
-        internalType: 'address',
+        name: 'intermediate',
+        type: 'tuple',
+        internalType: 'struct Factory.PoolIntermediate',
+        components: [
+          {
+            name: 'dashboard',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'poolProxy',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'withdrawalQueueProxy',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'timelock',
+            type: 'address',
+            internalType: 'address',
+          },
+        ],
       },
     ],
     stateMutability: 'payable',
   },
   {
     type: 'function',
-    name: 'createVaultWithMintingNoStrategy',
+    name: 'createPoolStart',
     inputs: [
       {
-        name: '_nodeOperator',
+        name: '_vaultConfig',
+        type: 'tuple',
+        internalType: 'struct Factory.VaultConfig',
+        components: [
+          {
+            name: 'nodeOperator',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'nodeOperatorManager',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'nodeOperatorFeeBP',
+            type: 'uint256',
+            internalType: 'uint256',
+          },
+          {
+            name: 'confirmExpiry',
+            type: 'uint256',
+            internalType: 'uint256',
+          },
+        ],
+      },
+      {
+        name: '_commonPoolConfig',
+        type: 'tuple',
+        internalType: 'struct Factory.CommonPoolConfig',
+        components: [
+          {
+            name: 'minWithdrawalDelayTime',
+            type: 'uint256',
+            internalType: 'uint256',
+          },
+          {
+            name: 'name',
+            type: 'string',
+            internalType: 'string',
+          },
+          {
+            name: 'symbol',
+            type: 'string',
+            internalType: 'string',
+          },
+        ],
+      },
+      {
+        name: '_auxiliaryConfig',
+        type: 'tuple',
+        internalType: 'struct Factory.AuxiliaryPoolConfig',
+        components: [
+          {
+            name: 'allowlistEnabled',
+            type: 'bool',
+            internalType: 'bool',
+          },
+          {
+            name: 'mintingEnabled',
+            type: 'bool',
+            internalType: 'bool',
+          },
+          {
+            name: 'reserveRatioGapBP',
+            type: 'uint256',
+            internalType: 'uint256',
+          },
+        ],
+      },
+      {
+        name: '_timelockConfig',
+        type: 'tuple',
+        internalType: 'struct Factory.TimelockConfig',
+        components: [
+          {
+            name: 'minDelaySeconds',
+            type: 'uint256',
+            internalType: 'uint256',
+          },
+          {
+            name: 'proposer',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'executor',
+            type: 'address',
+            internalType: 'address',
+          },
+        ],
+      },
+      {
+        name: '_strategyFactory',
         type: 'address',
         internalType: 'address',
       },
       {
-        name: '_nodeOperatorManager',
-        type: 'address',
-        internalType: 'address',
+        name: '_strategyDeployBytes',
+        type: 'bytes',
+        internalType: 'bytes',
+      },
+    ],
+    outputs: [
+      {
+        name: 'intermediate',
+        type: 'tuple',
+        internalType: 'struct Factory.PoolIntermediate',
+        components: [
+          {
+            name: 'dashboard',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'poolProxy',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'withdrawalQueueProxy',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'timelock',
+            type: 'address',
+            internalType: 'address',
+          },
+        ],
+      },
+    ],
+    stateMutability: 'payable',
+  },
+  {
+    type: 'function',
+    name: 'createPoolStvStETHStart',
+    inputs: [
+      {
+        name: '_vaultConfig',
+        type: 'tuple',
+        internalType: 'struct Factory.VaultConfig',
+        components: [
+          {
+            name: 'nodeOperator',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'nodeOperatorManager',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'nodeOperatorFeeBP',
+            type: 'uint256',
+            internalType: 'uint256',
+          },
+          {
+            name: 'confirmExpiry',
+            type: 'uint256',
+            internalType: 'uint256',
+          },
+        ],
       },
       {
-        name: '_nodeOperatorFeeBP',
-        type: 'uint256',
-        internalType: 'uint256',
+        name: '_timelockConfig',
+        type: 'tuple',
+        internalType: 'struct Factory.TimelockConfig',
+        components: [
+          {
+            name: 'minDelaySeconds',
+            type: 'uint256',
+            internalType: 'uint256',
+          },
+          {
+            name: 'proposer',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'executor',
+            type: 'address',
+            internalType: 'address',
+          },
+        ],
       },
       {
-        name: '_confirmExpiry',
-        type: 'uint256',
-        internalType: 'uint256',
+        name: '_commonPoolConfig',
+        type: 'tuple',
+        internalType: 'struct Factory.CommonPoolConfig',
+        components: [
+          {
+            name: 'minWithdrawalDelayTime',
+            type: 'uint256',
+            internalType: 'uint256',
+          },
+          {
+            name: 'name',
+            type: 'string',
+            internalType: 'string',
+          },
+          {
+            name: 'symbol',
+            type: 'string',
+            internalType: 'string',
+          },
+        ],
       },
       {
-        name: '_maxFinalizationTime',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_minWithdrawalDelayTime',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_allowlistEnabled',
+        name: '_allowListEnabled',
         type: 'bool',
         internalType: 'bool',
       },
@@ -766,190 +965,249 @@ export const FactoryAbi = [
         type: 'uint256',
         internalType: 'uint256',
       },
-      {
-        name: '_timelockExecutor',
-        type: 'address',
-        internalType: 'address',
-      },
     ],
     outputs: [
       {
-        name: 'vault',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: 'dashboard',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: 'poolProxy',
-        type: 'address',
-        internalType: 'address payable',
-      },
-      {
-        name: 'withdrawalQueueProxy',
-        type: 'address',
-        internalType: 'address',
+        name: 'intermediate',
+        type: 'tuple',
+        internalType: 'struct Factory.PoolIntermediate',
+        components: [
+          {
+            name: 'dashboard',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'poolProxy',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'withdrawalQueueProxy',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'timelock',
+            type: 'address',
+            internalType: 'address',
+          },
+        ],
       },
     ],
     stateMutability: 'payable',
   },
   {
     type: 'function',
-    name: 'createVaultWithNoMintingNoStrategy',
+    name: 'createPoolStvStart',
     inputs: [
       {
-        name: '_nodeOperator',
-        type: 'address',
-        internalType: 'address',
+        name: '_vaultConfig',
+        type: 'tuple',
+        internalType: 'struct Factory.VaultConfig',
+        components: [
+          {
+            name: 'nodeOperator',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'nodeOperatorManager',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'nodeOperatorFeeBP',
+            type: 'uint256',
+            internalType: 'uint256',
+          },
+          {
+            name: 'confirmExpiry',
+            type: 'uint256',
+            internalType: 'uint256',
+          },
+        ],
       },
       {
-        name: '_nodeOperatorManager',
-        type: 'address',
-        internalType: 'address',
+        name: '_timelockConfig',
+        type: 'tuple',
+        internalType: 'struct Factory.TimelockConfig',
+        components: [
+          {
+            name: 'minDelaySeconds',
+            type: 'uint256',
+            internalType: 'uint256',
+          },
+          {
+            name: 'proposer',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'executor',
+            type: 'address',
+            internalType: 'address',
+          },
+        ],
       },
       {
-        name: '_nodeOperatorFeeBP',
-        type: 'uint256',
-        internalType: 'uint256',
+        name: '_commonPoolConfig',
+        type: 'tuple',
+        internalType: 'struct Factory.CommonPoolConfig',
+        components: [
+          {
+            name: 'minWithdrawalDelayTime',
+            type: 'uint256',
+            internalType: 'uint256',
+          },
+          {
+            name: 'name',
+            type: 'string',
+            internalType: 'string',
+          },
+          {
+            name: 'symbol',
+            type: 'string',
+            internalType: 'string',
+          },
+        ],
       },
       {
-        name: '_confirmExpiry',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_maxFinalizationTime',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_minWithdrawalDelayTime',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_allowlistEnabled',
+        name: '_allowListEnabled',
         type: 'bool',
         internalType: 'bool',
       },
     ],
     outputs: [
       {
-        name: 'vault',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: 'dashboard',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: 'poolProxy',
-        type: 'address',
-        internalType: 'address payable',
-      },
-      {
-        name: 'withdrawalQueueProxy',
-        type: 'address',
-        internalType: 'address',
+        name: 'intermediate',
+        type: 'tuple',
+        internalType: 'struct Factory.PoolIntermediate',
+        components: [
+          {
+            name: 'dashboard',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'poolProxy',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'withdrawalQueueProxy',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'timelock',
+            type: 'address',
+            internalType: 'address',
+          },
+        ],
       },
     ],
     stateMutability: 'payable',
   },
   {
     type: 'function',
-    name: 'createVaultWithNoMintingNoStrategy',
+    name: 'derivePoolType',
     inputs: [
       {
-        name: '_nodeOperator',
-        type: 'address',
-        internalType: 'address',
+        name: '_auxiliaryConfig',
+        type: 'tuple',
+        internalType: 'struct Factory.AuxiliaryPoolConfig',
+        components: [
+          {
+            name: 'allowlistEnabled',
+            type: 'bool',
+            internalType: 'bool',
+          },
+          {
+            name: 'mintingEnabled',
+            type: 'bool',
+            internalType: 'bool',
+          },
+          {
+            name: 'reserveRatioGapBP',
+            type: 'uint256',
+            internalType: 'uint256',
+          },
+        ],
       },
       {
-        name: '_nodeOperatorManager',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: '_nodeOperatorFeeBP',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_confirmExpiry',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_maxFinalizationTime',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_minWithdrawalDelayTime',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_allowlistEnabled',
-        type: 'bool',
-        internalType: 'bool',
-      },
-      {
-        name: '_timelockExecutor',
+        name: '_strategyFactory',
         type: 'address',
         internalType: 'address',
       },
     ],
     outputs: [
       {
-        name: 'vault',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: 'dashboard',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: 'poolProxy',
-        type: 'address',
-        internalType: 'address payable',
-      },
-      {
-        name: 'withdrawalQueueProxy',
-        type: 'address',
-        internalType: 'address',
+        name: 'poolType',
+        type: 'bytes32',
+        internalType: 'bytes32',
       },
     ],
-    stateMutability: 'payable',
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'intermediateState',
+    inputs: [
+      {
+        name: '',
+        type: 'bytes32',
+        internalType: 'bytes32',
+      },
+    ],
+    outputs: [
+      {
+        name: '',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
   },
   {
     type: 'event',
-    name: 'VaultWrapperCreated',
+    name: 'PoolCreated',
     inputs: [
       {
         name: 'vault',
         type: 'address',
-        indexed: true,
+        indexed: false,
         internalType: 'address',
       },
       {
         name: 'pool',
         type: 'address',
-        indexed: true,
+        indexed: false,
         internalType: 'address',
+      },
+      {
+        name: 'poolType',
+        type: 'bytes32',
+        indexed: true,
+        internalType: 'bytes32',
       },
       {
         name: 'withdrawalQueue',
         type: 'address',
+        indexed: false,
+        internalType: 'address',
+      },
+      {
+        name: 'strategyFactory',
+        type: 'address',
         indexed: true,
         internalType: 'address',
+      },
+      {
+        name: 'strategyDeployBytes',
+        type: 'bytes',
+        indexed: false,
+        internalType: 'bytes',
       },
       {
         name: 'strategy',
@@ -957,18 +1215,201 @@ export const FactoryAbi = [
         indexed: false,
         internalType: 'address',
       },
+    ],
+    anonymous: false,
+  },
+  {
+    type: 'event',
+    name: 'PoolCreationStarted',
+    inputs: [
       {
-        name: 'configuration',
-        type: 'uint8',
+        name: 'sender',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
+      },
+      {
+        name: 'vaultConfig',
+        type: 'tuple',
         indexed: false,
-        internalType: 'enum Factory.WrapperType',
+        internalType: 'struct Factory.VaultConfig',
+        components: [
+          {
+            name: 'nodeOperator',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'nodeOperatorManager',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'nodeOperatorFeeBP',
+            type: 'uint256',
+            internalType: 'uint256',
+          },
+          {
+            name: 'confirmExpiry',
+            type: 'uint256',
+            internalType: 'uint256',
+          },
+        ],
+      },
+      {
+        name: 'commonPoolConfig',
+        type: 'tuple',
+        indexed: false,
+        internalType: 'struct Factory.CommonPoolConfig',
+        components: [
+          {
+            name: 'minWithdrawalDelayTime',
+            type: 'uint256',
+            internalType: 'uint256',
+          },
+          {
+            name: 'name',
+            type: 'string',
+            internalType: 'string',
+          },
+          {
+            name: 'symbol',
+            type: 'string',
+            internalType: 'string',
+          },
+        ],
+      },
+      {
+        name: 'auxiliaryConfig',
+        type: 'tuple',
+        indexed: false,
+        internalType: 'struct Factory.AuxiliaryPoolConfig',
+        components: [
+          {
+            name: 'allowlistEnabled',
+            type: 'bool',
+            internalType: 'bool',
+          },
+          {
+            name: 'mintingEnabled',
+            type: 'bool',
+            internalType: 'bool',
+          },
+          {
+            name: 'reserveRatioGapBP',
+            type: 'uint256',
+            internalType: 'uint256',
+          },
+        ],
+      },
+      {
+        name: 'timelockConfig',
+        type: 'tuple',
+        indexed: false,
+        internalType: 'struct Factory.TimelockConfig',
+        components: [
+          {
+            name: 'minDelaySeconds',
+            type: 'uint256',
+            internalType: 'uint256',
+          },
+          {
+            name: 'proposer',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'executor',
+            type: 'address',
+            internalType: 'address',
+          },
+        ],
+      },
+      {
+        name: 'strategyFactory',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
+      },
+      {
+        name: 'strategyDeployBytes',
+        type: 'bytes',
+        indexed: false,
+        internalType: 'bytes',
+      },
+      {
+        name: 'intermediate',
+        type: 'tuple',
+        indexed: false,
+        internalType: 'struct Factory.PoolIntermediate',
+        components: [
+          {
+            name: 'dashboard',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'poolProxy',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'withdrawalQueueProxy',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'timelock',
+            type: 'address',
+            internalType: 'address',
+          },
+        ],
+      },
+      {
+        name: 'finishDeadline',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
       },
     ],
     anonymous: false,
   },
   {
     type: 'error',
+    name: 'InsufficientConnectDeposit',
+    inputs: [
+      {
+        name: 'provided',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+      {
+        name: 'required',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+    ],
+  },
+  {
+    type: 'error',
     name: 'InvalidConfiguration',
-    inputs: [],
+    inputs: [
+      {
+        name: 'reason',
+        type: 'string',
+        internalType: 'string',
+      },
+    ],
+  },
+  {
+    type: 'error',
+    name: 'StringTooLong',
+    inputs: [
+      {
+        name: 'str',
+        type: 'string',
+        internalType: 'string',
+      },
+    ],
   },
 ] as const;
