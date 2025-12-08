@@ -7,8 +7,11 @@ import {
   logTable,
   logResult,
   formatBP,
+  callReadMethodSilent,
 } from 'utils';
 import { getPoolInfo } from 'features/defi-wrapper/index.js';
+import { checkIsReportFresh } from 'features';
+import { getStvPoolContract } from 'contracts/defi-wrapper/index.js';
 
 import { wrapperOperations } from './main.js';
 
@@ -108,3 +111,36 @@ wrapperOperationsRead
       ].filter((item) => item !== undefined),
     });
   });
+
+wrapperOperationsRead
+  .command('report-fresh')
+  .description('check if report is fresh')
+  .argument('<address>', 'wrapper address', stringToAddress)
+  .action(async (address: Address) => {
+    const contract = await getStvPoolContract(address);
+    const vault = await callReadMethodSilent(contract, 'VAULT');
+
+    const isReportFresh = await checkIsReportFresh(vault);
+    logResult({});
+    logInfo('Report Fresh');
+    logTable({
+      data: [['Is Report Fresh', isReportFresh]],
+    });
+  });
+
+// TODO: Add wrapper health command
+// wrapperOperationsRead
+//   .command('health')
+//   .description('get wrapper health')
+//   .argument('<address>', 'wrapper address', stringToAddress)
+//   .action(async (address: Address) => {
+//     const contract = await getStvPoolContract(address);
+//     const [vault, dashboard] = await Promise.all([
+//       callReadMethodSilent(contract, 'VAULT'),
+//       callReadMethodSilent(contract, 'DASHBOARD'),
+//     ]);
+//     const dashboardContract = await getDashboardContract(dashboard);
+
+//     await checkQuarantine(vault);
+//     await getVaultHealthByDashboard(dashboardContract);
+//   });
