@@ -1,20 +1,22 @@
+import { program } from 'command';
 import {
   stringTo2dArray,
   stringToAddress,
   stringToHexArray,
   jsonFileToPubkeys,
   confirmOperation,
-  // logInfo,
   callWriteMethodWithReceiptBatchCalls,
   logCancel,
+  callReadMethodSilent,
 } from 'utils';
 import { Address, Hex } from 'viem';
 import { consolidation } from './main.js';
 import {
   consolidateAndIncreaseFeeExemptionWithoutBatching,
   consolidationRequestsAndIncreaseFeeExemption,
+  confirmNewFeeExemption,
 } from 'features/consolidation.js';
-import { checkVaultRole } from 'features';
+import { checkVaultRole, checkIsReportFresh } from 'features';
 import { getAccount } from 'providers';
 import {
   checkPubkeysArgs,
@@ -59,7 +61,7 @@ consolidationWrite
   )
   .option(
     '-b, --batch',
-    'Batch the consolidation requests and increase fee exemption amount. Use this option if your wallet supports batching.',
+    'Batch the consolidation requests and increase fee exemption amount. Use this option if your wallet supports batching. Supports only WalletConnect option (--wallet-connect).',
     false,
   )
   .action(
@@ -77,6 +79,14 @@ consolidationWrite
         batch?: boolean;
       },
     ) => {
+      const isWC = program.opts().walletConnect;
+      if (batch && !isWC) {
+        logCancel(
+          'Transaction batching is only supported with WalletConnect option (--wallet-connect).',
+        );
+        return;
+      }
+
       // Validation
       const { sourcePubkeys, targetPubkeys } = checkPubkeysArgs(
         file,
@@ -89,11 +99,23 @@ consolidationWrite
         getAccount(),
         getDashboardContract(dashboard),
       ]);
+      const vault = await callReadMethodSilent(
+        dashboardContract,
+        'stakingVault',
+      );
+
       await checkVaultRole(
         dashboardContract,
         'NODE_OPERATOR_FEE_EXEMPT_ROLE',
         account.address,
       );
+      const isReportFresh = await checkIsReportFresh(vault);
+      if (!isReportFresh) {
+        logCancel(
+          'Report is not fresh. You need to submit a fresh report before consolidating validators.',
+        );
+        return;
+      }
 
       const { sourceValidatorsInfo, targetValidatorsInfo } =
         await getValidatorsInfo(sourcePubkeys, targetPubkeys);
@@ -106,6 +128,10 @@ consolidationWrite
       const feeExemption = await calculateAndConfirmFeeExemption(
         targetAndSourceValidators,
       );
+      const { isNeedToIncreaseFeeExemption } = await confirmNewFeeExemption(
+        dashboardContract,
+        feeExemption,
+      );
 
       removeInactiveValidators(targetAndSourceValidators);
 
@@ -117,9 +143,11 @@ consolidationWrite
 
       if (batch) {
         const populatedTxs = await consolidationRequestsAndIncreaseFeeExemption(
-          targetAndSourceValidators,
-          feeExemption,
-          dashboard,
+          {
+            targetAndSourceValidators,
+            feeExemption: isNeedToIncreaseFeeExemption ? feeExemption : 0n,
+            dashboard,
+          },
         );
 
         const confirm = await confirmOperation(
@@ -137,11 +165,11 @@ consolidationWrite
           skipError: false,
         });
       } else {
-        await consolidateAndIncreaseFeeExemptionWithoutBatching(
+        await consolidateAndIncreaseFeeExemptionWithoutBatching({
           targetAndSourceValidators,
-          feeExemption,
+          feeExemption: isNeedToIncreaseFeeExemption ? feeExemption : 0n,
           dashboard,
-        );
+        });
       }
     },
   );

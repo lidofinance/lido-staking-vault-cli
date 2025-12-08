@@ -4,13 +4,14 @@ import {
   hexToBigInt,
   decodeFunctionData,
   isHex,
-  formatUnits,
+  formatEther,
 } from 'viem';
 
 import { getPublicClient } from 'providers';
 import {
   getDashboardContract,
   getValidatorConsolidationRequestsContract,
+  DashboardContract,
 } from 'contracts';
 import {
   callReadMethodSilent,
@@ -23,6 +24,7 @@ import {
   flattenSourcePubkeys,
   getSourceAndTargetPubkeysFromEncodedCall,
   addDummyTargetAndSourceValidator,
+  logCancel,
 } from 'utils';
 import { DashboardAbi } from 'abi';
 import { TargetAndSourceValidators } from 'utils/consolidation/types.js';
@@ -113,11 +115,15 @@ const addFeeExemption = async ({
   });
 };
 
-export const consolidationRequestsAndIncreaseFeeExemption = async (
-  targetAndSourceValidators: TargetAndSourceValidators,
-  feeExemption: bigint,
-  dashboard: Address,
-) => {
+export const consolidationRequestsAndIncreaseFeeExemption = async ({
+  targetAndSourceValidators,
+  feeExemption,
+  dashboard,
+}: {
+  targetAndSourceValidators: TargetAndSourceValidators;
+  feeExemption: bigint;
+  dashboard: Address;
+}) => {
   const publicClient = await getPublicClient();
 
   const targetPubkeys = [...targetAndSourceValidators.keys()];
@@ -189,12 +195,17 @@ const getConsolidationRequestsAndFeeExemptionEncodedCalls = async (
   return [feeExemptionEncodedCall, consolidationRequestEncodedCalls];
 };
 
-export const consolidateAndIncreaseFeeExemptionWithoutBatching = async (
-  targetAndSourceValidators: TargetAndSourceValidators,
-  feeExemption: bigint,
-  dashboard: Address,
-) => {
+export const consolidateAndIncreaseFeeExemptionWithoutBatching = async ({
+  targetAndSourceValidators,
+  feeExemption,
+  dashboard,
+}: {
+  targetAndSourceValidators: TargetAndSourceValidators;
+  feeExemption: bigint;
+  dashboard: Address;
+}) => {
   let currentFeeExemption = 0n;
+  const consolidatedSourcePubkeys: Hex[] = [];
 
   try {
     let feeExemptionEncodedCall: Hex;
@@ -216,7 +227,7 @@ export const consolidateAndIncreaseFeeExemptionWithoutBatching = async (
         const lines = [
           'Are you sure you want to consolidate the following validators?\n',
           `Source: ${sourcePubkey}\nTarget: ${targetPubkey}\n`,
-          `Fee Per Request: ${feePerRequest}`,
+          `Fee Per Request: ${formatEther(feePerRequest)} ETH (wei: ${feePerRequest})`,
         ];
         const confirmFileContent = await confirmOperation(lines.join('\n'));
         if (!confirmFileContent)
@@ -231,6 +242,8 @@ export const consolidateAndIncreaseFeeExemptionWithoutBatching = async (
           targetAndSourceValidators
             .get(targetPubkey)
             ?.sourceValidators.get(sourcePubkey)?.balance ?? 0n;
+
+        consolidatedSourcePubkeys.push(sourcePubkey);
       }
     } else {
       // If there are no validators to consolidate,
@@ -243,26 +256,72 @@ export const consolidateAndIncreaseFeeExemptionWithoutBatching = async (
           feeExemption,
         );
     }
-    const lines = [
-      'Are you sure you want to increase the fee exemption amount?\n',
-      `Balance To Adjust: ${feeExemption} in wei`,
-    ];
-    const confirmFileContent = await confirmOperation(lines.join('\n'));
-    if (!confirmFileContent)
-      throw new Error('User cancelled increasing fee exemption amount');
+    if (feeExemption > 0n) {
+      const lines = [
+        'Are you sure you want to increase the fee exemption amount?\n',
+        `Balance To Adjust: ${formatEther(feeExemption)} ETH (wei: ${feeExemption})`,
+      ];
+      const confirmFileContent = await confirmOperation(lines.join('\n'));
+      if (!confirmFileContent)
+        throw new Error('User cancelled increasing fee exemption amount');
 
-    await addFeeExemption({
-      feeExemptionEncodedCall: feeExemptionEncodedCall,
-      balanceToAdjust: feeExemption,
-      dashboard: dashboard,
-    });
+      await addFeeExemption({
+        feeExemptionEncodedCall: feeExemptionEncodedCall,
+        balanceToAdjust: feeExemption,
+        dashboard: dashboard,
+      });
+    }
   } catch (error) {
-    printError(
-      error,
-      `Error when consolidating and increasing fee exemption without batching.
-       The balance that should be consolidated is ${formatUnits(feeExemption, 18)} ETH.
-       The balance you have consolidated is ${formatUnits(currentFeeExemption, 18)} ETH.
-       The remaining balance to be consolidated is ${formatUnits(feeExemption - currentFeeExemption, 18)} ETH.`,
-    );
+    const message = `Error when consolidating and increasing fee exemption without batching.
+    ${feeExemption > 0n ? `The balance that should be consolidated is ${formatEther(feeExemption)} ETH.` : ''}
+    ${feeExemption > 0n ? `The balance you have consolidated is ${formatEther(currentFeeExemption)} ETH.` : ''}
+    ${feeExemption > 0n ? `The remaining balance to be consolidated is ${formatEther(feeExemption - currentFeeExemption)} ETH.` : ''}
+    ${consolidatedSourcePubkeys.length > 0 ? `Source pubkeys that were consolidated: ${consolidatedSourcePubkeys.join('\n')}` : ''}
+    `;
+
+    printError(error, message);
   }
+};
+
+export const confirmNewFeeExemption = async (
+  dashboardContract: DashboardContract,
+  newFeeExemption: bigint,
+) => {
+  const settledGrowth = await callReadMethodSilent(
+    dashboardContract,
+    'settledGrowth',
+  );
+
+  if (settledGrowth < newFeeExemption) {
+    return {
+      isNeedToIncreaseFeeExemption: true,
+      settledGrowth: settledGrowth,
+    };
+  }
+
+  const confirmNewFeeExemption = await confirmOperation(
+    `Do you want to increase the fee exemption to ${formatEther(newFeeExemption)} ETH?
+    Current settled growth: ${formatEther(settledGrowth)} ETH`,
+  );
+
+  if (!confirmNewFeeExemption) {
+    const confirmUseSettledGrowth = await confirmOperation(
+      `Do you want to skip increasing fee exemption and use current settled growth?
+      Current settled growth: ${formatEther(settledGrowth)} ETH`,
+    );
+    if (!confirmUseSettledGrowth) {
+      logCancel('The user has canceled the use of settled growth');
+      throw new Error('User cancelled consolidation');
+    }
+
+    return {
+      isNeedToIncreaseFeeExemption: false,
+      settledGrowth: settledGrowth,
+    };
+  }
+
+  return {
+    isNeedToIncreaseFeeExemption: true,
+    settledGrowth: settledGrowth,
+  };
 };

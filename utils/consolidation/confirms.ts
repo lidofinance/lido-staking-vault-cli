@@ -1,4 +1,4 @@
-import { Address, formatUnits } from 'viem';
+import { Address, formatEther } from 'viem';
 import { logCancel, confirmOperation } from 'utils';
 
 import { TargetAndSourceValidators } from './types.js';
@@ -46,7 +46,7 @@ export const calculateAndConfirmFeeExemption = async (
   }
 
   const confirmFeeExemption = await confirmOperation(
-    `Fee Exemption: ${formatUnits(feeExemption, 18)} ETH. Continue?`,
+    `Fee Exemption: ${formatEther(feeExemption)} ETH. Continue?`,
   );
 
   if (!confirmFeeExemption) {
