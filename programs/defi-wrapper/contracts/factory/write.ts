@@ -1,9 +1,8 @@
-import { Address, fromHex } from 'viem';
-import { Option } from 'commander';
+import { Address } from 'viem';
+import { Command, Option } from 'commander';
 
 import {
   logInfo,
-  logResult,
   logError,
   getCommandsJson,
   stringToAddress,
@@ -16,37 +15,25 @@ import { getFactoryContract } from 'contracts/defi-wrapper/index.js';
 import {
   getCreatePoolEventData,
   getFinalizePoolEventData,
-  getAddress,
-  getNodeOperatorFeeRate,
-  getConfirmExpiry,
-  getMinWithdrawalDelayTime,
-  getPoolTokenName,
-  getPoolTokenSymbol,
-  getMinDelaySeconds,
   getReserveRatioGapBP,
+  getBoolean,
+  BaseFactoryOptions,
+  promtBaseVaultConfiguration,
+  logCreatePoolEventData,
+  logFinalizePoolEventData,
+  CommonPoolConfig,
+  VaultConfig,
+  TimelockConfig,
 } from 'features';
 
 import { factory } from './main.js';
-import { getVaultHubContract } from 'contracts';
 
-type VaultConfig = {
-  nodeOperator: Address; // Address of the node operator managing the vault
-  nodeOperatorManager: Address; // Address authorized to manage node operator settings
-  nodeOperatorFeeBP: bigint; // Node operator fee in basis points (1 BP = 0.01%)
-  confirmExpiry: bigint; // Time period for confirmation expiry
+type MintableOptions = {
+  reserveRatioGapBP?: number;
 };
 
-type TimelockConfig = {
-  minDelaySeconds: bigint; // Minimum delay before executing queued operations
-  proposer: Address; // Address authorized to propose operations
-  executor: Address; // Address authorized to execute operations
-};
-
-type CommonPoolConfig = {
-  minWithdrawalDelayTime: bigint; // Minimum delay time for processing withdrawals
-  name: string; // ERC20 token name for the pool shares
-  symbol: string; // ERC20 token symbol for the pool shares
-  emergencyCommittee: Address; // Address of the emergency committee for pausing operations
+type AllowlistableOptions = {
+  allowListEnabled?: boolean;
 };
 
 const factoryWrite = factory
@@ -60,44 +47,117 @@ factoryWrite.on('option:-cmd2json', function () {
   process.exit();
 });
 
-factoryWrite
-  .command('create-pool-ggv')
-  .description('initiates deployment of a GGV strategy pool')
-  .argument('<address>', 'factory address', stringToAddress)
-  .option('-no, --nodeOperator <nodeOperator>', 'node operator address')
-  .option(
-    '-nom, --nodeOperatorManager <nodeOperatorManager>',
-    'node operator manager address',
-  )
-  .option(
-    '-nof , --nodeOperatorFeeRate <nodeOperatorFeeRate>',
-    'Node operator fee rate in basis points, for e.g. 100 == 1%',
-    stringToNumber,
-  )
-  .option(
-    '-ce, --confirmExpiry <confirmExpiry>',
-    'confirm expiry in seconds',
-    stringToNumber,
-  )
-  .option(
-    '-md, --minDelaySeconds <minDelaySeconds>',
-    'minimum delay in seconds',
-    stringToNumber,
-  )
-  .option(
-    '-mwd, --minWithdrawalDelayTime <minWithdrawalDelayTime>',
-    'minimum withdrawal delay time in seconds',
-    stringToNumber,
-  )
-  .option('-n, --name <name>', 'name of the pool shares')
-  .option('-s, --symbol <symbol>', 'symbol of the pool shares')
-  .option('-p, --proposer <proposer>', 'proposer address', stringToAddress)
-  .option('-e, --executor <executor>', 'executor address', stringToAddress)
-  .option(
-    '-ec, --emergencyCommittee <emergencyCommittee>',
-    'emergency committee address',
-    stringToAddress,
-  )
+// adds common options for all wrapper creation commands
+const applyCommonOptions = (command: Command): Command => {
+  return command
+    .option('-no, --nodeOperator <nodeOperator>', 'node operator address')
+    .option(
+      '-nom, --nodeOperatorManager <nodeOperatorManager>',
+      'node operator manager address',
+    )
+    .option(
+      '-nof , --nodeOperatorFeeRate <nodeOperatorFeeRate>',
+      'Node operator fee rate in basis points, for e.g. 100 == 1%',
+      stringToNumber,
+    )
+    .option(
+      '-ce, --confirmExpiry <confirmExpiry>',
+      'confirm expiry in seconds',
+      stringToNumber,
+    )
+    .option(
+      '-md, --minDelaySeconds <minDelaySeconds>',
+      'minimum delay in seconds',
+      stringToNumber,
+    )
+    .option(
+      '-mwd, --minWithdrawalDelayTime <minWithdrawalDelayTime>',
+      'minimum withdrawal delay time in seconds',
+      stringToNumber,
+    )
+    .option('-n, --name <name>', 'name of the pool shares')
+    .option('-s, --symbol <symbol>', 'symbol of the pool shares')
+    .option('-p, --proposer <proposer>', 'proposer address', stringToAddress)
+    .option('-e, --executor <executor>', 'executor address', stringToAddress)
+    .option(
+      '-ec, --emergencyCommittee <emergencyCommittee>',
+      'emergency committee address',
+      stringToAddress,
+    );
+};
+
+// сommon filaliztion step between two pools
+const finalizePoolCreation = async (
+  contract: Awaited<ReturnType<typeof getFactoryContract>>,
+  vaultConfig: VaultConfig,
+  timelockConfig: TimelockConfig,
+  commonPoolConfig: CommonPoolConfig,
+  creationEventData: Awaited<ReturnType<typeof getCreatePoolEventData>>,
+) => {
+  if (
+    !creationEventData.auxiliaryConfig ||
+    !creationEventData.strategyFactory ||
+    !creationEventData.strategyDeployBytes ||
+    !creationEventData.intermediate
+  ) {
+    logError('Missing required data for pool creation finalize');
+    return;
+  }
+
+  logInfo('Pool Creation Finalize');
+
+  const finalizeResult = await callWriteMethodWithReceipt({
+    contract,
+    methodName: 'createPoolFinish',
+    payload: [
+      vaultConfig,
+      timelockConfig,
+      commonPoolConfig,
+      creationEventData.auxiliaryConfig,
+      creationEventData.strategyFactory,
+      creationEventData.strategyDeployBytes,
+      creationEventData.intermediate,
+    ],
+  });
+
+  if (!finalizeResult.receipt || !finalizeResult.tx) {
+    logInfo('Transaction has been sent');
+    return;
+  }
+
+  const finalizeEventData = await getFinalizePoolEventData(
+    finalizeResult.receipt,
+    finalizeResult.tx,
+  );
+
+  await logFinalizePoolEventData(creationEventData, finalizeEventData);
+};
+
+// common text for vault configuration conformatin
+const prepareCreationConfigrationText = (
+  vaultConfig: VaultConfig,
+  timelockConfig: TimelockConfig,
+  commonPoolConfig: CommonPoolConfig,
+) => {
+  return `nodeOperator: ${vaultConfig.nodeOperator}
+        nodeOperatorManager: ${vaultConfig.nodeOperatorManager}
+        nodeOperatorFeeBP: ${vaultConfig.nodeOperatorFeeBP}
+        confirmExpiry: ${vaultConfig.confirmExpiry}
+        minDelaySeconds: ${timelockConfig.minDelaySeconds}
+        proposer: ${timelockConfig.proposer}
+        executor: ${timelockConfig.executor}
+        emergencyCommittee: ${commonPoolConfig.emergencyCommittee}
+        minWithdrawalDelayTime: ${commonPoolConfig.minWithdrawalDelayTime}
+        name: ${commonPoolConfig.name}
+        symbol: ${commonPoolConfig.symbol}`;
+};
+
+applyCommonOptions(
+  factoryWrite
+    .command('create-pool-ggv')
+    .description('initiates deployment of a GGV strategy pool')
+    .argument('<address>', 'factory address', stringToAddress),
+)
   .option(
     '-rrg, --reserveRatioGapBP <reserveRatioGapBP>',
     'reserve ratio gap in basis points',
@@ -107,98 +167,23 @@ factoryWrite
     async (
       address: Address,
       {
-        nodeOperator,
-        nodeOperatorManager,
-        nodeOperatorFeeRate,
-        confirmExpiry,
-        minDelaySeconds,
         reserveRatioGapBP,
-        proposer,
-        executor,
-        emergencyCommittee,
-        minWithdrawalDelayTime,
-        name,
-        symbol,
-      }: {
-        nodeOperator: Address;
-        nodeOperatorManager: Address;
-        nodeOperatorFeeRate: number;
-        confirmExpiry: number;
-        minDelaySeconds: number;
-        reserveRatioGapBP: number;
-        emergencyCommittee: Address;
-        proposer: Address;
-        executor: Address;
-        minWithdrawalDelayTime: number;
-        name: string;
-        symbol: string;
-      },
+        ...baseOptions
+      }: BaseFactoryOptions & MintableOptions,
     ) => {
       const contract = await getFactoryContract(address);
-      const vaultHubContract = await getVaultHubContract();
-      const CONNECT_DEPOSIT = await vaultHubContract.read.CONNECT_DEPOSIT();
-
-      const nodeOperatorAddress = await getAddress(
-        nodeOperator,
-        'Node Operator',
-      );
-      const nodeOperatorManagerAddress = await getAddress(
-        nodeOperatorManager,
-        'Node Operator Manager',
-      );
-
-      const nodeOperatorFeeRateValue =
-        await getNodeOperatorFeeRate(nodeOperatorFeeRate);
-      const confirmExpiryValue = await getConfirmExpiry(confirmExpiry);
-
-      const minDelaySecondsValue = await getMinDelaySeconds(minDelaySeconds);
-      const proposerAddress = await getAddress(proposer, 'Proposer');
-      const executorAddress = await getAddress(executor, 'Executor');
-      const emergencyCommitteeAddress = await getAddress(
-        emergencyCommittee,
-        'Emergency Committee',
-      );
-
-      const minWithdrawalDelayTimeValue = await getMinWithdrawalDelayTime(
-        minWithdrawalDelayTime,
-      );
-
-      const nameValue = await getPoolTokenName(name);
-      const symbolValue = await getPoolTokenSymbol(symbol);
-
-      const vaultConfig: VaultConfig = {
-        nodeOperator: nodeOperatorAddress,
-        nodeOperatorManager: nodeOperatorManagerAddress,
-        nodeOperatorFeeBP: BigInt(nodeOperatorFeeRateValue),
-        confirmExpiry: BigInt(confirmExpiryValue),
-      };
-      const timelockConfig: TimelockConfig = {
-        minDelaySeconds: BigInt(minDelaySecondsValue),
-        proposer: proposerAddress,
-        executor: executorAddress,
-      };
-      const commonPoolConfig: CommonPoolConfig = {
-        minWithdrawalDelayTime: BigInt(minWithdrawalDelayTimeValue),
-        name: nameValue,
-        symbol: symbolValue,
-        emergencyCommittee: emergencyCommitteeAddress,
-      };
+      const { vaultConfig, timelockConfig, commonPoolConfig, CONNECT_DEPOSIT } =
+        await promtBaseVaultConfiguration(baseOptions);
 
       const reserveRatioGapBPValue =
         await getReserveRatioGapBP(reserveRatioGapBP);
 
       const confirmationMessage = `Are you sure you want to create a new pool GGV strategy with a configured wrapper?\n
-        nodeOperator: ${nodeOperatorAddress}
-        nodeOperatorManager: ${nodeOperatorManagerAddress}
-        nodeOperatorFeeBP: ${nodeOperatorFeeRateValue}
-        confirmExpiry: ${confirmExpiryValue}
-        minDelaySeconds: ${minDelaySecondsValue}
-        proposer: ${proposerAddress}
-        executor: ${executorAddress}
-        emergencyCommittee: ${emergencyCommitteeAddress}
-        minWithdrawalDelayTime: ${minWithdrawalDelayTimeValue}
-        name: ${nameValue}
-        symbol: ${symbolValue}
+        ${prepareCreationConfigrationText(
+          vaultConfig,
+          timelockConfig,
+          commonPoolConfig,
+        )}
         reserveRatioGapBP: ${reserveRatioGapBPValue}\n`;
       const confirm = await confirmOperation(confirmationMessage);
       if (!confirm) return;
@@ -222,283 +207,55 @@ factoryWrite
 
       const eventData = await getCreatePoolEventData(result.receipt, result.tx);
 
-      logInfo('Pool Creation Started');
-      logResult({
-        data: [
-          ['Sender', eventData.sender],
-          ['Strategy Factory', eventData.strategyFactory],
-          ['Strategy Deploy Bytes', eventData.strategyDeployBytes],
-          ['Finish Deadline', eventData.finishDeadline],
-          ['Transaction Hash', result.tx],
-          ['Block Number', eventData.blockNumber],
-        ],
-      });
+      await logCreatePoolEventData(eventData);
 
-      logInfo('Vault Config');
-      logResult({
-        data: [
-          ['Node Operator', eventData.vaultConfig?.nodeOperator],
-          ['Node Operator Manager', eventData.vaultConfig?.nodeOperatorManager],
-          ['Node Operator Fee BP', eventData.vaultConfig?.nodeOperatorFeeBP],
-          ['Confirm Expiry', eventData.vaultConfig?.confirmExpiry],
-        ],
-      });
-
-      logInfo('Common Pool Config');
-      logResult({
-        data: [
-          [
-            'Min Withdrawal Delay Time',
-            eventData.commonPoolConfig?.minWithdrawalDelayTime,
-          ],
-          ['Name', eventData.commonPoolConfig?.name],
-          ['Symbol', eventData.commonPoolConfig?.symbol],
-        ],
-      });
-
-      logInfo('Auxiliary Config');
-      logResult({
-        data: [
-          ['Allowlist Enabled', eventData.auxiliaryConfig?.allowlistEnabled],
-          ['Minting Enabled', eventData.auxiliaryConfig?.mintingEnabled],
-          [
-            'Reserve Ratio Gap BP',
-            eventData.auxiliaryConfig?.reserveRatioGapBP,
-          ],
-        ],
-      });
-
-      logInfo('Timelock Config');
-      logResult({
-        data: [
-          ['Min Delay Seconds', eventData.timelockConfig?.minDelaySeconds],
-          ['Proposer', eventData.timelockConfig?.proposer],
-          ['Executor', eventData.timelockConfig?.executor],
-        ],
-      });
-
-      logInfo('Intermediate');
-      logResult({
-        data: [
-          ['Dashboard', eventData.intermediate?.dashboard],
-          ['Pool Proxy', eventData.intermediate?.poolProxy],
-          [
-            'Withdrawal Queue Proxy',
-            eventData.intermediate?.withdrawalQueueProxy,
-          ],
-          ['Timelock', eventData.intermediate?.timelock],
-        ],
-      });
-
-      if (
-        !eventData.auxiliaryConfig ||
-        !eventData.strategyFactory ||
-        !eventData.strategyDeployBytes ||
-        !eventData.intermediate
-      ) {
-        logError('Missing required data for pool creation finalize');
-        return;
-      }
-
-      logInfo('Pool Creation Finalize');
-
-      const finalizeResult = await callWriteMethodWithReceipt({
+      await finalizePoolCreation(
         contract,
-        methodName: 'createPoolFinish',
-        payload: [
-          vaultConfig,
-          timelockConfig,
-          commonPoolConfig,
-          eventData.auxiliaryConfig,
-          eventData.strategyFactory,
-          eventData.strategyDeployBytes,
-          eventData.intermediate,
-        ],
-      });
-
-      if (!finalizeResult.receipt || !finalizeResult.tx) {
-        logInfo('Transaction has been sent');
-        return;
-      }
-
-      const finalizeEventData = await getFinalizePoolEventData(
-        finalizeResult.receipt,
-        finalizeResult.tx,
+        vaultConfig,
+        timelockConfig,
+        commonPoolConfig,
+        eventData,
       );
-
-      const poolType =
-        finalizeEventData.poolType &&
-        fromHex(finalizeEventData.poolType, 'string').replace(/\W/g, '');
-
-      logInfo('Pool Creation Finalized');
-      logResult({
-        data: [
-          ['Vault', finalizeEventData.vault],
-          ['Pool', finalizeEventData.pool],
-          ['Pool Type', poolType],
-          ['Withdrawal Queue', finalizeEventData.withdrawalQueue],
-          ['Timelock', eventData.intermediate.timelock],
-          ['Strategy Factory', finalizeEventData.strategyFactory],
-          ['Strategy Deploy Bytes', finalizeEventData.strategyDeployBytes],
-          ['Strategy', finalizeEventData.strategy],
-          ['Transaction Hash', finalizeResult.tx],
-          ['Block Number', finalizeEventData.blockNumber],
-        ],
-      });
-
-      logInfo('UI Environment Variables:');
-      logResult({
-        data: [
-          ['VITE_POOL_TYPE', poolType],
-          ['VITE_POOL_ADDRESS', finalizeEventData.pool],
-          ['VITE_STRATEGY_ADDRESS', finalizeEventData.strategy],
-        ],
-      });
     },
   );
 
-factoryWrite
-  .command('create-pool-stv')
-  .description('initiates deployment of a STV staking pool')
-  .argument('<address>', 'factory address', stringToAddress)
-  .option('-no, --nodeOperator <nodeOperator>', 'node operator address')
-  .option(
-    '-nom, --nodeOperatorManager <nodeOperatorManager>',
-    'node operator manager address',
-  )
-  .option(
-    '-nof , --nodeOperatorFeeRate <nodeOperatorFeeRate>',
-    'Node operator fee rate in basis points, for e.g. 100 == 1%',
-    stringToNumber,
-  )
-  .option(
-    '-ce, --confirmExpiry <confirmExpiry>',
-    'confirm expiry in seconds',
-    stringToNumber,
-  )
-  .option(
-    '-md, --minDelaySeconds <minDelaySeconds>',
-    'minimum delay in seconds',
-    stringToNumber,
-  )
-  .option(
-    '-mwd, --minWithdrawalDelayTime <minWithdrawalDelayTime>',
-    'minimum withdrawal delay time in seconds',
-    stringToNumber,
-  )
+applyCommonOptions(
+  factoryWrite
+    .command('create-pool-stv')
+    .description('initiates deployment of a STV staking pool')
+    .argument('<address>', 'factory address', stringToAddress),
+)
   .option(
     '-al, --allowList <allowListEnabled>',
     'is allowlist enabled (true/false)',
     stringToBoolean,
   )
-  .option('-n, --name <name>', 'name of the pool shares')
-  .option('-s, --symbol <symbol>', 'symbol of the pool shares')
-  .option('-p, --proposer <proposer>', 'proposer address', stringToAddress)
-  .option('-e, --executor <executor>', 'executor address', stringToAddress)
-  .option(
-    '-ec, --emergencyCommittee <emergencyCommittee>',
-    'emergency committee address',
-    stringToAddress,
-  )
   .action(
     async (
       address: Address,
       {
-        nodeOperator,
-        nodeOperatorManager,
-        nodeOperatorFeeRate,
-        confirmExpiry,
-        minDelaySeconds,
-        reserveRatioGapBP,
-        proposer,
-        executor,
-        emergencyCommittee,
-        minWithdrawalDelayTime,
-        name,
-        symbol,
-        allowListEnabled = false,
-      }: {
-        nodeOperator: Address;
-        nodeOperatorManager: Address;
-        nodeOperatorFeeRate: number;
-        confirmExpiry: number;
-        minDelaySeconds: number;
-        reserveRatioGapBP: number;
-        emergencyCommittee: Address;
-        proposer: Address;
-        executor: Address;
-        minWithdrawalDelayTime: number;
-        name: string;
-        symbol: string;
-        allowListEnabled: boolean;
-      },
+        allowListEnabled,
+        ...baseOptions
+      }: BaseFactoryOptions & AllowlistableOptions,
     ) => {
       const contract = await getFactoryContract(address);
-      const vaultHubContract = await getVaultHubContract();
-      const CONNECT_DEPOSIT = await vaultHubContract.read.CONNECT_DEPOSIT();
 
-      const nodeOperatorAddress = await getAddress(
-        nodeOperator,
-        'Node Operator',
+      const { vaultConfig, timelockConfig, commonPoolConfig, CONNECT_DEPOSIT } =
+        await promtBaseVaultConfiguration(baseOptions);
+
+      const allowListEnabledValue = await getBoolean(
+        allowListEnabled,
+        'AllowList',
       );
-      const nodeOperatorManagerAddress = await getAddress(
-        nodeOperatorManager,
-        'Node Operator Manager',
-      );
-
-      const nodeOperatorFeeRateValue =
-        await getNodeOperatorFeeRate(nodeOperatorFeeRate);
-      const confirmExpiryValue = await getConfirmExpiry(confirmExpiry);
-
-      const minDelaySecondsValue = await getMinDelaySeconds(minDelaySeconds);
-      const proposerAddress = await getAddress(proposer, 'Proposer');
-      const executorAddress = await getAddress(executor, 'Executor');
-      const emergencyCommitteeAddress = await getAddress(
-        emergencyCommittee,
-        'Emergency Committee',
-      );
-
-      const minWithdrawalDelayTimeValue = await getMinWithdrawalDelayTime(
-        minWithdrawalDelayTime,
-      );
-
-      const nameValue = await getPoolTokenName(name);
-      const symbolValue = await getPoolTokenSymbol(symbol);
-
-      const vaultConfig: VaultConfig = {
-        nodeOperator: nodeOperatorAddress,
-        nodeOperatorManager: nodeOperatorManagerAddress,
-        nodeOperatorFeeBP: BigInt(nodeOperatorFeeRateValue),
-        confirmExpiry: BigInt(confirmExpiryValue),
-      };
-      const timelockConfig: TimelockConfig = {
-        minDelaySeconds: BigInt(minDelaySecondsValue),
-        proposer: proposerAddress,
-        executor: executorAddress,
-      };
-      const commonPoolConfig: CommonPoolConfig = {
-        minWithdrawalDelayTime: BigInt(minWithdrawalDelayTimeValue),
-        name: nameValue,
-        symbol: symbolValue,
-        emergencyCommittee: emergencyCommitteeAddress,
-      };
-
-      const reserveRatioGapBPValue =
-        await getReserveRatioGapBP(reserveRatioGapBP);
 
       const confirmationMessage = `Are you sure you want to create a new STV pool with a configured wrapper?\n
-        nodeOperator: ${nodeOperatorAddress}
-        nodeOperatorManager: ${nodeOperatorManagerAddress}
-        nodeOperatorFeeBP: ${nodeOperatorFeeRateValue}
-        confirmExpiry: ${confirmExpiryValue}
-        minDelaySeconds: ${minDelaySecondsValue}
-        proposer: ${proposerAddress}
-        executor: ${executorAddress}
-        minWithdrawalDelayTime: ${minWithdrawalDelayTimeValue}
-        name: ${nameValue}
-        symbol: ${symbolValue}
-        allowListEnabled: ${allowListEnabled}
-        reserveRatioGapBP: ${reserveRatioGapBPValue}\n`;
+         ${prepareCreationConfigrationText(
+           vaultConfig,
+           timelockConfig,
+           commonPoolConfig,
+         )}
+        allowListEnabled: ${allowListEnabledValue}\n`;
+
       const confirm = await confirmOperation(confirmationMessage);
       if (!confirm) return;
 
@@ -509,7 +266,7 @@ factoryWrite
           vaultConfig,
           timelockConfig,
           commonPoolConfig,
-          allowListEnabled,
+          allowListEnabledValue,
         ],
         value: CONNECT_DEPOSIT,
       });
@@ -521,73 +278,7 @@ factoryWrite
 
       const eventData = await getCreatePoolEventData(result.receipt, result.tx);
 
-      logInfo('Pool Creation Started');
-      logResult({
-        data: [
-          ['Sender', eventData.sender],
-          ['Strategy Factory', eventData.strategyFactory],
-          ['Strategy Deploy Bytes', eventData.strategyDeployBytes],
-          ['Finish Deadline', eventData.finishDeadline],
-          ['Transaction Hash', result.tx],
-          ['Block Number', eventData.blockNumber],
-        ],
-      });
-
-      logInfo('Vault Config');
-      logResult({
-        data: [
-          ['Node Operator', eventData.vaultConfig?.nodeOperator],
-          ['Node Operator Manager', eventData.vaultConfig?.nodeOperatorManager],
-          ['Node Operator Fee BP', eventData.vaultConfig?.nodeOperatorFeeBP],
-          ['Confirm Expiry', eventData.vaultConfig?.confirmExpiry],
-        ],
-      });
-
-      logInfo('Common Pool Config');
-      logResult({
-        data: [
-          [
-            'Min Withdrawal Delay Time',
-            eventData.commonPoolConfig?.minWithdrawalDelayTime,
-          ],
-          ['Name', eventData.commonPoolConfig?.name],
-          ['Symbol', eventData.commonPoolConfig?.symbol],
-        ],
-      });
-
-      logInfo('Auxiliary Config');
-      logResult({
-        data: [
-          ['Allowlist Enabled', eventData.auxiliaryConfig?.allowlistEnabled],
-          ['Minting Enabled', eventData.auxiliaryConfig?.mintingEnabled],
-          [
-            'Reserve Ratio Gap BP',
-            eventData.auxiliaryConfig?.reserveRatioGapBP,
-          ],
-        ],
-      });
-
-      logInfo('Timelock Config');
-      logResult({
-        data: [
-          ['Min Delay Seconds', eventData.timelockConfig?.minDelaySeconds],
-          ['Proposer', eventData.timelockConfig?.proposer],
-          ['Executor', eventData.timelockConfig?.executor],
-        ],
-      });
-
-      logInfo('Intermediate');
-      logResult({
-        data: [
-          ['Dashboard', eventData.intermediate?.dashboard],
-          ['Pool Proxy', eventData.intermediate?.poolProxy],
-          [
-            'Withdrawal Queue Proxy',
-            eventData.intermediate?.withdrawalQueueProxy,
-          ],
-          ['Timelock', eventData.intermediate?.timelock],
-        ],
-      });
+      await logCreatePoolEventData(eventData);
 
       if (
         !eventData.auxiliaryConfig ||
@@ -601,96 +292,24 @@ factoryWrite
 
       logInfo('Pool Creation Finalize');
 
-      const finalizeResult = await callWriteMethodWithReceipt({
+      await finalizePoolCreation(
         contract,
-        methodName: 'createPoolFinish',
-        payload: [
-          vaultConfig,
-          timelockConfig,
-          commonPoolConfig,
-          eventData.auxiliaryConfig,
-          eventData.strategyFactory,
-          eventData.strategyDeployBytes,
-          eventData.intermediate,
-        ],
-      });
-
-      if (!finalizeResult.receipt || !finalizeResult.tx) {
-        logInfo('Transaction has been sent');
-        return;
-      }
-
-      const finalizeEventData = await getFinalizePoolEventData(
-        finalizeResult.receipt,
-        finalizeResult.tx,
+        vaultConfig,
+        timelockConfig,
+        commonPoolConfig,
+        eventData,
       );
-
-      const poolType =
-        finalizeEventData.poolType &&
-        fromHex(finalizeEventData.poolType, 'string').replace(/\W/g, '');
-
-      logInfo('Pool Creation Finalized');
-      logResult({
-        data: [
-          ['Vault', finalizeEventData.vault],
-          ['Pool', finalizeEventData.pool],
-          ['Pool Type', poolType],
-          ['Withdrawal Queue', finalizeEventData.withdrawalQueue],
-          ['Timelock', eventData.intermediate.timelock],
-          ['Strategy', finalizeEventData.strategy],
-          ['Transaction Hash', finalizeResult.tx],
-          ['Block Number', finalizeEventData.blockNumber],
-        ],
-      });
-
-      logInfo('UI Environment Variables:');
-      logResult({
-        data: [
-          ['VITE_POOL_TYPE', poolType],
-          ['VITE_POOL_ADDRESS', finalizeEventData.pool],
-        ],
-      });
     },
   );
 
-factoryWrite
-  .command('create-pool-stv-steth')
-  .description('initiates deployment of a STV-STETH pool with minting enabled')
-  .argument('<address>', 'factory address', stringToAddress)
-  .option('-no, --nodeOperator <nodeOperator>', 'node operator address')
-  .option(
-    '-nom, --nodeOperatorManager <nodeOperatorManager>',
-    'node operator manager address',
-  )
-  .option(
-    '-nof , --nodeOperatorFeeRate <nodeOperatorFeeRate>',
-    'Node operator fee rate in basis points, for e.g. 100 == 1%',
-    stringToNumber,
-  )
-  .option(
-    '-ce, --confirmExpiry <confirmExpiry>',
-    'confirm expiry in seconds',
-    stringToNumber,
-  )
-  .option(
-    '-md, --minDelaySeconds <minDelaySeconds>',
-    'minimum delay in seconds',
-    stringToNumber,
-  )
-  .option(
-    '-mwd, --minWithdrawalDelayTime <minWithdrawalDelayTime>',
-    'minimum withdrawal delay time in seconds',
-    stringToNumber,
-  )
-  .option('-n, --name <name>', 'name of the pool shares')
-  .option('-s, --symbol <symbol>', 'symbol of the pool shares')
-  .option('-p, --proposer <proposer>', 'proposer address', stringToAddress)
-  .option('-e, --executor <executor>', 'executor address', stringToAddress)
-  .option(
-    '-ec, --emergencyCommittee <emergencyCommittee>',
-    'emergency committee address',
-    stringToAddress,
-  )
+applyCommonOptions(
+  factoryWrite
+    .command('create-pool-stv-steth')
+    .description(
+      'initiates deployment of a STV-STETH pool with minting enabled',
+    )
+    .argument('<address>', 'factory address', stringToAddress),
+)
   .option(
     '-rrg, --reserveRatioGapBP <reserveRatioGapBP>',
     'reserve ratio gap in basis points',
@@ -705,101 +324,29 @@ factoryWrite
     async (
       address: Address,
       {
-        nodeOperator,
-        nodeOperatorManager,
-        nodeOperatorFeeRate,
-        confirmExpiry,
-        minDelaySeconds,
         reserveRatioGapBP,
-        proposer,
-        executor,
-        emergencyCommittee,
-        minWithdrawalDelayTime,
-        name,
-        symbol,
-        allowListEnabled = false,
-      }: {
-        nodeOperator: Address;
-        nodeOperatorManager: Address;
-        nodeOperatorFeeRate: number;
-        confirmExpiry: number;
-        minDelaySeconds: number;
-        reserveRatioGapBP: number;
-        emergencyCommittee: Address;
-        proposer: Address;
-        executor: Address;
-        minWithdrawalDelayTime: number;
-        name: string;
-        symbol: string;
-        allowListEnabled: boolean;
-      },
+        allowListEnabled,
+        ...baseOptions
+      }: BaseFactoryOptions & AllowlistableOptions & MintableOptions,
     ) => {
       const contract = await getFactoryContract(address);
-      const vaultHubContract = await getVaultHubContract();
-      const CONNECT_DEPOSIT = await vaultHubContract.read.CONNECT_DEPOSIT();
+      const { vaultConfig, timelockConfig, commonPoolConfig, CONNECT_DEPOSIT } =
+        await promtBaseVaultConfiguration(baseOptions);
 
-      const nodeOperatorAddress = await getAddress(
-        nodeOperator,
-        'Node Operator',
+      const allowListEnabledValue = await getBoolean(
+        allowListEnabled,
+        'AllowList',
       );
-      const nodeOperatorManagerAddress = await getAddress(
-        nodeOperatorManager,
-        'Node Operator Manager',
-      );
-
-      const nodeOperatorFeeRateValue =
-        await getNodeOperatorFeeRate(nodeOperatorFeeRate);
-      const confirmExpiryValue = await getConfirmExpiry(confirmExpiry);
-
-      const minDelaySecondsValue = await getMinDelaySeconds(minDelaySeconds);
-      const proposerAddress = await getAddress(proposer, 'Proposer');
-      const executorAddress = await getAddress(executor, 'Executor');
-      const emergencyCommitteeAddress = await getAddress(
-        emergencyCommittee,
-        'Emergency Committee',
-      );
-
-      const minWithdrawalDelayTimeValue = await getMinWithdrawalDelayTime(
-        minWithdrawalDelayTime,
-      );
-
-      const nameValue = await getPoolTokenName(name);
-      const symbolValue = await getPoolTokenSymbol(symbol);
-
-      const vaultConfig: VaultConfig = {
-        nodeOperator: nodeOperatorAddress,
-        nodeOperatorManager: nodeOperatorManagerAddress,
-        nodeOperatorFeeBP: BigInt(nodeOperatorFeeRateValue),
-        confirmExpiry: BigInt(confirmExpiryValue),
-      };
-      const timelockConfig: TimelockConfig = {
-        minDelaySeconds: BigInt(minDelaySecondsValue),
-        proposer: proposerAddress,
-        executor: executorAddress,
-      };
-      const commonPoolConfig: CommonPoolConfig = {
-        minWithdrawalDelayTime: BigInt(minWithdrawalDelayTimeValue),
-        name: nameValue,
-        symbol: symbolValue,
-        emergencyCommittee: emergencyCommitteeAddress,
-      };
-
       const reserveRatioGapBPValue =
         await getReserveRatioGapBP(reserveRatioGapBP);
 
       const confirmationMessage = `Are you sure you want to create a new STV-STETH pool with minting enabled?\n
-        nodeOperator: ${nodeOperatorAddress}
-        nodeOperatorManager: ${nodeOperatorManagerAddress}
-        nodeOperatorFeeBP: ${nodeOperatorFeeRateValue}
-        confirmExpiry: ${confirmExpiryValue}
-        minDelaySeconds: ${minDelaySecondsValue}
-        proposer: ${proposerAddress}
-        executor: ${executorAddress}
-        emergencyCommittee: ${emergencyCommitteeAddress}
-        minWithdrawalDelayTime: ${minWithdrawalDelayTimeValue}
-        name: ${nameValue}
-        symbol: ${symbolValue}
-        allowListEnabled: ${allowListEnabled}
+        ${prepareCreationConfigrationText(
+          vaultConfig,
+          timelockConfig,
+          commonPoolConfig,
+        )}
+        allowListEnabled: ${allowListEnabledValue}
         reserveRatioGapBP: ${reserveRatioGapBPValue}\n`;
       const confirm = await confirmOperation(confirmationMessage);
       if (!confirm) return;
@@ -811,7 +358,7 @@ factoryWrite
           vaultConfig,
           timelockConfig,
           commonPoolConfig,
-          allowListEnabled,
+          allowListEnabledValue,
           BigInt(reserveRatioGapBPValue),
         ],
         value: CONNECT_DEPOSIT,
@@ -824,136 +371,14 @@ factoryWrite
 
       const eventData = await getCreatePoolEventData(result.receipt, result.tx);
 
-      logInfo('Pool Creation Started');
-      logResult({
-        data: [
-          ['Sender', eventData.sender],
-          ['Strategy Factory', eventData.strategyFactory],
-          ['Strategy Deploy Bytes', eventData.strategyDeployBytes],
-          ['Finish Deadline', eventData.finishDeadline],
-          ['Transaction Hash', result.tx],
-          ['Block Number', eventData.blockNumber],
-        ],
-      });
+      await logCreatePoolEventData(eventData);
 
-      logInfo('Vault Config');
-      logResult({
-        data: [
-          ['Node Operator', eventData.vaultConfig?.nodeOperator],
-          ['Node Operator Manager', eventData.vaultConfig?.nodeOperatorManager],
-          ['Node Operator Fee BP', eventData.vaultConfig?.nodeOperatorFeeBP],
-          ['Confirm Expiry', eventData.vaultConfig?.confirmExpiry],
-        ],
-      });
-
-      logInfo('Common Pool Config');
-      logResult({
-        data: [
-          [
-            'Min Withdrawal Delay Time',
-            eventData.commonPoolConfig?.minWithdrawalDelayTime,
-          ],
-          ['Name', eventData.commonPoolConfig?.name],
-          ['Symbol', eventData.commonPoolConfig?.symbol],
-        ],
-      });
-
-      logInfo('Auxiliary Config');
-      logResult({
-        data: [
-          ['Allowlist Enabled', eventData.auxiliaryConfig?.allowlistEnabled],
-          ['Minting Enabled', eventData.auxiliaryConfig?.mintingEnabled],
-          [
-            'Reserve Ratio Gap BP',
-            eventData.auxiliaryConfig?.reserveRatioGapBP,
-          ],
-        ],
-      });
-
-      logInfo('Timelock Config');
-      logResult({
-        data: [
-          ['Min Delay Seconds', eventData.timelockConfig?.minDelaySeconds],
-          ['Proposer', eventData.timelockConfig?.proposer],
-          ['Executor', eventData.timelockConfig?.executor],
-        ],
-      });
-
-      logInfo('Intermediate');
-      logResult({
-        data: [
-          ['Dashboard', eventData.intermediate?.dashboard],
-          ['Pool Proxy', eventData.intermediate?.poolProxy],
-          [
-            'Withdrawal Queue Proxy',
-            eventData.intermediate?.withdrawalQueueProxy,
-          ],
-          ['Timelock', eventData.intermediate?.timelock],
-        ],
-      });
-
-      if (
-        !eventData.auxiliaryConfig ||
-        !eventData.strategyFactory ||
-        !eventData.strategyDeployBytes ||
-        !eventData.intermediate
-      ) {
-        logError('Missing required data for pool creation finalize');
-        return;
-      }
-
-      logInfo('Pool Creation Finalize');
-
-      const finalizeResult = await callWriteMethodWithReceipt({
+      await finalizePoolCreation(
         contract,
-        methodName: 'createPoolFinish',
-        payload: [
-          vaultConfig,
-          timelockConfig,
-          commonPoolConfig,
-          eventData.auxiliaryConfig,
-          eventData.strategyFactory,
-          eventData.strategyDeployBytes,
-          eventData.intermediate,
-        ],
-      });
-
-      if (!finalizeResult.receipt || !finalizeResult.tx) {
-        logInfo('Transaction has been sent');
-        return;
-      }
-
-      const finalizeEventData = await getFinalizePoolEventData(
-        finalizeResult.receipt,
-        finalizeResult.tx,
+        vaultConfig,
+        timelockConfig,
+        commonPoolConfig,
+        eventData,
       );
-
-      const poolType =
-        finalizeEventData.poolType &&
-        fromHex(finalizeEventData.poolType, 'string').replace(/\W/g, '');
-
-      logInfo('Pool Creation Finalized');
-      logResult({
-        data: [
-          ['Vault', finalizeEventData.vault],
-          ['Pool', finalizeEventData.pool],
-          ['Pool Type', poolType],
-          ['Withdrawal Queue', finalizeEventData.withdrawalQueue],
-          ['Timelock', eventData.intermediate.timelock],
-          ['Strategy Factory', finalizeEventData.strategyFactory],
-          ['Strategy Deploy Bytes', finalizeEventData.strategyDeployBytes],
-          ['Strategy', finalizeEventData.strategy],
-          ['Transaction Hash', finalizeResult.tx],
-          ['Block Number', finalizeEventData.blockNumber],
-        ],
-      });
-
-      logInfo('UI Environment Variables:');
-      logResult({
-        data: [
-          ['VITE_POOL_TYPE', poolType],
-          ['VITE_POOL_ADDRESS', finalizeEventData.pool],
-        ],
-      });
     },
   );
