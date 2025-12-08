@@ -23,7 +23,7 @@ import {
   prepareCreationConfigrationText,
 } from 'features';
 
-import { wrapperOperations } from './main.js';
+import { wrapperOperationsWrite } from './write.js';
 
 type MintableOptions = {
   reserveRatioGapBP?: number;
@@ -33,7 +33,7 @@ type AllowlistableOptions = {
   allowListEnabled?: boolean;
 };
 
-const defiWrapperOperationsCreatePool = wrapperOperations
+const defiWrapperOperationsCreatePool = wrapperOperationsWrite
   .command('create-pool')
   .description('create pool commands');
 

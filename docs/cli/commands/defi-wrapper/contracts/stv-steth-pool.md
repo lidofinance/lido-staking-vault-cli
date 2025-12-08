@@ -1,5 +1,5 @@
 ---
-sidebar_position: 5
+sidebar_position: 4
 ---
 
 # StvStethPool
@@ -98,16 +98,14 @@ yarn start defi-wrapper contracts stv-steth -h
 
 ### Write
 
-| Command                                                         | Description                                                                                          |
-| --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| deposit-eth-shares \<address> \<referral> \<stethSharesToMint>  | deposit native ETH and receive stv, minting a specific amount of stETH shares                        |
-| deposit-eth-wsteth \<address> \<referral> \<stethSharesToMint>  | deposit native ETH and receive stv, minting a specific amount of stETH shares                        |
-| rebalance-unassigned-liability \<address> \<stethShares>        | rebalance unassigned liability by repaying it with assets held by the vault                          |
-| rebalance-unassigned-liability-with-ether \<address> \<ether>   | rebalance unassigned liability by repaying it with external ether                                    |
-| request-withdrawal-eth \<address> \<from> \<stv> \<stethShares> | transfer stv with liability from user to WithdrawalQueue contract when enqueuing withdrawal requests |
-| burn-stv-for-withdrawal-queue \<address> \<stv>                 | burn stv from WithdrawalQueue contract when processing withdrawal requests                           |
-| add-to-allow-list \<address> \<user>                            | add an address to the allowlist                                                                      |
-| remove-from-allow-list \<address> \<user>                       | remove an address from the allowlist                                                                 |
-| mint-steth-shares \<address> \<stethShares>                     | mint stETH shares up to the user's minting capacity                                                  |
-| burn-steth-shares \<address> \<stethShares>                     | burn stETH shares to reduce the user's minted stETH obligation                                       |
-| transfer-with-liability \<address> \<to> \<stv> \<stethShares>  | transfer stETH shares with liability to another address                                              |
+| Command                                                        | Description                                                                   |
+| -------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| deposit-eth-shares \<address> \<referral> \<stethSharesToMint> | deposit native ETH and receive stv, minting a specific amount of stETH shares |
+| deposit-eth-wsteth \<address> \<referral> \<stethSharesToMint> | deposit native ETH and receive stv, minting a specific amount of stETH shares |
+| rebalance-unassigned-liability \<address> \<stethShares>       | rebalance unassigned liability by repaying it with assets held by the vault   |
+| rebalance-unassigned-liability-with-ether \<address> \<ether>  | rebalance unassigned liability by repaying it with external ether             |
+| add-to-allow-list \<address> \<user>                           | add an address to the allowlist                                               |
+| remove-from-allow-list \<address> \<user>                      | remove an address from the allowlist                                          |
+| mint-steth-shares \<address> \<stethShares>                    | mint stETH shares up to the user's minting capacity                           |
+| burn-steth-shares \<address> \<stethShares>                    | burn stETH shares to reduce the user's minted stETH obligation                |
+| transfer-with-liability \<address> \<to> \<stv> \<stethShares> | transfer stETH shares with liability to another address                       |

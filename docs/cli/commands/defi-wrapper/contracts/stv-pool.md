@@ -1,5 +1,5 @@
 ---
-sidebar_position: 4
+sidebar_position: 3
 ---
 
 # StvPool
@@ -79,6 +79,5 @@ yarn start defi-wrapper contracts stv -h
 | rebalance-unassigned-liability-with-ether \<address> \<ether> | rebalance unassigned liability by repaying it with external ether           |
 | pause-deposits \<address>                                     | pause deposits                                                              |
 | resume-deposits \<address>                                    | resume deposits                                                             |
-| burn-stv-for-withdrawal-queue \<address> \<stv>               | burn stv from WithdrawalQueue contract when processing withdrawal requests  |
 | add-to-allow-list \<address> \<user>                          | add an address to the allowlist                                             |
 | remove-from-allow-list \<address> \<user>                     | remove an address from the allowlist                                        |
