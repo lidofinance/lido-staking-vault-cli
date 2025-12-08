@@ -4,55 +4,11 @@ import {
   getStvPoolContract,
 } from 'contracts/defi-wrapper/index.js';
 import { callReadMethodSilent } from 'utils';
+import { reportFreshWarning } from 'features';
 
 const STV_POOL_NAME = 'StvPool';
 const STV_STETH_POOL_NAME = 'StvStETHPool';
 const STV_STRATEGY_POOL_NAME = 'StvStrategyPool';
-
-const getStvStethPoolInfo = async (address: Address) => {
-  const contract = await getStvStethPoolContract(address);
-
-  const [
-    WSTETH,
-    RESERVE_RATIO_GAP_BP,
-    totalMintedStethShares,
-    reserveRatioBP,
-    forcedRebalanceThresholdBP,
-    totalExceedingMintedStethShares,
-    totalExceedingMintedSteth,
-    maxLossSocializationBP,
-    MINTING_FEATURE,
-  ] = await Promise.all([
-    contract.read.WSTETH(),
-    contract.read.RESERVE_RATIO_GAP_BP(),
-    contract.read.totalMintedStethShares(),
-    contract.read.reserveRatioBP(),
-    contract.read.forcedRebalanceThresholdBP(),
-    contract.read.totalExceedingMintedStethShares(),
-    contract.read.totalExceedingMintedSteth(),
-    contract.read.maxLossSocializationBP(),
-    contract.read.MINTING_FEATURE(),
-  ]);
-
-  const isMintingPaused = await callReadMethodSilent(
-    contract,
-    'isFeaturePaused',
-    [MINTING_FEATURE],
-  );
-
-  return {
-    WSTETH,
-    RESERVE_RATIO_GAP_BP,
-    totalMintedStethShares,
-    reserveRatioBP,
-    forcedRebalanceThresholdBP,
-    totalExceedingMintedStethShares,
-    totalExceedingMintedSteth,
-    maxLossSocializationBP,
-    isMintingPaused,
-    MINTING_FEATURE,
-  };
-};
 
 const getStvPoolInfo = async (address: Address) => {
   const contract = await getStvPoolContract(address);
@@ -100,6 +56,7 @@ const getStvPoolInfo = async (address: Address) => {
     'isFeaturePaused',
     [DEPOSITS_FEATURE],
   );
+  const isReportFresh = await reportFreshWarning(vault);
 
   return {
     vault,
@@ -120,6 +77,52 @@ const getStvPoolInfo = async (address: Address) => {
     ALLOW_LIST_ENABLED,
     DEPOSITS_FEATURE,
     allowListSize,
+    isReportFresh,
+  };
+};
+
+const getStvStethPoolInfo = async (address: Address) => {
+  const contract = await getStvStethPoolContract(address);
+
+  const [
+    WSTETH,
+    RESERVE_RATIO_GAP_BP,
+    totalMintedStethShares,
+    reserveRatioBP,
+    forcedRebalanceThresholdBP,
+    totalExceedingMintedStethShares,
+    totalExceedingMintedSteth,
+    maxLossSocializationBP,
+    MINTING_FEATURE,
+  ] = await Promise.all([
+    contract.read.WSTETH(),
+    contract.read.RESERVE_RATIO_GAP_BP(),
+    contract.read.totalMintedStethShares(),
+    contract.read.reserveRatioBP(),
+    contract.read.forcedRebalanceThresholdBP(),
+    contract.read.totalExceedingMintedStethShares(),
+    contract.read.totalExceedingMintedSteth(),
+    contract.read.maxLossSocializationBP(),
+    contract.read.MINTING_FEATURE(),
+  ]);
+
+  const isMintingPaused = await callReadMethodSilent(
+    contract,
+    'isFeaturePaused',
+    [MINTING_FEATURE],
+  );
+
+  return {
+    WSTETH,
+    RESERVE_RATIO_GAP_BP,
+    totalMintedStethShares,
+    reserveRatioBP,
+    forcedRebalanceThresholdBP,
+    totalExceedingMintedStethShares,
+    totalExceedingMintedSteth,
+    maxLossSocializationBP,
+    isMintingPaused,
+    MINTING_FEATURE,
   };
 };
 

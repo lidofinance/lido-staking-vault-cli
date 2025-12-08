@@ -98,6 +98,7 @@ wrapperOperationsRead
         typeof poolInfo.isMintingPaused === 'boolean'
           ? ['Is Minting Paused', poolInfo.isMintingPaused]
           : undefined,
+        ['Is Report Fresh', poolInfo.isReportFresh],
         ['ALLOW_LIST_ENABLED', poolInfo.ALLOW_LIST_ENABLED],
         ['Allow List Size', poolInfo.allowListSize],
         ['DEPOSITS_FEATURE (ID)', poolInfo.DEPOSITS_FEATURE],
