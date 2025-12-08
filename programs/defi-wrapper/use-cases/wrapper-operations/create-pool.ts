@@ -23,7 +23,7 @@ import {
   prepareCreationConfigrationText,
 } from 'features';
 
-import { factory } from './main.js';
+import { wrapperOperations } from './main.js';
 
 type MintableOptions = {
   reserveRatioGapBP?: number;
@@ -33,14 +33,13 @@ type AllowlistableOptions = {
   allowListEnabled?: boolean;
 };
 
-const factoryWrite = factory
-  .command('write')
-  .alias('w')
-  .description('write commands');
+const defiWrapperOperationsCreatePool = wrapperOperations
+  .command('create-pool')
+  .description('create pool commands');
 
-factoryWrite.addOption(new Option('-cmd2json'));
-factoryWrite.on('option:-cmd2json', function () {
-  logInfo(getCommandsJson(factoryWrite));
+defiWrapperOperationsCreatePool.addOption(new Option('-cmd2json'));
+defiWrapperOperationsCreatePool.on('option:-cmd2json', function () {
+  logInfo(getCommandsJson(defiWrapperOperationsCreatePool));
   process.exit();
 });
 
@@ -84,7 +83,7 @@ const applyCommonOptions = (command: Command): Command => {
 };
 
 applyCommonOptions(
-  factoryWrite
+  defiWrapperOperationsCreatePool
     .command('create-pool-ggv')
     .description('initiates deployment of a GGV strategy pool')
     .argument('<address>', 'factory address', stringToAddress),
@@ -151,7 +150,7 @@ applyCommonOptions(
   );
 
 applyCommonOptions(
-  factoryWrite
+  defiWrapperOperationsCreatePool
     .command('create-pool-stv')
     .description('initiates deployment of a STV staking pool')
     .argument('<address>', 'factory address', stringToAddress),
@@ -234,7 +233,7 @@ applyCommonOptions(
   );
 
 applyCommonOptions(
-  factoryWrite
+  defiWrapperOperationsCreatePool
     .command('create-pool-stv-steth')
     .description(
       'initiates deployment of a STV-STETH pool with minting enabled',
