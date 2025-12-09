@@ -21,7 +21,7 @@ jobs:
     if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/testnet-2' || github.ref == 'refs/heads/testnet-3'
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           persist-credentials: false
