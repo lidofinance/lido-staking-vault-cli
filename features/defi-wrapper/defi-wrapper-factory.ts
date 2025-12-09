@@ -8,6 +8,7 @@ import {
   zeroAddress,
 } from 'viem';
 
+import { getFactoryContract } from 'contracts/defi-wrapper/index.js';
 import { FactoryAbi } from 'abi/defi-wrapper/Factory.js';
 import { program } from 'command';
 import { getVaultHubContract } from 'contracts';
@@ -20,7 +21,12 @@ import {
   getPoolTokenName,
   getPoolTokenSymbol,
 } from 'features';
-import { logInfo, logResult } from 'utils';
+import {
+  logInfo,
+  logResult,
+  logError,
+  callWriteMethodWithReceipt,
+} from 'utils';
 
 export type VaultConfig = {
   nodeOperator: Address; // Address of the node operator managing the vault
@@ -54,6 +60,53 @@ export type BaseFactoryOptions = {
   minWithdrawalDelayTime?: number;
   name?: string;
   symbol?: string;
+};
+
+// сommon filaliztion step between two pools
+export const finalizePoolCreation = async (
+  contract: Awaited<ReturnType<typeof getFactoryContract>>,
+  vaultConfig: VaultConfig,
+  timelockConfig: TimelockConfig,
+  commonPoolConfig: CommonPoolConfig,
+  creationEventData: Awaited<ReturnType<typeof getCreatePoolEventData>>,
+) => {
+  if (
+    !creationEventData.auxiliaryConfig ||
+    !creationEventData.strategyFactory ||
+    !creationEventData.strategyDeployBytes ||
+    !creationEventData.intermediate
+  ) {
+    logError('Missing required data for pool creation finalize');
+    return;
+  }
+
+  logInfo('Pool Creation Finalize');
+
+  const finalizeResult = await callWriteMethodWithReceipt({
+    contract,
+    methodName: 'createPoolFinish',
+    payload: [
+      vaultConfig,
+      timelockConfig,
+      commonPoolConfig,
+      creationEventData.auxiliaryConfig,
+      creationEventData.strategyFactory,
+      creationEventData.strategyDeployBytes,
+      creationEventData.intermediate,
+    ],
+  });
+
+  if (!finalizeResult.receipt || !finalizeResult.tx) {
+    logInfo('Transaction has been sent');
+    return;
+  }
+
+  const finalizeEventData = await getFinalizePoolEventData(
+    finalizeResult.receipt,
+    finalizeResult.tx,
+  );
+
+  await logFinalizePoolEventData(creationEventData, finalizeEventData);
 };
 
 export const getCreatePoolEventData = async (
