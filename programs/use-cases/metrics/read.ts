@@ -22,8 +22,6 @@ import {
   prepareGrossStakingRewards,
   prepareNodeOperatorRewards,
   prepareNetStakingRewards,
-  callReadMethodSilent,
-  cache,
   prepareGrossStakingAPR,
   prepareNetStakingAPR,
   prepareCarrySpread,
@@ -31,7 +29,12 @@ import {
   prepareDailyLidoFees,
   formatTimestamp,
 } from 'utils';
-import { checkQuarantine, chooseVaultAndGetDashboard } from 'features';
+import {
+  checkQuarantine,
+  chooseVaultAndGetDashboard,
+  getNodeOperatorFeeRatesByBlockNumbers,
+  getSettledGrowthsByBlockNumbers,
+} from 'features';
 
 import { metrics } from './main.js';
 
@@ -150,23 +153,16 @@ metricsRead
       cacheUse,
     );
 
-    // Get nodeOperatorFeeBP for each report block with caching
-    const nodeOperatorFeeBPs: bigint[] = [];
-    for (const r of history) {
-      let fee = await cache.getNodeOperatorFeeRate(vault, r.blockNumber);
-      if (fee === null) {
-        const feeRate = await callReadMethodSilent(
-          dashboardContract,
-          'feeRate',
-          {
-            blockNumber: BigInt(r.blockNumber),
-          },
-        );
-        fee = BigInt(feeRate);
-        await cache.setNodeOperatorFeeRate(vault, r.blockNumber, fee);
-      }
-      nodeOperatorFeeBPs.push(fee);
-    }
+    const blockNumbers = history.map((r) => r.blockNumber);
+    const [nodeOperatorFeeBPs, settledGrowths] = await Promise.all([
+      getNodeOperatorFeeRatesByBlockNumbers(
+        vault,
+        blockNumbers,
+        dashboardContract,
+      ),
+      getSettledGrowthsByBlockNumbers(vault, blockNumbers, dashboardContract),
+    ]);
+
     const [
       grossStakingRewards,
       nodeOperatorRewards,
@@ -178,12 +174,22 @@ metricsRead
       dailyLidoFees,
     ] = await Promise.all([
       prepareGrossStakingRewards(history),
-      prepareNodeOperatorRewards(history, nodeOperatorFeeBPs),
-      prepareNetStakingRewards(history, nodeOperatorFeeBPs),
+      prepareNodeOperatorRewards(history, nodeOperatorFeeBPs, settledGrowths),
+      prepareNetStakingRewards(history, nodeOperatorFeeBPs, settledGrowths),
       prepareGrossStakingAPR(history),
-      prepareNetStakingAPR(history, nodeOperatorFeeBPs),
-      prepareCarrySpread(history, nodeOperatorFeeBPs, vaultAddress),
-      prepareBottomLine(history, nodeOperatorFeeBPs, vaultAddress),
+      prepareNetStakingAPR(history, nodeOperatorFeeBPs, settledGrowths),
+      prepareCarrySpread(
+        history,
+        nodeOperatorFeeBPs,
+        vaultAddress,
+        settledGrowths,
+      ),
+      prepareBottomLine(
+        history,
+        nodeOperatorFeeBPs,
+        vaultAddress,
+        settledGrowths,
+      ),
       prepareDailyLidoFees(history),
     ]);
 

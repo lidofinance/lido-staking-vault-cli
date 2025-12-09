@@ -2,8 +2,12 @@ import blessed from 'blessed';
 import contrib from 'blessed-contrib';
 
 import { Address } from 'viem';
-import { callReadMethodSilent, cache, getVaultReportHistory } from 'utils';
+import { callReadMethodSilent, getVaultReportHistory } from 'utils';
 import { getDashboardContract } from 'contracts';
+import {
+  getNodeOperatorFeeRatesByBlockNumbers,
+  getSettledGrowthsByBlockNumbers,
+} from 'features';
 
 import { lineOpts } from './utils.js';
 import { LIMIT } from './constants.js';
@@ -43,27 +47,26 @@ export const fetchRewardsChartsData = async ({
   if (!history || history.length < 2) throw new Error('Not enough data');
 
   // Get nodeOperatorFeeBP for each report block with caching
-  const nodeOperatorFeeBPs: bigint[] = [];
-  for (const r of history) {
-    let fee = await cache.getNodeOperatorFeeRate(vault, r.blockNumber);
-    if (fee === null) {
-      const feeRate = await callReadMethodSilent(dashboardContract, 'feeRate', {
-        blockNumber: BigInt(r.blockNumber),
-      });
-      fee = BigInt(feeRate);
-      await cache.setNodeOperatorFeeRate(vault, r.blockNumber, fee);
-    }
-    nodeOperatorFeeBPs.push(fee);
-  }
+  const blockNumbers = history.map((r) => r.blockNumber);
+  const [nodeOperatorFeeBPs, settledGrowths] = await Promise.all([
+    getNodeOperatorFeeRatesByBlockNumbers(
+      vault,
+      blockNumbers,
+      dashboardContract,
+    ),
+    getSettledGrowthsByBlockNumbers(vault, blockNumbers, dashboardContract),
+  ]);
 
   const grossStakingRewards = prepareGrossStakingRewards(history);
   const nodeOperatorRewards = prepareNodeOperatorRewards(
     history,
     nodeOperatorFeeBPs,
+    settledGrowths,
   );
   const netStakingRewards = prepareNetStakingRewards(
     history,
     nodeOperatorFeeBPs,
+    settledGrowths,
   );
 
   const grossStakingRewardsChart =

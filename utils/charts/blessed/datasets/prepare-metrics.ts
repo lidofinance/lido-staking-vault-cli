@@ -19,6 +19,7 @@ export const prepareBottomLine = async (
   history: VaultReport[],
   nodeOperatorFeeBPs: bigint[],
   vaultAddress: string,
+  settledGrowth: bigint[],
 ) => {
   const bottomLine = [];
   const timestamp = [];
@@ -41,6 +42,7 @@ export const prepareBottomLine = async (
       previous,
       nodeOperatorFeeBPs[i] ?? 0n,
       stEthLiabilityRebaseRewards,
+      settledGrowth[i] ?? 0n,
     );
 
     bottomLine.push(String(bottomLineValue));
@@ -69,6 +71,7 @@ export const prepareGrossStakingAPR = (history: VaultReport[]) => {
 export const prepareNetStakingAPR = (
   history: VaultReport[],
   nodeOperatorFeeBPs: bigint[],
+  settledGrowth: bigint[],
 ) => {
   const netStakingAPRPercent = [];
   const timestamp = [];
@@ -83,6 +86,7 @@ export const prepareNetStakingAPR = (
       current,
       previous,
       nodeOperatorFeeBPs[i] ?? 0n,
+      settledGrowth[i] ?? 0n,
     );
 
     netStakingAPRPercent.push(value.apr_percent);
@@ -95,6 +99,7 @@ export const prepareCarrySpread = async (
   history: VaultReport[],
   nodeOperatorFeeBPs: bigint[],
   vaultAddress: string,
+  settledGrowth: bigint[],
 ) => {
   const carrySpreadPercent = [];
   const timestamp = [];
@@ -117,6 +122,7 @@ export const prepareCarrySpread = async (
       previous,
       nodeOperatorFeeBPs[i] ?? 0n,
       stEthLiabilityRebaseRewards,
+      settledGrowth[i] ?? 0n,
     );
 
     carrySpreadPercent.push(value.apr_percent);
@@ -170,6 +176,7 @@ export const prepareGrossStakingRewards = (history: VaultReport[]) => {
 export const prepareNodeOperatorRewards = (
   history: VaultReport[],
   nodeOperatorFeeBPs: bigint[],
+  settledGrowth: bigint[],
 ) => {
   const nodeOperatorRewards = [];
   const timestamp = [];
@@ -183,6 +190,7 @@ export const prepareNodeOperatorRewards = (
       current,
       previous,
       nodeOperatorFeeBPs[i] ?? 0n,
+      settledGrowth[i] ?? 0n,
     );
 
     nodeOperatorRewards.push(String(formatEther(value)));
@@ -194,6 +202,7 @@ export const prepareNodeOperatorRewards = (
 export const prepareNetStakingRewards = (
   history: VaultReport[],
   nodeOperatorFeeBPs: bigint[],
+  settledGrowth: bigint[],
 ) => {
   const netStakingRewards = [];
   const timestamp = [];
@@ -207,6 +216,7 @@ export const prepareNetStakingRewards = (
       current,
       previous,
       nodeOperatorFeeBPs[i] ?? 0n,
+      settledGrowth[i] ?? 0n,
     );
 
     netStakingRewards.push(String(formatEther(value)));

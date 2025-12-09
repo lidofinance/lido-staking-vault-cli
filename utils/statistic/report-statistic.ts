@@ -1,6 +1,7 @@
 import type { VaultReport } from 'utils/report/types.js';
 
 import { BASIS_POINTS_DENOMINATOR } from '../consts.js';
+import { bigIntMax } from '../bigInt.js';
 
 const SCALE = 1_000_000_000n; // 1e9 for 9 decimal places precision
 
@@ -21,10 +22,17 @@ export const getNodeOperatorRewards = (
   current: VaultReport,
   previous: VaultReport,
   nodeOperatorFeeBP: bigint,
+  settledGrowth: bigint,
 ) => {
   const grossStakingRewards = getGrossStakingRewards(current, previous);
+  const rewardsMinusSettledGrowth = bigIntMax(
+    grossStakingRewards - settledGrowth,
+    0n,
+  );
 
-  return (grossStakingRewards * nodeOperatorFeeBP) / BASIS_POINTS_DENOMINATOR;
+  return (
+    (rewardsMinusSettledGrowth * nodeOperatorFeeBP) / BASIS_POINTS_DENOMINATOR
+  );
 };
 
 export const getDailyLidoFees = (
@@ -38,12 +46,14 @@ export const getNetStakingRewards = (
   current: VaultReport,
   previous: VaultReport,
   nodeOperatorFeeBP: bigint,
+  settledGrowth: bigint,
 ) => {
   const grossStakingRewards = getGrossStakingRewards(current, previous);
   const nodeOperatorRewards = getNodeOperatorRewards(
     current,
     previous,
     nodeOperatorFeeBP,
+    settledGrowth,
   );
   const dailyLidoFees = getDailyLidoFees(current, previous);
 
@@ -108,6 +118,7 @@ export const getNetStakingAPR = (
   current: VaultReport,
   previous: VaultReport,
   nodeOperatorFeeBP: bigint,
+  settledGrowth: bigint,
 ) => {
   const periodSeconds = getPeriodSeconds(current, previous);
   const previousTotalValue = getPreviousTotalValue(previous);
@@ -115,6 +126,7 @@ export const getNetStakingAPR = (
     current,
     previous,
     nodeOperatorFeeBP,
+    settledGrowth,
   );
 
   const apr_bigint =
@@ -139,11 +151,13 @@ export const getBottomLine = (
   previous: VaultReport,
   nodeOperatorFeeBP: bigint,
   stEthLiabilityRebaseRewards: bigint,
+  settledGrowth: bigint,
 ) => {
   const netStakingRewards = getNetStakingRewards(
     current,
     previous,
     nodeOperatorFeeBP,
+    settledGrowth,
   );
 
   return netStakingRewards - stEthLiabilityRebaseRewards;
@@ -154,6 +168,7 @@ export const getCarrySpread = (
   previous: VaultReport,
   nodeOperatorFeeBP: bigint,
   stEthLiabilityRebaseRewards: bigint,
+  settledGrowth: bigint,
 ) => {
   const previousTotalValue = getPreviousTotalValue(previous);
   const periodSeconds = getPeriodSeconds(current, previous);
@@ -162,6 +177,7 @@ export const getCarrySpread = (
     previous,
     nodeOperatorFeeBP,
     stEthLiabilityRebaseRewards,
+    settledGrowth,
   );
 
   const apr_bigint =
@@ -185,10 +201,16 @@ export type ReportMetricsArgs = {
   reports: { current: VaultReport; previous: VaultReport };
   nodeOperatorFeeRate: bigint;
   stEthLiabilityRebaseRewards: bigint;
+  settledGrowth: bigint;
 };
 
 export const reportMetrics = (args: ReportMetricsArgs) => {
-  const { reports, nodeOperatorFeeRate, stEthLiabilityRebaseRewards } = args;
+  const {
+    reports,
+    nodeOperatorFeeRate,
+    stEthLiabilityRebaseRewards,
+    settledGrowth,
+  } = args;
   const { current, previous } = reports;
 
   const grossStakingRewards = getGrossStakingRewards(current, previous);
@@ -196,12 +218,14 @@ export const reportMetrics = (args: ReportMetricsArgs) => {
     current,
     previous,
     nodeOperatorFeeRate,
+    settledGrowth,
   );
   const dailyLidoFees = getDailyLidoFees(current, previous);
   const netStakingRewards = getNetStakingRewards(
     current,
     previous,
     nodeOperatorFeeRate,
+    settledGrowth,
   );
 
   const grossStakingAPR = getGrossStakingAPR(current, previous);
@@ -209,18 +233,21 @@ export const reportMetrics = (args: ReportMetricsArgs) => {
     current,
     previous,
     nodeOperatorFeeRate,
+    settledGrowth,
   );
   const bottomLine = getBottomLine(
     current,
     previous,
     nodeOperatorFeeRate,
     stEthLiabilityRebaseRewards,
+    settledGrowth,
   );
   const carrySpread = getCarrySpread(
     current,
     previous,
     nodeOperatorFeeRate,
     stEthLiabilityRebaseRewards,
+    settledGrowth,
   );
 
   return {

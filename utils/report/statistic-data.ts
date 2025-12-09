@@ -28,6 +28,13 @@ export const getReportStatisticData = async (args: StatisticDataArgs) => {
       blockNumber: BigInt(reportRefBlockNumber),
     },
   );
+  const settledGrowth = await callReadMethodSilent(
+    dashboardContract,
+    'settledGrowth',
+    {
+      blockNumber: BigInt(reportRefBlockNumber),
+    },
+  );
   const [shareRatePrev, shareRateCurr] = await Promise.all([
     calculateShareRate(reportPrevBlockNumber),
     calculateShareRate(reportRefBlockNumber),
@@ -44,6 +51,7 @@ export const getReportStatisticData = async (args: StatisticDataArgs) => {
     reports: { current: reports.current, previous: reports.previous },
     nodeOperatorFeeRate: BigInt(nodeOperatorFeeRate),
     stEthLiabilityRebaseRewards,
+    settledGrowth,
   });
 
   return metrics;
