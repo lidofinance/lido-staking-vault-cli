@@ -318,7 +318,9 @@ export const promtBaseVaultConfiguration = async ({
 
   const nodeOperatorFeeRateValue =
     await getNodeOperatorFeeRate(nodeOperatorFeeRate);
-  const confirmExpiryValue = await getConfirmExpiry(confirmExpiry);
+  const confirmExpiryValue = await getConfirmExpiry({
+    confirmExpiry,
+  });
 
   const minDelaySecondsValue = await getMinDelaySeconds(minDelaySeconds);
   const proposerAddress = await getAddress(proposer, 'Proposer');
