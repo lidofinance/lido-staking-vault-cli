@@ -1071,7 +1071,7 @@ dashboardWrite
     'Manually corrects the settled growth value with dual confirmation.',
   )
   .argument('<address>', 'dashboard address', stringToAddress)
-  .argument('<newSettledGrowth>', 'new settled growth', etherToWei)
+  .argument('<newSettledGrowth>', 'new settled growth (in ETH)', etherToWei)
   .action(async (address: Address, newSettledGrowth: bigint) => {
     const contract = await getDashboardContract(address);
     const currentSettledGrowth = await callReadMethodSilent(

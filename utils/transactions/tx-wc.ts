@@ -16,6 +16,7 @@ import {
   logResult,
   disconnectWalletConnect,
   logInfo,
+  logError,
 } from 'utils';
 
 import { PartialContract, PopulatedTx, BatchTxArgs } from './types.js';
@@ -268,14 +269,34 @@ const callWalletConnectSendCalls = async (args: {
     hideStatusSpinner();
 
     if (callStatus.status === 'failure') {
-      // eslint-disable-next-line no-console
-      console.log(callStatus);
+      logError(
+        'Transaction failed. Check your wallet for details.',
+        callStatus,
+      );
+
+      if (
+        callStatus.receipts?.some((receipt) => receipt.status === 'reverted')
+      ) {
+        logError(
+          'Some operation were reverted. Check your wallet for details.',
+          callStatus.receipts?.filter(
+            (receipt) => receipt.status === 'reverted',
+          ),
+        );
+      }
+
       throw new Error('Transaction failed. Check your wallet for details.');
     }
 
-    if (callStatus.receipts?.find((receipt) => receipt.status === 'reverted')) {
+    // safe check for reverted operations
+    if (callStatus.receipts?.some((receipt) => receipt.status === 'reverted')) {
       throw new Error(
         'Some operation were reverted. Check your wallet for details.',
+        {
+          cause: callStatus.receipts?.filter(
+            (receipt) => receipt.status === 'reverted',
+          ),
+        },
       );
     }
 
