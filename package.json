@@ -102,7 +102,7 @@
     "tmp": "^0.2.4"
   },
   "lint-staged": {
-    "./**/*.{ts,tsx}": [
+    "{!(docs)/**/*.{ts,tsx},*.{ts,tsx}}": [
       "eslint --ignore-path .gitignore --max-warnings=0"
     ],
     "./**/*.{ts,tsx,css,md,json}": [
