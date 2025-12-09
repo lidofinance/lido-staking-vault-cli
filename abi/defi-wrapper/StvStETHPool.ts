@@ -2074,6 +2074,11 @@ export const StvStETHPoolAbi = [
   },
   {
     type: 'error',
+    name: 'CannotRebalanceWithdrawalQueue',
+    inputs: [],
+  },
+  {
+    type: 'error',
     name: 'CollateralizedAccount',
     inputs: [],
   },

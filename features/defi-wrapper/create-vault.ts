@@ -1,6 +1,12 @@
 import { getOperatorGridContract } from 'contracts';
 import { callReadMethodSilent, numberPrompt, textPrompt } from 'utils';
 
+import {
+  type CommonPoolConfig,
+  type TimelockConfig,
+  type VaultConfig,
+} from './defi-wrapper-factory.js';
+
 const MIN_TIME_IN_HOURS = 60 * 60; // 1 hour
 const MAX_TIME_IN_HOURS = 24 * 60 * 60 * 30; // 30 days
 
@@ -198,4 +204,23 @@ const validateReserveRatioGapBP = async (reserveRatioGapBP: number) => {
     throw new Error(
       `Reserve ratio gap must be less than ${MAX_BASIS_POINTS - reserveRatioBP} basis points. Current value: ${reserveRatioGapBP}`,
     );
+};
+
+// common text for vault configuration conformatin
+export const prepareCreationConfigrationText = (
+  vaultConfig: VaultConfig,
+  timelockConfig: TimelockConfig,
+  commonPoolConfig: CommonPoolConfig,
+) => {
+  return `nodeOperator: ${vaultConfig.nodeOperator}
+        nodeOperatorManager: ${vaultConfig.nodeOperatorManager}
+        nodeOperatorFeeBP: ${vaultConfig.nodeOperatorFeeBP}
+        confirmExpiry: ${vaultConfig.confirmExpiry}
+        minDelaySeconds: ${timelockConfig.minDelaySeconds}
+        proposer: ${timelockConfig.proposer}
+        executor: ${timelockConfig.executor}
+        emergencyCommittee: ${commonPoolConfig.emergencyCommittee}
+        minWithdrawalDelayTime: ${commonPoolConfig.minWithdrawalDelayTime}
+        name: ${commonPoolConfig.name}
+        symbol: ${commonPoolConfig.symbol}`;
 };

@@ -21,7 +21,12 @@ const config: Config = {
     defaultLocale: 'en',
     locales: ['en'],
   },
-  plugins: [],
+  plugins: [
+    [
+      require.resolve('@easyops-cn/docusaurus-search-local'),
+      { indexBlog: false, docsRouteBasePath: '/', indexPages: true },
+    ],
+  ],
   presets: [
     [
       'classic',
