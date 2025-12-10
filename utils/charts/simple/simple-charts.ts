@@ -13,10 +13,7 @@ import {
   getRebaseRewardFromCache,
   formatTimestamp,
 } from 'utils';
-import {
-  getNodeOperatorFeeRatesByBlockNumbers,
-  getSettledGrowthsByBlockNumbers,
-} from 'features';
+import { getNodeOperatorAccruedFeeByBlockNumbers } from 'features';
 
 import {
   logGrossStakingAPRChart,
@@ -76,14 +73,11 @@ export const renderSimpleCharts = async ({
   const timeLabels = [];
 
   const blockNumbers = history.map((r) => r.blockNumber);
-  const [nodeOperatorFeeBPs, settledGrowths] = await Promise.all([
-    getNodeOperatorFeeRatesByBlockNumbers(
-      vault,
-      blockNumbers,
-      dashboardContract,
-    ),
-    getSettledGrowthsByBlockNumbers(vault, blockNumbers, dashboardContract),
-  ]);
+  const nodeOperatorAccruedFees = await getNodeOperatorAccruedFeeByBlockNumbers(
+    vault,
+    blockNumbers,
+    dashboardContract,
+  );
 
   for (let i = 1; i < history.length; i++) {
     const current = history[i];
@@ -106,20 +100,15 @@ export const renderSimpleCharts = async ({
       getGrossStakingAPR(current, previous).apr_percent,
     );
     netStakingAPRPercent.push(
-      getNetStakingAPR(
-        current,
-        previous,
-        nodeOperatorFeeBPs[i] ?? 0n,
-        settledGrowths[i] ?? 0n,
-      ).apr_percent,
+      getNetStakingAPR(current, previous, nodeOperatorAccruedFees[i] ?? 0n)
+        .apr_percent,
     );
     carrySpreadPercent.push(
       getCarrySpread(
         current,
         previous,
-        nodeOperatorFeeBPs[i] ?? 0n,
+        nodeOperatorAccruedFees[i] ?? 0n,
         stEthLiabilityRebaseRewards,
-        settledGrowths[i] ?? 0n,
       ).apr_percent,
     );
     bottomLine.push(
@@ -127,9 +116,8 @@ export const renderSimpleCharts = async ({
         getBottomLine(
           current,
           previous,
-          nodeOperatorFeeBPs[i] ?? 0n,
+          nodeOperatorAccruedFees[i] ?? 0n,
           stEthLiabilityRebaseRewards,
-          settledGrowths[i] ?? 0n,
         ),
       ),
     );

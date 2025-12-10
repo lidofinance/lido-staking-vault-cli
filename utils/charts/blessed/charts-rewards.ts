@@ -4,10 +4,7 @@ import contrib from 'blessed-contrib';
 import { Address } from 'viem';
 import { callReadMethodSilent, getVaultReportHistory } from 'utils';
 import { getDashboardContract } from 'contracts';
-import {
-  getNodeOperatorFeeRatesByBlockNumbers,
-  getSettledGrowthsByBlockNumbers,
-} from 'features';
+import { getNodeOperatorAccruedFeeByBlockNumbers } from 'features';
 
 import { lineOpts } from './utils.js';
 import { LIMIT } from './constants.js';
@@ -48,25 +45,20 @@ export const fetchRewardsChartsData = async ({
 
   // Get nodeOperatorFeeBP for each report block with caching
   const blockNumbers = history.map((r) => r.blockNumber);
-  const [nodeOperatorFeeBPs, settledGrowths] = await Promise.all([
-    getNodeOperatorFeeRatesByBlockNumbers(
-      vault,
-      blockNumbers,
-      dashboardContract,
-    ),
-    getSettledGrowthsByBlockNumbers(vault, blockNumbers, dashboardContract),
-  ]);
+  const nodeOperatorAccruedFees = await getNodeOperatorAccruedFeeByBlockNumbers(
+    vault,
+    blockNumbers,
+    dashboardContract,
+  );
 
   const grossStakingRewards = prepareGrossStakingRewards(history);
   const nodeOperatorRewards = prepareNodeOperatorRewards(
     history,
-    nodeOperatorFeeBPs,
-    settledGrowths,
+    nodeOperatorAccruedFees,
   );
   const netStakingRewards = prepareNetStakingRewards(
     history,
-    nodeOperatorFeeBPs,
-    settledGrowths,
+    nodeOperatorAccruedFees,
   );
 
   const grossStakingRewardsChart =

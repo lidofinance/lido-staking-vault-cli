@@ -32,8 +32,7 @@ import {
 import {
   checkQuarantine,
   chooseVaultAndGetDashboard,
-  getNodeOperatorFeeRatesByBlockNumbers,
-  getSettledGrowthsByBlockNumbers,
+  getNodeOperatorAccruedFeeByBlockNumbers,
 } from 'features';
 
 import { metrics } from './main.js';
@@ -154,14 +153,12 @@ metricsRead
     );
 
     const blockNumbers = history.map((r) => r.blockNumber);
-    const [nodeOperatorFeeBPs, settledGrowths] = await Promise.all([
-      getNodeOperatorFeeRatesByBlockNumbers(
+    const nodeOperatorAccruedFees =
+      await getNodeOperatorAccruedFeeByBlockNumbers(
         vault,
         blockNumbers,
         dashboardContract,
-      ),
-      getSettledGrowthsByBlockNumbers(vault, blockNumbers, dashboardContract),
-    ]);
+      );
 
     const [
       grossStakingRewards,
@@ -174,22 +171,12 @@ metricsRead
       dailyLidoFees,
     ] = await Promise.all([
       prepareGrossStakingRewards(history),
-      prepareNodeOperatorRewards(history, nodeOperatorFeeBPs, settledGrowths),
-      prepareNetStakingRewards(history, nodeOperatorFeeBPs, settledGrowths),
+      prepareNodeOperatorRewards(history, nodeOperatorAccruedFees),
+      prepareNetStakingRewards(history, nodeOperatorAccruedFees),
       prepareGrossStakingAPR(history),
-      prepareNetStakingAPR(history, nodeOperatorFeeBPs, settledGrowths),
-      prepareCarrySpread(
-        history,
-        nodeOperatorFeeBPs,
-        vaultAddress,
-        settledGrowths,
-      ),
-      prepareBottomLine(
-        history,
-        nodeOperatorFeeBPs,
-        vaultAddress,
-        settledGrowths,
-      ),
+      prepareNetStakingAPR(history, nodeOperatorAccruedFees),
+      prepareCarrySpread(history, nodeOperatorAccruedFees, vaultAddress),
+      prepareBottomLine(history, nodeOperatorAccruedFees, vaultAddress),
       prepareDailyLidoFees(history),
     ]);
 

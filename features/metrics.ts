@@ -49,3 +49,36 @@ export const getSettledGrowthsByBlockNumbers = async (
 
   return settledGrowths;
 };
+
+export const getNodeOperatorAccruedFeeByBlockNumbers = async (
+  vaultAddress: string,
+  blockNumbers: number[],
+  dashboardContract: DashboardContract,
+) => {
+  // Get settled growth for each report block with caching
+  const nodeOperatorAccruedFees: bigint[] = [];
+  for (const blockNumber of blockNumbers) {
+    let nodeOperatorAccruedFee = await cache.getNodeOperatorAccruedFee(
+      vaultAddress,
+      blockNumber,
+    );
+    if (nodeOperatorAccruedFee === null) {
+      nodeOperatorAccruedFee = await callReadMethodSilent(
+        dashboardContract,
+        'accruedFee',
+        {
+          blockNumber: BigInt(blockNumber),
+        },
+      );
+      await cache.setNodeOperatorAccruedFee(
+        vaultAddress,
+        blockNumber,
+        nodeOperatorAccruedFee,
+      );
+    }
+
+    nodeOperatorAccruedFees.push(nodeOperatorAccruedFee);
+  }
+
+  return nodeOperatorAccruedFees;
+};
