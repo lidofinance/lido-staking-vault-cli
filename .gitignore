@@ -3,6 +3,7 @@
 .env.local
 .env.production
 .env.config*
+.env.test
 
 # test
 /deployed.json
@@ -35,3 +36,4 @@ cache/*
 
 # lsv-web-terminal
 lsv-web-terminal
+.anvil.pid

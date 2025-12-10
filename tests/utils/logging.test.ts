@@ -1,13 +1,9 @@
-import { describe, test, expect, jest, beforeEach } from '@jest/globals';
-jest.mock('../../utils/logging/constants.js', () => ({
-  getColoredLog: (_t: any, m: any) => m,
-  TABLE_PARAMS: {},
-}));
+import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { createConsole } from '../../utils/logging/console.js';
 
 beforeEach(() => {
-  jest.spyOn(console, 'info').mockImplementation(() => {});
-  jest.spyOn(console, 'error').mockImplementation(() => {});
+  vi.spyOn(console, 'info').mockImplementation(() => {});
+  vi.spyOn(console, 'error').mockImplementation(() => {});
 });
 
 describe('createConsole', () => {

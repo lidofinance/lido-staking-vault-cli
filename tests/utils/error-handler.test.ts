@@ -1,20 +1,21 @@
-import { describe, test, expect, beforeEach, jest } from '@jest/globals';
+import { describe, test, expect, beforeEach, vi } from 'vitest';
 import { program } from 'commander';
+import type { Mock } from 'vitest';
 
 import { logError } from '../../utils/logging/console.js';
 import { printError } from '../../utils/error-handler.js';
 
-jest.mock('commander', () => ({ program: { error: jest.fn() } }));
-jest.mock('../../utils/logging/console.js', () => ({ logError: jest.fn() }));
+vi.mock('commander', () => ({ program: { error: vi.fn() } }));
+vi.mock('../../utils/logging/console.js', () => ({ logError: vi.fn() }));
 
-let programError: jest.Mock;
-let logErrorMock: jest.Mock;
+let programError: Mock;
+let logErrorMock: Mock;
 
 beforeEach(() => {
   // eslint-disable-next-line @typescript-eslint/unbound-method
-  programError = program.error as unknown as jest.Mock;
-  logErrorMock = logError as unknown as jest.Mock;
-  jest.clearAllMocks();
+  programError = program.error as unknown as Mock;
+  logErrorMock = logError as Mock;
+  vi.clearAllMocks();
 });
 
 describe('error handler', () => {

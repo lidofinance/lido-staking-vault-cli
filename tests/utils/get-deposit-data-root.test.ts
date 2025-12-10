@@ -1,8 +1,4 @@
-import { describe, test, expect, jest } from '@jest/globals';
-
-jest.mock('../../utils/proof/index.js', () =>
-  require('../../utils/proof/merkle-utils.js'),
-);
+import { describe, test, expect } from 'vitest';
 import { computeDepositDataRoot } from '../../utils/get-deposit-data-root.js';
 import {
   fromHex,
