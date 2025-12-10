@@ -1,3 +1,4 @@
+import { Hex } from 'viem';
 import {
   printError,
   showSpinner,
@@ -6,7 +7,8 @@ import {
   toHex,
 } from 'utils';
 import { getPredepositGuaranteeContract } from 'contracts';
-import { Hex } from 'viem';
+
+import { checkPdgIsPaused } from './deposits/pdg.js';
 
 export const VALIDATOR_STAGES = {
   0: 'NONE',
@@ -78,6 +80,8 @@ export const getPdgBaseInfo = async () => {
     logResult({
       data: Object.entries(payload).map(([key, value]) => [key, value]),
     });
+
+    await checkPdgIsPaused(contract);
   } catch (err) {
     hideSpinner();
     printError(err, 'Error when getting base info');
@@ -117,6 +121,8 @@ export const getPdgRoles = async () => {
         head: ['Role', 'Keccak', 'Members'],
       },
     });
+
+    await checkPdgIsPaused(contract);
   } catch (err) {
     hideSpinner();
     printError(err, 'Error when getting roles');
@@ -148,6 +154,8 @@ export const getValidatorStatus = async (validatorPubkey: Hex) => {
         ['Node operator', nodeOperator],
       ],
     });
+
+    await checkPdgIsPaused(contract);
   } catch (err) {
     hideSpinner();
     printError(err, 'Error when getting validator status');

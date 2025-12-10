@@ -18,6 +18,7 @@ import {
   logResult,
   stringToAddress,
 } from 'utils';
+import { checkPdgIsPaused } from 'features';
 
 import { deposits } from './main.js';
 
@@ -83,6 +84,8 @@ depositsRead
         ['Unlocked', `${formatEther(unlockedBalance)} ETH`],
       ],
     });
+
+    await checkPdgIsPaused(pdgContract);
   });
 
 depositsRead
@@ -132,6 +135,8 @@ depositsRead
         ['Claimable Refund', `${formatEther(claimableRefund)} ETH`],
       ],
     });
+
+    await checkPdgIsPaused(pdgContract);
   });
 
 depositsRead
@@ -155,4 +160,6 @@ depositsRead
     logResult({
       data: [['Pending Activations of validators', pendingActivations]],
     });
+
+    await checkPdgIsPaused(contract);
   });

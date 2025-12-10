@@ -1,3 +1,4 @@
+import { Address, Hex } from 'viem';
 import { program } from 'command';
 import { Option } from 'commander';
 
@@ -28,7 +29,7 @@ import {
   stringToNumber,
   fetchValidatorsInfo,
 } from 'utils';
-import { Address, Hex } from 'viem';
+import { checkPdgIsPaused } from 'features';
 
 const predepositGuaranteeHelpers = program
   .command('pdg-helpers')
@@ -92,6 +93,8 @@ predepositGuaranteeHelpers
       });
       logInfo('-----------------------end-----------------------');
       hideSpinner();
+
+      await checkPdgIsPaused(pdgContract);
     } catch (err) {
       hideSpinner();
       printError(err, 'Error when making proof');
@@ -254,6 +257,8 @@ predepositGuaranteeHelpers
 
           hideSpinner();
           logInfo(`✅ ONCHAIN 🔗 SIGNATURE VALID for Pubkey ${deposit.pubkey}`);
+
+          await checkPdgIsPaused(pdg);
         } catch (err) {
           hideSpinner();
           logError(
