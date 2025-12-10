@@ -1,4 +1,7 @@
+import { VaultHubErrorsAbi } from './VaultHub.js';
+
 export const LazyOracleAbi = [
+  ...VaultHubErrorsAbi,
   {
     inputs: [
       {
