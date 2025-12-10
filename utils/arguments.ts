@@ -102,6 +102,13 @@ export const stringToNumber = (value: string) => {
   return parseInt(value);
 };
 
+export const stringToBoolean = (value: string) => {
+  const val = value.toLowerCase();
+  if (val === 'true') return true;
+  if (val === 'false') return false;
+  program.error('value must be true or false', { exitCode: 1 });
+};
+
 export const parseTiers = (value: string) => {
   return JSON.parse(value) as Tier[];
 };

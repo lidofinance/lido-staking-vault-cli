@@ -56,7 +56,6 @@ export const checkIsReportFresh = async (vault: Address) => {
 
   return isReportFresh;
 };
-``;
 
 export const reportFreshWarning = async (vault: Address): Promise<boolean> => {
   const vaultHubContract = await getVaultHubContract();

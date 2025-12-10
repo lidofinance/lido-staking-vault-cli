@@ -29,8 +29,9 @@ tsconfig.tsbuildinfo
 # wallets
 wallets/*
 
-# IPFS cache
+# cache
 ipfs-cache/*
+cache/*
 
 # lsv-web-terminal
 lsv-web-terminal

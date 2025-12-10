@@ -82,7 +82,7 @@ vaultOperationsCreateVault
         'Node Operator Manager',
       );
 
-      const confirmExpiryValue = await getConfirmExpiry(confirmExpiry);
+      const confirmExpiryValue = await getConfirmExpiry({ confirmExpiry });
       const nodeOperatorFeeRateValue =
         await getNodeOperatorFeeRate(nodeOperatorFeeRate);
 
@@ -197,7 +197,7 @@ vaultOperationsCreateVault
         'Node Operator Manager',
       );
 
-      const confirmExpiryValue = await getConfirmExpiry(confirmExpiry);
+      const confirmExpiryValue = await getConfirmExpiry({ confirmExpiry });
       const nodeOperatorFeeRateValue =
         await getNodeOperatorFeeRate(nodeOperatorFeeRate);
 
