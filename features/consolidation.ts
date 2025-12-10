@@ -142,25 +142,36 @@ export const consolidationRequestsAndIncreaseFeeExemption = async ({
 
   if (!data) throw new Error('Fee per request read method returned empty data');
   const feePerRequest = hexToBigInt(data);
+  let feeExemptionEncodedCall: Hex;
+  let populatedTxs: PopulatedTx[] = [];
 
-  // 1. Fetch consolidation request encoded calls and increase fee exemption amount encoded call.
-  const [feeExemptionEncodedCall, consolidationRequestEncodedCalls] =
-    await callReadMethodSilent(
-      consolidationContract,
-      'getConsolidationRequestsAndFeeExemptionEncodedCalls',
-      [sourcePubkeysFlattened, targetPubkeys, dashboard, feeExemption],
-    );
+  if (targetAndSourceValidators.size > 0) {
+    // 1. Fetch consolidation request encoded calls and increase fee exemption amount encoded call.
+    const [feeExemptionEncodedCallResult, consolidationRequestEncodedCalls] =
+      await callReadMethodSilent(
+        consolidationContract,
+        'getConsolidationRequestsAndFeeExemptionEncodedCalls',
+        [sourcePubkeysFlattened, targetPubkeys, dashboard, feeExemption],
+      );
+    feeExemptionEncodedCall = feeExemptionEncodedCallResult;
 
-  // 2. Create populated transactions for consolidation requests
-  const populatedTxs: PopulatedTx[] = consolidationRequestEncodedCalls.map(
-    (call) => {
+    // 2. Create populated transactions for consolidation requests
+    populatedTxs = consolidationRequestEncodedCalls.map((call) => {
       return {
         to: CONSOLIDATION_REQUEST_PREDEPLOY_ADDRESS,
         data: call,
         value: feePerRequest,
       };
-    },
-  );
+    });
+  } else {
+    addDummyTargetAndSourceValidator(targetAndSourceValidators, feeExemption);
+    [feeExemptionEncodedCall] =
+      await getConsolidationRequestsAndFeeExemptionEncodedCalls(
+        targetAndSourceValidators,
+        dashboard,
+        feeExemption,
+      );
+  }
 
   // 3. Create populated transaction to increase the fee exemption amount
   if (feeExemption > 0n) {
