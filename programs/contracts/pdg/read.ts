@@ -10,7 +10,12 @@ import {
 } from 'utils';
 import { getPredepositGuaranteeContract } from 'contracts';
 import { PredepositGuaranteeAbi } from 'abi';
-import { getPdgBaseInfo, getPdgRoles, getValidatorStatus } from 'features';
+import {
+  checkPdgIsPaused,
+  getPdgBaseInfo,
+  getPdgRoles,
+  getValidatorStatus,
+} from 'features';
 
 import { pdg } from './main.js';
 import { readCommandConfig } from './config.js';
@@ -67,6 +72,8 @@ pdgRead
     logResult({
       data: [['Pending Activations', pendingActivations]],
     });
+
+    await checkPdgIsPaused(contract);
   });
 
 generateReadCommands(

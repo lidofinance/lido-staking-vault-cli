@@ -31,6 +31,7 @@ import {
   VALIDATOR_STAGES,
   checkValidatorStageAndStagedBalanceForActivation,
   checkBLSDeposits,
+  checkPdgIsPaused,
 } from 'features';
 import { Deposit, ValidatorTopUp } from 'types';
 import {
@@ -83,6 +84,9 @@ depositsWrite
       const pdgContract = await getPredepositGuaranteeContract();
       const vaultContract = await getStakingVaultContract(vaultAddress);
 
+      const isPaused = await checkPdgIsPaused(pdgContract);
+      if (isPaused) return;
+
       const nodeOperator = await checkNodeOperatorOrDepositorForDeposit(
         vaultContract,
         pdgContract,
@@ -134,6 +138,9 @@ depositsWrite
   .action(async ({ index }: { index: number }) => {
     const pdgContract = await getPredepositGuaranteeContract();
 
+    const isPaused = await checkPdgIsPaused(pdgContract);
+    if (isPaused) return;
+
     const validatorIndex = await confirmMakeProof(index);
     if (!validatorIndex) return;
 
@@ -182,6 +189,9 @@ depositsWrite
       const pdgContract = await getPredepositGuaranteeContract();
       const vaultContract = await getStakingVaultContract(vaultAddress);
 
+      const isPaused = await checkPdgIsPaused(pdgContract);
+      if (isPaused) return;
+
       await checkNodeOperatorOrDepositorForDeposit(vaultContract, pdgContract);
 
       const witnesses = await makePDGProofByIndexes(indexes);
@@ -220,6 +230,9 @@ depositsWrite
     const pdgContract = await getPredepositGuaranteeContract();
     const vaultContract = await getStakingVaultContract(vaultAddress);
 
+    const isPaused = await checkPdgIsPaused(pdgContract);
+    if (isPaused) return;
+
     await checkNodeOperatorOrDepositorForDeposit(vaultContract, pdgContract);
 
     const confirm = await confirmOperation(
@@ -246,6 +259,9 @@ depositsWrite
       isNotMember: true,
     });
     const vaultContract = await getStakingVaultContract(vaultAddress);
+
+    const isPaused = await checkPdgIsPaused(pdgContract);
+    if (isPaused) return;
 
     const nodeOperator = await checkAndSpecifyNodeOperatorForTopUpOrWithdraw(
       vaultContract,
@@ -288,6 +304,9 @@ depositsWrite
       });
       const vaultContract = await getStakingVaultContract(vaultAddress);
 
+      const isPaused = await checkPdgIsPaused(pdgContract);
+      if (isPaused) return;
+
       const nodeOperator = await checkAndSpecifyNodeOperatorForTopUpOrWithdraw(
         vaultContract,
         pdgContract,
@@ -315,6 +334,9 @@ depositsWrite
   .action(async () => {
     const pdgContract = await getPredepositGuaranteeContract();
 
+    const isPaused = await checkPdgIsPaused(pdgContract);
+    if (isPaused) return;
+
     const { newGuarantor, currentAccount } = await getGuarantor(pdgContract);
 
     const confirm = await confirmOperation(
@@ -337,6 +359,9 @@ depositsWrite
   .action(async (recipient: Address) => {
     const pdgContract = await getPredepositGuaranteeContract();
 
+    const isPaused = await checkPdgIsPaused(pdgContract);
+    if (isPaused) return;
+
     const recipientAddress = await getAddress(recipient, 'recipient');
 
     await callWriteMethodWithReceipt({
@@ -355,6 +380,10 @@ depositsWrite
   .argument('<pubkey>', 'validator pubkey', stringToHex)
   .action(async (pubkey: Hex) => {
     const pdgContract = await getPredepositGuaranteeContract();
+
+    const isPaused = await checkPdgIsPaused(pdgContract);
+    if (isPaused) return;
+
     const { stage, stakingVault } = await callReadMethodSilent(
       pdgContract,
       'validatorStatus',
@@ -402,6 +431,10 @@ depositsWrite
   .option('-d, --depositor <string>', 'depositor address', stringToAddress)
   .action(async ({ depositor }: { depositor: Address }) => {
     const pdgContract = await getPredepositGuaranteeContract();
+
+    const isPaused = await checkPdgIsPaused(pdgContract);
+    if (isPaused) return;
+
     const account = await getAccount();
 
     const depositorAddress = await getAddress(depositor, 'depositor');

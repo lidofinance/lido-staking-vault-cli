@@ -10,7 +10,7 @@ import './programs/index.js';
 export * from './utils/index.js';
 
 const showTestnetWarning = () => {
-  console.info('\n⚠️ 🎉🎉  HOODI V3 is officially launched!  🎉🎉⚠️');
+  console.info('\n🎉🎉  HOODI V3 is officially launched!  🎉🎉');
   console.info(
     '🌐 Web UI is available at: https://stvaults-hoodi.testnet.fi/vaults',
   );
