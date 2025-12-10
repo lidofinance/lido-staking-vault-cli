@@ -43,7 +43,6 @@ export const fetchRewardsChartsData = async ({
   );
   if (!history || history.length < 2) throw new Error('Not enough data');
 
-  // Get nodeOperatorFeeBP for each report block with caching
   const blockNumbers = history.map((r) => r.blockNumber);
   const nodeOperatorAccruedFees = await getNodeOperatorAccruedFeeByBlockNumbers(
     vault,
