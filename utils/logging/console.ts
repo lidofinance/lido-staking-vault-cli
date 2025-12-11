@@ -18,7 +18,7 @@ type CreateTableArgs = {
 const bigIntStringify = <T>(value: T): string => {
   return JSON.stringify(
     value,
-    (key, value) => {
+    (_key, value) => {
       if (typeof value === 'bigint') {
         return value.toString();
       }

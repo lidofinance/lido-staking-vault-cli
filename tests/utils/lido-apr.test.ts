@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateLidoAPR, SECONDS_IN_YEAR } from 'utils/lido-apr';
+import { calculateLidoAPR, SECONDS_IN_YEAR } from 'utils/lido-apr.js';
 
 describe('calculateLidoAPR', () => {
   it('should calculate APR for positive share rate increase', () => {

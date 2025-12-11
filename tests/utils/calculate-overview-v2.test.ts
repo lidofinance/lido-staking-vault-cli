@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import { calculateOverviewV2 } from 'utils/calculate-overview-v2';
-import * as healthModule from 'utils/health/calculate-health';
+import { calculateOverviewV2 } from 'utils';
+import * as healthModule from 'utils/health/calculate-health.js';
 
 vi.mock('utils/health/calculate-health');
 
@@ -10,6 +10,7 @@ describe('calculateOverviewV2', () => {
   it('should calculate overview with basic values', () => {
     mockCalculateHealth.mockReturnValue({
       healthRatio: 150,
+      healthRatio18: 150000000000000000000n,
       isHealthy: true,
     });
 
@@ -42,6 +43,7 @@ describe('calculateOverviewV2', () => {
   it('should calculate utilization ratio correctly', () => {
     mockCalculateHealth.mockReturnValue({
       healthRatio: 150,
+      healthRatio18: 150000000000000000000n,
       isHealthy: true,
     });
 
@@ -69,6 +71,7 @@ describe('calculateOverviewV2', () => {
   it('should handle zero totalMintingCapacity without division by zero', () => {
     mockCalculateHealth.mockReturnValue({
       healthRatio: 150,
+      healthRatio18: 150000000000000000000n,
       isHealthy: true,
     });
 
@@ -95,6 +98,7 @@ describe('calculateOverviewV2', () => {
   it('should calculate recently repaid when liability decreased', () => {
     mockCalculateHealth.mockReturnValue({
       healthRatio: 150,
+      healthRatio18: 150000000000000000000n,
       isHealthy: true,
     });
 
@@ -122,6 +126,7 @@ describe('calculateOverviewV2', () => {
   it('should use minimalReserve when greater than calculated collateral', () => {
     mockCalculateHealth.mockReturnValue({
       healthRatio: 150,
+      healthRatio18: 150000000000000000000n,
       isHealthy: true,
     });
 
@@ -149,6 +154,7 @@ describe('calculateOverviewV2', () => {
   it('should handle 0% reserve ratio', () => {
     mockCalculateHealth.mockReturnValue({
       healthRatio: 150,
+      healthRatio18: 150000000000000000000n,
       isHealthy: true,
     });
 
@@ -179,6 +185,7 @@ describe('calculateOverviewV2', () => {
   it('should calculate reserved correctly', () => {
     mockCalculateHealth.mockReturnValue({
       healthRatio: 150,
+      healthRatio18: 150000000000000000000n,
       isHealthy: true,
     });
 
@@ -209,6 +216,7 @@ describe('calculateOverviewV2', () => {
   it('should handle very small values without overflow', () => {
     mockCalculateHealth.mockReturnValue({
       healthRatio: 100,
+      healthRatio18: 150000000000000000000n,
       isHealthy: true,
     });
 

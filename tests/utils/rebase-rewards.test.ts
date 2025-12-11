@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateRebaseReward } from 'utils/rebase-rewards';
+import { calculateRebaseReward } from 'utils/rebase-rewards.js';
 
 describe('calculateRebaseReward', () => {
   it('should calculate positive rebase reward', () => {

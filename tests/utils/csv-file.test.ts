@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import fs from 'fs-extra';
-import { exportCsv } from 'utils/csv-file';
+import { exportCsv } from 'utils/csv-file.js';
 
 vi.mock('fs-extra');
 

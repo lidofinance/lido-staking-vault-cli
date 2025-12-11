@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatTimestamp } from 'utils/timestamp';
+import { formatTimestamp } from 'utils/timestamp.js';
 
 describe('formatTimestamp', () => {
   it('should format timestamp with default format and UTC timezone', () => {
