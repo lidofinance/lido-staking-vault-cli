@@ -7,14 +7,18 @@ import {
 import { StakingVaultAbi } from 'abi/index.js';
 import { getPublicClient } from 'providers';
 
-export const getStakingVaultContract = (
+export const getStakingVaultContract = async (
   address: Address,
-): GetContractReturnType<typeof StakingVaultAbi, WalletClient> => {
+): Promise<GetContractReturnType<typeof StakingVaultAbi, WalletClient>> => {
+  const publicClient = await getPublicClient();
+
   return getContract({
     address,
     abi: StakingVaultAbi,
-    client: getPublicClient(),
+    client: publicClient,
   });
 };
 
-export type StakingVaultContract = ReturnType<typeof getStakingVaultContract>;
+export type StakingVaultContract = Awaited<
+  ReturnType<typeof getStakingVaultContract>
+>;

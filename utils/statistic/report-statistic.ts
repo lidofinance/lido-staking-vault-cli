@@ -17,6 +17,7 @@ export const getGrossStakingRewards = (
   return grossStakingRewards;
 };
 
+/** @deprecated */
 export const getNodeOperatorRewards = (
   current: VaultReport,
   previous: VaultReport,
@@ -37,17 +38,12 @@ export const getDailyLidoFees = (
 export const getNetStakingRewards = (
   current: VaultReport,
   previous: VaultReport,
-  nodeOperatorFeeBP: bigint,
+  nodeOperatorAccruedFee: bigint,
 ) => {
   const grossStakingRewards = getGrossStakingRewards(current, previous);
-  const nodeOperatorRewards = getNodeOperatorRewards(
-    current,
-    previous,
-    nodeOperatorFeeBP,
-  );
   const dailyLidoFees = getDailyLidoFees(current, previous);
 
-  return grossStakingRewards - nodeOperatorRewards - dailyLidoFees;
+  return grossStakingRewards - nodeOperatorAccruedFee - dailyLidoFees;
 };
 
 // The APR metrics (Gross Staking APR, Net Staking APR, Carry Spread) are calculated using the following general formula:
@@ -107,14 +103,14 @@ export const getGrossStakingAPR = (
 export const getNetStakingAPR = (
   current: VaultReport,
   previous: VaultReport,
-  nodeOperatorFeeBP: bigint,
+  nodeOperatorAccruedFee: bigint,
 ) => {
   const periodSeconds = getPeriodSeconds(current, previous);
   const previousTotalValue = getPreviousTotalValue(previous);
   const netStakingRewards = getNetStakingRewards(
     current,
     previous,
-    nodeOperatorFeeBP,
+    nodeOperatorAccruedFee,
   );
 
   const apr_bigint =
@@ -137,13 +133,13 @@ export const getNetStakingAPR = (
 export const getBottomLine = (
   current: VaultReport,
   previous: VaultReport,
-  nodeOperatorFeeBP: bigint,
+  nodeOperatorAccruedFee: bigint,
   stEthLiabilityRebaseRewards: bigint,
 ) => {
   const netStakingRewards = getNetStakingRewards(
     current,
     previous,
-    nodeOperatorFeeBP,
+    nodeOperatorAccruedFee,
   );
 
   return netStakingRewards - stEthLiabilityRebaseRewards;
@@ -152,7 +148,7 @@ export const getBottomLine = (
 export const getCarrySpread = (
   current: VaultReport,
   previous: VaultReport,
-  nodeOperatorFeeBP: bigint,
+  nodeOperatorAccruedFee: bigint,
   stEthLiabilityRebaseRewards: bigint,
 ) => {
   const previousTotalValue = getPreviousTotalValue(previous);
@@ -160,7 +156,7 @@ export const getCarrySpread = (
   const bottomLine = getBottomLine(
     current,
     previous,
-    nodeOperatorFeeBP,
+    nodeOperatorAccruedFee,
     stEthLiabilityRebaseRewards,
   );
 
@@ -183,49 +179,45 @@ export const getCarrySpread = (
 
 export type ReportMetricsArgs = {
   reports: { current: VaultReport; previous: VaultReport };
-  nodeOperatorFeeRate: bigint;
+  nodeOperatorAccruedFee: bigint;
   stEthLiabilityRebaseRewards: bigint;
 };
 
 export const reportMetrics = (args: ReportMetricsArgs) => {
-  const { reports, nodeOperatorFeeRate, stEthLiabilityRebaseRewards } = args;
+  const { reports, nodeOperatorAccruedFee, stEthLiabilityRebaseRewards } = args;
   const { current, previous } = reports;
 
   const grossStakingRewards = getGrossStakingRewards(current, previous);
-  const nodeOperatorRewards = getNodeOperatorRewards(
-    current,
-    previous,
-    nodeOperatorFeeRate,
-  );
+
   const dailyLidoFees = getDailyLidoFees(current, previous);
   const netStakingRewards = getNetStakingRewards(
     current,
     previous,
-    nodeOperatorFeeRate,
+    nodeOperatorAccruedFee,
   );
 
   const grossStakingAPR = getGrossStakingAPR(current, previous);
   const netStakingAPR = getNetStakingAPR(
     current,
     previous,
-    nodeOperatorFeeRate,
+    nodeOperatorAccruedFee,
   );
   const bottomLine = getBottomLine(
     current,
     previous,
-    nodeOperatorFeeRate,
+    nodeOperatorAccruedFee,
     stEthLiabilityRebaseRewards,
   );
   const carrySpread = getCarrySpread(
     current,
     previous,
-    nodeOperatorFeeRate,
+    nodeOperatorAccruedFee,
     stEthLiabilityRebaseRewards,
   );
 
   return {
     grossStakingRewards,
-    nodeOperatorRewards,
+    nodeOperatorRewards: nodeOperatorAccruedFee,
     dailyLidoFees,
     netStakingRewards,
     grossStakingAPR,

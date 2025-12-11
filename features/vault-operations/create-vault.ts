@@ -1,6 +1,9 @@
+import { hoodi } from 'viem/chains';
+import { getChain } from 'configs';
 import { numberPrompt, selectPrompt } from 'utils';
 
 const MIN_CONFIRM_EXPIRY = 24 * 60 * 60; // 24 hours
+const MIN_CONFIRM_EXPIRY_TESTNET = 1 * 60 * 60; // 1 hour
 const MAX_CONFIRM_EXPIRY = 24 * 60 * 60 * 30; // 30 days
 
 const validateConfirmExpiry = (confirmExpiry: number) => {
@@ -47,10 +50,21 @@ const validateNodeOperatorFeeRate = (
     );
 };
 
-export const getConfirmExpiry = async (confirmExpiry?: number) => {
+export const getConfirmExpiry = async ({
+  confirmExpiry,
+}: {
+  confirmExpiry?: number;
+}): Promise<number> => {
+  const chain = await getChain();
+  const isTestnet = chain.id === hoodi.id;
+
+  const minConfirmExpiry = isTestnet
+    ? MIN_CONFIRM_EXPIRY_TESTNET
+    : MIN_CONFIRM_EXPIRY;
+
   if (!confirmExpiry) {
     const confirmExpiryValue = await numberPrompt(
-      'Enter the confirm expiry (in hours)',
+      `Enter the confirm expiry (in hours) (min: ${minConfirmExpiry / 3600} hours, max: ${MAX_CONFIRM_EXPIRY / 3600} hours)`,
       'value',
     );
     if (!confirmExpiryValue.value) throw new Error('Invalid confirm expiry');
@@ -65,7 +79,9 @@ export const getConfirmExpiry = async (confirmExpiry?: number) => {
   return confirmExpiry;
 };
 
-export const getNodeOperatorFeeRate = async (nodeOperatorFeeRate?: number) => {
+export const getNodeOperatorFeeRate = async (
+  nodeOperatorFeeRate?: number,
+): Promise<number> => {
   if (!nodeOperatorFeeRate) {
     const chooseFeeType = await selectPrompt('Choose the fee type', 'feeType', [
       { title: 'basis points', value: 'basis points' },
@@ -74,7 +90,7 @@ export const getNodeOperatorFeeRate = async (nodeOperatorFeeRate?: number) => {
     if (!chooseFeeType.feeType) throw new Error('Invalid fee type');
 
     const nodeOperatorFeeRateValue = await numberPrompt(
-      `Enter the node operator fee rate (in ${chooseFeeType.feeType})`,
+      `Enter the node operator fee rate (in ${chooseFeeType.feeType}) (max: ${chooseFeeType.feeType === 'basis points' ? 10000 : 100})`,
       'value',
     );
     if (!nodeOperatorFeeRateValue.value)

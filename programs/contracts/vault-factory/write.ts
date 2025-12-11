@@ -61,7 +61,7 @@ vaultFactoryWrite
       quantity: string,
       options: { roles: RoleAssignment[] },
     ) => {
-      const confirmExpiryValue = await getConfirmExpiry(confirmExpiry);
+      const confirmExpiryValue = await getConfirmExpiry({ confirmExpiry });
       const nodeOperatorFeeRateValue =
         await getNodeOperatorFeeRate(nodeOperatorFeeRate);
 
@@ -145,7 +145,7 @@ vaultFactoryWrite
       quantity: string,
       options: { roles: RoleAssignment[] },
     ) => {
-      const confirmExpiryValue = await getConfirmExpiry(confirmExpiry);
+      const confirmExpiryValue = await getConfirmExpiry({ confirmExpiry });
       const nodeOperatorFeeRateValue =
         await getNodeOperatorFeeRate(nodeOperatorFeeRate);
 

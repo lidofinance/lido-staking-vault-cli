@@ -17,13 +17,13 @@ type StatisticDataArgs = {
 
 export const getReportStatisticData = async (args: StatisticDataArgs) => {
   const { dashboard, reports } = args;
-  const dashboardContract = getDashboardContract(dashboard);
+  const dashboardContract = await getDashboardContract(dashboard);
   const reportRefBlockNumber = reports.current.blockNumber;
   const reportPrevBlockNumber = reports.previous.blockNumber;
 
-  const nodeOperatorFeeRate = await callReadMethodSilent(
+  const nodeOperatorAccruedFee = await callReadMethodSilent(
     dashboardContract,
-    'feeRate',
+    'accruedFee',
     {
       blockNumber: BigInt(reportRefBlockNumber),
     },
@@ -42,7 +42,7 @@ export const getReportStatisticData = async (args: StatisticDataArgs) => {
 
   const metrics = reportMetrics({
     reports: { current: reports.current, previous: reports.previous },
-    nodeOperatorFeeRate: BigInt(nodeOperatorFeeRate),
+    nodeOperatorAccruedFee,
     stEthLiabilityRebaseRewards,
   });
 

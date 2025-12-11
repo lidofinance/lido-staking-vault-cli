@@ -65,21 +65,22 @@ export const computeDepositDomainByForkVersion = (forkVersion: string) => {
   return computeDomain(DOMAIN_DEPOSIT, forkVersionUint8Array, ZERO_HASH);
 };
 
-export const computeDepositDomain = () => {
-  const forkByChain = FORK_VERSION_BY_CHAIN[getChain().id];
+export const computeDepositDomain = async () => {
+  const chain = await getChain();
+  const forkByChain = FORK_VERSION_BY_CHAIN[chain.id];
 
   if (!forkByChain) {
-    throw new Error(`Fork version not found for chain ${getChain().id}`);
+    throw new Error(`Fork version not found for chain ${chain.id}`);
   }
 
   return computeDepositDomainByForkVersion(forkByChain);
 };
 
-const computeDepositMessageRoot = (
+const computeDepositMessageRoot = async (
   pubkey: string,
   withdrawalCredentials: string,
   amount: bigint,
-): Uint8Array => {
+): Promise<Uint8Array> => {
   const Bytes48 = new ByteVectorType(48);
   const Bytes32 = new ByteVectorType(32);
   const UintNum64 = new UintNumberType(8);
@@ -107,7 +108,7 @@ const computeDepositMessageRoot = (
     amount: UintNum64.fromJson(amount / 1000000000n),
   };
 
-  const domain = computeDepositDomain();
+  const domain = await computeDepositDomain();
 
   return SigningData.hashTreeRoot({
     objectRoot: DepositMessage.hashTreeRoot(depositMessage),
@@ -115,11 +116,11 @@ const computeDepositMessageRoot = (
   });
 };
 
-export const isValidBLSDeposit = (
+export const isValidBLSDeposit = async (
   deposit: DepositStruct,
   withdrawalCredentials: Hex,
-) => {
-  const signningRoot = computeDepositMessageRoot(
+): Promise<boolean> => {
+  const signningRoot = await computeDepositMessageRoot(
     deposit.pubkey,
     withdrawalCredentials,
     deposit.amount,

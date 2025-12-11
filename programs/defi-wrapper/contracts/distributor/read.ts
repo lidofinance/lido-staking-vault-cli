@@ -31,7 +31,7 @@ distributorRead
   .description('get distributor base info')
   .argument('<address>', 'distributor address', stringToAddress)
   .action(async (address: Address) => {
-    const contract = getDistributorContract(address);
+    const contract = await getDistributorContract(address);
 
     const [DEFAULT_ADMIN_ROLE, MANAGER_ROLE, cid, root, lastProcessedBlock] =
       await Promise.all([

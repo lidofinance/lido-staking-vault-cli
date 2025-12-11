@@ -1,6 +1,10 @@
 import { Address, Hex } from 'viem';
 
-import { getVaultViewerContract, getDashboardImplContract } from 'contracts';
+import {
+  getVaultViewerContract,
+  getDashboardImplContract,
+  getPredepositGuaranteeContract,
+} from 'contracts';
 import {
   callReadMethodSilent,
   printError,
@@ -26,7 +30,7 @@ export const getAllVaults = async () => {
   });
 
   try {
-    const contract = getVaultViewerContract();
+    const contract = await getVaultViewerContract();
     const totalVaults = await callReadMethodSilent(contract, 'vaultsCount');
     const vaultsByOwner: Address[] = [];
 
@@ -52,11 +56,17 @@ export const getAllVaults = async () => {
 export const getVaultsByAddress = async (
   address: Address,
 ): Promise<Record<Address, string[]>> => {
-  const contract = getVaultViewerContract();
-  const dashboardImpl = getDashboardImplContract();
-  const vaults = await getAllVaults();
+  const [contract, dashboardImpl, vaults, pdg] = await Promise.all([
+    getVaultViewerContract(),
+    getDashboardImplContract(),
+    getAllVaults(),
+    getPredepositGuaranteeContract(),
+  ]);
   const vaultsWithMembers: VaultMembers[] = [];
+  const addressLower = address.toLowerCase();
+  const vaultsByRole: Record<Address, string[]> = {};
 
+  // Get roles from dashboard impl
   const hideSpinner = showSpinner({
     message: 'Getting roles...',
   });
@@ -65,6 +75,7 @@ export const getVaultsByAddress = async (
   );
   hideSpinner();
 
+  // Get roles and members from vaults (dashboard)
   for (let i = 0; i < vaults.length; i += Number(LIMIT)) {
     const batch = await callReadMethodSilent(contract, 'roleMembersBatch', [
       vaults.slice(i, i + Number(LIMIT)),
@@ -73,9 +84,27 @@ export const getVaultsByAddress = async (
     vaultsWithMembers.push(...batch);
   }
 
-  const addressLower = address.toLowerCase();
-  const vaultsByRole: Record<Address, string[]> = {};
+  // Get depositors from pdg for node operators in vaults
+  const nodeOperatorsAndVault = vaultsWithMembers.map(
+    ({ nodeOperator, vault }) => ({ nodeOperator, vault }),
+  );
+  const depositorsWithVault = await Promise.all(
+    nodeOperatorsAndVault.map(async ({ nodeOperator, vault }) => {
+      const depositor = await callReadMethodSilent(
+        pdg,
+        'nodeOperatorDepositor',
+        [nodeOperator],
+      );
+      return { depositor, vault };
+    }),
+  );
+  for (const { depositor, vault } of depositorsWithVault) {
+    if (depositor.toLowerCase() === addressLower) {
+      vaultsByRole[vault] = ['Depositor'];
+    }
+  }
 
+  // Map roles and members from vaults (dashboard)
   for (const { vault, owner, nodeOperator, members } of vaultsWithMembers) {
     const roles: string[] = [];
 
@@ -99,14 +128,17 @@ export const getVaultsByAddress = async (
       if (isHasRole && roleName) roles.push(roleName);
     }
 
-    if (roles.length > 0) vaultsByRole[vault] = roles;
+    if (roles.length > 0)
+      vaultsByRole[vault] = vaultsByRole[vault]
+        ? [...vaultsByRole[vault], ...roles]
+        : roles;
   }
 
   return vaultsByRole;
 };
 
 export const getVaultsByRoleMember = async (role: Hex, member: Address) => {
-  const contract = getVaultViewerContract();
+  const contract = await getVaultViewerContract();
   const vaults = await getAllVaults();
   const vaultsByRole: Address[] = [];
 
@@ -124,7 +156,7 @@ export const getVaultsByRoleMember = async (role: Hex, member: Address) => {
 };
 
 export const getVaultsByOwner = async (address: Address) => {
-  const contract = getVaultViewerContract();
+  const contract = await getVaultViewerContract();
   const totalVaults = await callReadMethodSilent(contract, 'vaultsCount');
   const vaultsByOwner: Address[] = [];
 

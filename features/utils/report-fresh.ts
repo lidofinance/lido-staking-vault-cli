@@ -47,15 +47,15 @@ export const checkIsReportFresh = async (vault: Address) => {
     );
     if (!confirm) return false;
 
-    await submitReport({ vault });
-    return true;
+    const isReportSubmitted = await submitReport({ vault });
+
+    return isReportSubmitted;
   }
 
   logInfo('The report is fresh');
 
   return isReportFresh;
 };
-``;
 
 export const reportFreshWarning = async (vault: Address): Promise<boolean> => {
   const vaultHubContract = await getVaultHubContract();

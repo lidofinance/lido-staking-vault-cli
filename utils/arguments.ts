@@ -1,6 +1,9 @@
 import { program } from 'commander';
+import { readFileSync } from 'fs';
 import { Permit, RoleAssignment, Tier, Deposit, ValidatorTopUp } from 'types';
-import { Address, isAddress, parseEther } from 'viem';
+import { Address, isAddress, isHex, parseEther } from 'viem';
+
+import { PubkeyMap } from 'utils/consolidation/types.js';
 
 import { toHex } from './proof/merkle-utils.js';
 
@@ -15,6 +18,13 @@ export const stringToBigIntArrayWei = (value: string) => {
   return value.split(',').map(etherToWei);
 };
 
+export const stringTo2dArray = (value: string): string[][] => {
+  const trimmed = value.replace(/^["']|["']$/g, '');
+  return trimmed
+    .split(',')
+    .map((group) => group.trim().split(/\s+/).filter(Boolean));
+};
+
 export const stringToHexArray = (value: string) => {
   return value.split(',').map(toHex);
 };
@@ -25,6 +35,36 @@ export const stringToHex = (value: string) => {
 
 export const jsonToPermit = (value: string) => {
   return JSON.parse(value) as Permit;
+};
+
+export const jsonFileToPubkeys = (value: string) => {
+  const content = readFileSync(value, 'utf-8');
+  if (content.length === 0) {
+    throw new Error('File is empty');
+  }
+  const parsed = JSON.parse(content);
+
+  if (typeof parsed !== 'object' || parsed === null) {
+    throw new Error('Invalid PubkeyMap format: not an object');
+  }
+
+  Object.entries(parsed).forEach(([key, value]) => {
+    if (!isHex(key)) {
+      throw new Error(`Invalid key: ${key}`);
+    }
+
+    if (!Array.isArray(value)) {
+      throw new Error(`Value for key ${key} is not an array`);
+    }
+
+    value.forEach((item) => {
+      if (!isHex(item)) {
+        throw new Error(`Invalid hex in array for key ${key}: ${item}`);
+      }
+    });
+  });
+
+  return parsed as PubkeyMap;
 };
 
 export const jsonToRoleAssignment = (value: string) => {
@@ -60,6 +100,13 @@ export const stringToNumber = (value: string) => {
     program.error('value must be a positive number', { exitCode: 1 });
   }
   return parseInt(value);
+};
+
+export const stringToBoolean = (value: string) => {
+  const val = value.toLowerCase();
+  if (val === 'true') return true;
+  if (val === 'false') return false;
+  program.error('value must be true or false', { exitCode: 1 });
 };
 
 export const parseTiers = (value: string) => {

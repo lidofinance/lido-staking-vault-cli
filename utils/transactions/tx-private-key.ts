@@ -38,6 +38,7 @@ export const callSimulateWriteMethod = async <
     methodName,
     payload,
     value,
+    authorizationList,
     withSpinner = true,
     skipError = false,
   } = args;
@@ -52,8 +53,9 @@ export const callSimulateWriteMethod = async <
     const method = contract.simulate[methodName];
     const result = await method?.(payload, {
       account: await getAccount(),
-      chain: getChain(),
+      chain: await getChain(),
       value,
+      authorizationList,
     });
     hideSpinner();
 
@@ -79,6 +81,7 @@ export const callWriteMethod = async <
     methodName,
     payload,
     value,
+    authorizationList,
     withSpinner = true,
     silent = false,
     skipError = false,
@@ -89,6 +92,7 @@ export const callWriteMethod = async <
     methodName,
     payload,
     value,
+    authorizationList,
     withSpinner,
     skipError,
   });
@@ -111,8 +115,9 @@ export const callWriteMethod = async <
     const method = contract.write[methodName];
     const tx = await method?.(payload, {
       account: await getAccount(),
-      chain: getChain(),
+      chain: await getChain(),
       value,
+      authorizationList,
     });
     hideSpinner();
 
@@ -216,7 +221,7 @@ export const callReadMethodSilent = async <
 };
 
 export const isContractAddress = async (address: Address) => {
-  const publicClient = getPublicClient();
+  const publicClient = await getPublicClient();
   const bytecode = await publicClient.getCode({
     address: address,
   });
@@ -255,6 +260,7 @@ export const callWriteMethodWithReceipt = async <
   const {
     contract,
     methodName,
+    authorizationList,
     payload,
     value,
     withSpinner = true,
@@ -294,18 +300,20 @@ export const callWriteMethodWithReceipt = async <
       withSpinner,
       silent,
       skipError,
+      abi: contract.abi,
     });
 
     return { receipt: data.receipt, tx: data.txHash };
   }
 
-  const publicClient = getPublicClient();
+  const publicClient = await getPublicClient();
 
   const tx = await callWriteMethod({
     contract,
     methodName,
     payload,
     value,
+    authorizationList,
     withSpinner,
     silent,
     skipError,
@@ -366,7 +374,7 @@ export const callWriteMethodWithReceiptBatchCalls = async (args: {
     return;
   }
 
-  const publicClient = getPublicClient();
+  const publicClient = await getPublicClient();
   const walletClient = await getWalletWithAccount();
 
   if (!walletClient.account) {
@@ -385,7 +393,7 @@ export const callWriteMethodWithReceiptBatchCalls = async (args: {
   for (const call of calls) {
     const tx = await walletClient.sendTransaction({
       account: walletClient.account,
-      chain: getChain(),
+      chain: await getChain(),
       to: call.to,
       data: call.data,
       value: call.value,

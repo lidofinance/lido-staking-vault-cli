@@ -107,6 +107,8 @@ export const checkVaultRole = async (
 
   if (!hasRole) {
     throw new Error(`Address ${address} does not have the ${roleName} role`);
+  } else {
+    logInfo(`✅ Address ${address} has the ${roleName} role`);
   }
 
   return hasRole;

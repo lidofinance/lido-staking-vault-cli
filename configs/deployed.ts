@@ -3,7 +3,7 @@ import * as process from 'node:process';
 import path from 'path';
 import { zeroAddress, Address, Chain } from 'viem';
 
-import { getValueByPath, validateConfig } from 'utils';
+import { getValueByPath, logError, logInfo, validateConfig } from 'utils';
 import { Config } from 'types';
 
 import { envs } from './envs.js';
@@ -52,20 +52,79 @@ export const getDeployed = () => {
   return deployedJSON;
 };
 
-export const getChainId = () => {
+let chainIdCache: number | undefined;
+const getRpcChainId = async (elURL: string) => {
+  if (chainIdCache) {
+    return chainIdCache;
+  }
+
+  try {
+    const rpcChainIdResponse = await fetch(elURL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'eth_chainId',
+        params: [],
+      }),
+    });
+
+    if (!rpcChainIdResponse?.ok) {
+      throw new Error(
+        `RPC request failed: ${rpcChainIdResponse.status} ${rpcChainIdResponse.statusText}`,
+      );
+    }
+
+    const rpcChainIdData = await rpcChainIdResponse.json();
+    if (rpcChainIdData?.error) {
+      throw new Error(
+        `RPC error: ${rpcChainIdData.error.message || JSON.stringify(rpcChainIdData.error)}`,
+      );
+    }
+
+    const rpcChainId = parseInt(rpcChainIdData.result, 16);
+    chainIdCache = rpcChainId;
+
+    return rpcChainId;
+  } catch (error) {
+    if (!chainIdCache) {
+      logError(
+        'Filed to get RPC chainId. Please check if the EL_URL environment variable is correct or try to use another EL.',
+      );
+      logInfo('Continue work without RPC');
+    }
+
+    return chainIdCache;
+  }
+};
+
+export const getChainId = async () => {
   const config = getConfig();
+  const elURL = getElUrl();
   const deployed = getDeployed();
   const chainId = config.CHAIN_ID;
+  const rpcChainId = await getRpcChainId(elURL);
 
-  if (chainId !== deployed.chainId) {
-    throw new Error('ChainId in env and deployed file mismatch');
+  if (chainId !== deployed.networkId) {
+    throw new Error(
+      `ChainId in env and deployed file mismatch. ENV: ${chainId} DEPLOYED: ${deployed.networkId}`,
+    );
+  }
+
+  if (rpcChainId && chainId !== rpcChainId) {
+    throw new Error(
+      `ChainId in env and RPC chainId mismatch. ENV: ${chainId} RPC: ${rpcChainId}`,
+    );
   }
 
   return chainId;
 };
 
-export const getChain = (): Chain => {
-  const chainId = getChainId();
+export const getChain = async (): Promise<Chain> => {
+  const chainId = await getChainId();
   const chain = SUPPORTED_CHAINS_LIST.find((chain) => chain.id === chainId);
 
   if (!chain) {

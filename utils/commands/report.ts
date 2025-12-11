@@ -19,7 +19,7 @@ type SubmitReportArgs = {
 export const submitReport = async ({
   vault,
   gateway,
-}: SubmitReportArgs): Promise<void> => {
+}: SubmitReportArgs): Promise<boolean> => {
   const lazyOracleContract = await getLazyOracleContract();
   const vaultHubContract = await getVaultHubContract();
 
@@ -37,7 +37,7 @@ export const submitReport = async ({
 
   if (isReportFresh) {
     logCancel('Report is fresh. You dont need to submit it again');
-    return;
+    return true;
   }
 
   const { cacheUse } = program.opts();
@@ -60,7 +60,7 @@ export const submitReport = async ({
   );
   if (!confirm) {
     logCancel('Report not submitted');
-    return;
+    return false;
   }
 
   await callWriteMethodWithReceipt({
@@ -76,4 +76,6 @@ export const submitReport = async ({
       proof.proof,
     ],
   });
+
+  return true;
 };

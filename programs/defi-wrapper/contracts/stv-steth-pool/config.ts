@@ -8,34 +8,6 @@ import {
 export const readCommandConfig: ReadProgramCommandConfig<
   typeof StvStETHPoolAbi
 > = {
-  withdrawableStvOf: {
-    name: 'withdrawable-stv-of',
-    description:
-      'get calculated amount of stv that can be withdrawn by an account',
-    arguments: {
-      _account: {
-        name: 'account',
-        description: 'the address of the account',
-        modifier: stringToAddress,
-      },
-    },
-  },
-  withdrawableEthOf: {
-    name: 'withdrawable-eth-of',
-    description:
-      'get calculated the amount of ETH that can be withdrawn by an account',
-    arguments: {
-      _account: {
-        name: 'account',
-        description: 'the address of the account',
-        modifier: stringToAddress,
-      },
-    },
-  },
-  vaultDisconnected: {
-    name: 'vault-disconnected',
-    description: 'get whether the vault is disconnected',
-  },
   totalUnassignedLiabilityShares: {
     name: 'total-unassigned-liability-shares',
     aliases: ['tuls'],
@@ -146,79 +118,10 @@ export const readCommandConfig: ReadProgramCommandConfig<
     name: 'total-minted-steth-shares',
     description: 'get the total stETH shares minted by the pool',
   },
-  totalMintingCapacityShares: {
-    name: 'total-minting-capacity-shares',
-    description: 'get the total Staking Vault minting capacity in stETH shares',
-  },
-  stethSharesForWithdrawal: {
-    name: 'steth-shares-for-withdrawal',
-    description:
-      'get the calculated amount of stETH shares required for a given amount of stv to withdraw',
-    arguments: {
-      _account: {
-        name: 'account',
-        description: 'the address of the account',
-        modifier: stringToAddress,
-      },
-      _stv: {
-        name: 'stv',
-        description: 'the amount of stv to withdraw',
-        modifier: stringToBigInt,
-      },
-    },
-  },
-  remainingMintingCapacityShares: {
-    name: 'remaining-minting-capacity-shares',
-    description:
-      'get the remaining Staking Vault minting capacity in stETH shares',
-    arguments: {
-      _ethToFund: {
-        name: 'ethToFund',
-        description: 'the amount of ETH to fund',
-        modifier: stringToBigInt,
-      },
-    },
-  },
-  mintingCapacitySharesOf: {
-    name: 'minting-capacity-shares-of',
-    description:
-      'get the calculated minting capacity in stETH shares for a specific account',
-    arguments: {
-      _account: {
-        name: 'account',
-        description: 'the address of the account',
-        modifier: stringToAddress,
-      },
-    },
-  },
   mintedStethSharesOf: {
     name: 'minted-steth-shares-of',
     description:
       'get the amount of stETH shares minted by the pool for a specific account',
-    arguments: {
-      _account: {
-        name: 'account',
-        description: 'the address of the account',
-        modifier: stringToAddress,
-      },
-    },
-  },
-  exceedingMintedStethSharesOf: {
-    name: 'exceeding-minted-steth-shares-of',
-    description:
-      "get the amount of stETH shares exceeding the Staking Vault's liability for a specific account",
-    arguments: {
-      _account: {
-        name: 'account',
-        description: 'the address of the account',
-        modifier: stringToAddress,
-      },
-    },
-  },
-  exceedingMintedStethOf: {
-    name: 'exceeding-minted-steth-of',
-    description:
-      "get the amount of stETH exceeding the Staking Vault's liability for a specific account",
     arguments: {
       _account: {
         name: 'account',

@@ -1,15 +1,16 @@
 #! /usr/bin/env node
 
-import { program } from './command/index.js';
-import { logError } from './utils/logging/console.js';
-import { withInterruptHandling } from './utils/interrupt-handler.js';
+import { getChain } from 'configs';
 
+import { program } from './command/index.js';
+import { logError, logInfo } from './utils/logging/console.js';
+import { withInterruptHandling } from './utils/interrupt-handler.js';
 import './programs/index.js';
 
 export * from './utils/index.js';
 
 const showTestnetWarning = () => {
-  console.info('\n⚠️ 🎉🎉  HOODI V3 is officially launched!  🎉🎉⚠️');
+  console.info('\n🎉🎉  HOODI V3 is officially launched!  🎉🎉');
   console.info(
     '🌐 Web UI is available at: https://stvaults-hoodi.testnet.fi/vaults',
   );
@@ -31,6 +32,10 @@ program.addHelpText('afterAll', () => {
 
 // Add interrupt handling to the CLI
 const runCLI = withInterruptHandling(async () => {
+  const chain = await getChain();
+  logInfo(`${'-'.repeat(100)}`);
+  logInfo(`Using chain: Name: ${chain.name}, Chain ID: ${chain.id}`);
+  logInfo(`${'-'.repeat(100)}`);
   await program.parseAsync(process.argv);
 });
 

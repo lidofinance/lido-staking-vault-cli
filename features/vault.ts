@@ -5,8 +5,10 @@ import { getStakingVaultContract } from 'contracts';
 import { getPublicClient } from 'providers';
 
 export const getVaultBaseInfo = async (address: Address) => {
-  const contract = getStakingVaultContract(address);
-  const publicClient = getPublicClient();
+  const [contract, publicClient] = await Promise.all([
+    getStakingVaultContract(address),
+    getPublicClient(),
+  ]);
 
   const hideSpinner = showSpinner();
 

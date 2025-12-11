@@ -43,7 +43,7 @@ vaultWrite
     );
     if (!vaultAddress || !amount) return;
 
-    const contract = getStakingVaultContract(vaultAddress);
+    const contract = await getStakingVaultContract(vaultAddress);
 
     await callWriteMethodWithReceipt({
       contract,
@@ -60,7 +60,7 @@ vaultWrite
   .argument('<recipient>', 'recipient address', stringToAddress)
   .argument('<eth>', 'amount to withdraw (in ETH)', etherToWei)
   .action(async (address: Address, recipient: Address, amount: bigint) => {
-    const contract = getStakingVaultContract(address);
+    const contract = await getStakingVaultContract(address);
 
     await callWriteMethodWithReceipt({
       contract,
@@ -87,7 +87,7 @@ vaultWrite
       signature: `0x${string}`,
       depositDataRoot: `0x${string}`,
     ) => {
-      const contract = getStakingVaultContract(vault);
+      const contract = await getStakingVaultContract(vault);
 
       const payload = {
         pubkey,
@@ -115,7 +115,7 @@ vaultWrite
   .argument('<address>', 'vault address', stringToAddress)
   .argument('<amount>', 'amount of ether (in ETH)', etherToWei)
   .action(async (vault: Address, amount: bigint) => {
-    const contract = getStakingVaultContract(vault);
+    const contract = await getStakingVaultContract(vault);
 
     const confirm = await confirmOperation(
       `Are you sure you want to stage ${formatEther(amount)} ETH for the staking vault ${vault}?`,
@@ -137,7 +137,7 @@ vaultWrite
   .argument('<address>', 'vault address', stringToAddress)
   .argument('<amount>', 'amount of ether (in ETH)', etherToWei)
   .action(async (vault: Address, amount: bigint) => {
-    const contract = getStakingVaultContract(vault);
+    const contract = await getStakingVaultContract(vault);
 
     const confirm = await confirmOperation(
       `Are you sure you want to unstage ${formatEther(amount)} ETH for the staking vault ${vault}?`,
@@ -165,7 +165,7 @@ vaultWrite
   )
   .action(
     async (vault: Address, deposit: Deposit, additionalAmount: bigint) => {
-      const contract = getStakingVaultContract(vault);
+      const contract = await getStakingVaultContract(vault);
 
       const confirm = await confirmOperation(
         `Are you sure you want to deposit ${formatEther(deposit.amount)} ETH + Additional ${formatEther(additionalAmount)} ETH for the staking vault ${vault}?`,
@@ -191,7 +191,7 @@ vaultWrite
     'concatenated validator public keys, each 48 bytes long',
   )
   .action(async (address: Address, validatorPublicKeys: Hex) => {
-    const contract = getStakingVaultContract(address);
+    const contract = await getStakingVaultContract(address);
 
     const confirm = await confirmOperation(
       `Are you sure you want to request to exit validator ${validatorPublicKeys} for the staking vault ${address}?`,
@@ -210,7 +210,7 @@ vaultWrite
   .description('Resumes deposits to beacon chain')
   .argument('<address>', 'vault address', stringToAddress)
   .action(async (address: Address) => {
-    const contract = getStakingVaultContract(address);
+    const contract = await getStakingVaultContract(address);
 
     const confirm = await confirmOperation(
       `Are you sure you want to resume deposits to beacon chain for the staking vault ${address}?`,
@@ -229,7 +229,7 @@ vaultWrite
   .description('Pauses deposits to beacon chain')
   .argument('<address>', 'vault address', stringToAddress)
   .action(async (address: Address) => {
-    const contract = getStakingVaultContract(address);
+    const contract = await getStakingVaultContract(address);
 
     const confirm = await confirmOperation(
       `Are you sure you want to pause deposits to beacon chain for the staking vault ${address}?`,
@@ -257,7 +257,7 @@ vaultWrite
       amounts: bigint[],
       refundRecipient: Address,
     ) => {
-      const contract = getStakingVaultContract(address);
+      const contract = await getStakingVaultContract(address);
       const concatenatedPubkeys = pubkeys.join('') as `0x${string}`;
 
       const gweiAmounts = amounts.map((amount) =>
@@ -296,7 +296,7 @@ vaultWrite
       amounts: bigint[],
       refundRecipient: Address,
     ) => {
-      const contract = getStakingVaultContract(address);
+      const contract = await getStakingVaultContract(address);
       const concatenatedPubkeys = pubkeys.join('') as `0x${string}`;
 
       const fee = await callReadMethodSilent(
@@ -327,7 +327,7 @@ vaultWrite
   .description('Ossifies the staking vault.')
   .argument('<address>', 'vault address', stringToAddress)
   .action(async (address: Address) => {
-    const contract = getStakingVaultContract(address);
+    const contract = await getStakingVaultContract(address);
 
     const confirm = await confirmOperation(
       `Are you sure you want to ossify the staking vault ${address}?`,
@@ -347,7 +347,7 @@ vaultWrite
   .argument('<address>', 'vault address', stringToAddress)
   .argument('<depositor>', 'depositor address', stringToAddress)
   .action(async (address: Address, depositor: Address) => {
-    const contract = getStakingVaultContract(address);
+    const contract = await getStakingVaultContract(address);
 
     const confirm = await confirmOperation(
       `Are you sure you want to set the depositor for the staking vault ${address} to ${depositor}?`,
@@ -367,7 +367,7 @@ vaultWrite
   .argument('<address>', 'vault address', stringToAddress)
   .argument('<newOwner>', 'new owner address', stringToAddress)
   .action(async (address: Address, newOwner: Address) => {
-    const contract = getStakingVaultContract(address);
+    const contract = await getStakingVaultContract(address);
 
     const confirm = await confirmOperation(
       `Are you sure you want to transfer the ownership of the staking vault ${address} to ${newOwner}?`,
@@ -386,7 +386,7 @@ vaultWrite
   .description('Accepts the pending owner')
   .argument('<address>', 'vault address', stringToAddress)
   .action(async (address: Address) => {
-    const contract = getStakingVaultContract(address);
+    const contract = await getStakingVaultContract(address);
 
     const confirm = await confirmOperation(
       `Are you sure you want to accept the ownership of the staking vault ${address}?`,
@@ -424,7 +424,7 @@ vaultWrite
       amount: bigint,
       recipient: Address,
     ) => {
-      const contract = getStakingVaultContract(address);
+      const contract = await getStakingVaultContract(address);
 
       const confirm = await confirmOperation(
         `Are you sure you want to recover the token ${token} with amount ${formatEther(amount)} from the dashboard contract ${address} to ${recipient}?`,
