@@ -55,7 +55,7 @@ export const getNodeOperatorAccruedFeeByBlockNumbers = async (
   blockNumbers: number[],
   dashboardContract: DashboardContract,
 ) => {
-  // Get settled growth for each report block with caching
+  // Get node operator accrued fee for each report block with caching
   const nodeOperatorAccruedFees: bigint[] = [];
   for (const blockNumber of blockNumbers) {
     let nodeOperatorAccruedFee = await cache.getNodeOperatorAccruedFee(
