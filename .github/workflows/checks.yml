@@ -31,6 +31,11 @@ jobs:
       - name: Run Unit Tests
         run: yarn test:unit
 
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
       - name: Run Integration Tests
         env:
           EL_URL: ${{ secrets.EL_URL }}
