@@ -1,7 +1,5 @@
 import {
   createTestClient,
-  createPublicClient,
-  createWalletClient,
   http,
   publicActions,
   walletActions,
@@ -25,31 +23,6 @@ export const createAnvilTestClient = (chain: Chain, rpcUrl: string) => {
 };
 
 /**
- * Creates a public client for reading blockchain state
- */
-export const createAnvilPublicClient = (chain: Chain, rpcUrl: string) => {
-  return createPublicClient({
-    chain,
-    transport: http(rpcUrl),
-  });
-};
-
-/**
- * Creates a wallet client for sending transactions
- */
-export const createAnvilWalletClient = (
-  chain: Chain,
-  rpcUrl: string,
-  account: Address,
-) => {
-  return createWalletClient({
-    chain,
-    transport: http(rpcUrl),
-    account,
-  });
-};
-
-/**
  * Impersonates an account and funds it with ETH
  */
 export const impersonateAccount = async (
@@ -63,25 +36,7 @@ export const impersonateAccount = async (
 };
 
 /**
- * Stops impersonating an account
- * Note: In Anvil, impersonation persists until the node is restarted
- * or the account is explicitly stopped via RPC call
- */
-export const stopImpersonatingAccount = async (
-  testClient: ReturnType<typeof createAnvilTestClient>,
-  address: Address,
-) => {
-  // Anvil doesn't have a direct stopImpersonateAccount method
-  // Impersonation is typically handled automatically
-  // If needed, we can send a custom RPC call
-  await testClient.request({
-    method: 'anvil_stopImpersonatingAccount',
-    params: [address],
-  } as any);
-};
-
-/**
- * Mints ETH to an address
+ * Mints ETH to an address (sets balance)
  */
 export const mintEth = async (
   testClient: ReturnType<typeof createAnvilTestClient>,
@@ -119,16 +74,17 @@ export const setTime = async (
   timestamp: bigint,
 ) => {
   await testClient.setNextBlockTimestamp({ timestamp });
-  await testClient.mine();
+  const blocks = timestamp / 12n;
+  await testClient.mine({ blocks: Number(blocks) });
 };
 
 /**
  * Gets the current block timestamp
  */
 export const getCurrentTimestamp = async (
-  publicClient: ReturnType<typeof createAnvilPublicClient>,
+  testClient: ReturnType<typeof createAnvilTestClient>,
 ) => {
-  const block = await publicClient.getBlock({ blockTag: 'latest' });
+  const block = await testClient.getBlock({ blockTag: 'latest' });
   return block.timestamp;
 };
 

@@ -1,7 +1,5 @@
 import * as dotenv from 'dotenv';
-import { Address, type Chain } from 'viem';
-import { SUPPORTED_CHAINS_LIST } from 'configs';
-import { readFileSync } from 'fs';
+import { Address } from 'viem';
 import path from 'path';
 
 // Load environment variables from .env.test or .env
@@ -82,37 +80,4 @@ export const loadTestConfig = (): IntegrationTestConfig => {
     FORK_BLOCK_NUMBER: forkBlockNumber,
     ANVIL_PORT: Number(ANVIL_PORT),
   };
-};
-
-/**
- * Gets the chain configuration for the test
- */
-export const getTestChain = (chainId: number): Chain => {
-  const chain = SUPPORTED_CHAINS_LIST.find((c) => c.id === chainId);
-  if (!chain) {
-    throw new Error(`Chain ${chainId} is not supported`);
-  }
-  return chain;
-};
-
-/**
- * Loads deployed contracts configuration
- */
-export const loadDeployedContracts = (deployedFileName: string) => {
-  const fullPath = path.resolve('configs', deployedFileName);
-  try {
-    const fileContent = readFileSync(fullPath, 'utf-8');
-    return JSON.parse(fileContent);
-  } catch (error) {
-    throw new Error(
-      `Failed to load deployed contracts file: ${fullPath}. Error: ${error}`,
-    );
-  }
-};
-
-/**
- * Gets the RPC URL for Anvil (local)
- */
-export const getAnvilRpcUrl = (port: number): string => {
-  return `http://127.0.0.1:${port}`;
 };
