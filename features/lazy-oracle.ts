@@ -1,6 +1,6 @@
 import { formatEther } from 'viem';
 
-import { printError, showSpinner, logResult } from 'utils';
+import { printError, showSpinner, logResult, formatTimestamp } from 'utils';
 import { getLazyOracleContract } from 'contracts';
 
 export const getLazyOracleBaseInfo = async () => {
@@ -33,7 +33,7 @@ export const getLazyOracleBaseInfo = async () => {
       MAX_QUARANTINE_PERIOD: `${MAX_QUARANTINE_PERIOD} (${Number(MAX_QUARANTINE_PERIOD) / 3600} hours)`,
       MAX_REWARD_RATIO,
       MAX_LIDO_FEE_RATE_PER_SECOND,
-      latestReportTimestamp: `${latestReportTimestamp} (${new Date(Number(latestReportTimestamp) * 1000).toLocaleString()})`,
+      latestReportTimestamp: `${latestReportTimestamp} (${formatTimestamp(Number(latestReportTimestamp))})`,
       quarantinePeriod: `${quarantinePeriod} (${Number(quarantinePeriod) / 3600} hours)`,
       maxRewardRatioBP: `${maxRewardRatioBP} (${Number(maxRewardRatioBP) / 100} %)`,
       maxLidoFeeRatePerSecond: `${maxLidoFeeRatePerSecond} (${formatEther(maxLidoFeeRatePerSecond)} ETH/s)`,

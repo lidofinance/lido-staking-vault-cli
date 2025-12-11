@@ -16,7 +16,7 @@ const EXPECTED_DATA_HOODI = {
   MAX_QUARANTINE_PERIOD: '2592000 (720 hours)',
   MAX_REWARD_RATIO: 65535n,
   MAX_LIDO_FEE_RATE_PER_SECOND: 10000000000000000000n,
-  latestReportTimestamp: '1765314060 (12/10/2025, 12:01:00 AM)',
+  latestReportTimestamp: '1765314060 (09.12.2025 21:01 UTC)',
   quarantinePeriod: '259200 (72 hours)',
   maxRewardRatioBP: '350 (3.5 %)',
   maxLidoFeeRatePerSecond: '180000000000000000 (0.18 ETH/s)',
