@@ -35,9 +35,10 @@ jobs:
         env:
           EL_URL: ${{ secrets.EL_URL }}
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
-          VAULT_ADDRESS: ${{ secrets.VAULT_ADDRESS }}
-          CHAIN_ID: ${{ secrets.CHAIN_ID || '1' }}
-          FORK_BLOCK_NUMBER: ${{ secrets.FORK_BLOCK_NUMBER }}
+          VAULT_ADDRESS: ${{ vars.VAULT_ADDRESS }}
+          CHAIN_ID: ${{ vars.CHAIN_ID }}
+          FORK_BLOCK_NUMBER: ${{ vars.FORK_BLOCK_NUMBER }}
+          DEPLOYED: ${{ vars.DEPLOYED }}
           ANVIL_PORT: 8545
           NODE_ENV: test
           VITEST: true

@@ -121,7 +121,7 @@ yarn test
 
 ### Integration Tests
 
-Integration tests run on a forked Ethereum mainnet to test real contract interactions.
+Integration tests run on a forked chain to test real contract interactions.
 
 #### Setup
 
@@ -134,7 +134,7 @@ Integration tests run on a forked Ethereum mainnet to test real contract interac
 2. Create test configuration:
    ```bash
    cp env.test.example .env.test
-   # Edit .env.test and set your MAINNET_RPC_URL
+   # Edit .env.test and set your RPC_URL
    ```
 
 #### Running Tests
