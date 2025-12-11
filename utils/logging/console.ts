@@ -15,6 +15,19 @@ type CreateTableArgs = {
   csvPath?: string;
 };
 
+const bigIntStringify = <T>(value: T): string => {
+  return JSON.stringify(
+    value,
+    (key, value) => {
+      if (typeof value === 'bigint') {
+        return value.toString();
+      }
+      return value;
+    },
+    2,
+  );
+};
+
 export const createConsole = (
   headMessage: HeadMessage,
   type: 'info' | 'error' | 'table' | 'bold' = 'info',
@@ -25,7 +38,7 @@ export const createConsole = (
         if (program.opts().json) {
           console.info(`\n${getColoredLog(headMessage, headMessage + ':')}`);
           console.info('<JSON>');
-          console.info(JSON.stringify({ Result: args }, null, 2));
+          console.info(bigIntStringify(args));
           console.info('</JSON>');
           return;
         }
@@ -36,7 +49,7 @@ export const createConsole = (
         if (program.opts().json) {
           console.info(`\n${getColoredLog(headMessage, headMessage + ':')}`);
           console.info('<JSON>');
-          console.info(JSON.stringify({ Result: args }, null, 2));
+          console.info(bigIntStringify({ Result: args }));
           console.info('</JSON>');
           return;
         }
@@ -46,7 +59,7 @@ export const createConsole = (
         if (program.opts().json) {
           console.info(`\n${getColoredLog(headMessage, headMessage + ':')}`);
           console.info('<JSON>');
-          console.info(JSON.stringify({ Result: args }, null, 2));
+          console.info(bigIntStringify({ Result: args }));
           console.info('</JSON>');
           return;
         }
@@ -68,7 +81,7 @@ const createTable = (headMessage?: HeadMessage) => (args: CreateTableArgs) => {
 
   if (program.opts().json) {
     console.info('<JSON>');
-    console.info(JSON.stringify({ Result: data }, null, 2));
+    console.info(bigIntStringify({ Result: data }));
     console.info('</JSON>');
     return;
   } else {
