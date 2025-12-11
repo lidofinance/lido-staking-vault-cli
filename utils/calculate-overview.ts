@@ -1,6 +1,7 @@
 import { parseEther } from 'viem';
 
 import { calculateHealth } from './health/calculate-health.js';
+import { bigIntMax, bigIntMin } from './bigInt.js';
 import { BASIS_POINTS_DENOMINATOR, SCALING_FACTOR } from './consts.js';
 
 type OverviewArgs = {
@@ -15,8 +16,6 @@ type OverviewArgs = {
   totalMintingCapacityStethWei: bigint;
 };
 
-const bigIntMax = (...args: bigint[]) => args.reduce((a, b) => (a > b ? a : b));
-const bigIntMin = (...args: bigint[]) => args.reduce((a, b) => (a < b ? a : b));
 // Percent helper (basis points → percentage)
 export const formatBP = (bp: number | bigint) =>
   `${((Number(bp) / Number(BASIS_POINTS_DENOMINATOR)) * 100).toFixed(2)}%`;
