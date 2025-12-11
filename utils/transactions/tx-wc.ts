@@ -3,6 +3,7 @@ import {
   encodeFunctionData,
   Hex,
   SimulateCallsReturnType,
+  Abi,
 } from 'viem';
 import { waitForTransactionReceipt } from 'viem/actions';
 
@@ -15,6 +16,7 @@ import {
   logResult,
   disconnectWalletConnect,
   logInfo,
+  logError,
 } from 'utils';
 
 import { PartialContract, PopulatedTx, BatchTxArgs } from './types.js';
@@ -26,8 +28,9 @@ export const simulateWCWriteTx = async (args: {
   calls: PopulatedTx[];
   withSpinner?: boolean;
   skipError?: boolean;
+  abi?: Abi;
 }): Promise<SimulateCallsReturnType<PopulatedTx[]>> => {
-  const { calls, withSpinner = true, skipError = false } = args;
+  const { calls, withSpinner = true, skipError = false, abi } = args;
   const publicClient = await getPublicClient();
 
   const hideSpinner = withSpinner
@@ -52,10 +55,12 @@ export const simulateWCWriteTx = async (args: {
       const data = cause?.data ?? cause?.raw;
       if (data) {
         const { errorName, args } = decodeErrorResult({
-          abi: DashboardAbi,
+          abi: abi ?? DashboardAbi,
           data,
         });
-        const errorMessage = `${errorName}: ${args.map((a) => a.toString()).join(', ')}`;
+
+        const errorArgs = args?.map((a) => a?.toString() ?? '') ?? [];
+        const errorMessage = `${errorName}: ${errorArgs.join(', ')}`;
         printError(new Error(errorMessage), 'Simulation failed');
       }
 
@@ -79,8 +84,15 @@ export const callWCWriteMethodWithReceipt = async (args: {
   withSpinner?: boolean;
   silent?: boolean;
   skipError?: boolean;
+  abi?: Abi;
 }) => {
-  const { calls, withSpinner = true, silent = false, skipError = false } = args;
+  const {
+    calls,
+    withSpinner = true,
+    silent = false,
+    skipError = false,
+    abi,
+  } = args;
 
   const { walletConnectClient } = await getWalletConnectClient();
 
@@ -95,6 +107,7 @@ export const callWCWriteMethodWithReceipt = async (args: {
     withSpinner,
     silent,
     skipError,
+    abi,
   });
 
   const data = [
@@ -154,6 +167,7 @@ export const callWCWriteMethodWithReceiptPayloads = async <
     withSpinner,
     silent,
     skipError,
+    abi: contract.abi,
   });
 
   const data = [
@@ -185,8 +199,9 @@ const callWalletConnectSendCalls = async (args: {
   withSpinner?: boolean;
   silent?: boolean;
   skipError?: boolean;
+  abi?: Abi;
 }) => {
-  const { calls, withSpinner = true, skipError = false } = args;
+  const { calls, withSpinner = true, skipError = false, abi } = args;
   const isBatch = calls.length > 1;
 
   if (!Array.isArray(calls) || calls.length === 0) {
@@ -206,6 +221,7 @@ const callWalletConnectSendCalls = async (args: {
       calls,
       withSpinner,
       skipError,
+      abi,
     });
 
     const hideSubmitSpinner = withSpinner
@@ -253,12 +269,34 @@ const callWalletConnectSendCalls = async (args: {
     hideStatusSpinner();
 
     if (callStatus.status === 'failure') {
+      logError(
+        'Transaction failed. Check your wallet for details.',
+        callStatus,
+      );
+
+      if (
+        callStatus.receipts?.some((receipt) => receipt.status === 'reverted')
+      ) {
+        logError(
+          'Some operation were reverted. Check your wallet for details.',
+          callStatus.receipts?.filter(
+            (receipt) => receipt.status === 'reverted',
+          ),
+        );
+      }
+
       throw new Error('Transaction failed. Check your wallet for details.');
     }
 
-    if (callStatus.receipts?.find((receipt) => receipt.status === 'reverted')) {
+    // safe check for reverted operations
+    if (callStatus.receipts?.some((receipt) => receipt.status === 'reverted')) {
       throw new Error(
         'Some operation were reverted. Check your wallet for details.',
+        {
+          cause: callStatus.receipts?.filter(
+            (receipt) => receipt.status === 'reverted',
+          ),
+        },
       );
     }
 

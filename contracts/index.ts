@@ -10,3 +10,4 @@ export * from './pdg.js';
 export * from './operator-grid.js';
 export * from './wsteth.js';
 export * from './lazy-oracle.js';
+export * from './validator-consolidation-requests.js';
