@@ -4,6 +4,7 @@ on:
 jobs:
   check-all:
     runs-on: ubuntu-latest
+    environment: tests
     timeout-minutes: 30
     steps:
       - name: Checkout repo
@@ -13,7 +14,7 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: 20
-          cache: "yarn"
+          cache: 'yarn'
 
       - name: Install dependencies
         run: yarn --immutable
@@ -23,8 +24,21 @@ jobs:
 
       - name: Build
         run: yarn build
+
       - name: Check types
         run: yarn types
 
-      - name: Tests
-        run: yarn test
+      - name: Run Unit Tests
+        run: yarn test:unit
+
+      - name: Run Integration Tests
+        env:
+          EL_URL: ${{ secrets.EL_URL }}
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+          VAULT_ADDRESS: ${{ secrets.VAULT_ADDRESS }}
+          CHAIN_ID: ${{ secrets.CHAIN_ID || '1' }}
+          FORK_BLOCK_NUMBER: ${{ secrets.FORK_BLOCK_NUMBER }}
+          ANVIL_PORT: 8545
+          NODE_ENV: test
+          VITEST: true
+        run: yarn test:integration
