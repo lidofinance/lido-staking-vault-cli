@@ -6,6 +6,8 @@ import {
   getPredepositGuaranteeContract,
   getStakingVaultContract,
 } from 'contracts';
+import { checkPdgIsPaused } from 'features';
+import { makePDGProofByIndexes } from 'features/deposits/make-pdg-proof.js';
 import {
   callWriteMethodWithReceipt,
   createPDGProof,
@@ -30,7 +32,6 @@ import {
 import { Deposit, ValidatorTopUp } from 'types';
 
 import { pdg } from './main.js';
-import { makePDGProofByIndexes } from 'features/deposits/make-pdg-proof.js';
 
 const pdgWrite = pdg
   .command('write')
@@ -70,6 +71,9 @@ pdgWrite
       options: { blsCheck: boolean },
     ) => {
       const pdgContract = await getPredepositGuaranteeContract();
+
+      const isPaused = await checkPdgIsPaused(pdgContract);
+      if (isPaused) return;
 
       if (options.blsCheck) {
         const PREDEPOSIT_AMOUNT = await callReadMethod(
@@ -138,6 +142,9 @@ pdgWrite
   .action(async (index: number) => {
     const pdgContract = await getPredepositGuaranteeContract();
 
+    const isPaused = await checkPdgIsPaused(pdgContract);
+    if (isPaused) return;
+
     const validatorIndex = await confirmMakeProof(index);
     if (!validatorIndex) return;
 
@@ -204,6 +211,9 @@ pdgWrite
   .action(async (indexes: number[], amounts: bigint[]) => {
     const pdgContract = await getPredepositGuaranteeContract();
 
+    const isPaused = await checkPdgIsPaused(pdgContract);
+    if (isPaused) return;
+
     const witnesses = await makePDGProofByIndexes(indexes);
     if (!witnesses) return;
 
@@ -236,6 +246,9 @@ pdgWrite
   .action(async (topUps: ValidatorTopUp[]) => {
     const pdgContract = await getPredepositGuaranteeContract();
 
+    const isPaused = await checkPdgIsPaused(pdgContract);
+    if (isPaused) return;
+
     const confirm = await confirmOperation(
       `Are you sure you want to top up ${topUps.length} validators with ${topUps.map((topUp) => formatEther(topUp.amount)).join(', ')} ETH?`,
     );
@@ -255,6 +268,9 @@ pdgWrite
   .argument('<amount>', 'amount in ETH', etherToWei)
   .action(async (nodeOperator: Address, amount: bigint) => {
     const pdgContract = await getPredepositGuaranteeContract();
+
+    const isPaused = await checkPdgIsPaused(pdgContract);
+    if (isPaused) return;
 
     const confirm = await confirmOperation(
       `Are you sure you want to top up the node operator ${nodeOperator} with ${formatEther(amount)} ETH?`,
@@ -328,6 +344,9 @@ pdgWrite
   .action(async (index: number, invalidWithdrawalCredentials: Hex) => {
     const pdgContract = await getPredepositGuaranteeContract();
 
+    const isPaused = await checkPdgIsPaused(pdgContract);
+    if (isPaused) return;
+
     const validatorIndex = await confirmMakeProof(index);
     if (!validatorIndex) return;
 
@@ -396,6 +415,9 @@ pdgWrite
   .action(async (nodeOperator: Address, amount: bigint, recipient: Address) => {
     const pdgContract = await getPredepositGuaranteeContract();
 
+    const isPaused = await checkPdgIsPaused(pdgContract);
+    if (isPaused) return;
+
     const confirm = await confirmOperation(
       `Are you sure you want to withdraw the node operator ${nodeOperator} balance ${amount} ETH to ${recipient}?`,
     );
@@ -415,6 +437,10 @@ pdgWrite
   .argument('<guarantor>', 'new guarantor address')
   .action(async (guarantor: Address) => {
     const pdgContract = await getPredepositGuaranteeContract();
+
+    const isPaused = await checkPdgIsPaused(pdgContract);
+    if (isPaused) return;
+
     const account = await getAccount();
 
     const confirm = await confirmOperation(
@@ -438,6 +464,9 @@ pdgWrite
     const pdgContract = await getPredepositGuaranteeContract();
     const account = await getAccount();
 
+    const isPaused = await checkPdgIsPaused(pdgContract);
+    if (isPaused) return;
+
     const confirm = await confirmOperation(
       `Are you sure you want to claim the guarantor ${account.address} refund for ${recipient}?`,
     );
@@ -460,6 +489,9 @@ pdgWrite
   .action(async (pubkey: Hex) => {
     const pdgContract = await getPredepositGuaranteeContract();
 
+    const isPaused = await checkPdgIsPaused(pdgContract);
+    if (isPaused) return;
+
     const confirm = await confirmOperation(
       `Are you sure you want to activate the validator ${pubkey}?`,
     );
@@ -479,6 +511,9 @@ pdgWrite
   .argument('<depositor>', 'depositor address')
   .action(async (depositor: Address) => {
     const pdgContract = await getPredepositGuaranteeContract();
+
+    const isPaused = await checkPdgIsPaused(pdgContract);
+    if (isPaused) return;
 
     const confirm = await confirmOperation(
       `Are you sure you want to set the node operator depositor to ${depositor}?`,
