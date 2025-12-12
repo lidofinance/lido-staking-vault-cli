@@ -7,7 +7,7 @@
 
 # test
 /deployed.json
-/coverage
+/coverage/*
 
 # dependencies
 /node_modules
