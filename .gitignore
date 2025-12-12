@@ -3,9 +3,11 @@
 .env.local
 .env.production
 .env.config*
+.env.test
 
 # test
 /deployed.json
+/coverage/*
 
 # dependencies
 /node_modules
