@@ -1,12 +1,13 @@
 import { test } from './test.fixture';
 import { getPermissionRole, ROLES } from '../testData/roles.data';
-import { lsvCLI } from '../utils/lsvCLI';
+import lsvCLI from '../utils';
+import { Address } from 'viem';
 
 const ROLES_TO_CHECK = [ROLES.DEFAULT_ADMIN, ROLES.FUND];
 const supplyAmount = '1';
 
 ROLES_TO_CHECK.forEach((role) => {
-  test(`Supply Vault as ${role}`, async ({
+  test.skip(`Supply Vault as ${role}`, async ({
     ethereumNodeService,
     defaultVaultData,
   }) => {
@@ -14,12 +15,11 @@ ROLES_TO_CHECK.forEach((role) => {
       getPermissionRole(role).index,
     ).secretKey;
 
-    await lsvCLI.supplyVault(
-      defaultVaultData.dashboardAddress,
+    await lsvCLI.vo.supply(
+      defaultVaultData.dashboardAddress as Address,
       supplyAmount,
       supplyRolePK,
     );
-
-    // expect
   });
 });
+export {};

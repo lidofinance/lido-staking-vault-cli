@@ -2,7 +2,13 @@ import {
   Account,
   EthereumNodeService,
 } from '@lidofinance/wallets-testing-nodes';
-import { Hex } from 'viem';
+import { Hex, padHex } from 'viem';
+
+export const PROTOCOL_CONFIG_ROLES_KECCAK = {
+  REGISTRY_ROLE:
+    '0xa495a3428837724c7f7648cda02eb83c9c4c778c8688d6f254c7f3f80c154d55' as Hex,
+  DEFAULT_ADMIN_ROLE: padHex('0x00', { size: 32 }),
+};
 
 export const ROLES = {
   DEFAULT_ADMIN: 'DEFAULT_ADMIN_ROLE',

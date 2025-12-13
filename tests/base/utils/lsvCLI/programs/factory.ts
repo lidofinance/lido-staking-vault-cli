@@ -1,50 +1,8 @@
 import { spawn } from 'child_process';
 import { Address } from 'viem';
+import type { CreateVaultParams, VaultCreationResult } from '../types';
 
-type RoleAssignment = {
-  account: string;
-  role: Address;
-};
-
-type CreateVaultParams = {
-  defaultAdmin: string;
-  nodeOperator: string;
-  nodeOperatorManager: string;
-  confirmExpiry: number;
-  nodeOperatorFeeRate: number;
-  privateKey: string;
-  quantity?: number;
-  roles?: RoleAssignment[];
-  deployedFile?: string;
-};
-
-type VaultCreationResult = {
-  vaultAddress: string;
-  dashboardAddress: string;
-};
-
-const runCLICommand = (args: string[], privateKey: string): Promise<void> =>
-  new Promise((resolve, reject) => {
-    const cli = spawn('yarn', ['lsvCLI', ...args], {
-      env: {
-        ...process.env,
-        PRIVATE_KEY: privateKey,
-      },
-    });
-
-    let stderr = '';
-    cli.stderr.on('data', (data) => {
-      stderr += data.toString();
-    });
-
-    cli.on('close', (code) => {
-      code !== 0
-        ? reject(new Error(`CLI exited with code ${code}\n${stderr}`))
-        : resolve();
-    });
-  });
-
-export const createVault = async (
+export const createVaultConnectedToVh = async (
   params: CreateVaultParams,
 ): Promise<VaultCreationResult> => {
   const {
@@ -126,45 +84,11 @@ export const createVault = async (
       }
 
       resolve({
-        vaultAddress: vaultAddressMatch[1],
-        dashboardAddress: dashboardAddressMatch[1],
+        vaultAddress: vaultAddressMatch[1] as Address,
+        dashboardAddress: dashboardAddressMatch[1] as Address,
       });
     });
 
     cli.stdin.end();
   });
-};
-
-export const grantRole = (
-  dashboardAddress: string,
-  roles: RoleAssignment[],
-  privateKey: string,
-): Promise<void> =>
-  runCLICommand(
-    [
-      'contracts',
-      'dashboard',
-      'w',
-      'role-grant',
-      dashboardAddress,
-      JSON.stringify(roles),
-      '--yes',
-    ],
-    privateKey,
-  );
-
-export const supplyVault = (
-  dashboardAddress: string,
-  amount: string,
-  privateKey: string,
-): Promise<void> =>
-  runCLICommand(
-    ['contracts', 'dashboard', 'w', 'fund', dashboardAddress, amount, '--yes'],
-    privateKey,
-  );
-
-export const lsvCLI = {
-  createVault,
-  grantRole,
-  supplyVault,
 };

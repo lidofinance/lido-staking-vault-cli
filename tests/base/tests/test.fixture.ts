@@ -1,6 +1,6 @@
 import { test as base } from '@playwright/test';
 import { EthereumNodeService } from '@lidofinance/wallets-testing-nodes';
-import { getStandConfig } from '../config/env.config';
+import { getStandConfig } from '../config';
 import { DefaultVaultData, getDefaultVaultData } from '../testData/roles.data';
 
 type Fixtures = object;
@@ -15,16 +15,14 @@ export const test = base.extend<
 >({
   // nodeRunOptions param configured via globalSetup
   nodeRunOptions: [
-    ['--load-state=./state.json'], // default runOptions
+    ['--dump-state=./state.json', '--state-interval=1'], // default runOptions
     { scope: 'worker' },
   ],
   ethereumNodeService: [
     async ({ nodeRunOptions }, use) => {
-      const rpcUrl = getStandConfig().networkConfig.rpcUrl;
+      const nodeConfig = getStandConfig().nodeConfig;
       const ethereumNodeService = new EthereumNodeService({
-        rpcUrl: rpcUrl,
-        // not required for CLI tests
-        rpcUrlToMock: '',
+        ...nodeConfig,
         runOptions: nodeRunOptions,
       });
       await ethereumNodeService.startNode();
