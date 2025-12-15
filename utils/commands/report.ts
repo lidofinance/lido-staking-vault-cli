@@ -9,17 +9,23 @@ import {
   callWriteMethodWithReceipt,
   confirmOperation,
   getReportProofByVault,
+  PopulatedTx,
 } from 'utils';
 
 type SubmitReportArgs = {
   vault: Address;
   gateway?: string;
+  populateTx?: boolean;
 };
 
 export const submitReport = async ({
   vault,
   gateway,
-}: SubmitReportArgs): Promise<boolean> => {
+  populateTx = false,
+}: SubmitReportArgs): Promise<{
+  isFresh: boolean;
+  data?: PopulatedTx;
+}> => {
   const lazyOracleContract = await getLazyOracleContract();
   const vaultHubContract = await getVaultHubContract();
 
@@ -37,7 +43,7 @@ export const submitReport = async ({
 
   if (isReportFresh) {
     logCancel('Report is fresh. You dont need to submit it again');
-    return true;
+    return { isFresh: true, data: undefined };
   }
 
   const { cacheUse } = program.opts();
@@ -60,10 +66,10 @@ export const submitReport = async ({
   );
   if (!confirm) {
     logCancel('Report not submitted');
-    return false;
+    return { isFresh: false, data: undefined };
   }
 
-  await callWriteMethodWithReceipt({
+  const reportCall = await callWriteMethodWithReceipt({
     contract: lazyOracleContract,
     methodName: 'updateVaultData',
     payload: [
@@ -75,7 +81,8 @@ export const submitReport = async ({
       BigInt(proof.data.slashingReserve),
       proof.proof,
     ],
+    populateTx,
   });
 
-  return true;
+  return { isFresh: true, data: reportCall.data };
 };

@@ -135,8 +135,10 @@ applyCommonOptions(
       });
 
       if (!result.receipt || !result.tx) {
-        logInfo('Transaction has been sent');
-        return process.exit(0);
+        logInfo(
+          'Transaction has been sent. Use "create-pool-finalize" command to finalize the pool creation after the transaction is signed and executed',
+        );
+        return;
       }
 
       const eventData = await getCreatePoolEventData(result.receipt, result.tx);
@@ -199,8 +201,10 @@ applyCommonOptions(
       });
 
       if (!result.receipt || !result.tx) {
-        logInfo('Transaction has been sent');
-        return process.exit(0);
+        logInfo(
+          'Transaction has been sent. Use "create-pool-finalize" command to finalize the pool creation after the transaction is signed and executed',
+        );
+        return;
       }
 
       const eventData = await getCreatePoolEventData(result.receipt, result.tx);
@@ -285,8 +289,10 @@ applyCommonOptions(
       });
 
       if (!result.receipt || !result.tx) {
-        logInfo('Transaction has been sent');
-        return process.exit(0);
+        logInfo(
+          'Transaction has been sent. Use "create-pool-finalize" command to finalize the pool creation after the transaction is signed and executed',
+        );
+        return;
       }
 
       const eventData = await getCreatePoolEventData(result.receipt, result.tx);
@@ -324,6 +330,7 @@ defiWrapperOperationsCreatePool
 
 defiWrapperOperationsCreatePool
   .command('log-creating-pool-data')
+  .aliases(['log-data'])
   .description(
     'logs the data of the created pool. Will be necessary for use in the UI configuration',
   )

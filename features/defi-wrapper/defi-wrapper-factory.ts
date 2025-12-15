@@ -101,7 +101,9 @@ export const finalizePoolCreation = async (
   });
 
   if (!finalizeResult.receipt || !finalizeResult.tx) {
-    logInfo('Transaction has been sent');
+    logInfo(
+      'Transaction has been sent. Use "log-finalizing-pool-data" command to get the Pool data after the transaction is signed and executed',
+    );
     return;
   }
 

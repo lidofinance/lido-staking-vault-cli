@@ -5,10 +5,12 @@ import {
   fetchAndCalculateVaultHealthWithNewValue,
   showSpinner,
   confirmMint,
-  callWriteMethodWithReceipt,
   callReadMethodSilent,
 } from 'utils';
-import { checkIsReportFresh, checkMintingCapacity } from 'features';
+import {
+  callWriteMethodsWithReportFresh,
+  checkMintingCapacity,
+} from 'features';
 
 export const mintSteth = async (
   contract: DashboardContract,
@@ -22,9 +24,6 @@ export const mintSteth = async (
     'getSharesByPooledEth',
     [amountOfSteth],
   );
-
-  const isReportFresh = await checkIsReportFresh(vault);
-  if (!isReportFresh) return;
 
   const isMintingCapacityOk = await checkMintingCapacity(
     contract,
@@ -65,7 +64,8 @@ export const mintSteth = async (
   });
   if (!confirm) return;
 
-  await callWriteMethodWithReceipt({
+  await callWriteMethodsWithReportFresh({
+    vault,
     contract,
     methodName: 'mintStETH',
     payload: [recipient, amountOfSteth],

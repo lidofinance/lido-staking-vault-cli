@@ -1,4 +1,4 @@
-import { formatEther } from 'viem';
+import { formatEther, Hex, TransactionReceipt } from 'viem';
 
 import {
   getStethContract,
@@ -7,18 +7,23 @@ import {
 } from 'contracts';
 import { getAccount } from 'providers';
 import {
-  callReadMethod,
   callReadMethodSilent,
   callWriteMethodWithReceipt,
   confirmOperation,
   logInfo,
+  PopulatedTx,
 } from 'utils';
 
 export const checkAllowance = async (
   contract: DashboardContract,
   amount: bigint,
   token: 'steth' | 'wsteth' | 'shares',
-) => {
+  populateTx?: boolean,
+): Promise<{
+  receipt?: TransactionReceipt;
+  tx?: Hex;
+  data?: PopulatedTx;
+} | void> => {
   const accountAddress = (await getAccount()).address;
   const isShares = token === 'shares';
   let currentAmount = amount;
@@ -26,7 +31,7 @@ export const checkAllowance = async (
   if (token === 'steth' || isShares) {
     const stethContract = await getStethContract();
 
-    const allowance = await callReadMethod(stethContract, 'allowance', [
+    const allowance = await callReadMethodSilent(stethContract, 'allowance', [
       accountAddress,
       contract.address,
     ]);
@@ -46,19 +51,21 @@ export const checkAllowance = async (
       );
       if (!confirm) throw new Error('Allowance not set');
 
-      await callWriteMethodWithReceipt({
+      return await callWriteMethodWithReceipt({
         contract: stethContract,
         methodName: 'approve',
         payload: [contract.address, currentAmount],
+        populateTx,
       });
     }
   } else {
     const wstethContract = await getWstethContract();
 
-    const wstethAllowance = await callReadMethod(wstethContract, 'allowance', [
-      accountAddress,
-      accountAddress,
-    ]);
+    const wstethAllowance = await callReadMethodSilent(
+      wstethContract,
+      'allowance',
+      [accountAddress, contract.address],
+    );
     if (wstethAllowance < amount) {
       logInfo('Insufficient allowance');
 
@@ -67,10 +74,11 @@ export const checkAllowance = async (
       );
       if (!confirm) throw new Error('Allowance not set');
 
-      await callWriteMethodWithReceipt({
+      return await callWriteMethodWithReceipt({
         contract: wstethContract,
         methodName: 'approve',
         payload: [contract.address, amount],
+        populateTx,
       });
     }
   }

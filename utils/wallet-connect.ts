@@ -250,7 +250,9 @@ const connectWalletConnect = async () => {
 };
 
 export const disconnectWalletConnect = async () => {
-  await cachedSignClient?.disconnect({
+  if (!cachedSignClient) return;
+
+  await cachedSignClient.disconnect({
     topic: cachedSession?.topic as string,
     reason: {
       code: 4001,
