@@ -21,3 +21,9 @@ export const getClient = () =>
     chain: getChain(),
     transport: http(getElUrl()),
   });
+
+export const jumpForward = async (seconds: number) => {
+  const testClient = getTestClient();
+  await testClient.increaseTime({ seconds });
+  await testClient.mine({ blocks: 1 });
+};

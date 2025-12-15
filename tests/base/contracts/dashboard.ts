@@ -2,14 +2,14 @@ import {
   getContract,
   Address,
   GetContractReturnType,
-  WalletClient,
+  PublicClient,
 } from 'viem';
 import { DashboardAbi } from '../../../abi';
 import { getClient, callReadMethodSilent } from '../providers';
 
 export const getDashboardContract = async (
   address: Address,
-): Promise<GetContractReturnType<typeof DashboardAbi, WalletClient>> => {
+): Promise<GetContractReturnType<typeof DashboardAbi, PublicClient>> => {
   return getContract({
     address: address,
     abi: DashboardAbi,

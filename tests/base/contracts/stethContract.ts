@@ -1,6 +1,6 @@
 import { formatEther, getContract } from 'viem';
 
-import { getTestClient, callReadMethodSilent } from '../providers';
+import { callReadMethodSilent, getClient } from '../providers';
 import { getLocatorContract } from './lidoLocator';
 import { StEthAbi } from '../../../abi';
 
@@ -11,7 +11,7 @@ export const getStethContract = async () => {
   return getContract({
     address: address,
     abi: StEthAbi,
-    client: getTestClient(),
+    client: getClient(),
   });
 };
 

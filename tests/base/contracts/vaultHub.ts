@@ -6,7 +6,7 @@ import {
   PublicClient,
 } from 'viem';
 import { VaultHubAbi } from '../../../abi';
-import { getTestClient, callReadMethodSilent } from '../providers';
+import { callReadMethodSilent, getClient } from '../providers';
 
 export const getVaultHubContract = async (): Promise<
   GetContractReturnType<typeof VaultHubAbi, PublicClient>
@@ -16,7 +16,7 @@ export const getVaultHubContract = async (): Promise<
   return getContract({
     address: address,
     abi: VaultHubAbi,
-    client: getTestClient(),
+    client: getClient(),
   });
 };
 

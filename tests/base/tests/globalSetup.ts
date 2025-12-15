@@ -68,4 +68,82 @@
 //     process.env.DASHBOARD_ADDRESS = vaultData.dashboardAddress;
 //   });
 // });
-export {};
+
+import { test } from './test.fixture';
+import { formatEther, Hex } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
+import { getStandConfig } from '../config';
+import {
+  createVote,
+  executeVote,
+  getLdoTokenBalance,
+  getProposalsCount,
+  getVote,
+  getVotesTotalAmount,
+  processProposals,
+  vote,
+} from '../tempDelete/contracts';
+import { ldoTokenAbi } from '../tempDelete/abi';
+import { expect } from '@playwright/test';
+import { jumpForward } from '../providers';
+import { DAY_SEC } from '../tempDelete/voteCreationData';
+
+const QUORUM_THRESHOLD = 60000001;
+const daysBeforeVoteCanBeEnacted = 5;
+
+test('Setup: create vote and process DG proposals', async ({
+  ethereumNodeService,
+}) => {
+  const account = privateKeyToAccount(
+    ethereumNodeService.getAccount(0).secretKey as Hex,
+  );
+
+  await test.step('Set LDO balance for quorum vote', async () => {
+    await ethereumNodeService.setErc20BalanceImpersonate(
+      ldoTokenAbi,
+      getStandConfig().contracts.ldoContract,
+      ethereumNodeService.getAccount(0),
+      QUORUM_THRESHOLD,
+    );
+
+    const ldoTokenBalance = await getLdoTokenBalance(account.address);
+    expect(formatEther(ldoTokenBalance)).toBe(String(QUORUM_THRESHOLD));
+  });
+
+  const voteId = await test.step('Create vote', async () => {
+    const voteData = getStandConfig().voteCreationData;
+    const voteCountBefore = Number(await getVotesTotalAmount());
+
+    await createVote(account, voteData);
+
+    const voteCountAfter = Number(await getVotesTotalAmount());
+    expect(voteCountAfter).toBe(voteCountBefore + 1);
+
+    return voteCountAfter;
+  });
+
+  const voteNumber = voteId - 1;
+
+  await test.step('Pass vote, enact and process DG', async () => {
+    await vote(account, voteNumber, true, true);
+
+    await jumpForward(daysBeforeVoteCanBeEnacted * DAY_SEC);
+
+    const proposalsCountBefore = await getProposalsCount();
+    await executeVote(account, voteNumber);
+
+    const { open: isVoteOpen, executed: isVoteExecuted } =
+      await getVote(voteNumber);
+    expect(isVoteOpen).toBe(false);
+    expect(isVoteExecuted).toBe(true);
+
+    const proposalsCountAfter = await getProposalsCount();
+    if (proposalsCountAfter > proposalsCountBefore) {
+      const newProposalIds: bigint[] = [];
+      for (let i = proposalsCountBefore + 1n; i <= proposalsCountAfter; i++) {
+        newProposalIds.push(i);
+      }
+      await processProposals(account, newProposalIds);
+    }
+  });
+});

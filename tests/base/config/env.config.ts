@@ -6,6 +6,7 @@ import { ENV_CONFIG } from './env.validation';
 import { Address, Chain } from 'viem';
 import { SUPPORTED_CHAINS_LIST } from './constants';
 import { EthereumNodeServiceOptions } from '@lidofinance/wallets-testing-nodes';
+import { TESTNET_VOTE_DATA } from '../tempDelete/voteCreationData';
 
 export const getChain = (): Chain => {
   const chainId = getStandConfig().networkConfig.chainId;
@@ -38,7 +39,17 @@ export const getElUrl = () => {
 export interface StandConfig {
   networkConfig: NetworkConfig;
   deployed: string;
-  contracts: { operatorGrid: Address; lidoLocator: Address };
+  contracts: {
+    operatorGrid: Address;
+    lidoLocator: Address;
+    //
+    aragonTokenManager: Address;
+    aragonVoting: Address;
+    ldoContract: Address;
+    dgEmergencyProtectedTimeLockContract: Address;
+    dualGovernanceContract: Address;
+  };
+  voteCreationData: string;
   nodeConfig: EthereumNodeServiceOptions & {
     host: string;
   };
@@ -68,7 +79,16 @@ export const STAND_CONFIGS = new Map<string, StandConfig>([
       contracts: {
         operatorGrid: '0x501e678182bB5dF3f733281521D3f3D1aDe69917',
         lidoLocator: '0xe2EF9536DAAAEBFf5b1c130957AB3E80056b06D8',
+
+        //
+        ldoContract: '0xEf2573966D009CcEA0Fc74451dee2193564198dc',
+        aragonTokenManager: '0x8ab4a56721Ad8e68c6Ad86F9D9929782A78E39E5',
+        aragonVoting: '0x49B3512c44891bef83F8967d075121Bd1b07a01B',
+        dgEmergencyProtectedTimeLockContract:
+          '0x0A5E22782C0Bd4AddF10D771f0bF0406B038282d',
+        dualGovernanceContract: '0x9CAaCCc62c66d817CC59c44780D1b722359795bF',
       },
+      voteCreationData: TESTNET_VOTE_DATA,
     },
   ],
   // mainnet

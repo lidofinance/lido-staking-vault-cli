@@ -45,7 +45,7 @@ const tierParams2: TierParams = {
   reservationFeeBP: BigInt('100'),
 };
 
-test.describe.serial.only('One step process', () => {
+test.describe.serial('One step process', () => {
   let vaultAddress: Address;
   let dashboardAddress: Address;
   let nodeUrl: string;
