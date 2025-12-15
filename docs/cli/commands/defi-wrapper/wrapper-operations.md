@@ -44,11 +44,13 @@ Wrapper Operations commands manage DeFi wrapper pools including creation, config
 
 #### Create Pool
 
-| Command               | Description                                                   |
-| --------------------- | ------------------------------------------------------------- |
-| create-pool-ggv       | initiates deployment of a GGV strategy pool                   |
-| create-pool-stv       | initiates deployment of a STV staking pool                    |
-| create-pool-stv-steth | initiates deployment of a STV-STETH pool with minting enabled |
+| Command                | Description                                                   |
+| ---------------------- | ------------------------------------------------------------- |
+| create-pool-ggv        | initiates deployment of a GGV strategy pool                   |
+| create-pool-stv        | initiates deployment of a STV staking pool                    |
+| create-pool-stv-steth  | initiates deployment of a STV-STETH pool with minting enabled |
+| create-pool-finalize   | finalizes the deployment of a pool                            |
+| log-creating-pool-data | logs the data of the created pool for UI configuration        |
 
 ## Command Details
 
@@ -252,6 +254,55 @@ yarn start dw uc wo w create-pool create-pool-stv-steth 0x1234...factory
 - Configurable reserve ratio for safety
 - Optional allow list for access control
 - Forced rebalance protection for unhealthy positions
+
+### create-pool-finalize
+
+Finalizes the deployment of a pool. Used if the pool creation was not finalized in the first step (Multisig case).
+
+**Arguments:**
+
+- `<address>`: Factory contract address
+- `<txHash>`: Transaction hash of the first step of the pool creation
+
+**Process:**
+
+1. Retrieves transaction receipt from the provided transaction hash
+2. Extracts pool creation event data from the receipt
+3. Logs the pool creation event data
+4. Executes pool creation finalization
+
+**Example:**
+
+```bash
+yarn start dw uc wo w create-pool create-pool-finalize 0x1234...factory 0xabcd...txHash
+```
+
+**Use Case:** Complete pool deployment when the initial creation transaction was sent from a multisig wallet and finalization needs to be performed separately.
+
+### log-creating-pool-data
+
+Logs the data of the created pool. Will be necessary for use in the UI configuration.
+
+**Arguments:**
+
+- `<txHash>`: Transaction hash of the first step of the pool creation
+- `<finalizeTxHash>`: Transaction hash of the final step of the pool creation
+
+**Process:**
+
+1. Retrieves transaction receipts for both creation steps
+2. Extracts event data from both transactions
+3. Logs comprehensive pool data including:
+   - Pool creation event data (first step)
+   - Pool finalization event data (final step)
+
+**Example:**
+
+```bash
+yarn start dw uc wo w create-pool log-creating-pool-data 0xabcd...txHash 0xefgh...finalizeTxHash
+```
+
+**Use Case:** Generate pool configuration data for UI integration after pool deployment is complete.
 
 ## Troubleshooting
 
