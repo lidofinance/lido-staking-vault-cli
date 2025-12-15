@@ -37,3 +37,4 @@ cache/*
 
 # lsv-web-terminal
 lsv-web-terminal
+.anvil.pid

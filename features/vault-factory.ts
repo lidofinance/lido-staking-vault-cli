@@ -145,8 +145,10 @@ export const getVaultFactoryInfo = async () => {
   try {
     const BEACON = await contract.read.BEACON();
     const LIDO_LOCATOR = await contract.read.LIDO_LOCATOR();
+    const CONTRACT_ADDRESS = contract.address;
 
     const payload = {
+      CONTRACT_ADDRESS,
       BEACON,
       LIDO_LOCATOR,
     };

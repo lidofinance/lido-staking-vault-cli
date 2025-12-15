@@ -44,23 +44,71 @@
     ],
     "import/no-cycle": ["error", { "maxDepth": 1 }],
     "unicorn/expiring-todo-comments": "off",
-    "jest/expect-expect": [
-      "error",
-      { "assertFunctionNames": ["expect", "expect*"] }
-    ],
-    "jest/no-standalone-expect": [
-      "error",
-      {
-        "additionalTestBlockFunctions": [
-          "testSpending",
-          "testSpending.concurrent",
-          "testSpending.skip",
-          "testSpending.only",
-          "testSpending.todo"
-        ]
-      }
-    ]
+    "jest/no-disabled-tests": "off",
+    "jest/no-focused-tests": "off",
+    "jest/no-identical-title": "off",
+    "jest/prefer-to-have-length": "off",
+    "jest/valid-expect": "off",
+    "jest/no-conditional-expect": "off",
+    "jest/no-export": "off",
+    "jest/no-standalone-expect": "off",
+    "jest/expect-expect": "off",
+    "jest/valid-title": "off",
+    "jest/no-commented-out-tests": "off",
+    "jest/no-deprecated-functions": "off",
+    "jest/no-done-callback": "off",
+    "jest/no-duplicate-hooks": "off",
+    "jest/no-test-prefixes": "off",
+    "jest/prefer-called-with": "off",
+    "jest/prefer-spy-on": "off",
+    "jest/require-top-level-describe": "off",
+    "jest/valid-describe-callback": "off"
   },
+  "overrides": [
+    {
+      "files": ["**/*.test.ts", "**/*.spec.ts"],
+      "plugins": ["vitest"],
+      "rules": {
+        "vitest/max-nested-describe": [
+          "error",
+          {
+            "max": 3
+          }
+        ],
+        "vitest/expect-expect": [
+          "error",
+          { "assertFunctionNames": ["expect", "expect*"] }
+        ],
+        "vitest/no-standalone-expect": [
+          "error",
+          {
+            "additionalTestBlockFunctions": [
+              "testSpending",
+              "testSpending.concurrent",
+              "testSpending.skip",
+              "testSpending.only",
+              "testSpending.todo"
+            ]
+          }
+        ],
+        "vitest/no-disabled-tests": "error",
+        "vitest/no-focused-tests": "error",
+        "vitest/no-identical-title": "error",
+        "vitest/valid-expect": "error",
+        "vitest/no-conditional-expect": "error",
+        "vitest/valid-title": "error",
+        "vitest/no-commented-out-tests": "warn",
+        "vitest/no-done-callback": "error",
+        "vitest/no-duplicate-hooks": "error",
+        "vitest/no-test-prefixes": "error",
+        "vitest/prefer-called-with": "off",
+        "vitest/prefer-spy-on": "warn",
+        "vitest/prefer-to-have-length": "off",
+        "vitest/require-top-level-describe": "off",
+        "vitest/valid-describe-callback": "error"
+      }
+    }
+  ],
   "settings": {
     "import/resolver": {
       "typescript": {},

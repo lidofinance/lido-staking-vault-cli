@@ -1,5 +1,6 @@
-import { describe, test, expect, beforeEach, jest } from '@jest/globals';
+import { describe, test, expect, beforeEach, vi } from 'vitest';
 import { program } from 'commander';
+import type { Mock } from 'vitest';
 
 import {
   stringToBigIntArray,
@@ -21,14 +22,14 @@ const MOCK_HEX_ARRAY = [
   '23f3254f7bf057539113fc6b5971d80958618a1234eea717ab5ad345e083df7fceaf55f48716409d3df5adb4f38c4900',
 ];
 
-jest.mock('commander', () => ({ program: { error: jest.fn() } }));
+vi.mock('commander', () => ({ program: { error: vi.fn() } }));
 
-let programError: jest.Mock;
+let programError: Mock;
 
 beforeEach(() => {
   // eslint-disable-next-line @typescript-eslint/unbound-method
-  programError = program.error as unknown as jest.Mock;
-  jest.clearAllMocks();
+  programError = program.error as unknown as Mock;
+  vi.clearAllMocks();
 });
 
 describe('arguments utils', () => {

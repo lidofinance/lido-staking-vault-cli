@@ -4,6 +4,7 @@ import Table, {
   type CrossTableRow,
   type TableConstructorOptions,
 } from 'cli-table3';
+import { program } from 'command';
 
 import { getColoredLog, HeadMessage, TABLE_PARAMS } from './constants.js';
 import { exportCsv } from '../csv-file.js';
@@ -14,6 +15,19 @@ type CreateTableArgs = {
   csvPath?: string;
 };
 
+const bigIntStringify = <T>(value: T): string => {
+  return JSON.stringify(
+    value,
+    (_key, value) => {
+      if (typeof value === 'bigint') {
+        return value.toString();
+      }
+      return value;
+    },
+    2,
+  );
+};
+
 export const createConsole = (
   headMessage: HeadMessage,
   type: 'info' | 'error' | 'table' | 'bold' = 'info',
@@ -21,13 +35,34 @@ export const createConsole = (
   return <T, U>(...args: T[] | U[]) => {
     switch (type) {
       case 'table':
+        if (program.opts().json) {
+          console.info(`\n${getColoredLog(headMessage, headMessage + ':')}`);
+          console.info('<JSON>');
+          console.info(bigIntStringify(args));
+          console.info('</JSON>');
+          return;
+        }
         console.info(`\n${getColoredLog(headMessage, headMessage + ':')}`);
         console.table(...args);
         break;
       case 'bold':
+        if (program.opts().json) {
+          console.info(`\n${getColoredLog(headMessage, headMessage + ':')}`);
+          console.info('<JSON>');
+          console.info(bigIntStringify({ Result: args }));
+          console.info('</JSON>');
+          return;
+        }
         console.info(getColoredLog(headMessage, args));
         break;
       default:
+        if (program.opts().json) {
+          console.info(`\n${getColoredLog(headMessage, headMessage + ':')}`);
+          console.info('<JSON>');
+          console.info(bigIntStringify({ Result: args }));
+          console.info('</JSON>');
+          return;
+        }
         // eslint-disable-next-line no-console
         console[type](
           `\n${getColoredLog(headMessage, headMessage + ':')}`,
@@ -44,9 +79,16 @@ const createTable = (headMessage?: HeadMessage) => (args: CreateTableArgs) => {
 
   if (!data) return;
 
-  const table = new Table({ ...TABLE_PARAMS, ...params });
-  table.push(...data);
-  console.info(table.toString());
+  if (program.opts().json) {
+    console.info('<JSON>');
+    console.info(bigIntStringify({ Result: data }));
+    console.info('</JSON>');
+    return;
+  } else {
+    const table = new Table({ ...TABLE_PARAMS, ...params });
+    table.push(...data);
+    console.info(table.toString());
+  }
 
   if (csvPath) {
     exportCsv({

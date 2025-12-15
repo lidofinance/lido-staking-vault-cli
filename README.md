@@ -109,6 +109,48 @@ yarn start contracts hub r v-count
   - [VaultViewer](https://lidofinance.github.io/lido-staking-vault-cli/commands/contracts/vault-viewer)
   - [Vault](https://lidofinance.github.io/lido-staking-vault-cli/commands/contracts/vault)
 
+## Testing
+
+### Unit Tests
+
+Run unit tests for utilities and helpers:
+
+```bash
+yarn test
+```
+
+### Integration Tests
+
+Integration tests run on a forked chain to test real contract interactions.
+
+#### Setup
+
+1. Install dependencies (includes Anvil via `@viem/anvil`):
+
+   ```bash
+   yarn install
+   ```
+
+2. Create test configuration:
+   ```bash
+   cp env.test.example .env.test
+   # Edit .env.test and set your RPC_URL
+   ```
+
+#### Running Tests
+
+Anvil starts automatically when you run tests:
+
+```bash
+# All integration tests (Anvil starts automatically)
+yarn test:integration
+
+# Watch mode
+yarn test:integration:watch
+```
+
+For detailed information, see [tests/integration/README.md](tests/integration/README.md).
+
 ## Documentation
 
 For additional information about available methods and functionality, refer to [the documentation for the Lido Staking Vault CLI](https://lidofinance.github.io/lido-staking-vault-cli/).
