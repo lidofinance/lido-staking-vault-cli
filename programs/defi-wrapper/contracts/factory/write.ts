@@ -33,6 +33,9 @@ type AllowlistableOptions = {
   allowListEnabled?: boolean;
 };
 
+const FIRST_STEP_MESSAGE =
+  'Transaction has been sent. Use "dw use-cases wrapper-operations write create-pool-finalize" command to finalize the pool creation after the transaction is signed and executed';
+
 const factoryWrite = factory
   .command('write')
   .alias('w')
@@ -131,9 +134,7 @@ applyCommonOptions(
       });
 
       if (!result.receipt || !result.tx) {
-        logInfo(
-          'Transaction has been sent. Use "dw use-cases wrapper-operations write create-pool-finalize" command to finalize the pool creation after the transaction is signed and executed',
-        );
+        logInfo(FIRST_STEP_MESSAGE);
         return;
       }
 
@@ -197,9 +198,7 @@ applyCommonOptions(
       });
 
       if (!result.receipt || !result.tx) {
-        logInfo(
-          'Transaction has been sent. Use "dw use-cases wrapper-operations write create-pool-finalize" command to finalize the pool creation after the transaction is signed and executed',
-        );
+        logInfo(FIRST_STEP_MESSAGE);
         return;
       }
 
@@ -285,9 +284,7 @@ applyCommonOptions(
       });
 
       if (!result.receipt || !result.tx) {
-        logInfo(
-          'Transaction has been sent. Use "dw use-cases wrapper-operations write create-pool-finalize" command to finalize the pool creation after the transaction is signed and executed',
-        );
+        logInfo(FIRST_STEP_MESSAGE);
         return;
       }
 
