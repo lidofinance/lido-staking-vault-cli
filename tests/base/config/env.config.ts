@@ -75,7 +75,7 @@ export const STAND_CONFIGS = new Map<string, StandConfig>([
           : NETWORKS_CONFIG.testnet.ETHEREUM_HOODI.rpcUrl,
       },
       nodeConfig: {
-        rpcUrlToMock: `**/api/rpc?chainId=560048`,
+        rpcUrlToMock: `**/api/rpc?chainId=560048`, // not required
         rpcUrl: process.env.RPC_URL as string,
         host: '127.0.0.1',
         port: 8545,

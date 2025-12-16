@@ -106,7 +106,7 @@ export const overview = async (
           case 'Reserve Ratio, %':
             reserveRatioPercent = value;
             break;
-          case 'Force Rebalance Threshold':
+          case 'Force Rebalance Threshold, %':
             forceRebalanceThreshold = value;
             break;
           case 'stVault Share Limit, stETH':

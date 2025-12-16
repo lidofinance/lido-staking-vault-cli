@@ -2,6 +2,7 @@ import {
   Address,
   createPublicClient,
   createTestClient,
+  formatEther,
   http,
   publicActions,
   walletActions,
@@ -19,7 +20,7 @@ export const getTestClient = () =>
 
 export const getBalanceEth = async (address: Address) => {
   const testClient = getTestClient();
-  return await testClient.getBalance({ address: address });
+  return formatEther(await testClient.getBalance({ address: address }));
 };
 
 export const getClient = () =>

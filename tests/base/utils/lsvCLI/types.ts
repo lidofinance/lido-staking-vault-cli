@@ -1,4 +1,4 @@
-import { Address } from 'viem';
+import { Address, Hex } from 'viem';
 
 export type RoleAssignment = {
   account: string;
@@ -20,6 +20,7 @@ export type CreateVaultParams = {
 export type VaultCreationResult = {
   vaultAddress: Address;
   dashboardAddress: Address;
+  txHash: Hex;
 };
 
 export type VaultInfo = {

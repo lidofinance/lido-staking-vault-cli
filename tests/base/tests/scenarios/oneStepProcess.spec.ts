@@ -21,9 +21,10 @@ import {
   getTotalMintingCapacityShares,
   getPooledEthBySharesRoundUp,
   getWithdrawValue,
+  getStEthBalance,
 } from '../../contracts';
 import process from 'node:process';
-import { getBalanceEth } from '../../providers';
+import { getBalanceEth, getClient } from '../../providers';
 
 const CONFIRM_EXPIRY = 86400;
 const NO_FEE_RATE = 100;
@@ -72,12 +73,17 @@ test.describe.serial('One step process', () => {
   test('Create vault connected to vault hub && configure with all roles ', async ({
     ethereumNodeService,
   }) => {
+    const vaultCreatorAccount = ethereumNodeService.getAccount(
+      getPermissionRole(ROLES.DEFAULT_ADMIN).index,
+    );
+    const publicClient = getClient();
+    const vaultCreatorBalanceBeforeCreate = await publicClient.getBalance({
+      address: vaultCreatorAccount.address as Address,
+    });
+
     const vaultData =
       await test.step('Create vault connected to VaultHub && grant all VM roles', async () => {
         const additionalRoles = buildAdditionalRoles(ethereumNodeService);
-        const vaultCreatorPK = ethereumNodeService.getAccount(
-          getPermissionRole(ROLES.DEFAULT_ADMIN).index,
-        ).secretKey;
 
         return await lsvCLI.factory.createVaultConnectedToVh({
           defaultAdmin: roles.defaultAdmin.address,
@@ -86,7 +92,7 @@ test.describe.serial('One step process', () => {
           confirmExpiry: CONFIRM_EXPIRY,
           nodeOperatorFeeRate: NO_FEE_RATE,
           roles: additionalRoles,
-          privateKey: vaultCreatorPK,
+          privateKey: vaultCreatorAccount.secretKey,
         });
       });
 
@@ -105,10 +111,29 @@ test.describe.serial('One step process', () => {
         ).toBe(expectedVaultConnection);
       });
 
-      await test.step('Check vault metrics', async () => {
+      await test.step('Check collateral', async () => {
+        const receipt =
+          (await publicClient
+            .getTransactionReceipt({ hash: vaultData.txHash })
+            .catch(() => undefined)) ||
+          (await publicClient.waitForTransactionReceipt({
+            hash: vaultData.txHash,
+          }));
+        const vaultCreatorBalanceAfterCreation = await publicClient.getBalance({
+          address: vaultCreatorAccount.address as Address,
+        });
+        const txFee = receipt.gasUsed * receipt.effectiveGasPrice;
+        const vaultCreatorBalanceDifference =
+          vaultCreatorBalanceBeforeCreate -
+          vaultCreatorBalanceAfterCreation -
+          txFee;
         const { totalValueEth, collateralEth } =
           await lsvCLI.dashboard.overview(dashboardAddress);
 
+        expect(
+          vaultCreatorBalanceDifference,
+          `Vault creation requires collateral of ${LIDO_CONNECTION_COLLATERAL} ETH`,
+        ).toBe(parseEther(LIDO_CONNECTION_COLLATERAL));
         expect(
           collateralEth,
           `Vault creation requires collateral of ${LIDO_CONNECTION_COLLATERAL} ETH`,
@@ -289,6 +314,9 @@ test.describe.serial('One step process', () => {
       ethereumNodeService.getAccount(getPermissionRole(ROLES.BURN).index)
         .address,
     );
+    const recipientStEthBalanceBeforeMint = await getStEthBalance(
+      recipientRepayRoleAddress,
+    );
 
     await lsvCLI.vo.mintStEth(
       vaultAddress,
@@ -304,6 +332,11 @@ test.describe.serial('One step process', () => {
     const liabilityShares = await getLiabilityShares(dashboardAddress);
     const contractLiabilityStEth =
       await getPooledEthBySharesRoundUp(liabilityShares);
+    const calculatedRecipientStEthBalanceAfterMint =
+      parseFloat(recipientStEthBalanceBeforeMint) + parseFloat(mintAmount);
+    const recipientStEthBalanceAfterMint = parseFloat(
+      await getStEthBalance(recipientRepayRoleAddress),
+    );
 
     expect(
       dashboardLiabilityShares,
@@ -313,7 +346,10 @@ test.describe.serial('One step process', () => {
       dashboardLiabilityStEth,
       'Expect dashboard liability stETH to be correct with contract',
     ).toBe(contractLiabilityStEth);
-    // add check for stETH to be mint to recipient
+    expect(
+      recipientStEthBalanceAfterMint,
+      'Expect recipient stEth address receives correct amount',
+    ).toBe(calculatedRecipientStEthBalanceAfterMint);
   });
 
   test(`Burn stETH as ${ROLES.BURN}`, async ({ ethereumNodeService }) => {
@@ -376,10 +412,10 @@ test.describe.serial('One step process', () => {
       await lsvCLI.dashboard.overview(dashboardAddress);
 
     const withdrawRecipientBalanceAfterWithdraw = parseFloat(
-      formatEther(await getBalanceEth(withdrawRecipientAddress)),
+      await getBalanceEth(withdrawRecipientAddress),
     );
     const calculatedWithdrawRecipientBalanceAfter =
-      parseFloat(formatEther(withdrawRecipientBalanceBeforeWithdraw)) +
+      parseFloat(withdrawRecipientBalanceBeforeWithdraw) +
       parseFloat(availableToWithdrawalEthBefore);
 
     const contractWithdrawableValue = formatEther(

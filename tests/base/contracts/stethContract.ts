@@ -1,4 +1,4 @@
-import { formatEther, getContract } from 'viem';
+import { Address, formatEther, getContract } from 'viem';
 
 import { callReadMethodSilent, getClient } from '../providers';
 import { getLocatorContract } from './lidoLocator';
@@ -20,6 +20,13 @@ export const getPooledEthByShares = async (shares: bigint) => {
 
   return formatEther(
     await callReadMethodSilent(contract, 'getPooledEthByShares', [shares]),
+  );
+};
+
+export const getStEthBalance = async (address: Address) => {
+  const contract = await getStethContract();
+  return formatEther(
+    await callReadMethodSilent(contract, 'balanceOf', [address]),
   );
 };
 

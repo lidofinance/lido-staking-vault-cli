@@ -1,5 +1,5 @@
 import { spawn } from 'child_process';
-import { Address } from 'viem';
+import { Address, Hex } from 'viem';
 import type { CreateVaultParams, VaultCreationResult } from '../types';
 
 export const createVaultConnectedToVh = async (
@@ -68,6 +68,13 @@ export const createVaultConnectedToVh = async (
           (line) => line.includes('Dashboard Address') && line.includes('0x'),
         );
 
+      const txHashLine = stdout
+        .split('\n')
+        .find(
+          (line) => line.includes('Transaction Hash ') && line.includes('0x'),
+        );
+      const txHashMatch = txHashLine?.match(/(0x[a-fA-F0-9]{64})/);
+
       const vaultAddressMatch = vaultLine?.match(/(0x[a-fA-F0-9]{40})/);
       const dashboardAddressMatch = dashboardLine?.match(/(0x[a-fA-F0-9]{40})/);
 
@@ -83,9 +90,16 @@ export const createVaultConnectedToVh = async (
         );
       }
 
+      if (!txHashMatch?.[1]) {
+        return reject(
+          new Error('Transaction hash not found in CLI output:\n' + stdout),
+        );
+      }
+
       resolve({
         vaultAddress: vaultAddressMatch[1] as Address,
         dashboardAddress: dashboardAddressMatch[1] as Address,
+        txHash: txHashMatch[1] as Hex,
       });
     });
 

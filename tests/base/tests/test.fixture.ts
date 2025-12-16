@@ -20,10 +20,11 @@ export const test = base.extend<
   ],
   ethereumNodeService: [
     async ({ nodeRunOptions }, use) => {
-      const nodeConfig = getStandConfig().nodeConfig;
+      const { networkConfig, nodeConfig } = getStandConfig();
       const ethereumNodeService = new EthereumNodeService({
         ...nodeConfig,
         runOptions: nodeRunOptions,
+        rpcUrl: networkConfig.rpcUrl,
       });
       await ethereumNodeService.startNode();
 
