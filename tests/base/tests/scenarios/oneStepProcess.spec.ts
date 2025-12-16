@@ -9,18 +9,21 @@ import {
   ROLES,
 } from '../../testData/roles.data';
 import lsvCLI, { OperatorGridMock } from '../../utils';
-import { Address, formatEther, parseEther } from 'viem';
+import { Address, formatEther, getAddress, parseEther } from 'viem';
 import {
   DEFAULT_TIER_ID,
   DEFAULT_TIER_PARAMS,
+  LIDO_CONNECTION_COLLATERAL,
   TierParams,
 } from '../../testData/consts';
 import {
   getLiabilityShares,
   getTotalMintingCapacityShares,
   getPooledEthBySharesRoundUp,
+  getWithdrawValue,
 } from '../../contracts';
 import process from 'node:process';
+import { getBalanceEth } from '../../providers';
 
 const CONFIRM_EXPIRY = 86400;
 const NO_FEE_RATE = 100;
@@ -282,14 +285,15 @@ test.describe.serial('One step process', () => {
     const mintRolePK = ethereumNodeService.getAccount(
       getPermissionRole(ROLES.MINT).index,
     ).secretKey;
-    const recipientRepayRoleAddress = ethereumNodeService.getAccount(
-      getPermissionRole(ROLES.BURN).index,
-    ).address;
+    const recipientRepayRoleAddress = getAddress(
+      ethereumNodeService.getAccount(getPermissionRole(ROLES.BURN).index)
+        .address,
+    );
 
     await lsvCLI.vo.mintStEth(
       vaultAddress,
       mintAmount,
-      recipientRepayRoleAddress as Address,
+      recipientRepayRoleAddress,
       mintRolePK,
     );
 
@@ -348,33 +352,48 @@ test.describe.serial('One step process', () => {
     const withdrawRolePK = ethereumNodeService.getAccount(
       getPermissionRole(ROLES.WITHDRAW).index,
     ).secretKey;
-    const recipientWithdrawRoleAddress = ethereumNodeService.getAccount(
-      getPermissionRole(ROLES.BURN).index,
-    ).address;
+    const withdrawRecipientAddress = getAddress(
+      ethereumNodeService.getAccount(getPermissionRole(ROLES.STRANGER).index)
+        .address,
+    );
+
+    const withdrawRecipientBalanceBeforeWithdraw = await getBalanceEth(
+      withdrawRecipientAddress,
+    );
 
     // Full withdraw
-    const { liabilitySteth: liabilityStEthBeforeRepay } =
+    const { availableToWithdrawalEth: availableToWithdrawalEthBefore } =
       await lsvCLI.dashboard.overview(dashboardAddress);
 
     await lsvCLI.vo.withdraw(
       vaultAddress,
-      liabilityStEthBeforeRepay,
-      recipientWithdrawRoleAddress as Address,
+      availableToWithdrawalEthBefore,
+      withdrawRecipientAddress,
       withdrawRolePK,
     );
 
-    const { availableToWithdrawalEth: dashboardLiabilityStEth } =
+    const { availableToWithdrawalEth: availableToWithdrawalEthAfter } =
       await lsvCLI.dashboard.overview(dashboardAddress);
 
-    const contractLiabilityShares = await getLiabilityShares(dashboardAddress);
-    const contractLiabilityStEth = await getPooledEthBySharesRoundUp(
-      contractLiabilityShares,
+    const withdrawRecipientBalanceAfterWithdraw = parseFloat(
+      formatEther(await getBalanceEth(withdrawRecipientAddress)),
+    );
+    const calculatedWithdrawRecipientBalanceAfter =
+      parseFloat(formatEther(withdrawRecipientBalanceBeforeWithdraw)) +
+      parseFloat(availableToWithdrawalEthBefore);
+
+    const contractWithdrawableValue = formatEther(
+      await getWithdrawValue(dashboardAddress),
     );
 
     expect(
-      dashboardLiabilityStEth,
-      'Expect dashboard liability to be correct with contract after burn',
-    ).toBe(contractLiabilityStEth);
-    expect(dashboardLiabilityStEth).toBe('0');
+      contractWithdrawableValue,
+      'Expect dashboard available to withdraw to be correct with contract',
+    ).toBe(availableToWithdrawalEthAfter);
+    expect(availableToWithdrawalEthAfter).toBe('0');
+    expect(
+      withdrawRecipientBalanceAfterWithdraw,
+      'Expect recipient resieve withdrawable eth',
+    ).toBe(calculatedWithdrawRecipientBalanceAfter);
   });
 });

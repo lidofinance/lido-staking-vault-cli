@@ -1,4 +1,5 @@
 import {
+  Address,
   createPublicClient,
   createTestClient,
   http,
@@ -15,6 +16,11 @@ export const getTestClient = () =>
   })
     .extend(publicActions)
     .extend(walletActions);
+
+export const getBalanceEth = async (address: Address) => {
+  const testClient = getTestClient();
+  return await testClient.getBalance({ address: address });
+};
 
 export const getClient = () =>
   createPublicClient({

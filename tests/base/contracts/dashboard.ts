@@ -33,3 +33,8 @@ export const getTotalMintingCapacityShares = async (
 
   return await callReadMethodSilent(contract, 'totalMintingCapacityShares');
 };
+
+export const getWithdrawValue = async (dashboardAddress: Address) => {
+  const contract = await getDashboardContract(dashboardAddress);
+  return await callReadMethodSilent(contract, 'withdrawableValue');
+};
