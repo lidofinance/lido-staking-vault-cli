@@ -6,7 +6,10 @@ import { ENV_CONFIG } from './env.validation';
 import { Address, Chain } from 'viem';
 import { SUPPORTED_CHAINS_LIST } from './constants';
 import { EthereumNodeServiceOptions } from '@lidofinance/wallets-testing-nodes';
-import { TESTNET_VOTE_DATA } from '../tempDelete/voteCreationData';
+import {
+  TESTNET_VOTE_DATA,
+  MAINNET_VOTE_DATA,
+} from '../tempDelete/voteCreationData';
 
 export const getChain = (): Chain => {
   const chainId = getStandConfig().networkConfig.chainId;
@@ -57,6 +60,7 @@ export interface StandConfig {
 
 export const STAND_ENV = {
   hoodiTestnet: '560048',
+  mainnet: '1',
 };
 
 export const STAND_CONFIGS = new Map<string, StandConfig>([
@@ -91,5 +95,34 @@ export const STAND_CONFIGS = new Map<string, StandConfig>([
       voteCreationData: TESTNET_VOTE_DATA,
     },
   ],
-  // mainnet
+  [
+    STAND_ENV.mainnet,
+    {
+      deployed: 'deployed-mainnet-vaults.json',
+      networkConfig: {
+        ...NETWORKS_CONFIG.mainnet.ETHEREUM,
+        rpcUrl: process.env.RPC_URL
+          ? process.env.RPC_URL
+          : NETWORKS_CONFIG.mainnet.ETHEREUM.rpcUrl,
+      },
+      nodeConfig: {
+        rpcUrlToMock: `**/api/rpc?chainId=1`,
+        rpcUrl: process.env.RPC_URL as string,
+        host: '127.0.0.1',
+        port: 8545,
+      },
+      contracts: {
+        operatorGrid: '0xC69685E89Cefc327b43B7234AC646451B27c544d',
+        lidoLocator: '0xC1d0b3DE6792Bf6b4b37EccdcC24e45978Cfd2Eb',
+        //
+        ldoContract: '0x5A98FcBEA516Cf06857215779Fd812CA3beF1B32',
+        aragonTokenManager: '0xf73a1260d222f447210581DDf212D915c09a3249',
+        aragonVoting: '0x2e59A20f205bB85a89C53f1936454680651E618e',
+        dgEmergencyProtectedTimeLockContract:
+          '0xCE0425301C85c5Ea2A0873A2dEe44d78E02D2316',
+        dualGovernanceContract: '0xC1db28B3301331277e307FDCfF8DE28242A4486E',
+      },
+      voteCreationData: MAINNET_VOTE_DATA,
+    },
+  ],
 ]);

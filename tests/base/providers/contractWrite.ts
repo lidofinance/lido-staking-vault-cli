@@ -2,7 +2,7 @@ import { PartialContract, WriteTxArgs } from '../utils';
 import { Address } from 'viem';
 import { waitForTransactionReceipt } from 'viem/actions';
 import { getChain } from '../config';
-import { getClient } from './wallet';
+import { getClient } from './clients';
 
 export const callWriteMethod = async <
   T extends PartialContract,

@@ -23,3 +23,14 @@ export const getLdoTokenBalance = async (address: Address) => {
   const contract = await getLdoTokenContract();
   return await callReadMethodSilent(contract, 'balanceOf', [address]);
 };
+
+export const getLdoTokenBalanceAt = async (
+  address: Address,
+  snapshotBlock: bigint,
+) => {
+  const contract = await getLdoTokenContract();
+  return await callReadMethodSilent(contract, 'balanceOfAt', [
+    address,
+    snapshotBlock,
+  ]);
+};

@@ -1,4 +1,10 @@
-import { getContract, GetContractReturnType, PublicClient, Hex } from 'viem';
+import {
+  getContract,
+  GetContractReturnType,
+  PublicClient,
+  Hex,
+  Address,
+} from 'viem';
 import { getStandConfig } from '../../config';
 import { callReadMethodSilent, getClient } from '../../providers';
 import { aragonVotingAbi } from '../abi';
@@ -105,4 +111,18 @@ export const executeVote = async (account: Account, voteId: any) => {
     methodName: 'executeVote',
     payload: [voteId],
   });
+};
+
+export const canExecuteVote = async (voteId: bigint): Promise<boolean> => {
+  const contract = await getAragonVotingContract();
+  return await callReadMethodSilent(contract, 'canExecute', [voteId]);
+};
+
+// Checks if address can vote on a specific vote
+export const canVote = async (
+  voteId: bigint,
+  address: Address,
+): Promise<boolean> => {
+  const contract = await getAragonVotingContract();
+  return await callReadMethodSilent(contract, 'canVote', [voteId, address]);
 };

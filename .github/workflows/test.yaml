@@ -11,6 +11,7 @@ on:
         default: '560048'
         options:
           - '560048'
+          - '1'
   pull_request:
 
 jobs:

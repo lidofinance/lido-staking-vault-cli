@@ -1,3 +1,4 @@
+import { expect } from '@playwright/test';
 import { getStandConfig } from '../../config';
 import { test } from '../test.fixture';
 import {
@@ -12,20 +13,19 @@ import { Address, formatEther, parseEther } from 'viem';
 import {
   DEFAULT_TIER_ID,
   DEFAULT_TIER_PARAMS,
-  LIDO_CONNECTION_COLLATERAL,
   TierParams,
 } from '../../testData/consts';
-import { expect } from '@playwright/test';
 import {
   getLiabilityShares,
   getTotalMintingCapacityShares,
   getPooledEthBySharesRoundUp,
 } from '../../contracts';
+import process from 'node:process';
 
 const CONFIRM_EXPIRY = 86400;
 const NO_FEE_RATE = 100;
 
-const noGroupLimit = parseEther('1000');
+const noGroupLimit = parseEther('100');
 
 const tierParams1: TierParams = {
   shareLimit: noGroupLimit / 2n,
@@ -54,9 +54,11 @@ test.describe.serial('One step process', () => {
 
   test.beforeAll(async ({ ethereumNodeService, defaultVaultData }) => {
     await test.step('Setup env for CLI', async () => {
+      const standConfig = getStandConfig();
       if (ethereumNodeService.state) {
         nodeUrl = ethereumNodeService.state.nodeUrl;
-        process.env.DEPLOYED = `../../../configs/${getStandConfig().deployed}`;
+        process.env.DEPLOYED = `../../../configs/${standConfig.deployed}`;
+        process.env.CHAIN_ID = standConfig.networkConfig.chainId.toString();
         process.env.EL_URL = nodeUrl;
       } else throw new Error('EthereumNodeService node ready');
     });
@@ -118,6 +120,7 @@ test.describe.serial('One step process', () => {
         const vaultInfoBeforeChangeTier =
           await lsvCLI.operatorGrid.getVaultInfo(vaultAddress);
 
+        // get DefaultTier params from contracts
         await test.step(`Check defaultTier ${vaultInfoBeforeChangeTier.tierId} params`, async () => {
           expect(
             vaultInfoBeforeChangeTier.tierId,
@@ -279,14 +282,14 @@ test.describe.serial('One step process', () => {
     const mintRolePK = ethereumNodeService.getAccount(
       getPermissionRole(ROLES.MINT).index,
     ).secretKey;
-    const recipientRepaRoleAddress = ethereumNodeService.getAccount(
+    const recipientRepayRoleAddress = ethereumNodeService.getAccount(
       getPermissionRole(ROLES.BURN).index,
     ).address;
 
     await lsvCLI.vo.mintStEth(
       vaultAddress,
       mintAmount,
-      recipientRepaRoleAddress as Address,
+      recipientRepayRoleAddress as Address,
       mintRolePK,
     );
 
@@ -306,6 +309,7 @@ test.describe.serial('One step process', () => {
       dashboardLiabilityStEth,
       'Expect dashboard liability stETH to be correct with contract',
     ).toBe(contractLiabilityStEth);
+    // add check for stETH to be mint to recipient
   });
 
   test(`Burn stETH as ${ROLES.BURN}`, async ({ ethereumNodeService }) => {
@@ -324,6 +328,42 @@ test.describe.serial('One step process', () => {
     );
 
     const { liabilitySteth: dashboardLiabilityStEth } =
+      await lsvCLI.dashboard.overview(dashboardAddress);
+
+    const contractLiabilityShares = await getLiabilityShares(dashboardAddress);
+    const contractLiabilityStEth = await getPooledEthBySharesRoundUp(
+      contractLiabilityShares,
+    );
+
+    expect(
+      dashboardLiabilityStEth,
+      'Expect dashboard liability to be correct with contract after burn',
+    ).toBe(contractLiabilityStEth);
+    expect(dashboardLiabilityStEth).toBe('0');
+
+    // add check for stETH to be burn in wallet
+  });
+
+  test(`Withdraw ETH as ${ROLES.WITHDRAW}`, async ({ ethereumNodeService }) => {
+    const withdrawRolePK = ethereumNodeService.getAccount(
+      getPermissionRole(ROLES.WITHDRAW).index,
+    ).secretKey;
+    const recipientWithdrawRoleAddress = ethereumNodeService.getAccount(
+      getPermissionRole(ROLES.BURN).index,
+    ).address;
+
+    // Full withdraw
+    const { liabilitySteth: liabilityStEthBeforeRepay } =
+      await lsvCLI.dashboard.overview(dashboardAddress);
+
+    await lsvCLI.vo.withdraw(
+      vaultAddress,
+      liabilityStEthBeforeRepay,
+      recipientWithdrawRoleAddress as Address,
+      withdrawRolePK,
+    );
+
+    const { availableToWithdrawalEth: dashboardLiabilityStEth } =
       await lsvCLI.dashboard.overview(dashboardAddress);
 
     const contractLiabilityShares = await getLiabilityShares(dashboardAddress);

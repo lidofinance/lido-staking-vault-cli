@@ -83,3 +83,24 @@ export const burnStEth = (
     ['vo', 'w', 'burn-steth', '-v', vaultAddress, amount, '--yes'],
     privateKey,
   );
+
+export const withdraw = (
+  vaultAddress: Address,
+  amount: string,
+  recipient: Address,
+  privateKey: string,
+): Promise<void> =>
+  runCLICommand(
+    [
+      'vo',
+      'w',
+      'withdraw',
+      amount,
+      '-r',
+      recipient,
+      '-v',
+      vaultAddress,
+      '--yes',
+    ],
+    privateKey,
+  );

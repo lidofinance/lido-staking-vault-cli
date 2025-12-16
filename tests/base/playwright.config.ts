@@ -1,5 +1,5 @@
 import type { PlaywrightTestConfig } from '@playwright/test';
-import { getReportConfig } from './config/report.config';
+import { getReportConfig } from './config';
 
 export const pwConfig: PlaywrightTestConfig = {
   timeout: 180 * 1000,

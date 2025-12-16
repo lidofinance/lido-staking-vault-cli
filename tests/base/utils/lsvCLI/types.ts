@@ -71,3 +71,21 @@ export type DashboardOverview = {
   groupShareLimitSteth: string | null;
   groupShareLimitShares: string | null;
 };
+
+export type PDGInfo = {
+  CONTRACT_ADDRESS: Address;
+  DEFAULT_ADMIN_ROLE: Address;
+  RESUME_ROLE: Address;
+  PAUSE_ROLE: Address;
+  BEACON_ROOTS: Address;
+  GI_FIRST_VALIDATOR_CURR: bigint;
+  GI_FIRST_VALIDATOR_PREV: bigint;
+  GI_PUBKEY_WC_PARENT: bigint;
+  GI_STATE_ROOT: string;
+  MAX_SUPPORTED_WC_VERSION: number;
+  MIN_SUPPORTED_WC_VERSION: number;
+  PREDEPOSIT_AMOUNT: bigint;
+  PIVOT_SLOT: bigint;
+  isPaused: boolean;
+  resumeSinceTimestamp: bigint;
+};

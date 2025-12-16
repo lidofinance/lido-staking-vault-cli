@@ -1,2 +1,2 @@
 export * from './contractsRead';
-export * from './wallet';
+export * from './clients';

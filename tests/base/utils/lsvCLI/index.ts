@@ -3,6 +3,7 @@ import * as dashboard from './programs/dashboard';
 import * as operatorGrid from './programs/operatorGrid';
 import * as vo from './programs/vo';
 import * as hub from './programs/hub';
+import * as pdg from './programs/pdg';
 
 const lsvCLI = {
   factory: {
@@ -24,9 +25,15 @@ const lsvCLI = {
     supply: vo.fund,
     mintStEth: vo.mintStEth,
     burnStEth: vo.burnStEth,
+    withdraw: vo.withdraw,
   },
   hub: {
     isVaultConnected: hub.isVaultConnected,
+    isReportFresh: hub.isReportFresh,
+    latestReportData: hub.latestReportData,
+  },
+  pdg: {
+    getPDGInfo: pdg.getPDGInfo,
   },
 };
 

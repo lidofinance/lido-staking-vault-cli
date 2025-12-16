@@ -40,6 +40,7 @@ export const overview = async (
       'dashboard',
       'r',
       'overview',
+      '--yes',
       dashboardAddress,
     ]);
 

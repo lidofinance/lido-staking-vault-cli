@@ -42,7 +42,7 @@ yarn
 2. Fill in the required parameters in `.env`:
 
    ```bash
-   CHAIN_ID=`560048` or `1` (available after stVaults to be released)
+   CHAIN_ID=`560048`(Hoodi) or `1`(Mainnet)
    RPC_URL=<optional override>
    ```
 
