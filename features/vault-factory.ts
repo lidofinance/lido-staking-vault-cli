@@ -143,7 +143,7 @@ export const createVault = async (
   // Gnosis safe case
   if (!receipt || !tx) {
     logInfo(
-      'Transaction has been sent. Use "log-creating-vault-data" command to get the Vault data after the transaction is signed and executed',
+      'Transaction has been sent. Use "vault-operations write create-vault log-creating-vault-data" command to get the Vault data after the transaction is signed and executed',
     );
     return;
   }
