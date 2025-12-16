@@ -12,3 +12,4 @@ export * from './consolidation.js';
 export * from './lazy-oracle.js';
 export * from './defi-wrapper/index.js';
 export * from './dev-tools/index.js';
+export * from './metrics.js';

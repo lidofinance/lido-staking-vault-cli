@@ -240,23 +240,28 @@ predepositGuaranteeHelpers
           type: 'bouncingBar',
           message: 'Checking onchain againts BLSHarness contract',
         });
+        const depositsY = {
+          pubkeyY: { a: pubkeyY_a, b: pubkeyY_b },
+          signatureY: {
+            c0_a: sigY_c0_a,
+            c0_b: sigY_c0_b,
+            c1_a: sigY_c1_a,
+            c1_b: sigY_c1_b,
+          },
+        };
         try {
           await callReadMethodSilent(pdg, 'verifyDepositMessage', [
             deposit,
-            {
-              pubkeyY: { a: pubkeyY_a, b: pubkeyY_b },
-              signatureY: {
-                c0_a: sigY_c0_a,
-                c0_b: sigY_c0_b,
-                c1_a: sigY_c1_a,
-                c1_b: sigY_c1_b,
-              },
-            },
+            depositsY,
             withdrawalCredentials,
           ]);
 
           hideSpinner();
           logInfo(`✅ ONCHAIN 🔗 SIGNATURE VALID for Pubkey ${deposit.pubkey}`);
+
+          logInfo('--------DEPOSITS Y--------');
+          logInfo(JSON.stringify(depositsY, null, 2));
+          logInfo('--------END DEPOSITS Y--------');
 
           await checkPdgIsPaused(pdg);
         } catch (err) {

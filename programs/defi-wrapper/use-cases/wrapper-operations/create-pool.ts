@@ -1,4 +1,5 @@
-import { Address } from 'viem';
+import { Address, Hex } from 'viem';
+import { getTransactionReceipt } from 'viem/actions';
 import { Command, Option } from 'commander';
 
 import {
@@ -10,6 +11,7 @@ import {
   confirmOperation,
   stringToNumber,
   stringToBoolean,
+  stringToHash,
 } from 'utils';
 import { getFactoryContract } from 'contracts/defi-wrapper/index.js';
 import {
@@ -21,7 +23,10 @@ import {
   type BaseFactoryOptions,
   finalizePoolCreation,
   prepareCreationConfigrationText,
+  getFinalizePoolEventData,
+  logFinalizePoolEventData,
 } from 'features';
+import { getPublicClient } from 'providers';
 
 import { wrapperOperationsWrite } from './write.js';
 
@@ -52,7 +57,7 @@ const applyCommonOptions = (command: Command): Command => {
       'node operator manager address',
     )
     .option(
-      '-nof , --nodeOperatorFeeRate <nodeOperatorFeeRate>',
+      '-nof, --nodeOperatorFeeRate <nodeOperatorFeeRate>',
       'Node operator fee rate in basis points, for e.g. 100 == 1%',
       stringToNumber,
     )
@@ -102,13 +107,13 @@ applyCommonOptions(
       }: BaseFactoryOptions & MintableOptions,
     ) => {
       const contract = await getFactoryContract(address);
-      const { vaultConfig, timelockConfig, commonPoolConfig, CONNECT_DEPOSIT } =
+      const { vaultConfig, timelockConfig, commonPoolConfig } =
         await promtBaseVaultConfiguration(baseOptions);
 
       const reserveRatioGapBPValue =
         await getReserveRatioGapBP(reserveRatioGapBP);
 
-      const confirmationMessage = `Are you sure you want to create a new pool GGV strategy with a configured wrapper?\n
+      const confirmationMessage = `Are you sure you want to create a new GGV strategy pool with a configured wrapper?\n
         ${prepareCreationConfigrationText(
           vaultConfig,
           timelockConfig,
@@ -127,25 +132,18 @@ applyCommonOptions(
           commonPoolConfig,
           BigInt(reserveRatioGapBPValue),
         ],
-        value: CONNECT_DEPOSIT,
       });
 
       if (!result.receipt || !result.tx) {
         logInfo('Transaction has been sent');
-        return;
+        return process.exit(0);
       }
 
       const eventData = await getCreatePoolEventData(result.receipt, result.tx);
 
       await logCreatePoolEventData(eventData);
 
-      await finalizePoolCreation(
-        contract,
-        vaultConfig,
-        timelockConfig,
-        commonPoolConfig,
-        eventData,
-      );
+      await finalizePoolCreation(contract, eventData);
     },
   );
 
@@ -170,7 +168,7 @@ applyCommonOptions(
     ) => {
       const contract = await getFactoryContract(address);
 
-      const { vaultConfig, timelockConfig, commonPoolConfig, CONNECT_DEPOSIT } =
+      const { vaultConfig, timelockConfig, commonPoolConfig } =
         await promtBaseVaultConfiguration(baseOptions);
 
       const allowListEnabledValue = await getBoolean(
@@ -198,12 +196,11 @@ applyCommonOptions(
           commonPoolConfig,
           allowListEnabledValue,
         ],
-        value: CONNECT_DEPOSIT,
       });
 
       if (!result.receipt || !result.tx) {
         logInfo('Transaction has been sent');
-        return;
+        return process.exit(0);
       }
 
       const eventData = await getCreatePoolEventData(result.receipt, result.tx);
@@ -222,13 +219,7 @@ applyCommonOptions(
 
       logInfo('Pool Creation Finalize');
 
-      await finalizePoolCreation(
-        contract,
-        vaultConfig,
-        timelockConfig,
-        commonPoolConfig,
-        eventData,
-      );
+      await finalizePoolCreation(contract, eventData);
     },
   );
 
@@ -260,7 +251,7 @@ applyCommonOptions(
       }: BaseFactoryOptions & AllowlistableOptions & MintableOptions,
     ) => {
       const contract = await getFactoryContract(address);
-      const { vaultConfig, timelockConfig, commonPoolConfig, CONNECT_DEPOSIT } =
+      const { vaultConfig, timelockConfig, commonPoolConfig } =
         await promtBaseVaultConfiguration(baseOptions);
 
       const allowListEnabledValue = await getBoolean(
@@ -291,24 +282,77 @@ applyCommonOptions(
           allowListEnabledValue,
           BigInt(reserveRatioGapBPValue),
         ],
-        value: CONNECT_DEPOSIT,
       });
 
       if (!result.receipt || !result.tx) {
         logInfo('Transaction has been sent');
-        return;
+        return process.exit(0);
       }
 
       const eventData = await getCreatePoolEventData(result.receipt, result.tx);
 
       await logCreatePoolEventData(eventData);
 
-      await finalizePoolCreation(
-        contract,
-        vaultConfig,
-        timelockConfig,
-        commonPoolConfig,
-        eventData,
-      );
+      await finalizePoolCreation(contract, eventData);
     },
   );
+
+defiWrapperOperationsCreatePool
+  .command('create-pool-finalize')
+  .description(
+    'finalizes the deployment of a pool. Used if the pool creation was not finalized in the first step (Multisig case).',
+  )
+  .argument('<address>', 'factory address', stringToAddress)
+  .argument(
+    '<TxHash>',
+    'transaction hash of the first step of the pool creation',
+    stringToHash,
+  )
+  .action(async (address: Address, txHash: Hex) => {
+    const contract = await getFactoryContract(address);
+    const publicClient = await getPublicClient();
+
+    const receipt = await getTransactionReceipt(publicClient, {
+      hash: txHash,
+    });
+    const eventData = await getCreatePoolEventData(receipt, txHash);
+
+    await logCreatePoolEventData(eventData);
+
+    await finalizePoolCreation(contract, eventData);
+  });
+
+defiWrapperOperationsCreatePool
+  .command('log-creating-pool-data')
+  .description(
+    'logs the data of the created pool. Will be necessary for use in the UI configuration',
+  )
+  .argument(
+    '<txHash>',
+    'transaction hash of the first step of the pool creation',
+    stringToHash,
+  )
+  .argument(
+    '<finalizeTxHash>',
+    'transaction hash of the final step of the pool creation',
+    stringToHash,
+  )
+  .action(async (txHash: Hex, finalizeTxHash: Hex) => {
+    const publicClient = await getPublicClient();
+
+    const [firstStepReceipt, finalizeReceipt] = await Promise.all([
+      getTransactionReceipt(publicClient, {
+        hash: txHash,
+      }),
+      getTransactionReceipt(publicClient, {
+        hash: finalizeTxHash,
+      }),
+    ]);
+
+    const [firstStepEventData, finalizeEventData] = await Promise.all([
+      getCreatePoolEventData(firstStepReceipt, txHash),
+      getFinalizePoolEventData(finalizeReceipt, finalizeTxHash),
+    ]);
+
+    await logFinalizePoolEventData(firstStepEventData, finalizeEventData);
+  });

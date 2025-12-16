@@ -142,7 +142,7 @@ export const getVaultOverviewByDashboard = async (
         ['Health Factor', formatRatio(overview.healthRatio)],
         ['Reserve Ratio, %', formatBP(reserveRatioBP)],
         [
-          'Force Rebalance Threshold',
+          'Force Rebalance Threshold, %',
           formatBP(health.forcedRebalanceThresholdBP),
         ],
         ['stVault Share Limit, stETH', formatEther(shareLimitStethWei)],

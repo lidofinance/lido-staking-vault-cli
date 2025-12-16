@@ -1,4 +1,5 @@
 import { calculateHealth } from './health/calculate-health.js';
+import { bigIntMax, bigIntMin } from './bigInt.js';
 
 type OverviewArgs = {
   totalValue: bigint;
@@ -16,9 +17,6 @@ type OverviewArgs = {
 };
 
 const BASIS_POINTS = 10_000n;
-
-const bigIntMax = (...args: bigint[]) => args.reduce((a, b) => (a > b ? a : b));
-const bigIntMin = (...args: bigint[]) => args.reduce((a, b) => (a < b ? a : b));
 
 /**
  * Performs division with rounding up (ceiling division) for bigint values

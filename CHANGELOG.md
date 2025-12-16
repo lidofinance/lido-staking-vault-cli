@@ -1,3 +1,53 @@
+All notable changes to this project will be documented in this file.
+
+# 1.2.0
+
+## CLI
+
+### Added
+
+#### DeFi Wrapper & Reporting
+
+- Pool lifecycle enhancements: factories, pool creation/finalization, and richer pool info (including fresh report checks and stETH-specific details).
+- Wrapper health monitoring commands and dev-tools integration; mainnet support with improved CLI logging.
+- Updated ABIs with new error types/state mutability; vault record command and total value remainder logging in quarantine flow.
+
+#### Consolidation Flow
+
+- EOA and Safe consolidation paths with batching/no-batching options and optional auth list.
+- Calldata fetching plus consolidation hash generator utilities; options for pubkeys/struct inputs.
+- Stronger role validation, confirmations, async handling, and balance/fee prompts for validators.
+
+#### Validators, Deposits, Metrics
+
+- Awaited BLS validation and deposit checks for node operators and depositors.
+- Cached node-operator accrued fee calculations; settledGrowth handling for no-rewards vaults.
+- ETH-formatted/CSV metrics output; validator balance prompts for fee calculations; UI env write helper.
+
+### Changed
+
+- Consolidation logic streamlined and moved into features; improved validator checks and conditional logging.
+- Report submission returns explicit boolean; confirm-expiry handling updated.
+- Deposit validation simplified (removed redundant contract checks); share-limit commands rely on `stringToAddress`/`formatEther`.
+- VaultViewer/VaultHub/LazyOracle ABIs refreshed; revokeDelegate uses `getCode`; factory/ABI setup DRY’d; repository/package metadata tweaks.
+
+### Fixed
+
+- Fee exemption handling and consolidation request validation (including no-consolidation cases).
+- Validator totals converted to wei; awaited BLS validation; corrected extraValues/ABI references.
+- JSON format checks and CL data fetch error handling; clearer confirmation variable naming.
+- WalletConnect/Gnosis Safe edge cases with clearer failure logging; minor spinners/casts cleanup.
+
+### Documentation
+
+- Consolidation docs refreshed (fee exemption terminology, new commands, JSON format guidance) and new consolidation doc added.
+- Wrapper documentation restructured with new commands/examples; reward adjustment wording switched to fee exemption.
+
+### Chore
+
+- Dependency bumps (actions/checkout, actions/setup-node, mdast-util-to-hast, node-forge), Docusaurus local search plugin, cache dirs in `.gitignore`.
+- Wrapper v4 ABI updates; DRY’d factory and create ggv pool setups.
+
 # 1.1.0
 
 ## CLI

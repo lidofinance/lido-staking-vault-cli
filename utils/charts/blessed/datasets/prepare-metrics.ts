@@ -8,7 +8,6 @@ import {
   getCarrySpread,
   calculateLidoAPR,
   getGrossStakingRewards,
-  getNodeOperatorRewards,
   getNetStakingRewards,
   getDailyLidoFees,
 } from 'utils';
@@ -17,7 +16,7 @@ import { getRebaseRewardFromCache, getShareRateFromCache } from 'utils';
 
 export const prepareBottomLine = async (
   history: VaultReport[],
-  nodeOperatorFeeBPs: bigint[],
+  nodeOperatorAccruedFees: bigint[],
   vaultAddress: string,
 ) => {
   const bottomLine = [];
@@ -39,7 +38,7 @@ export const prepareBottomLine = async (
     const bottomLineValue = getBottomLine(
       current,
       previous,
-      nodeOperatorFeeBPs[i] ?? 0n,
+      nodeOperatorAccruedFees[i] ?? 0n,
       stEthLiabilityRebaseRewards,
     );
 
@@ -68,7 +67,7 @@ export const prepareGrossStakingAPR = (history: VaultReport[]) => {
 
 export const prepareNetStakingAPR = (
   history: VaultReport[],
-  nodeOperatorFeeBPs: bigint[],
+  nodeOperatorAccruedFees: bigint[],
 ) => {
   const netStakingAPRPercent = [];
   const timestamp = [];
@@ -82,7 +81,7 @@ export const prepareNetStakingAPR = (
     const value = getNetStakingAPR(
       current,
       previous,
-      nodeOperatorFeeBPs[i] ?? 0n,
+      nodeOperatorAccruedFees[i] ?? 0n,
     );
 
     netStakingAPRPercent.push(value.apr_percent);
@@ -93,7 +92,7 @@ export const prepareNetStakingAPR = (
 
 export const prepareCarrySpread = async (
   history: VaultReport[],
-  nodeOperatorFeeBPs: bigint[],
+  nodeOperatorAccruedFees: bigint[],
   vaultAddress: string,
 ) => {
   const carrySpreadPercent = [];
@@ -115,7 +114,7 @@ export const prepareCarrySpread = async (
     const value = getCarrySpread(
       current,
       previous,
-      nodeOperatorFeeBPs[i] ?? 0n,
+      nodeOperatorAccruedFees[i] ?? 0n,
       stEthLiabilityRebaseRewards,
     );
 
@@ -169,7 +168,7 @@ export const prepareGrossStakingRewards = (history: VaultReport[]) => {
 
 export const prepareNodeOperatorRewards = (
   history: VaultReport[],
-  nodeOperatorFeeBPs: bigint[],
+  nodeOperatorAccruedFees: bigint[],
 ) => {
   const nodeOperatorRewards = [];
   const timestamp = [];
@@ -179,11 +178,7 @@ export const prepareNodeOperatorRewards = (
     const previous = history[i - 1];
     if (!current || !previous) continue;
 
-    const value = getNodeOperatorRewards(
-      current,
-      previous,
-      nodeOperatorFeeBPs[i] ?? 0n,
-    );
+    const value = nodeOperatorAccruedFees[i] ?? 0n;
 
     nodeOperatorRewards.push(String(formatEther(value)));
     timestamp.push(current.timestamp);
@@ -193,7 +188,7 @@ export const prepareNodeOperatorRewards = (
 
 export const prepareNetStakingRewards = (
   history: VaultReport[],
-  nodeOperatorFeeBPs: bigint[],
+  nodeOperatorAccruedFees: bigint[],
 ) => {
   const netStakingRewards = [];
   const timestamp = [];
@@ -206,7 +201,7 @@ export const prepareNetStakingRewards = (
     const value = getNetStakingRewards(
       current,
       previous,
-      nodeOperatorFeeBPs[i] ?? 0n,
+      nodeOperatorAccruedFees[i] ?? 0n,
     );
 
     netStakingRewards.push(String(formatEther(value)));

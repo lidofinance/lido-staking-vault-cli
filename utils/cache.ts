@@ -30,8 +30,12 @@ const getRebaseRewardCacheFile = (vaultAddress: string) =>
   path.resolve('cache', `rebase-rewards-cache-${vaultAddress}.json`);
 const getNodeOperatorFeeRateCacheFile = (vaultAddress: string) =>
   path.resolve('cache', `node-operator-fee-rate-cache-${vaultAddress}.json`);
+const getSettledGrowthCacheFile = (vaultAddress: string) =>
+  path.resolve('cache', `settled-growth-cache-${vaultAddress}.json`);
 const getIndexedEventsCacheFile = (poolAddress: string) =>
   path.resolve('cache', `indexed-events-cache-${poolAddress}.json`);
+const getNodeOperatorAccruedFeeCacheFile = (vaultAddress: string) =>
+  path.resolve('cache', `node-operator-accrued-fee-cache-${vaultAddress}.json`);
 
 export const cache = {
   async getShareRate(blockNumber: number): Promise<bigint | null> {
@@ -45,6 +49,7 @@ export const cache = {
     }
     return null;
   },
+
   async setShareRate(blockNumber: number, value: bigint) {
     let data: Record<string, string> = {};
     try {
@@ -58,6 +63,7 @@ export const cache = {
     });
     await fs.writeFile(getShareRateCacheFile(), JSON.stringify(data), 'utf-8');
   },
+
   async getRebaseReward(
     vaultAddress: string,
     cacheKey: string,
@@ -72,6 +78,7 @@ export const cache = {
     }
     return null;
   },
+
   async setRebaseReward(vaultAddress: string, cacheKey: string, value: bigint) {
     let data: Record<string, string> = {};
     try {
@@ -91,6 +98,7 @@ export const cache = {
       'utf-8',
     );
   },
+
   async getNodeOperatorFeeRate(
     vaultAddress: string,
     blockNumber: number,
@@ -108,6 +116,7 @@ export const cache = {
     }
     return null;
   },
+
   async setNodeOperatorFeeRate(
     vaultAddress: string,
     blockNumber: number,
@@ -137,6 +146,94 @@ export const cache = {
       'utf-8',
     );
   },
+
+  async getSettledGrowth(
+    vaultAddress: string,
+    blockNumber: number,
+  ): Promise<bigint | null> {
+    try {
+      const data = JSON.parse(
+        await fs.readFile(getSettledGrowthCacheFile(vaultAddress), 'utf-8'),
+      );
+      if (data[blockNumber] !== undefined) return BigInt(data[blockNumber]);
+    } catch {
+      /* ignore */
+    }
+    return null;
+  },
+
+  async setSettledGrowth(
+    vaultAddress: string,
+    blockNumber: number,
+    value: bigint,
+  ) {
+    let data: Record<string, string> = {};
+    try {
+      data = JSON.parse(
+        await fs.readFile(getSettledGrowthCacheFile(vaultAddress), 'utf-8'),
+      );
+    } catch {
+      /* ignore */
+    }
+    data[blockNumber] = value.toString();
+    await fs.mkdir(path.dirname(getSettledGrowthCacheFile(vaultAddress)), {
+      recursive: true,
+    });
+    await fs.writeFile(
+      getSettledGrowthCacheFile(vaultAddress),
+      JSON.stringify(data),
+      'utf-8',
+    );
+  },
+
+  async getNodeOperatorAccruedFee(
+    vaultAddress: string,
+    blockNumber: number,
+  ): Promise<bigint | null> {
+    try {
+      const data = JSON.parse(
+        await fs.readFile(
+          getNodeOperatorAccruedFeeCacheFile(vaultAddress),
+          'utf-8',
+        ),
+      );
+      if (data[blockNumber] !== undefined) return BigInt(data[blockNumber]);
+    } catch {
+      /* ignore */
+    }
+    return null;
+  },
+
+  async setNodeOperatorAccruedFee(
+    vaultAddress: string,
+    blockNumber: number,
+    value: bigint,
+  ) {
+    let data: Record<string, string> = {};
+    try {
+      data = JSON.parse(
+        await fs.readFile(
+          getNodeOperatorAccruedFeeCacheFile(vaultAddress),
+          'utf-8',
+        ),
+      );
+    } catch {
+      /* ignore */
+    }
+    data[blockNumber] = value.toString();
+    await fs.mkdir(
+      path.dirname(getNodeOperatorAccruedFeeCacheFile(vaultAddress)),
+      {
+        recursive: true,
+      },
+    );
+    await fs.writeFile(
+      getNodeOperatorAccruedFeeCacheFile(vaultAddress),
+      JSON.stringify(data),
+      'utf-8',
+    );
+  },
+
   async getIndexedEventsByBlock(
     poolAddress: string,
     blockNumber: bigint,
@@ -152,6 +249,7 @@ export const cache = {
     }
     return null;
   },
+
   async getAllIndexedEvents(
     poolAddress: string,
   ): Promise<Record<string, CachedEvents>> {
@@ -165,6 +263,7 @@ export const cache = {
     }
     return {};
   },
+
   async setIndexedEventsForBlocks(
     poolAddress: string,
     eventsMap: Map<bigint, CachedEvents>,

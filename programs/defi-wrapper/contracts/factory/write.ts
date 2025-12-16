@@ -53,7 +53,7 @@ const applyCommonOptions = (command: Command): Command => {
       'node operator manager address',
     )
     .option(
-      '-nof , --nodeOperatorFeeRate <nodeOperatorFeeRate>',
+      '-nof, --nodeOperatorFeeRate <nodeOperatorFeeRate>',
       'Node operator fee rate in basis points, for e.g. 100 == 1%',
       stringToNumber,
     )
@@ -103,13 +103,13 @@ applyCommonOptions(
       }: BaseFactoryOptions & MintableOptions,
     ) => {
       const contract = await getFactoryContract(address);
-      const { vaultConfig, timelockConfig, commonPoolConfig, CONNECT_DEPOSIT } =
+      const { vaultConfig, timelockConfig, commonPoolConfig } =
         await promtBaseVaultConfiguration(baseOptions);
 
       const reserveRatioGapBPValue =
         await getReserveRatioGapBP(reserveRatioGapBP);
 
-      const confirmationMessage = `Are you sure you want to create a new pool GGV strategy with a configured wrapper?\n
+      const confirmationMessage = `Are you sure you want to create a new GGV strategy pool with a configured wrapper?\n
         ${prepareCreationConfigrationText(
           vaultConfig,
           timelockConfig,
@@ -128,25 +128,18 @@ applyCommonOptions(
           commonPoolConfig,
           BigInt(reserveRatioGapBPValue),
         ],
-        value: CONNECT_DEPOSIT,
       });
 
       if (!result.receipt || !result.tx) {
         logInfo('Transaction has been sent');
-        return;
+        return process.exit(0);
       }
 
       const eventData = await getCreatePoolEventData(result.receipt, result.tx);
 
       await logCreatePoolEventData(eventData);
 
-      await finalizePoolCreation(
-        contract,
-        vaultConfig,
-        timelockConfig,
-        commonPoolConfig,
-        eventData,
-      );
+      await finalizePoolCreation(contract, eventData);
     },
   );
 
@@ -171,7 +164,7 @@ applyCommonOptions(
     ) => {
       const contract = await getFactoryContract(address);
 
-      const { vaultConfig, timelockConfig, commonPoolConfig, CONNECT_DEPOSIT } =
+      const { vaultConfig, timelockConfig, commonPoolConfig } =
         await promtBaseVaultConfiguration(baseOptions);
 
       const allowListEnabledValue = await getBoolean(
@@ -199,12 +192,11 @@ applyCommonOptions(
           commonPoolConfig,
           allowListEnabledValue,
         ],
-        value: CONNECT_DEPOSIT,
       });
 
       if (!result.receipt || !result.tx) {
         logInfo('Transaction has been sent');
-        return;
+        return process.exit(0);
       }
 
       const eventData = await getCreatePoolEventData(result.receipt, result.tx);
@@ -223,13 +215,7 @@ applyCommonOptions(
 
       logInfo('Pool Creation Finalize');
 
-      await finalizePoolCreation(
-        contract,
-        vaultConfig,
-        timelockConfig,
-        commonPoolConfig,
-        eventData,
-      );
+      await finalizePoolCreation(contract, eventData);
     },
   );
 
@@ -261,7 +247,7 @@ applyCommonOptions(
       }: BaseFactoryOptions & AllowlistableOptions & MintableOptions,
     ) => {
       const contract = await getFactoryContract(address);
-      const { vaultConfig, timelockConfig, commonPoolConfig, CONNECT_DEPOSIT } =
+      const { vaultConfig, timelockConfig, commonPoolConfig } =
         await promtBaseVaultConfiguration(baseOptions);
 
       const allowListEnabledValue = await getBoolean(
@@ -292,24 +278,17 @@ applyCommonOptions(
           allowListEnabledValue,
           BigInt(reserveRatioGapBPValue),
         ],
-        value: CONNECT_DEPOSIT,
       });
 
       if (!result.receipt || !result.tx) {
         logInfo('Transaction has been sent');
-        return;
+        return process.exit(0);
       }
 
       const eventData = await getCreatePoolEventData(result.receipt, result.tx);
 
       await logCreatePoolEventData(eventData);
 
-      await finalizePoolCreation(
-        contract,
-        vaultConfig,
-        timelockConfig,
-        commonPoolConfig,
-        eventData,
-      );
+      await finalizePoolCreation(contract, eventData);
     },
   );

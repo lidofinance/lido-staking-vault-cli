@@ -19,3 +19,4 @@ program.option(
 );
 program.option('--wallet-connect', 'use wallet connect to send transactions');
 program.option('--csv <file>', 'write table output to CSV file');
+program.option('--json', 'output result in JSON format');

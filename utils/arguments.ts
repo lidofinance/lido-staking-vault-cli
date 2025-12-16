@@ -1,7 +1,7 @@
 import { program } from 'commander';
 import { readFileSync } from 'fs';
 import { Permit, RoleAssignment, Tier, Deposit, ValidatorTopUp } from 'types';
-import { Address, isAddress, isHex, parseEther } from 'viem';
+import { Address, Hex, isAddress, isHex, parseEther } from 'viem';
 
 import { PubkeyMap } from 'utils/consolidation/types.js';
 
@@ -192,6 +192,13 @@ export const parseValidatorTopUpArray = (str: string): ValidatorTopUp[] => {
 export const stringToAddress = (value: string): Address => {
   if (!isAddress(value)) {
     program.error('Address value must be a valid address', { exitCode: 1 });
+  }
+  return value;
+};
+
+export const stringToHash = (value: string): Hex => {
+  if (!isHex(value)) {
+    program.error('Hash value must be a valid hash', { exitCode: 1 });
   }
   return value;
 };
