@@ -31,17 +31,19 @@ export const checkValidatorInfo = async (validator: ValidatorInfo) => {
 
   logError(message);
 
-  const confirm = await confirmOperation(
-    `Do you want to skip this validator (pubkey: ${validator.pubkey})?`,
-  );
-
-  if (!confirm) {
-    throw new Error('Operation cancelled');
-  }
-
   if (!isValid) {
+    const confirm = await confirmOperation(
+      `Do you want to skip this validator (pubkey: ${validator.pubkey})?`,
+    );
+
+    if (!confirm) {
+      throw new Error('Operation cancelled');
+    }
+
     logInfo('Validator is not valid. Skipping...');
+
+    return { isValid, skip: confirm };
   }
 
-  return { isValid, skip: confirm };
+  return { isValid, skip: false };
 };
