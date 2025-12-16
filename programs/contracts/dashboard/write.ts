@@ -15,6 +15,7 @@ import {
   checkBLSDeposits,
   checkPdgIsPaused,
   callWriteMethodsWithReportFresh,
+  checkValidatorInfo,
 } from 'features';
 import {
   callReadMethod,
@@ -655,9 +656,18 @@ dashboardWrite
         message: `Making proof for validator ${validatorIndex}...`,
       });
       const packageProof = await createPDGProof(Number(validatorIndex));
-      const { proof, pubkey, childBlockTimestamp, slot, proposerIndex } =
-        packageProof;
+      const {
+        proof,
+        pubkey,
+        childBlockTimestamp,
+        slot,
+        proposerIndex,
+        validator,
+      } = packageProof;
       hideSpinner();
+
+      const { skip } = await checkValidatorInfo({ pubkey, ...validator });
+      if (skip) continue;
 
       const confirm = await confirmOperation(
         `Are you sure you want to prove ${pubkey} validator (${validatorIndex}) to the Predeposit Guarantee contract ${pdgContractAddress} in the staking vault ${vault}?
@@ -675,6 +685,16 @@ dashboardWrite
       };
       payload.push(proofItem);
     }
+
+    if (payload.length === 0) {
+      logInfo('No validators to prove. Exiting...');
+      return;
+    }
+
+    const confirmProof = await confirmOperation(
+      `Validators to prove (${payload.length}): ${payload.map((i) => i.pubkey).join(', ')}. Continue?`,
+    );
+    if (!confirmProof) return;
 
     await callWriteMethodWithReceipt({
       contract: dashboardContract,

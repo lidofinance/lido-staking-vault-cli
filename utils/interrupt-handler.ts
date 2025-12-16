@@ -27,7 +27,9 @@ export const withInterruptHandling = (action: ActionHandler) => {
 
       return result;
     } catch (err) {
-      logError('Command failed:', err);
+      if (err instanceof Error) logError('Command failed:', err.message);
+      else logError('Command failed:', err);
+
       await disconnectWalletConnect();
       process.exit(1);
     } finally {

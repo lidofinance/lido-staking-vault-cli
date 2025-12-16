@@ -1,6 +1,7 @@
 import { Address, formatEther, Hex, parseEther } from 'viem';
 import { Option } from 'commander';
 
+import { checkValidatorInfo } from 'features';
 import {
   getOperatorGridContract,
   getStakingVaultContract,
@@ -434,7 +435,11 @@ VaultHubWrite.command('prove-unknown-validator-to-pdg')
         withdrawalCredentials,
         slot,
         proposerIndex,
+        validator,
       } = packageProof;
+
+      const { skip } = await checkValidatorInfo({ pubkey, ...validator });
+      if (skip) return;
 
       logResult({});
       logInfo('----------------------proof----------------------');
