@@ -1,5 +1,7 @@
 ---
-sidebar_position: 6
+title: Validator Deposits
+description: Validator deposit operations in Lido Staking Vaults
+sidebar_position: 7
 ---
 
 # Validator Deposits

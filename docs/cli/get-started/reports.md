@@ -1,5 +1,7 @@
 ---
-sidebar_position: 5
+title: Reports
+description: Vault reporting operations for Lido Staking Vaults
+sidebar_position: 6
 ---
 
 # Reports

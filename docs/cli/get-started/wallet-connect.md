@@ -1,7 +1,7 @@
 ---
 title: WalletConnect (WC)
 description: Use WalletConnect with the CLI to sign and send transactions from your mobile/desktop wallet
-sidebar_position: 3
+sidebar_position: 2
 ---
 
 # WalletConnect Integration

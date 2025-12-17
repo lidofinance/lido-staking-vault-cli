@@ -8,19 +8,40 @@ import {
   getVaultHubContract,
 } from 'contracts';
 import { getPublicClient } from 'providers';
-import { callReadMethodSilent, enterContractAddress } from 'utils';
+import {
+  callReadMethodSilent,
+  confirmOperation,
+  enterContractAddress,
+} from 'utils';
+import { checkIsDisconnected } from 'features';
 
 import { chooseVault } from './vaults-by-role.js';
 
 export const getDashboardByVault = async (vault: Address) => {
-  const vaultHub = await getVaultHubContract();
-  const vaultConnection = await callReadMethodSilent(
-    vaultHub,
-    'vaultConnection',
-    [vault],
-  );
+  const isDisconnected = await checkIsDisconnected(vault);
+  let vaultOwner: Address;
 
-  const vaultOwner = vaultConnection.owner;
+  if (isDisconnected) {
+    const confirm = await confirmOperation(
+      'Vault is not connected to VaultHub. Do you want to continue executing the command?',
+    );
+    if (!confirm) {
+      throw new Error('Vault is not connected to VaultHub');
+    }
+
+    const vaultContract = await getStakingVaultContract(vault);
+    vaultOwner = await callReadMethodSilent(vaultContract, 'owner');
+  } else {
+    const vaultHub = await getVaultHubContract();
+    const vaultConnection = await callReadMethodSilent(
+      vaultHub,
+      'vaultConnection',
+      [vault],
+    );
+
+    vaultOwner = vaultConnection.owner;
+  }
+
   const dashboard = await getDashboardContract(vaultOwner);
 
   const publicClient = await getPublicClient();

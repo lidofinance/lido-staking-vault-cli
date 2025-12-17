@@ -1,4 +1,4 @@
-import { type Address, formatEther } from 'viem';
+import { type Address, formatEther, parseEther } from 'viem';
 import { Option } from 'commander';
 
 import {
@@ -27,6 +27,7 @@ import {
   logRolesOperations,
   askRoleOperationInfo,
   callWriteMethodsWithReportFresh,
+  checkVaultAvailableBalance,
 } from 'features';
 import { getAccount } from 'providers';
 import { getOperatorGridContract } from 'contracts';
@@ -674,6 +675,60 @@ vaultOperationsWrite
         contract,
         methodName: 'revokeRoles',
         payload: [roleAssignmentsValue],
+      });
+    },
+  );
+
+vaultOperationsWrite
+  .command('connect-and-accept-tier')
+  .alias('connect-and-accept')
+  .description('changes the tier of the vault and connects to VaultHub')
+  .argument('<tier>', 'tier to change to', stringToBigInt)
+  .argument(
+    '<requestedShareLimit>',
+    'requested new share limit for the vault (in shares)',
+    etherToWei,
+  )
+  .option('-f, --fund', 'optional fund the vault with 1 ETH', false)
+  .option('-v, --vault <string>', 'vault address', stringToAddress)
+
+  .addHelpText(
+    'after',
+    `Reverts if settledGrowth is not corrected after the vault is disconnected`,
+  )
+  .action(
+    async (
+      tier: bigint,
+      requestedShareLimit: bigint,
+      { fund, vault }: { fund: boolean; vault: Address },
+    ) => {
+      const { contract } = await chooseVaultAndGetDashboard({
+        vault,
+      });
+      const currentSettledGrowth = await callReadMethodSilent(
+        contract,
+        'settledGrowth',
+      );
+
+      const confirm = await confirmOperation(
+        `Are you sure you want to change the tier of the vault ${vault} to ${tier} and connect to VaultHub?
+        Requested share limit: ${formatEther(requestedShareLimit)}
+        Current settled growth: ${formatEther(currentSettledGrowth)}
+        Fund with 1 ETH: ${fund}`,
+      );
+      if (!confirm) return;
+
+      let value: bigint | undefined;
+      if (!fund) {
+        const { isFundConfirmed } = await checkVaultAvailableBalance(vault);
+        if (isFundConfirmed) value = parseEther('1');
+      }
+
+      await callWriteMethodWithReceipt({
+        contract,
+        methodName: 'connectAndAcceptTier',
+        payload: [tier, requestedShareLimit],
+        value,
       });
     },
   );
