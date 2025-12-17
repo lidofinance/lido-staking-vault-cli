@@ -10,6 +10,7 @@ const big = (n: number) => BigInt(n);
 
 describe('calculateOverview', () => {
   test('basic calculation', () => {
+    // eslint-disable-next-line deprecation/deprecation
     const result = calculateOverview({
       totalValue: big(1000),
       reserveRatioBP: 1000,

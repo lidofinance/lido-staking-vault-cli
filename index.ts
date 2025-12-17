@@ -6,6 +6,7 @@ import { program } from './command/index.js';
 import { logError, logInfo } from './utils/logging/console.js';
 import { withInterruptHandling } from './utils/interrupt-handler.js';
 import './programs/index.js';
+import { disconnectWalletConnect } from './utils/index.js';
 
 export * from './utils/index.js';
 
@@ -40,10 +41,13 @@ const runCLI = withInterruptHandling(async () => {
 });
 
 runCLI()
-  .catch((error) => {
+  .catch(async (error) => {
     logError('CLI Error:', error.message);
+    await disconnectWalletConnect();
     process.exit(1);
   })
-  .finally(() => {
+  .finally(async () => {
     showTestnetWarning();
+    await disconnectWalletConnect();
+    process.exit(0);
   });

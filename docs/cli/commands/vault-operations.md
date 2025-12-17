@@ -38,22 +38,24 @@ Vault Operations commands manage the core functionality of Lido Staking Vaults i
 
 ### Write
 
-| Command                                    | Description                                                                                                             |
-| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
-| fund \<ether>                              | fund vaults                                                                                                             |
-| withdraw \<eth>                            | withdraws ether from the staking vault to a recipient                                                                   |
-| mint-shares mint\<amountOfShares>          | mints stETH tokens backed by the vault to a recipient                                                                   |
-| mint-wsteth \<amountOfWsteth>              | mints wstETH tokens backed by the vault to a recipient                                                                  |
-| mint-steth \<amountOfSteth>                | mints stETH tokens backed by the vault to a recipient                                                                   |
-| burn-shares burn\<amountOfShares>          | Burns stETH shares from the sender backed by the vault. Expects corresponding amount of stETH approved to this contract |
-| burn-steth \<amountOfSteth>                | Burns stETH shares from the sender backed by the vault. Expects stETH amount approved to this contract.                 |
-| burn-wsteth \<amountOfWsteth>              | burn wstETH tokens from the sender backed by the vault                                                                  |
-| disburse-node-operator-fee                 | transfers the node-operator`s accrued fee (if any) to nodeOperatorFeeRecipient                                          |
-| set-node-operator-fee-recipient set-no-f-r | sets the node operator fee recipient                                                                                    |
-| change-tier-by-no ct-no\<tierId>           | vault tier change by node operator with multi-role confirmation                                                         |
-| change-tier ct\<tierId>                    | vault tier change with multi-role confirmation                                                                          |
-| sync-tier st                               | requests a sync of tier on the OperatorGrid                                                                             |
-| create-vault                               | creates a new StakingVault and Dashboard contracts                                                                      |
+| Command                                      | Description                                                                                                             |
+| -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| fund \<ether>                                | fund vaults                                                                                                             |
+| withdraw \<eth>                              | withdraws ether from the staking vault to a recipient                                                                   |
+| mint-shares (mint) \<amountOfShares>         | mints stETH tokens backed by the vault to a recipient                                                                   |
+| mint-wsteth \<amountOfWsteth>                | mints wstETH tokens backed by the vault to a recipient                                                                  |
+| mint-steth \<amountOfSteth>                  | mints stETH tokens backed by the vault to a recipient                                                                   |
+| burn-shares (burn) \<amountOfShares>         | Burns stETH shares from the sender backed by the vault. Expects corresponding amount of stETH approved to this contract |
+| burn-steth \<amountOfSteth>                  | Burns stETH shares from the sender backed by the vault. Expects stETH amount approved to this contract.                 |
+| burn-wsteth \<amountOfWsteth>                | burn wstETH tokens from the sender backed by the vault                                                                  |
+| disburse-node-operator-fee                   | transfers the node-operator`s accrued fee (if any) to nodeOperatorFeeRecipient                                          |
+| set-node-operator-fee-recipient (set-no-f-r) | sets the node operator fee recipient                                                                                    |
+| change-tier-by-no (ct-no) \<tierId>          | vault tier change by node operator with multi-role confirmation                                                         |
+| change-tier (ct) \<tierId>                   | vault tier change with multi-role confirmation                                                                          |
+| sync-tier (st)                               | requests a sync of tier on the OperatorGrid                                                                             |
+| role-grant                                   | mass-grants multiple roles to multiple accounts                                                                         |
+| role-revoke                                  | mass-revokes multiple roles from multiple accounts                                                                      |
+| create-vault                                 | creates a new StakingVault and Dashboard contracts                                                                      |
 
 ## Command Details
 
@@ -66,26 +68,74 @@ Creates new StakingVault and Dashboard contracts with specified configuration.
 - `create`: Creates vault and connects to VaultHub
 - `create-without-connecting`: Creates vault without VaultHub connection
 
-**Options:**
+#### create
 
-- `-da, --defaultAdmin <address>`: Default admin address
-- `-no, --nodeOperator <address>`: Node operator address
-- `-nom, --nodeOperatorManager <address>`: Node operator manager address
-- `-ce, --confirmExpiry <number>`: Confirmation expiry time
-- `-nof, --nodeOperatorFeeRate <number>`: Node operator fee rate (e.g., 100 = 1%)
-- `-r, --roles <json>`: Additional role assignments
+Creates a new StakingVault and Dashboard contracts and connects them to VaultHub.
+
+**Usage:**
+
+```bash
+yarn start vo write create-vault create [quantity] [options]
+```
+
+Or using aliases:
+
+```bash
+yarn start vo w create-vault create [quantity] [options]
+```
 
 **Arguments:**
 
 - `[quantity]`: Number of vaults to create (default: 1)
 
+**Options:**
+
+- `-da, --defaultAdmin <address>`: Default admin address (prompted if not provided)
+- `-no, --nodeOperator <address>`: Node operator address (prompted if not provided)
+- `-nom, --nodeOperatorManager <address>`: Node operator manager address (prompted if not provided)
+- `-ce, --confirmExpiry <number>`: Confirmation expiry time in seconds (prompted if not provided)
+- `-nof, --nodeOperatorFeeRate <number>`: Node operator fee rate in basis points, e.g., 100 = 1% (prompted if not provided)
+- `-r, --roles <json>`: Additional role assignments in JSON format (optional)
+
+**Examples:**
+
+1. **Interactive mode (prompts for all parameters):**
+
+```bash
+yarn start vo write create-vault create
+```
+
+2. **Create 3 vaults with all parameters:**
+
+```bash
+yarn start vo write create-vault create 3 \
+  --defaultAdmin 0x1234...5678 \
+  --nodeOperator 0xabcd...ef00 \
+  --nodeOperatorManager 0x9876...5432 \
+  --confirmExpiry 86400 \
+  --nodeOperatorFeeRate 100
+```
+
+3. **With additional roles:**
+
+```bash
+yarn start vo write create-vault create \
+  --defaultAdmin 0x1234...5678 \
+  --nodeOperator 0xabcd...ef00 \
+  --nodeOperatorManager 0x9876...5432 \
+  --confirmExpiry 86400 \
+  --nodeOperatorFeeRate 100 \
+  --roles '[{"account":"0xabc...","role":"FUND_ROLE"}]'
+```
+
 **Process:**
 
-- Validates all addresses and parameters
+- Validates all addresses and parameters (prompts for missing values)
 - Displays creation confirmation with all settings
 - Deploys new StakingVault and Dashboard contracts
 - Assigns specified roles and permissions
-- Optionally connects to VaultHub
+- Connects vault to VaultHub
+- Returns vault and dashboard addresses
 
 **Returns:**
 
@@ -93,13 +143,71 @@ Creates new StakingVault and Dashboard contracts with specified configuration.
 - Dashboard contract address
 - Transaction hash and block number
 
+#### create-without-connecting
+
+Creates a new StakingVault and Dashboard contracts without connecting to VaultHub.
+
+**Usage:**
+
+```bash
+yarn start vo write create-vault create-without-connecting [quantity] [options]
+```
+
+Or using aliases:
+
+```bash
+yarn start vo w create-vault create-without-connecting [quantity] [options]
+```
+
+**Arguments:**
+
+- `[quantity]`: Number of vaults to create (default: 1)
+
+**Options:**
+
+- `-da, --defaultAdmin <address>`: Default admin address (prompted if not provided)
+- `-no, --nodeOperator <address>`: Node operator address (prompted if not provided)
+- `-nom, --nodeOperatorManager <address>`: Node operator manager address (prompted if not provided)
+- `-ce, --confirmExpiry <number>`: Confirmation expiry time in seconds (prompted if not provided)
+- `-nof, --nodeOperatorFeeRate <number>`: Node operator fee rate in basis points, e.g., 100 = 1% (prompted if not provided)
+- `-r, --roles <json>`: Additional role assignments in JSON format (optional)
+
+**Examples:**
+
+1. **Create vault without VaultHub connection:**
+
+```bash
+yarn start vo write create-vault create-without-connecting \
+  --defaultAdmin 0x1234...5678 \
+  --nodeOperator 0xabcd...ef00 \
+  --nodeOperatorManager 0x9876...5432 \
+  --confirmExpiry 86400 \
+  --nodeOperatorFeeRate 100
+```
+
+**Process:**
+
+- Same as `create` command but skips VaultHub connection
+
 ### info
 
 Displays comprehensive information about a StakingVault through its Dashboard contract.
 
+**Usage:**
+
+```bash
+yarn start vo read info [options]
+```
+
+Or using aliases:
+
+```bash
+yarn start vo r info [options]
+```
+
 **Options:**
 
-- `-v, --vault <address>`: Specify vault address
+- `-v, --vault <address>`: Specify vault address (optional - prompts for selection if not provided)
 
 **Information Displayed:**
 
@@ -108,6 +216,7 @@ Displays comprehensive information about a StakingVault through its Dashboard co
 - Vault metrics (total value, locked funds, liability shares)
 - Minting capacity and limits
 - Node operator settings and fee rates
+- Quarantine status warning (if applicable)
 
 **Use Case:** Get complete technical overview of vault configuration and current state.
 
@@ -115,9 +224,21 @@ Displays comprehensive information about a StakingVault through its Dashboard co
 
 Checks and displays the health status of a StakingVault.
 
+**Usage:**
+
+```bash
+yarn start vo read health [options]
+```
+
+Or using aliases:
+
+```bash
+yarn start vo r health [options]
+```
+
 **Options:**
 
-- `-v, --vault <address>`: Specify vault address
+- `-v, --vault <address>`: Specify vault address (optional - prompts for selection if not provided)
 
 **Health Metrics:**
 
@@ -126,6 +247,7 @@ Checks and displays the health status of a StakingVault.
 - Total value in ETH
 - Liability shares in stETH
 - Force rebalance threshold
+- Quarantine status warning (if applicable)
 
 **Use Case:** Monitor vault health status and determine if maintenance actions are needed.
 
@@ -133,9 +255,21 @@ Checks and displays the health status of a StakingVault.
 
 Provides a comprehensive dashboard view of vault performance and status with visual indicators.
 
+**Usage:**
+
+```bash
+yarn start vo read overview [options]
+```
+
+Or using aliases:
+
+```bash
+yarn start vo r overview [options]
+```
+
 **Options:**
 
-- `-v, --vault <address>`: Specify vault address
+- `-v, --vault <address>`: Specify vault address (optional - prompts for selection if not provided)
 
 **Overview Includes:**
 
@@ -145,6 +279,7 @@ Provides a comprehensive dashboard view of vault performance and status with vis
 - Collateral and locked funds breakdown
 - Minting capacity (total and remaining)
 - Visual health and liability bars
+- Quarantine status warning (if applicable)
 
 **Use Case:** Get complete operational overview for vault management decisions.
 
@@ -152,15 +287,28 @@ Provides a comprehensive dashboard view of vault performance and status with vis
 
 Displays role assignments and permissions for the vault.
 
+**Usage:**
+
+```bash
+yarn start vo read roles [options]
+```
+
+Or using aliases:
+
+```bash
+yarn start vo r roles [options]
+```
+
 **Options:**
 
-- `-v, --vault <address>`: Specify vault address
+- `-v, --vault <address>`: Specify vault address (optional - prompts for selection if not provided)
 
 **Role Information:**
 
 - Admin roles and permissions
 - Node operator assignments
 - Fund, mint, burn, and withdraw role holders
+- Quarantine status warning (if applicable)
 
 **Use Case:** Audit access control and permission structure.
 
@@ -168,17 +316,31 @@ Displays role assignments and permissions for the vault.
 
 Adds ETH to a StakingVault to increase its total value and collateral.
 
+**Usage:**
+
+```bash
+yarn start vo write fund <ether> [options]
+```
+
+Or using aliases:
+
+```bash
+yarn start vo w fund <ether> [options]
+```
+
 **Arguments:**
 
-- `<ether>`: Amount of ETH to fund the vault
+- `<ether>`: Amount of ETH to fund the vault (in ETH, e.g., 1.5)
 
 **Options:**
 
-- `-v, --vault <address>`: Specify vault address
+- `-v, --vault <address>`: Specify vault address (optional - prompts for selection if not provided)
 
 **Process:**
 
+- Checks quarantine status (requires confirmation if quarantined)
 - Verifies caller has FUND_ROLE permission
+- Ensures report is fresh (submits update if needed)
 - Displays funding confirmation with amount and vault address
 - Transfers ETH directly to the vault contract
 
@@ -186,24 +348,38 @@ Adds ETH to a StakingVault to increase its total value and collateral.
 
 - Caller must have FUND_ROLE for the vault
 - Sufficient ETH balance for funding
+- Vault report must be fresh
 
 ### withdraw
 
 Withdraws ETH from a StakingVault to a specified recipient.
 
+**Usage:**
+
+```bash
+yarn start vo write withdraw <eth> [options]
+```
+
+Or using aliases:
+
+```bash
+yarn start vo w withdraw <eth> [options]
+```
+
 **Arguments:**
 
-- `<eth>`: Amount of ETH to withdraw
+- `<eth>`: Amount of ETH to withdraw (in ETH, e.g., 1.5)
 
 **Options:**
 
-- `-v, --vault <address>`: Specify vault address
-- `-r, --recipient <address>`: Address to receive withdrawn ETH
+- `-v, --vault <address>`: Specify vault address (optional - prompts for selection if not provided)
+- `-r, --recipient <address>`: Address to receive withdrawn ETH (optional - prompts if not provided)
 
 **Process:**
 
+- Checks quarantine status (requires confirmation if quarantined)
 - Verifies caller has WITHDRAW_ROLE permission
-- Checks that vault report is fresh (submits update if needed)
+- Ensures vault report is fresh (submits update if needed)
 - Displays withdrawal confirmation
 - Transfers ETH from vault to recipient
 
@@ -211,23 +387,36 @@ Withdraws ETH from a StakingVault to a specified recipient.
 
 - Caller must have WITHDRAW_ROLE for the vault
 - Vault must have sufficient withdrawable balance
-- Oracle report must be fresh
+- Vault report must be fresh
 
 ### mint-shares (mint)
 
 Mints stETH shares backed by the vault's collateral to a recipient.
 
+**Usage:**
+
+```bash
+yarn start vo write mint-shares <amountOfShares> [options]
+```
+
+Or using aliases:
+
+```bash
+yarn start vo w mint <amountOfShares> [options]
+```
+
 **Arguments:**
 
-- `<amountOfShares>`: Amount of stETH shares to mint
+- `<amountOfShares>`: Amount of stETH shares to mint (in Shares, e.g., 1.5)
 
 **Options:**
 
-- `-v, --vault <address>`: Specify vault address
-- `-r, --recipient <address>`: Address to receive minted shares
+- `-v, --vault <address>`: Specify vault address (optional - prompts for selection if not provided)
+- `-r, --recipient <address>`: Address to receive minted shares (optional - prompts if not provided)
 
 **Process:**
 
+- Checks quarantine status (requires confirmation if quarantined)
 - Verifies caller has MINT_ROLE permission
 - Checks vault report freshness and minting capacity
 - Calculates impact on vault health
@@ -244,56 +433,108 @@ Mints stETH shares backed by the vault's collateral to a recipient.
 
 Mints wstETH tokens (wrapped stETH) backed by the vault to a recipient.
 
+**Usage:**
+
+```bash
+yarn start vo write mint-wsteth <amountOfWsteth> [options]
+```
+
+Or using aliases:
+
+```bash
+yarn start vo w mint-wsteth <amountOfWsteth> [options]
+```
+
 **Arguments:**
 
-- `<amountOfWsteth>`: Amount of wstETH to mint
+- `<amountOfWsteth>`: Amount of wstETH to mint (in wstETH, e.g., 1.5)
 
 **Options:**
 
-- `-v, --vault <address>`: Specify vault address
-- `-r, --recipient <address>`: Address to receive wstETH
+- `-v, --vault <address>`: Specify vault address (optional - prompts for selection if not provided)
+- `-r, --recipient <address>`: Address to receive wstETH (optional - prompts if not provided)
 
 **Process:**
 
-- Verifies MINT_ROLE permission
+- Checks quarantine status (requires confirmation if quarantined)
+- Verifies caller has MINT_ROLE permission
 - Follows same health and capacity checks as mint-shares
 - Mints wstETH tokens to recipient
+
+**Requirements:**
+
+- Caller must have MINT_ROLE for the vault
+- Sufficient minting capacity available
+- Vault must remain healthy after minting
 
 ### mint-steth
 
 Mints stETH tokens (by amount, not shares) backed by the vault to a recipient.
 
+**Usage:**
+
+```bash
+yarn start vo write mint-steth <amountOfSteth> [options]
+```
+
+Or using aliases:
+
+```bash
+yarn start vo w mint-steth <amountOfSteth> [options]
+```
+
 **Arguments:**
 
-- `<amountOfSteth>`: Amount of stETH tokens to mint
+- `<amountOfSteth>`: Amount of stETH tokens to mint (in stETH, e.g., 1.5)
 
 **Options:**
 
-- `-v, --vault <address>`: Specify vault address
-- `-r, --recipient <address>`: Address to receive stETH
+- `-v, --vault <address>`: Specify vault address (optional - prompts for selection if not provided)
+- `-r, --recipient <address>`: Address to receive stETH (optional - prompts if not provided)
 
 **Process:**
 
-- Verifies MINT_ROLE permission
+- Checks quarantine status (requires confirmation if quarantined)
+- Verifies caller has MINT_ROLE permission
 - Performs health and capacity validations
 - Mints stETH tokens to recipient
+
+**Requirements:**
+
+- Caller must have MINT_ROLE for the vault
+- Sufficient minting capacity available
+- Vault must remain healthy after minting
 
 ### burn-shares (burn)
 
 Burns stETH shares from the caller, reducing vault liability.
 
+**Usage:**
+
+```bash
+yarn start vo write burn-shares <amountOfShares> [options]
+```
+
+Or using aliases:
+
+```bash
+yarn start vo w burn <amountOfShares> [options]
+```
+
 **Arguments:**
 
-- `<amountOfShares>`: Amount of stETH shares to burn
+- `<amountOfShares>`: Amount of stETH shares to burn (in Shares, e.g., 1.5)
 
 **Options:**
 
-- `-v, --vault <address>`: Specify vault address
+- `-v, --vault <address>`: Specify vault address (optional - prompts for selection if not provided)
 
 **Process:**
 
+- Checks quarantine status (requires confirmation if quarantined)
 - Verifies caller has BURN_ROLE permission
-- Checks caller has sufficient stETH balance approved
+- Checks caller has sufficient stETH balance and approval
+- If approval is insufficient, prompts to approve required amount
 - Calculates impact on vault health and liability
 - Displays burn confirmation with health projections
 - Burns specified amount of shares
@@ -301,71 +542,116 @@ Burns stETH shares from the caller, reducing vault liability.
 **Requirements:**
 
 - Caller must have BURN_ROLE for the vault
-- Sufficient stETH shares approved to the Dashboard contract
+- Sufficient stETH shares balance
+- Sufficient stETH shares approved to the Dashboard contract (can be done automatically)
 
 ### burn-steth
 
 Burns stETH tokens (by amount) from the caller, reducing vault liability.
 
+**Usage:**
+
+```bash
+yarn start vo write burn-steth <amountOfSteth> [options]
+```
+
+Or using aliases:
+
+```bash
+yarn start vo w burn-steth <amountOfSteth> [options]
+```
+
 **Arguments:**
 
-- `<amountOfSteth>`: Amount of stETH tokens to burn
+- `<amountOfSteth>`: Amount of stETH tokens to burn (in stETH, e.g., 1.5)
 
 **Options:**
 
-- `-v, --vault <address>`: Specify vault address
+- `-v, --vault <address>`: Specify vault address (optional - prompts for selection if not provided)
 
 **Process:**
 
-- Verifies BURN_ROLE permission
+- Checks quarantine status (requires confirmation if quarantined)
+- Verifies caller has BURN_ROLE permission
 - Validates stETH approval and balance
+- If approval is insufficient, prompts to approve required amount
 - Burns specified stETH amount
 
 **Requirements:**
 
 - Caller must have BURN_ROLE for the vault
-- Sufficient stETH tokens approved to the Dashboard contract
+- Sufficient stETH tokens balance
+- Sufficient stETH tokens approved to the Dashboard contract (can be done automatically)
 
 ### burn-wsteth
 
 Burns wstETH tokens (by amount) from the caller, reducing vault liability.
 
+**Usage:**
+
+```bash
+yarn start vo write burn-wsteth <amountOfWsteth> [options]
+```
+
+Or using aliases:
+
+```bash
+yarn start vo w burn-wsteth <amountOfWsteth> [options]
+```
+
 **Arguments:**
 
-- `<amountOfWsteth>`: Amount of wstETH tokens to burn
+- `<amountOfWsteth>`: Amount of wstETH tokens to burn (in wstETH, e.g., 1.5)
 
 **Options:**
 
-- `-v, --vault <address>`: Specify vault address
+- `-v, --vault <address>`: Specify vault address (optional - prompts for selection if not provided)
 
 **Process:**
 
-- Verifies BURN_ROLE permission
+- Checks quarantine status (requires confirmation if quarantined)
+- Verifies caller has BURN_ROLE permission
 - Validates wstETH approval and balance
+- If approval is insufficient, prompts to approve required amount
 - Burns specified wstETH amount
 
 **Requirements:**
 
 - Caller must have BURN_ROLE for the vault
-- Sufficient wstETH tokens approved to the Dashboard contract
+- Sufficient wstETH tokens balance
+- Sufficient wstETH tokens approved to the Dashboard contract (can be done automatically)
 
 ### disburse-node-operator-fee
 
 Transfers the node operator's accrued fee (if any) to the nodeOperatorFeeRecipient address.
 
+**Usage:**
+
+```bash
+yarn start vo write disburse-node-operator-fee [options]
+```
+
+Or using aliases:
+
+```bash
+yarn start vo w disburse-node-operator-fee [options]
+```
+
 **Options:**
 
-- `-v, --vault <address>`: Specify vault address
+- `-v, --vault <address>`: Specify vault address (optional - prompts for selection if not provided)
 
 **Process:**
 
-- Checks if node operator has any disbursable fees
-- Displays confirmation with recipient address and fee amount
+- Checks quarantine status (requires confirmation if quarantined)
+- Retrieves node operator fee recipient address
+- Checks if node operator has any disbursable fees (exits if none)
+- Displays confirmation with recipient address and fee amount in ETH
 - Transfers accrued fees to the nodeOperatorFeeRecipient
 
 **Requirements:**
 
-- Node operator must have accrued fees available for disbursement
+- Node operator must have accrued fees available for disbursement (> 0 ETH)
 - nodeOperatorFeeRecipient must be properly configured
 
 **Returns:**
@@ -376,14 +662,27 @@ Transfers the node operator's accrued fee (if any) to the nodeOperatorFeeRecipie
 
 Sets the node operator fee recipient address for the vault. This address will receive node operator fees when they are disbursed.
 
+**Usage:**
+
+```bash
+yarn start vo write set-node-operator-fee-recipient [options]
+```
+
+Or using aliases:
+
+```bash
+yarn start vo w set-no-f-r [options]
+```
+
 **Options:**
 
-- `-v, --vault <address>`: Specify vault address
-- `-rec, --recipient <address>`: Address of the new node operator fee recipient
+- `-v, --vault <address>`: Specify vault address (optional - prompts for selection if not provided)
+- `-rec, --recipient <address>`: Address of the new node operator fee recipient (optional - prompts if not provided)
 
 **Process:**
 
 - Verifies caller has NODE_OPERATOR_MANAGER_ROLE permission
+- Prompts for recipient address if not provided
 - Displays confirmation with new recipient address and vault
 - Updates the nodeOperatorFeeRecipient setting for the vault
 
@@ -402,62 +701,106 @@ Sets the node operator fee recipient address for the vault. This address will re
 
 Changes the vault tier by VAULT_CONFIGURATION_ROLE role with multi-role confirmation.
 
+**Usage:**
+
+```bash
+yarn start vo write change-tier <tierId> [options]
+```
+
+Or using aliases:
+
+```bash
+yarn start vo w ct <tierId> [options]
+```
+
 **Arguments:**
 
-- `<tierId>`: Tier ID to set for the vault
+- `<tierId>`: Tier ID to set for the vault (numeric value)
 
 **Options:**
 
-- `-v, --vault <address>`: Specify vault address
-- `-r, --requestedShareLimit <shares>`: Requested share limit (in shares)
+- `-v, --vault <address>`: Specify vault address (optional - prompts for selection if not provided)
+- `-r, --requestedShareLimit <shares>`: Requested share limit (in shares, e.g., 1000.5) - optional
 
 **Process:**
 
-- Reads the target tier information and share limit
+- Reads the target tier information and share limit from OperatorGrid
+- If `--requestedShareLimit` provided, prompts for confirmation to use custom limit
 - Uses requested share limit if provided; otherwise uses tier default
 - Displays confirmation with tier ID and share limit
-- Submits tier change for multi-role confirmation
+- Verifies caller has VAULT_CONFIGURATION_ROLE permission
+- Ensures vault report is fresh (submits update if needed)
+- Submits tier change transaction
 
 **Requirements:**
 
 - Caller must have VAULT_CONFIGURATION_ROLE for the vault
+- Vault report must be fresh
 
 ### change-tier-by-no (ct-no)
 
 Vault tier change initiated by the node operator with multi-role confirmation.
 
+**Usage:**
+
+```bash
+yarn start vo write change-tier-by-no <tierId> [options]
+```
+
+Or using aliases:
+
+```bash
+yarn start vo w ct-no <tierId> [options]
+```
+
 **Arguments:**
 
-- `<tierId>`: Tier ID to set for the vault
+- `<tierId>`: Tier ID to set for the vault (numeric value)
 
 **Options:**
 
-- `-v, --vault <address>`: Specify vault address
-- `-r, --requestedShareLimit <shares>`: Requested share limit (in shares)
+- `-v, --vault <address>`: Specify vault address (optional - prompts for selection if not provided)
+- `-r, --requestedShareLimit <shares>`: Requested share limit (in shares, e.g., 1000.5) - optional
 
 **Process:**
 
-- Validates caller is the vault's node operator
-- Reads the target tier information and share limit
+- Validates caller is the vault's node operator (throws error if not)
+- Reads the target tier information and share limit from OperatorGrid
+- If `--requestedShareLimit` provided, prompts for confirmation to use custom limit
 - Uses requested share limit if provided; otherwise uses tier default
 - Displays confirmation with tier ID and share limit
-- Submits tier change via Operator Grid for confirmation
+- Ensures vault report is fresh (submits update if needed)
+- Submits tier change via OperatorGrid contract
 
 **Requirements:**
 
-- Caller must be the vault's node operator
+- Caller must be the vault's node operator (exact address match)
+- Vault report must be fresh
 
 ### sync-tier (st)
 
 Requests a sync of tier on the OperatorGrid with multi-role confirmation.
 
+**Usage:**
+
+```bash
+yarn start vo write sync-tier [options]
+```
+
+Or using aliases:
+
+```bash
+yarn start vo w st [options]
+```
+
 **Options:**
 
-- `-v, --vault <address>`: Specify vault address
+- `-v, --vault <address>`: Specify vault address (optional - prompts for selection if not provided)
 
 **Process:**
 
 - Displays confirmation with vault address
+- Ensures vault report is fresh (submits update if needed)
 - Submits sync tier request to the vault contract
 - Requires both vault owner and node operator confirmations to complete
 
@@ -467,8 +810,143 @@ Requests a sync of tier on the OperatorGrid with multi-role confirmation.
 - Both vault owner (via this function) AND node operator confirmations are required
 - First call returns false (pending), second call with both confirmations completes the sync
 - Confirmations expire after the configured period (default: 1 day)
+- Vault report must be fresh
 
 **Use Case:** Synchronize vault tier configuration when changes need to be applied from the OperatorGrid system.
+
+### role-grant
+
+Mass-grants multiple roles to multiple accounts on the vault.
+
+**Usage:**
+
+```bash
+yarn start vo write role-grant [options]
+```
+
+Or using aliases:
+
+```bash
+yarn start vo w role-grant [options]
+```
+
+**Options:**
+
+- `-v, --vault <address>`: Specify vault address
+- `-r, --roleAssignments <json>`: JSON array of role assignments (optional - if not provided, will be prompted interactively)
+
+**Role Assignment Format:**
+
+```json
+[
+  {
+    "account": "0x1234...5678",
+    "role": "0x"
+  },
+  {
+    "account": "0xabcd...ef00",
+    "role": "0x"
+  }
+]
+```
+
+**Examples:**
+
+1. **Interactive mode (prompts for role assignments):**
+
+```bash
+yarn start vo write role-grant --vault 0x1234...5678
+```
+
+2. **Using JSON option:**
+
+```bash
+yarn start vo write role-grant \
+  --vault 0x1234...5678 \
+  --roleAssignments '[{"account":"0xabc...","role":"0x"}]'
+```
+
+**Process:**
+
+- Validates vault address and role assignments
+- Displays table with roles to be granted
+- Requires confirmation before execution
+- Grants all roles in a single transaction
+
+**Requirements:**
+
+- Caller must have admin permissions for the vault
+- All account addresses must be valid
+- Role names must be valid vault roles
+
+**Use Case:** Efficiently assign multiple roles to multiple accounts in one transaction.
+
+### role-revoke
+
+Mass-revokes multiple roles from multiple accounts on the vault.
+
+**Usage:**
+
+```bash
+yarn start vo write role-revoke [options]
+```
+
+Or using aliases:
+
+```bash
+yarn start vo w role-revoke [options]
+```
+
+**Options:**
+
+- `-v, --vault <address>`: Specify vault address
+- `-r, --roleAssignments <json>`: JSON array of role assignments (optional - if not provided, will be prompted interactively)
+
+**Role Assignment Format:**
+
+```json
+[
+  {
+    "account": "0x1234...5678",
+    "role": "0x"
+  },
+  {
+    "account": "0xabcd...ef00",
+    "role": "0x"
+  }
+]
+```
+
+**Examples:**
+
+1. **Interactive mode (prompts for role assignments):**
+
+```bash
+yarn start vo write role-revoke --vault 0x1234...5678
+```
+
+2. **Using JSON option:**
+
+```bash
+yarn start vo write role-revoke \
+  --vault 0x1234...5678 \
+  --roleAssignments '[{"account":"0xabc...","role":"0x"}]'
+```
+
+**Process:**
+
+- Validates vault address and role assignments
+- Displays table with roles to be revoked
+- Requires confirmation before execution
+- Revokes all roles in a single transaction
+
+**Requirements:**
+
+- Caller must have admin permissions for the vault
+- All account addresses must be valid
+- Role names must be valid vault roles
+
+**Use Case:** Efficiently revoke multiple roles from multiple accounts in one transaction.
 
 ## Role-Based Access Control
 

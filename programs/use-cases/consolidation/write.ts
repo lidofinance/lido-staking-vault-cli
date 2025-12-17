@@ -109,8 +109,8 @@ consolidationWrite
         'NODE_OPERATOR_FEE_EXEMPT_ROLE',
         account.address,
       );
-      const isReportFresh = await checkIsReportFresh(vault);
-      if (!isReportFresh) {
+      const isReportFresh = await checkIsReportFresh({ vault });
+      if (!isReportFresh.isFresh) {
         logCancel(
           'Report is not fresh. You need to submit a fresh report before consolidating validators.',
         );

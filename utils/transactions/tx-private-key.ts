@@ -11,7 +11,13 @@ import cliProgress from 'cli-progress';
 import { getAccount, getPublicClient, getWalletWithAccount } from 'providers';
 import { getChain } from 'configs';
 
-import { showSpinner, printError, logResult, logInfo } from 'utils';
+import {
+  showSpinner,
+  printError,
+  logResult,
+  logInfo,
+  isPopulatedTx,
+} from 'utils';
 
 import {
   callWCWriteMethodWithReceipt,
@@ -256,7 +262,11 @@ export const callWriteMethodWithReceipt = async <
   M extends keyof T['write'] & string,
 >(
   args: WriteTxArgs<T, M>,
-): Promise<{ receipt?: TransactionReceipt; tx?: Address }> => {
+): Promise<{
+  receipt?: TransactionReceipt;
+  tx?: Address;
+  data?: PopulatedTx;
+}> => {
   const {
     contract,
     methodName,
@@ -266,25 +276,28 @@ export const callWriteMethodWithReceipt = async <
     withSpinner = true,
     silent = false,
     skipError = false,
+    populateTx = false,
   } = args;
 
-  if (program.opts().populateTx) {
+  if (program.opts().populateTx || populateTx) {
     const data = populateWriteTx({
       contract,
       methodName,
       payload,
       value,
     });
-    logInfo('Populated transaction data:', data);
-    logResult({
-      data: [
-        ['Method name', methodName],
-        ['Contract', contract.address],
-        ['Value', value ? value.toString() : '0'],
-      ],
-    });
 
-    return { receipt: undefined, tx: data as any };
+    !silent && logInfo('Populated transaction data:', data);
+    !silent &&
+      logResult({
+        data: [
+          ['Method name', methodName],
+          ['Contract', contract.address],
+          ['Value', value ? value.toString() : '0'],
+        ],
+      });
+
+    return { receipt: undefined, tx: undefined, data };
   }
 
   if (program.opts().walletConnect) {
@@ -336,6 +349,7 @@ export const callWriteMethodWithReceipt = async <
     !silent &&
       logResult({
         data: [
+          ['Transaction hash', tx],
           ['Method name', methodName],
           ['Contract', contract.address],
           ['Transaction status', receipt.status],
@@ -360,8 +374,13 @@ export const callWriteMethodWithReceiptBatchCalls = async (args: {
   withSpinner?: boolean;
   silent?: boolean;
   skipError?: boolean;
-}) => {
+}): Promise<void> => {
   const { calls, withSpinner = true, silent = false, skipError = false } = args;
+
+  if (program.opts().populateTx) {
+    logInfo('Populated transaction data:', calls);
+    return;
+  }
 
   if (program.opts().walletConnect) {
     await callWCWriteMethodWithReceipt({
@@ -415,6 +434,7 @@ export const callWriteMethodWithReceiptBatchCalls = async (args: {
     !silent &&
       logResult({
         data: [
+          ['Transaction hash', tx],
           ['Call data', call.data],
           ['Contract', call.to],
           ['Transaction status', receipt.status],
@@ -472,4 +492,24 @@ export const callWriteMethodWithReceiptBatchPayloads = async <
   }
 
   progressBar.stop();
+};
+
+export const callWriteMethodWithCalls = async <
+  T extends PartialContract,
+  M extends keyof T['write'] & string,
+>(
+  args: WriteTxArgs<T, M> & { calls: PopulatedTx[] },
+): Promise<void> => {
+  const { calls, ...rest } = args;
+
+  const populatedTx: PopulatedTx | undefined = (
+    await callWriteMethodWithReceipt({ ...rest, populateTx: true })
+  ).data;
+
+  if (!isPopulatedTx(populatedTx))
+    throw new Error(`Error when populating ${args.methodName} call`);
+
+  await callWriteMethodWithReceiptBatchCalls({
+    calls: [...(calls.length > 0 ? calls : []), populatedTx],
+  });
 };

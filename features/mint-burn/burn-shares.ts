@@ -5,7 +5,8 @@ import {
   fetchAndCalculateVaultHealthWithNewValue,
   showSpinner,
   confirmBurn,
-  callWriteMethodWithReceipt,
+  PopulatedTx,
+  callWriteMethodWithCalls,
 } from 'utils';
 import { checkLiabilityShares } from 'features';
 
@@ -14,6 +15,7 @@ export const burnShares = async (
   amountOfShares: bigint,
   vault: Address,
   method: 'burnShares' | 'burnWstETH',
+  populatedAllowance?: PopulatedTx,
 ) => {
   const type = method === 'burnShares' ? 'shares' : 'wstETH';
 
@@ -55,9 +57,10 @@ export const burnShares = async (
   });
   if (!confirm) return;
 
-  await callWriteMethodWithReceipt({
+  await callWriteMethodWithCalls({
     contract,
     methodName: method,
     payload: [amountOfShares],
+    calls: [...(populatedAllowance ? [populatedAllowance] : [])],
   });
 };
