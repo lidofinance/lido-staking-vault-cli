@@ -413,6 +413,11 @@ export const VaultViewerAbi = [
             type: 'uint256',
           },
           {
+            internalType: 'uint256',
+            name: 'accruedFee',
+            type: 'uint256',
+          },
+          {
             internalType: 'bool',
             name: 'isReportFresh',
             type: 'bool',
@@ -707,6 +712,11 @@ export const VaultViewerAbi = [
           {
             internalType: 'uint256',
             name: 'nodeOperatorFeeRate',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint256',
+            name: 'accruedFee',
             type: 'uint256',
           },
           {

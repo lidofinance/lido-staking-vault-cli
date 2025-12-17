@@ -11,23 +11,28 @@ import {
   callReadMethodSilent,
   logError,
   stringToBigInt,
+  jsonToRoleAssignment,
+  isPopulatedTx,
 } from 'utils';
 import {
   chooseVaultAndGetDashboard,
   getAddress,
   mintShares,
-  checkIsReportFresh,
   mintSteth,
   burnShares,
   burnSteth,
   checkVaultRole,
   checkAllowance,
   confirmQuarantine,
+  logRolesOperations,
+  askRoleOperationInfo,
+  callWriteMethodsWithReportFresh,
 } from 'features';
 import { getAccount } from 'providers';
+import { getOperatorGridContract } from 'contracts';
+import { RoleAssignment } from 'types';
 
 import { vaultOperations } from './main.js';
-import { getOperatorGridContract } from 'contracts';
 
 export const vaultOperationsWrite = vaultOperations
   .command('write')
@@ -61,7 +66,8 @@ vaultOperationsWrite
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt({
+    await callWriteMethodsWithReportFresh({
+      vault: vaultAddress,
       contract,
       methodName: 'fund',
       payload: [],
@@ -99,10 +105,8 @@ vaultOperationsWrite
       );
       if (!confirm) return;
 
-      const isReportFresh = await checkIsReportFresh(vaultAddress);
-      if (!isReportFresh) return;
-
-      await callWriteMethodWithReceipt({
+      await callWriteMethodsWithReportFresh({
+        vault: vaultAddress,
         contract,
         methodName: 'withdraw',
         payload: [recipientAddress, ether],
@@ -245,9 +249,20 @@ vaultOperationsWrite
 
     const account = await getAccount();
     await checkVaultRole(contract, 'BURN_ROLE', account.address);
-    await checkAllowance(contract, amountOfShares, 'shares');
+    const allowanceCall = await checkAllowance(
+      contract,
+      amountOfShares,
+      'shares',
+      true,
+    );
 
-    await burnShares(contract, amountOfShares, vaultAddress, 'burnShares');
+    await burnShares(
+      contract,
+      amountOfShares,
+      vaultAddress,
+      'burnShares',
+      isPopulatedTx(allowanceCall?.data) ? allowanceCall.data : undefined,
+    );
   });
 
 vaultOperationsWrite
@@ -267,9 +282,19 @@ vaultOperationsWrite
 
     const account = await getAccount();
     await checkVaultRole(contract, 'BURN_ROLE', account.address);
-    await checkAllowance(contract, amountOfSteth, 'steth');
+    const allowanceCall = await checkAllowance(
+      contract,
+      amountOfSteth,
+      'steth',
+      true,
+    );
 
-    await burnSteth(contract, amountOfSteth, vaultAddress);
+    await burnSteth(
+      contract,
+      amountOfSteth,
+      vaultAddress,
+      isPopulatedTx(allowanceCall?.data) ? allowanceCall.data : undefined,
+    );
   });
 
 vaultOperationsWrite
@@ -291,9 +316,20 @@ vaultOperationsWrite
 
     const account = await getAccount();
     await checkVaultRole(contract, 'BURN_ROLE', account.address);
-    await checkAllowance(contract, amountOfWsteth, 'wsteth');
+    const allowanceCall = await checkAllowance(
+      contract,
+      amountOfWsteth,
+      'wsteth',
+      true,
+    );
 
-    await burnShares(contract, amountOfWsteth, vaultAddress, 'burnWstETH');
+    await burnShares(
+      contract,
+      amountOfWsteth,
+      vaultAddress,
+      'burnWstETH',
+      isPopulatedTx(allowanceCall?.data) ? allowanceCall.data : undefined,
+    );
   });
 
 vaultOperationsWrite
@@ -435,10 +471,8 @@ vaultOperationsWrite
         );
       }
 
-      // TODO: only for confirmation
-      await checkIsReportFresh(vaultAddress);
-
-      await callWriteMethodWithReceipt({
+      await callWriteMethodsWithReportFresh({
+        vault: vaultAddress,
         contract: operatorGridContract,
         methodName: 'changeTier',
         payload: [vaultAddress, tierId, currentShareLimit],
@@ -499,10 +533,8 @@ vaultOperationsWrite
         account.address,
       );
 
-      // TODO: only for confirmation
-      await checkIsReportFresh(vaultAddress);
-
-      await callWriteMethodWithReceipt({
+      await callWriteMethodsWithReportFresh({
+        vault: vaultAddress,
         contract,
         methodName: 'changeTier',
         payload: [tierId, currentShareLimit],
@@ -532,11 +564,116 @@ vaultOperationsWrite
     );
     if (!confirm) return;
 
-    await checkIsReportFresh(vaultAddress);
-
-    await callWriteMethodWithReceipt({
+    await callWriteMethodsWithReportFresh({
+      vault: vaultAddress,
       contract,
       methodName: 'syncTier',
       payload: [],
     });
   });
+
+vaultOperationsWrite
+  .command('role-grant')
+  .description('mass-grants multiple roles to multiple accounts.')
+  .option(
+    '-r, --roleAssignments <string>',
+    'JSON array of role assignments',
+    jsonToRoleAssignment,
+  )
+  .option('-v, --vault <string>', 'vault address', stringToAddress)
+  .addHelpText(
+    'after',
+    `Role assignment format:
+    [{
+      "account": "...",
+      "role": "..."
+    }
+    {second role assignment}
+    ...]`,
+  )
+  .action(
+    async ({
+      roleAssignments,
+      vault,
+    }: {
+      roleAssignments: RoleAssignment[];
+      vault: Address;
+    }) => {
+      const { contract } = await chooseVaultAndGetDashboard({
+        vault,
+      });
+
+      let roleAssignmentsValue: RoleAssignment[] = [];
+      if (roleAssignments) {
+        roleAssignmentsValue = roleAssignments;
+      } else {
+        roleAssignmentsValue = await askRoleOperationInfo(contract, 'grant');
+      }
+
+      const confirm = await logRolesOperations(
+        contract,
+        roleAssignmentsValue,
+        'grant',
+      );
+      if (!confirm) return;
+
+      await callWriteMethodWithReceipt({
+        contract,
+        methodName: 'grantRoles',
+        payload: [roleAssignmentsValue],
+      });
+    },
+  );
+
+vaultOperationsWrite
+  .command('role-revoke')
+  .description('mass-revokes multiple roles from multiple accounts')
+  .option(
+    '-r, --roleAssignments <string>',
+    'JSON array of role assignments',
+    jsonToRoleAssignment,
+  )
+  .option('-v, --vault <string>', 'vault address', stringToAddress)
+  .addHelpText(
+    'after',
+    `Role assignment format:
+    [{
+      "account": "...",
+      "role": "..."
+    }
+    {second role assignment}
+    ...]`,
+  )
+  .action(
+    async ({
+      roleAssignments,
+      vault,
+    }: {
+      roleAssignments: RoleAssignment[];
+      vault: Address;
+    }) => {
+      const { contract } = await chooseVaultAndGetDashboard({
+        vault,
+      });
+
+      let roleAssignmentsValue: RoleAssignment[] = [];
+      if (roleAssignments) {
+        roleAssignmentsValue = roleAssignments;
+      } else {
+        roleAssignmentsValue = await askRoleOperationInfo(contract, 'revoke');
+      }
+
+      const confirm = await logRolesOperations(
+        contract,
+        roleAssignmentsValue,
+        'revoke',
+      );
+      if (!confirm) return;
+
+      await callWriteMethodWithReceipt({
+        contract,
+        methodName: 'revokeRoles',
+        payload: [roleAssignmentsValue],
+      });
+    },
+  );

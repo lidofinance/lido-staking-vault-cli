@@ -6,6 +6,7 @@ import {
   confirmOperation,
   submitReport,
   logInfo,
+  PopulatedTx,
 } from 'utils';
 
 const checkIsDisconnected = async (vault: Address) => {
@@ -28,11 +29,17 @@ const checkIsDisconnected = async (vault: Address) => {
   return false;
 };
 
-export const checkIsReportFresh = async (vault: Address) => {
+export const checkIsReportFresh = async ({
+  vault,
+  populateTx = false,
+}: {
+  vault: Address;
+  populateTx?: boolean;
+}): Promise<{ isFresh: boolean; data?: PopulatedTx }> => {
   const vaultHubContract = await getVaultHubContract();
   const isDisconnected = await checkIsDisconnected(vault);
 
-  if (isDisconnected) return true;
+  if (isDisconnected) return { isFresh: true, data: undefined };
 
   const isReportFresh = await callReadMethodSilent(
     vaultHubContract,
@@ -45,16 +52,16 @@ export const checkIsReportFresh = async (vault: Address) => {
     const confirm = await confirmOperation(
       'Do you want to submit a fresh report?',
     );
-    if (!confirm) return false;
+    if (!confirm) return { isFresh: false, data: undefined };
 
-    const isReportSubmitted = await submitReport({ vault });
+    const result = await submitReport({ vault, populateTx });
 
-    return isReportSubmitted;
+    return result;
   }
 
   logInfo('The report is fresh');
 
-  return isReportFresh;
+  return { isFresh: true, data: undefined };
 };
 
 export const reportFreshWarning = async (vault: Address): Promise<boolean> => {

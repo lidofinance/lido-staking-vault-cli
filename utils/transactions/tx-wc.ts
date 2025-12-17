@@ -24,6 +24,10 @@ import { PartialContract, PopulatedTx, BatchTxArgs } from './types.js';
 export const PROVIDER_POLLING_INTERVAL = 12_000;
 export const AA_TX_POLLING_TIMEOUT = 180_000; // 3 minutes
 
+export const isPopulatedTx = (tx: any): tx is PopulatedTx => {
+  return !!tx && tx.to !== undefined && tx.data !== undefined;
+};
+
 export const simulateWCWriteTx = async (args: {
   calls: PopulatedTx[];
   withSpinner?: boolean;
@@ -54,14 +58,24 @@ export const simulateWCWriteTx = async (args: {
 
       const data = cause?.data ?? cause?.raw;
       if (data) {
-        const { errorName, args } = decodeErrorResult({
-          abi: abi ?? DashboardAbi,
-          data,
-        });
+        // Check if data is already decoded (object) or needs decoding (hex string)
+        if (typeof data === 'string' && data.startsWith('0x')) {
+          // data is a hex string, decode it
+          const { errorName, args } = decodeErrorResult({
+            abi: abi ?? DashboardAbi,
+            data: data as Hex,
+          });
 
-        const errorArgs = args?.map((a) => a?.toString() ?? '') ?? [];
-        const errorMessage = `${errorName}: ${errorArgs.join(', ')}`;
-        printError(new Error(errorMessage), 'Simulation failed');
+          const errorArgs = args?.map((a) => a?.toString() ?? '') ?? [];
+          const errorMessage = `${errorName}: ${errorArgs.join(', ')}`;
+          printError(new Error(errorMessage), 'Simulation failed');
+        } else if (typeof data === 'object' && data.errorName) {
+          // data is already decoded, use it directly
+          const errorArgs =
+            data.args?.map((a: any) => a?.toString() ?? '') ?? [];
+          const errorMessage = `${data.errorName}: ${errorArgs.join(', ')}`;
+          printError(new Error(errorMessage), 'Simulation failed');
+        }
       }
 
       const shortMessage = cause?.shortMessage;
@@ -72,6 +86,7 @@ export const simulateWCWriteTx = async (args: {
     return simulateResult;
   } catch (err) {
     hideSpinner();
+    await disconnectWalletConnect();
 
     if (!skipError) printError(err, 'Error when simulating write method');
 

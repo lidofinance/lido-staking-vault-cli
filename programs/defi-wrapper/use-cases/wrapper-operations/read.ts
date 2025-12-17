@@ -120,11 +120,11 @@ wrapperOperationsRead
     const contract = await getStvPoolContract(address);
     const vault = await callReadMethodSilent(contract, 'VAULT');
 
-    const isReportFresh = await checkIsReportFresh(vault);
+    const isReportFresh = await checkIsReportFresh({ vault });
     logResult({});
     logInfo('Report Fresh');
     logTable({
-      data: [['Is Report Fresh', isReportFresh]],
+      data: [['Is Report Fresh', isReportFresh.isFresh]],
     });
   });
 

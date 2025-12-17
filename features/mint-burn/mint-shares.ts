@@ -5,9 +5,11 @@ import {
   fetchAndCalculateVaultHealthWithNewValue,
   showSpinner,
   confirmMint,
-  callWriteMethodWithReceipt,
 } from 'utils';
-import { checkIsReportFresh, checkMintingCapacity } from 'features';
+import {
+  callWriteMethodsWithReportFresh,
+  checkMintingCapacity,
+} from 'features';
 
 export const mintShares = async (
   contract: DashboardContract,
@@ -17,9 +19,6 @@ export const mintShares = async (
   method: 'mintShares' | 'mintWstETH',
 ) => {
   const type = method === 'mintShares' ? 'shares' : 'wstETH';
-
-  const isReportFresh = await checkIsReportFresh(vault);
-  if (!isReportFresh) return;
 
   const isMintingCapacityOk = await checkMintingCapacity(
     contract,
@@ -60,7 +59,8 @@ export const mintShares = async (
   });
   if (!confirm) return;
 
-  await callWriteMethodWithReceipt({
+  await callWriteMethodsWithReportFresh({
+    vault,
     contract,
     methodName: method,
     payload: [recipient, amountOfShares],

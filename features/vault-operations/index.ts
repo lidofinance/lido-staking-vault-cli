@@ -5,3 +5,4 @@ export * from './vault-info.js';
 export * from './vault-overview.js';
 export * from './vault-roles.js';
 export * from './create-vault.js';
+export * from './roles.js';

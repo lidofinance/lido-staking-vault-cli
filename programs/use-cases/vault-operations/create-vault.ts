@@ -1,4 +1,5 @@
-import { Address } from 'viem';
+import { Address, Hex } from 'viem';
+import { getTransactionReceipt } from 'viem/actions';
 import { program } from 'command';
 
 import {
@@ -7,6 +8,9 @@ import {
   getAddress,
   getConfirmExpiry,
   getNodeOperatorFeeRate,
+  getCreateVaultEventData,
+  type CreateVaultResult,
+  isCreateVaultResult,
 } from 'features';
 import { RoleAssignment } from 'types';
 import {
@@ -20,6 +24,7 @@ import {
 } from 'utils';
 
 import { vaultOperationsWrite } from './write.js';
+import { getPublicClient } from 'providers';
 
 const vaultOperationsCreateVault = vaultOperationsWrite
   .command('create-vault')
@@ -98,35 +103,39 @@ vaultOperationsCreateVault
       if (!createVaultData) return;
 
       const { payload, list, otherRoles } = createVaultData;
-      const transactions = [];
+      const results: (Pick<CreateVaultResult, 'tx'> | CreateVaultResult)[] = [];
 
       const confirm = await confirmCreateVaultParams(payload, otherRoles);
       if (!confirm) return logCancel('Vault creation cancelled');
 
       try {
         for (const _ of list) {
-          const tx = await createVault(payload, otherRoles);
-          transactions.push(tx);
+          const result = await createVault(payload, otherRoles);
+          if (!result) continue;
+          results.push(result);
         }
 
         logResult({});
-        transactions.forEach((tx) => {
+        results.forEach((item) => {
           if (program.opts().populateTx) {
-            logInfo('Populated transaction data:', tx);
+            logInfo('Populated transaction data:', item);
             return;
           }
           // Gnosis safe case
-          if (!tx) return;
+          if (!isCreateVaultResult(item)) return;
 
           logTable({
             data: [
-              ['Vault Address', tx.vault],
-              ['Dashboard Address', tx.dashboard],
-              ['Default Admin Address', tx.owner],
-              ['Node Operator Address', nodeOperatorAddress],
-              ['Node Operator Manager Address', nodeOperatorManagerAddress],
-              ['Transaction Hash', tx.tx],
-              ['Block Number', tx.blockNumber],
+              ['Vault Address', item.vault],
+              ['Dashboard Address', item.dashboard],
+              ['Default Admin Address', item.owner],
+              ['Node Operator Address', item.nodeOperator],
+              [
+                'Node Operator Manager Address',
+                item.nodeOperatorManager.join(', '),
+              ],
+              ['Transaction Hash', item.tx],
+              ['Block Number', item.blockNumber],
             ],
           });
         });
@@ -213,40 +222,44 @@ vaultOperationsCreateVault
       if (!createVaultData) return;
 
       const { payload, list, otherRoles } = createVaultData;
-      const transactions = [];
+      const results: (Pick<CreateVaultResult, 'tx'> | CreateVaultResult)[] = [];
 
       const confirm = await confirmCreateVaultParams(payload, otherRoles);
       if (!confirm) return logCancel('Vault creation cancelled');
 
       try {
         for (const _ of list) {
-          const tx = await createVault(
+          const result = await createVault(
             payload,
             otherRoles,
             'createVaultWithDashboardWithoutConnectingToVaultHub',
           );
-          transactions.push(tx);
+          if (!result) continue;
+          results.push(result);
         }
 
         logResult({});
         // eslint-disable-next-line sonarjs/no-identical-functions
-        transactions.forEach((tx) => {
+        results.forEach((item) => {
           if (program.opts().populateTx) {
-            logInfo('Populated transaction data:', tx);
+            logInfo('Populated transaction data:', item);
             return;
           }
           // Gnosis safe case
-          if (!tx) return;
+          if (!isCreateVaultResult(item)) return;
 
           logTable({
             data: [
-              ['Vault Address', tx?.vault],
-              ['Dashboard Address', tx?.dashboard],
-              ['Default Admin Address', tx?.owner],
-              ['Node Operator Address', nodeOperatorAddress],
-              ['Node Operator Manager Address', nodeOperatorManagerAddress],
-              ['Transaction Hash', tx?.tx],
-              ['Block Number', tx?.blockNumber],
+              ['Vault Address', item.vault],
+              ['Dashboard Address', item.dashboard],
+              ['Default Admin Address', item.owner],
+              ['Node Operator Address', item.nodeOperator],
+              [
+                'Node Operator Manager Address',
+                item.nodeOperatorManager.join(', '),
+              ],
+              ['Transaction Hash', item.tx],
+              ['Block Number', item.blockNumber],
             ],
           });
         });
@@ -257,3 +270,29 @@ vaultOperationsCreateVault
       }
     },
   );
+
+vaultOperationsCreateVault
+  .command('log-creating-vault-data')
+  .aliases(['log-data'])
+  .description('logs the data of the created vault')
+  .argument('<txHash>', 'transaction hash of the vault creation')
+  .action(async (txHash: Hex) => {
+    const publicClient = await getPublicClient();
+    const receipt = await getTransactionReceipt(publicClient, { hash: txHash });
+    const eventData = await getCreateVaultEventData(receipt, txHash);
+
+    logTable({
+      data: [
+        ['Vault Address', eventData.vault],
+        ['Dashboard Address', eventData.dashboard],
+        ['Default Admin Address', eventData.owner],
+        ['Node Operator Address', eventData.nodeOperator],
+        [
+          'Node Operator Manager Address',
+          eventData.nodeOperatorManager.join(', '),
+        ],
+        ['Transaction Hash', eventData.tx],
+        ['Block Number', eventData.blockNumber],
+      ],
+    });
+  });

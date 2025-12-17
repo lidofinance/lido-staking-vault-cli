@@ -1,33 +1,6 @@
 import { StakingVaultErrorsAbi } from './StakingVault.js';
 
-export const PredepositGuaranteeAbi = [
-  ...StakingVaultErrorsAbi,
-  {
-    inputs: [
-      {
-        internalType: 'bytes4',
-        name: '_genesisForkVersion',
-        type: 'bytes4',
-      },
-      {
-        internalType: 'GIndex',
-        name: '_gIFirstValidator',
-        type: 'bytes32',
-      },
-      {
-        internalType: 'GIndex',
-        name: '_gIFirstValidatorAfterChange',
-        type: 'bytes32',
-      },
-      {
-        internalType: 'uint64',
-        name: '_pivotSlot',
-        type: 'uint64',
-      },
-    ],
-    stateMutability: 'nonpayable',
-    type: 'constructor',
-  },
+export const PredepositGuaranteeErrorsAbi = [
   {
     inputs: [],
     name: 'AccessControlBadConfirmation',
@@ -378,6 +351,37 @@ export const PredepositGuaranteeAbi = [
     inputs: [],
     name: 'ZeroPauseDuration',
     type: 'error',
+  },
+] as const;
+
+export const PredepositGuaranteeAbi = [
+  ...PredepositGuaranteeErrorsAbi,
+  ...StakingVaultErrorsAbi,
+  {
+    inputs: [
+      {
+        internalType: 'bytes4',
+        name: '_genesisForkVersion',
+        type: 'bytes4',
+      },
+      {
+        internalType: 'GIndex',
+        name: '_gIFirstValidator',
+        type: 'bytes32',
+      },
+      {
+        internalType: 'GIndex',
+        name: '_gIFirstValidatorAfterChange',
+        type: 'bytes32',
+      },
+      {
+        internalType: 'uint64',
+        name: '_pivotSlot',
+        type: 'uint64',
+      },
+    ],
+    stateMutability: 'nonpayable',
+    type: 'constructor',
   },
   {
     anonymous: false,

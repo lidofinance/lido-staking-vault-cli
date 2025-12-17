@@ -49,4 +49,5 @@ export type WriteTxArgs<
   withSpinner?: boolean;
   silent?: boolean;
   skipError?: boolean;
+  populateTx?: boolean;
 };
