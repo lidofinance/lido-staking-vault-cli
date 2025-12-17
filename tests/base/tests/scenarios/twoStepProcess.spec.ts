@@ -1,21 +1,13 @@
-import { expect } from '@playwright/test';
-import { getStandConfig } from '../../config';
 import { test } from '../test.fixture';
-import {
-  buildAdditionalRoles,
-  getPermissionRole,
-  NO_ROLES,
-  PERMISSION_ROLES,
-  ROLES,
-} from '../../testData/roles.data';
-import lsvCLI, { OperatorGridMock } from '../../utils';
 import { Address, formatEther, getAddress, parseEther } from 'viem';
-import {
-  DEFAULT_TIER_ID,
-  DEFAULT_TIER_PARAMS,
-  LIDO_CONNECTION_COLLATERAL,
-  TierParams,
-} from '../../testData/consts';
+import { getStandConfig } from '../../config';
+import process from 'node:process';
+import { getPermissionRole, ROLES } from '../../testData/roles.data';
+
+import lsvCLI, { OperatorGridMock } from '../../utils';
+import { expect } from '@playwright/test';
+import { LIDO_CONNECTION_COLLATERAL, TierParams } from '../../testData/consts';
+import { getBalanceEth, getClient } from '../../providers';
 import {
   getLiabilityShares,
   getTotalValue,
@@ -26,13 +18,12 @@ import {
   isVaultConnected,
 } from '../../contracts';
 import { getVaultTierInfo } from '../../contracts/operatorGrid';
-import process from 'node:process';
-import { getBalanceEth, getClient } from '../../providers';
 
 const CONFIRM_EXPIRY = 86400;
 const NO_FEE_RATE = 100;
 
 const noGroupLimit = parseEther('100');
+const mintAmount = '10';
 
 const tierParams1: TierParams = {
   shareLimit: noGroupLimit / 2n,
@@ -52,12 +43,11 @@ const tierParams2: TierParams = {
   reservationFeeBP: BigInt('100'),
 };
 
-test.describe.serial('One step process', () => {
+test.describe.serial('Two step process', () => {
   let vaultAddress: Address;
   let dashboardAddress: Address;
   let nodeUrl: string;
   let roles: any;
-  const mintAmount = '10';
 
   test.beforeAll(async ({ ethereumNodeService, defaultVaultData }) => {
     await test.step('Setup env for CLI', async () => {
@@ -73,30 +63,44 @@ test.describe.serial('One step process', () => {
     roles = defaultVaultData.roles;
   });
 
-  test('Create vault connected to vault hub && configure with all roles ', async ({
+  test('NO assign for individual tiers', async () => {
+    const operatorGridMock = new OperatorGridMock();
+    await test.step('Register tiers for NO', async () => {
+      await operatorGridMock.registerGroup(
+        roles.nodeOperator.address,
+        noGroupLimit,
+      );
+    });
+
+    await test.step('Register tiers for NO', async () => {
+      await operatorGridMock.registerTier(roles.nodeOperator.address, [
+        tierParams1,
+        tierParams2,
+      ]);
+    });
+  });
+
+  test('NO creates vault disconnected from VaultHub without collateral', async ({
     ethereumNodeService,
   }) => {
-    const vaultCreatorAccount = ethereumNodeService.getAccount(
-      getPermissionRole(ROLES.DEFAULT_ADMIN).index,
+    const noVaultCreatorAccount = ethereumNodeService.getAccount(
+      getPermissionRole(ROLES.NODE_OPERATOR).index,
     );
     const publicClient = getClient();
     const vaultCreatorBalanceBeforeCreate = await publicClient.getBalance({
-      address: vaultCreatorAccount.address as Address,
+      address: noVaultCreatorAccount.address as Address,
     });
 
     const vaultData =
-      await test.step('Create vault connected to VaultHub && grant all VM roles', async () => {
-        const additionalRoles = buildAdditionalRoles(ethereumNodeService);
-
+      await test.step('Create vault disconnected from VaultHub without collateral', async () => {
         return await lsvCLI.factory.createVault({
           defaultAdmin: roles.defaultAdmin.address,
           nodeOperator: roles.nodeOperator.address,
           nodeOperatorManager: roles.nodeOperatorManager.address,
           confirmExpiry: CONFIRM_EXPIRY,
           nodeOperatorFeeRate: NO_FEE_RATE,
-          roles: additionalRoles,
-          privateKey: vaultCreatorAccount.secretKey,
-          connectedToVh: true,
+          privateKey: noVaultCreatorAccount.secretKey,
+          connectedToVh: false,
         });
       });
 
@@ -104,12 +108,12 @@ test.describe.serial('One step process', () => {
     dashboardAddress = vaultData.dashboardAddress;
 
     await test.step('Check vault created', async () => {
-      await test.step('Check vault connected to VaultHub', async () => {
+      await test.step('Check vault not connected to VaultHub', async () => {
         const cliIsVaultConnectedToVaultHub =
           await lsvCLI.hub.isVaultConnected(vaultAddress);
         const contractIsVaultConnectedToVaultHub =
           await isVaultConnected(vaultAddress);
-        const expectedVaultConnection = true;
+        const expectedVaultConnection = false;
 
         expect(
           cliIsVaultConnectedToVaultHub,
@@ -117,11 +121,11 @@ test.describe.serial('One step process', () => {
         ).toBe(contractIsVaultConnectedToVaultHub);
         expect(
           cliIsVaultConnectedToVaultHub,
-          'Created vault should be connected to VaultHub',
+          'Created vault should be not connected to VaultHub',
         ).toBe(expectedVaultConnection);
       });
 
-      await test.step('Check collateral', async () => {
+      await test.step('Check that no collateral was set for disconnected vault', async () => {
         const receipt =
           (await publicClient
             .getTransactionReceipt({ hash: vaultData.txHash })
@@ -130,7 +134,7 @@ test.describe.serial('One step process', () => {
             hash: vaultData.txHash,
           }));
         const vaultCreatorBalanceAfterCreation = await publicClient.getBalance({
-          address: vaultCreatorAccount.address as Address,
+          address: noVaultCreatorAccount.address as Address,
         });
         const txFee = receipt.gasUsed * receipt.effectiveGasPrice;
         const vaultCreatorBalanceDifference =
@@ -145,146 +149,108 @@ test.describe.serial('One step process', () => {
           await getTotalValue(dashboardAddress),
         );
 
+        const expectedCollateralEth = '0';
+
         expect(
           vaultCreatorBalanceDifference,
-          `Vault creation requires collateral of ${LIDO_CONNECTION_COLLATERAL} ETH`,
-        ).toBe(parseEther(LIDO_CONNECTION_COLLATERAL));
+          `Vault creation not requires collateral of ${LIDO_CONNECTION_COLLATERAL} ETH`,
+        ).toBe(parseEther(expectedCollateralEth));
         expect(
           cliCollateralEth,
-          `Vault creation requires collateral of ${LIDO_CONNECTION_COLLATERAL} ETH`,
-        ).toBe(LIDO_CONNECTION_COLLATERAL);
+          `Vault creation not requires collateral of ${LIDO_CONNECTION_COLLATERAL} ETH`,
+        ).toBe(expectedCollateralEth);
 
         expect(
           cliTotalValueEth,
-          'CLI total value should be correct with contract after creation',
+          'CLI total value should be correct with contract for disconnected vault',
         ).toBe(contractTotalValueEth);
         expect(
           contractTotalValueEth,
           `Collateral become "Total value" of vault`,
-        ).toBe(LIDO_CONNECTION_COLLATERAL);
+        ).toBe(expectedCollateralEth);
       });
-
-      await test.step(`Check vault connected with default tier has correct params - {${DEFAULT_TIER_ID}}`, async () => {
-        const cliVaultInfoBeforeChangeTier =
-          await lsvCLI.operatorGrid.getVaultInfo(vaultAddress);
-
-        // get DefaultTier params from contracts
-        await test.step(`Check defaultTier ${cliVaultInfoBeforeChangeTier.tierId} params`, async () => {
-          expect(
-            cliVaultInfoBeforeChangeTier.tierId,
-            `Vault tier in default tier params should be ${DEFAULT_TIER_ID}`,
-          ).toBe(DEFAULT_TIER_ID);
-          expect(
-            cliVaultInfoBeforeChangeTier.shareLimit,
-            `Vault shareLimit in default tier params should be ${DEFAULT_TIER_PARAMS.shareLimit}`,
-          ).toBe(DEFAULT_TIER_PARAMS.shareLimit);
-          expect(
-            cliVaultInfoBeforeChangeTier.reserveRatioBP,
-            `Vault reserveRatioBP in default tier params should be ${DEFAULT_TIER_PARAMS.reserveRatioBP}`,
-          ).toBe(DEFAULT_TIER_PARAMS.reserveRatioBP);
-          expect(
-            cliVaultInfoBeforeChangeTier.forcedRebalanceThresholdBP,
-            `Vault forcedRebalanceThresholdBP in default tier params should be ${DEFAULT_TIER_PARAMS.forcedRebalanceThresholdBP}`,
-          ).toBe(DEFAULT_TIER_PARAMS.forcedRebalanceThresholdBP);
-          expect(
-            cliVaultInfoBeforeChangeTier.infraFeeBP,
-            `Vault infraFeeBP in default tier params should be ${DEFAULT_TIER_PARAMS.infraFeeBP}`,
-          ).toBe(DEFAULT_TIER_PARAMS.infraFeeBP);
-          expect(
-            cliVaultInfoBeforeChangeTier.liquidityFeeBP,
-            `Vault liquidityFeeBP in default tier params should be ${DEFAULT_TIER_PARAMS.liquidityFeeBP}`,
-          ).toBe(DEFAULT_TIER_PARAMS.liquidityFeeBP);
-          expect(
-            cliVaultInfoBeforeChangeTier.reservationFeeBP,
-            `Vault reservationFeeBP in default tier params should be ${DEFAULT_TIER_PARAMS.reservationFeeBP}`,
-          ).toBe(DEFAULT_TIER_PARAMS.reservationFeeBP);
-        });
-      });
-    });
-
-    await test.step('Grant NOM related roles', async () => {
-      const nomRolePK = ethereumNodeService.getAccount(
-        getPermissionRole(ROLES.NODE_OPERATOR_MANAGER).index,
-      ).secretKey;
-
-      await lsvCLI.dashboard.grantRole(
-        vaultData.dashboardAddress,
-        Array.from(PERMISSION_ROLES.entries())
-          .filter(([role]) => NO_ROLES.includes(role))
-          .map(([, { index, keccak }]) => ({
-            account: ethereumNodeService.getAccount(index).address,
-            role: keccak,
-          })),
-        nomRolePK,
-      );
     });
   });
 
-  test('Adjust stETH minting parameters', async ({ ethereumNodeService }) => {
-    await test.step(`${ROLES.NODE_OPERATOR} applied for new tier`, async () => {
-      const operatorGridMock = new OperatorGridMock();
+  test('Connect vault to VH with favorable stETH minting capacity', async ({
+    ethereumNodeService,
+  }) => {
+    const cliVaultInfoBeforeChangeTier =
+      await lsvCLI.operatorGrid.getVaultInfo(vaultAddress);
+    const cliNoGroupInfo = await lsvCLI.operatorGrid.getGroup(
+      roles.nodeOperator.address,
+    );
+    const requestedTierShareLimit = formatEther(tierParams1.shareLimit);
+    const tierIdToChange = cliNoGroupInfo.tierIds.find(
+      (id) => id !== cliVaultInfoBeforeChangeTier.tierId,
+    );
+    if (tierIdToChange === undefined) {
+      throw new Error('No tier ID found to change');
+    }
 
-      await test.step('Register tiers for NO', async () => {
-        await operatorGridMock.registerGroup(
-          roles.nodeOperator.address,
-          noGroupLimit,
-        );
-      });
-
-      await test.step('Register tiers for NO', async () => {
-        await operatorGridMock.registerTier(roles.nodeOperator.address, [
-          tierParams1,
-          tierParams2,
-        ]);
-      });
+    await test.step(`NO apply change tier for ${vaultAddress} vault`, async () => {
+      const noPK = ethereumNodeService.getAccount(
+        getPermissionRole(ROLES.NODE_OPERATOR).index,
+      ).secretKey;
+      await lsvCLI.operatorGrid.changeTier(
+        vaultAddress,
+        requestedTierShareLimit,
+        tierIdToChange,
+        noPK,
+      );
     });
 
-    await test.step(`Change tier via multi-role confirmation as ${ROLES.NODE_OPERATOR} && ${ROLES.DEFAULT_ADMIN}`, async () => {
-      const cliVaultInfoBeforeChangeTier =
-        await lsvCLI.operatorGrid.getVaultInfo(vaultAddress);
-      const cliNoGroupInfo = await lsvCLI.operatorGrid.getGroup(
-        roles.nodeOperator.address,
+    await test.step(`VM accepts tier && supply 1 ETH as collateral for connection to VH`, async () => {
+      const vmRolePK = ethereumNodeService.getAccount(
+        getPermissionRole(ROLES.DEFAULT_ADMIN).index,
+      ).secretKey;
+
+      await lsvCLI.dashboard.connectAndAcceptTier(
+        dashboardAddress,
+        tierIdToChange,
+        requestedTierShareLimit,
+        vmRolePK,
       );
-      const tierIdToChange = cliNoGroupInfo.tierIds.find(
-        (id) => id !== cliVaultInfoBeforeChangeTier.tierId,
+
+      const cliIsVaultConnectedToVaultHub =
+        await lsvCLI.hub.isVaultConnected(vaultAddress);
+      const contractIsVaultConnectedToVaultHub =
+        await isVaultConnected(vaultAddress);
+      const expectedVaultConnection = true;
+      const {
+        totalValueEth: cliTotalValueEth,
+        collateralEth: cliCollateralEth,
+      } = await lsvCLI.dashboard.overview(dashboardAddress);
+      const contractTotalValueEth = formatEther(
+        await getTotalValue(dashboardAddress),
       );
-      if (tierIdToChange === undefined) {
-        throw new Error('No tier ID found to change');
-      }
 
-      await test.step(`Change tier as ${ROLES.DEFAULT_ADMIN}`, async () => {
-        const vmPK = ethereumNodeService.getAccount(
-          getPermissionRole(ROLES.DEFAULT_ADMIN).index,
-        ).secretKey;
-
-        await lsvCLI.vo.changeTierAsVM(
-          vaultAddress,
-          formatEther(tierParams1.shareLimit),
-          tierIdToChange,
-          vmPK,
-        );
-      });
-
-      await test.step(`Change tier as ${ROLES.NODE_OPERATOR}`, async () => {
-        const noPK = ethereumNodeService.getAccount(
-          getPermissionRole(ROLES.NODE_OPERATOR).index,
-        ).secretKey;
-
-        await lsvCLI.vo.changeTierByNO(
-          vaultAddress,
-          formatEther(tierParams1.shareLimit),
-          tierIdToChange,
-          noPK,
-        );
-      });
-
-      await test.step('Check tier change correct', async () => {
-        const cliVaultInfoAfterChangeTier =
-          await lsvCLI.operatorGrid.getVaultInfo(vaultAddress);
+      await test.step(`Check vault connection to hub && collateral`, async () => {
         expect(
-          cliVaultInfoAfterChangeTier.tierId,
-          `Tier should be updated to ${cliVaultInfoAfterChangeTier.tierId}`,
-        ).toBe(tierIdToChange);
+          cliIsVaultConnectedToVaultHub,
+          'Check cli connection state correct with contract',
+        ).toBe(contractIsVaultConnectedToVaultHub);
+        expect(
+          cliIsVaultConnectedToVaultHub,
+          'Created vault should be connected to VaultHub',
+        ).toBe(expectedVaultConnection);
+        expect(
+          cliTotalValueEth,
+          'CLI total value should be correct with contract after connection',
+        ).toBe(contractTotalValueEth);
+        expect(
+          cliTotalValueEth,
+          `Collateral become "Total value" of vault after connection`,
+        ).toBe(LIDO_CONNECTION_COLLATERAL);
+        expect(
+          cliCollateralEth,
+          'Expect lido connection collateral to be applied',
+        ).toBe(LIDO_CONNECTION_COLLATERAL);
+      });
+
+      await test.step(`Check tier applied`, async () => {
+        const cliVaultInfo =
+          await lsvCLI.operatorGrid.getVaultInfo(vaultAddress);
 
         const [
           contractNodeOperator,
@@ -298,51 +264,50 @@ test.describe.serial('One step process', () => {
         ] = await getVaultTierInfo(vaultAddress);
 
         expect(
-          cliVaultInfoAfterChangeTier.tierId,
+          cliVaultInfo.tierId,
+          'CLI tier id should match selected tier id',
+        ).toBe(tierIdToChange);
+        expect(
+          cliVaultInfo.tierId,
           'CLI tier id should match contract vaultTierInfo',
         ).toBe(Number(contractTierId));
-
         expect(
-          cliVaultInfoAfterChangeTier.nodeOperator.toLowerCase(),
+          cliVaultInfo.nodeOperator.toLowerCase(),
           'CLI node operator should match contract vaultTierInfo',
         ).toBe((contractNodeOperator as string).toLowerCase());
-
         expect(
-          cliVaultInfoAfterChangeTier.shareLimit,
+          cliVaultInfo.shareLimit,
           'CLI share limit should match contract vaultTierInfo',
         ).toBe(contractShareLimit);
-
         expect(
-          cliVaultInfoAfterChangeTier.reserveRatioBP,
+          cliVaultInfo.reserveRatioBP,
           'CLI reserve ratio BP should match contract vaultTierInfo',
         ).toBe(contractReserveRatioBP);
-
         expect(
-          cliVaultInfoAfterChangeTier.forcedRebalanceThresholdBP,
+          cliVaultInfo.forcedRebalanceThresholdBP,
           'CLI forced rebalance threshold BP should match contract vaultTierInfo',
         ).toBe(contractForcedRebalanceThresholdBP);
-
         expect(
-          cliVaultInfoAfterChangeTier.infraFeeBP,
+          cliVaultInfo.infraFeeBP,
           'CLI infra fee BP should match contract vaultTierInfo',
         ).toBe(contractInfraFeeBP);
-
         expect(
-          cliVaultInfoAfterChangeTier.liquidityFeeBP,
+          cliVaultInfo.liquidityFeeBP,
           'CLI liquidity fee BP should match contract vaultTierInfo',
         ).toBe(contractLiquidityFeeBP);
-
         expect(
-          cliVaultInfoAfterChangeTier.reservationFeeBP,
+          cliVaultInfo.reservationFeeBP,
           'CLI reservation fee BP should match contract vaultTierInfo',
         ).toBe(contractReservationFeeBP);
       });
     });
   });
 
-  test(`Supply vault as ${ROLES.FUND}`, async ({ ethereumNodeService }) => {
-    const supplyRolePK = ethereumNodeService.getAccount(
-      getPermissionRole(ROLES.FUND).index,
+  test(`Supply vault as ${ROLES.DEFAULT_ADMIN}`, async ({
+    ethereumNodeService,
+  }) => {
+    const vmRolePK = ethereumNodeService.getAccount(
+      getPermissionRole(ROLES.DEFAULT_ADMIN).index,
     ).secretKey;
     const {
       totalValueEth: cliTotalValueEthBeforeSupply,
@@ -353,10 +318,10 @@ test.describe.serial('One step process', () => {
 
     expect(
       cliTotalMintingCapacityStethBeforeSupply,
-      `Restrict minting using collateral for newly created vault`,
+      `Restrict minting using collateral for newly connected vault`,
     ).toBe('0');
 
-    await lsvCLI.vo.supply(vaultAddress, supplyAmount, supplyRolePK);
+    await lsvCLI.vo.supply(vaultAddress, supplyAmount, vmRolePK);
 
     const expectedTotalValueEthAfterSupply = String(
       parseFloat(supplyAmount) + parseFloat(cliTotalValueEthBeforeSupply),
@@ -386,24 +351,20 @@ test.describe.serial('One step process', () => {
     ).toBe(expectedTotalMintingCapacitySharesAfterSupply);
   });
 
-  test(`Mint stETH as ${ROLES.MINT}`, async ({ ethereumNodeService }) => {
-    const mintRolePK = ethereumNodeService.getAccount(
-      getPermissionRole(ROLES.MINT).index,
+  test(`Mint stETH as ${ROLES.DEFAULT_ADMIN}`, async ({
+    ethereumNodeService,
+  }) => {
+    const vmRolePK = ethereumNodeService.getAccount(
+      getPermissionRole(ROLES.DEFAULT_ADMIN).index,
     ).secretKey;
-    const recipientRepayRoleAddress = getAddress(
-      ethereumNodeService.getAccount(getPermissionRole(ROLES.BURN).index)
-        .address,
+    const vmAddress = getAddress(
+      ethereumNodeService.getAccount(
+        getPermissionRole(ROLES.DEFAULT_ADMIN).index,
+      ).address,
     );
-    const recipientStEthBalanceBeforeMint = await getStEthBalance(
-      recipientRepayRoleAddress,
-    );
+    const recipientStEthBalanceBeforeMint = await getStEthBalance(vmAddress);
 
-    await lsvCLI.vo.mintStEth(
-      vaultAddress,
-      mintAmount,
-      recipientRepayRoleAddress,
-      mintRolePK,
-    );
+    await lsvCLI.vo.mintStEth(vaultAddress, mintAmount, vmAddress, vmRolePK);
 
     const {
       liabilityShares: cliLiabilitySharesAfterMint,
@@ -416,7 +377,7 @@ test.describe.serial('One step process', () => {
     const calculatedRecipientStEthBalanceAfterMint =
       parseFloat(recipientStEthBalanceBeforeMint) + parseFloat(mintAmount);
     const recipientStEthBalanceAfterMint = parseFloat(
-      await getStEthBalance(recipientRepayRoleAddress),
+      await getStEthBalance(vmAddress),
     );
 
     expect(
@@ -433,26 +394,27 @@ test.describe.serial('One step process', () => {
     ).toBe(calculatedRecipientStEthBalanceAfterMint);
   });
 
-  test(`Burn stETH as ${ROLES.BURN}`, async ({ ethereumNodeService }) => {
-    const repayRolePK = ethereumNodeService.getAccount(
-      getPermissionRole(ROLES.BURN).index,
+  test(`Burn stETH as ${ROLES.DEFAULT_ADMIN}`, async ({
+    ethereumNodeService,
+  }) => {
+    const vmRolePK = ethereumNodeService.getAccount(
+      getPermissionRole(ROLES.DEFAULT_ADMIN).index,
     ).secretKey;
-    const repayRoleAddress = getAddress(
-      ethereumNodeService.getAccount(getPermissionRole(ROLES.BURN).index)
-        .address,
+    const vmAddress = getAddress(
+      ethereumNodeService.getAccount(
+        getPermissionRole(ROLES.DEFAULT_ADMIN).index,
+      ).address,
     );
 
-    const recipientStEthBalanceBeforeRepay =
-      await getStEthBalance(repayRoleAddress);
+    const recipientStEthBalanceBeforeRepay = await getStEthBalance(vmAddress);
 
-    // Full repay
     const { liabilitySteth: cliLiabilityStEthBeforeRepay } =
       await lsvCLI.dashboard.overview(dashboardAddress);
 
     await lsvCLI.vo.burnStEth(
       vaultAddress,
       cliLiabilityStEthBeforeRepay,
-      repayRolePK,
+      vmRolePK,
     );
 
     const { liabilitySteth: cliLiabilityStEthAfterRepay } =
@@ -473,7 +435,7 @@ test.describe.serial('One step process', () => {
       parseFloat(recipientStEthBalanceBeforeRepay) -
       parseFloat(cliLiabilityStEthBeforeRepay);
     const recipientStEthBalanceAfterRepay = parseFloat(
-      await getStEthBalance(repayRoleAddress),
+      await getStEthBalance(vmAddress),
     );
 
     expect(
@@ -482,9 +444,11 @@ test.describe.serial('One step process', () => {
     ).toBe(calculatedRecipientStEthBalanceAfterRepay);
   });
 
-  test(`Withdraw ETH as ${ROLES.WITHDRAW}`, async ({ ethereumNodeService }) => {
-    const withdrawRolePK = ethereumNodeService.getAccount(
-      getPermissionRole(ROLES.WITHDRAW).index,
+  test(`Withdraw ETH as ${ROLES.DEFAULT_ADMIN}`, async ({
+    ethereumNodeService,
+  }) => {
+    const vmRolePK = ethereumNodeService.getAccount(
+      getPermissionRole(ROLES.DEFAULT_ADMIN).index,
     ).secretKey;
     const withdrawRecipientAddress = getAddress(
       ethereumNodeService.getAccount(getPermissionRole(ROLES.STRANGER).index)
@@ -503,7 +467,7 @@ test.describe.serial('One step process', () => {
       vaultAddress,
       cliAvailableToWithdrawalEthBefore,
       withdrawRecipientAddress,
-      withdrawRolePK,
+      vmRolePK,
     );
 
     const { availableToWithdrawalEth: cliAvailableToWithdrawalEthAfter } =

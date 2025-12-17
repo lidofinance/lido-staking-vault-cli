@@ -1,6 +1,7 @@
 import { spawn } from 'child_process';
+import type { Address } from 'viem';
 import type { VaultInfo, OperatorGroupInfo } from '../types';
-import { cleanAnsi } from '../helpers';
+import { cleanAnsi, runCLICommand } from '../helpers';
 
 export const getVaultInfo = async (
   vaultAddress: string,
@@ -188,3 +189,23 @@ export const getGroup = async (
     });
   });
 };
+
+export const changeTier = (
+  vaultAddress: Address,
+  requestedShareLimit: string,
+  tierId: number,
+  privateKey: string,
+): Promise<void> =>
+  runCLICommand(
+    [
+      'contracts',
+      'operator-grid',
+      'w',
+      'change-tier',
+      vaultAddress,
+      String(tierId),
+      requestedShareLimit,
+      '--yes',
+    ],
+    privateKey,
+  );

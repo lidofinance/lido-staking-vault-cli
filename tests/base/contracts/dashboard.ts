@@ -26,6 +26,11 @@ export const getLiabilityShares = async (dashboardAddress: Address) => {
   return await callReadMethodSilent(contract, 'liabilityShares');
 };
 
+export const getTotalValue = async (dashboardAddress: Address) => {
+  const contract = await getDashboardContract(dashboardAddress);
+  return await callReadMethodSilent(contract, 'totalValue');
+};
+
 export const getTotalMintingCapacityShares = async (
   dashboardAddress: Address,
 ) => {

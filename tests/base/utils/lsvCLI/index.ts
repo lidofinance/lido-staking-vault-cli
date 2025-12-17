@@ -7,17 +7,19 @@ import * as pdg from './programs/pdg';
 
 const lsvCLI = {
   factory: {
-    createVaultConnectedToVh: factory.createVaultConnectedToVh,
+    createVault: factory.createVault,
   },
   dashboard: {
     grantRole: dashboard.grantRole,
     supplyVault: dashboard.supplyVault,
     overview: dashboard.overview,
     minimalReserve: dashboard.minimalReserve,
+    connectAndAcceptTier: dashboard.connectAndAcceptTier,
   },
   operatorGrid: {
     getVaultInfo: operatorGrid.getVaultInfo,
     getGroup: operatorGrid.getGroup,
+    changeTier: operatorGrid.changeTier,
   },
   vo: {
     changeTierAsVM: vo.changeTierAsVM,

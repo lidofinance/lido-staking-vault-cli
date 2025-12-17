@@ -14,6 +14,7 @@ export type CreateVaultParams = {
   privateKey: string;
   quantity?: number;
   roles?: RoleAssignment[];
+  connectedToVh?: boolean;
   deployedFile?: string;
 };
 

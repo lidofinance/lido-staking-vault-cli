@@ -30,6 +30,27 @@ export const supplyVault = (
     privateKey,
   );
 
+export const connectAndAcceptTier = (
+  dashboardAddress: string,
+  tierId: number,
+  requestedShareLimit: string,
+  privateKey: string,
+): Promise<void> =>
+  runCLICommand(
+    [
+      'contracts',
+      'dashboard',
+      'w',
+      'connect-and-accept-tier',
+      '-f',
+      dashboardAddress,
+      String(tierId),
+      requestedShareLimit,
+      '--yes',
+    ],
+    privateKey,
+  );
+
 export const overview = async (
   dashboardAddress: string,
 ): Promise<DashboardOverview> => {
@@ -40,7 +61,6 @@ export const overview = async (
       'dashboard',
       'r',
       'overview',
-      '--yes',
       dashboardAddress,
     ]);
 
@@ -106,6 +126,7 @@ export const overview = async (
           case 'Reserve Ratio, %':
             reserveRatioPercent = value;
             break;
+          case 'Force Rebalance Threshold':
           case 'Force Rebalance Threshold, %':
             forceRebalanceThreshold = value;
             break;

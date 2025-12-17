@@ -2,7 +2,7 @@ import { spawn } from 'child_process';
 import { Address, Hex } from 'viem';
 import type { CreateVaultParams, VaultCreationResult } from '../types';
 
-export const createVaultConnectedToVh = async (
+export const createVault = async (
   params: CreateVaultParams,
 ): Promise<VaultCreationResult> => {
   const {
@@ -14,24 +14,30 @@ export const createVaultConnectedToVh = async (
     privateKey,
     quantity = 1,
     roles = [],
+    connectedToVh = true,
   } = params;
 
   return new Promise((resolve, reject) => {
+    const connectState = connectedToVh
+      ? 'create-vault'
+      : 'create-vault-without-connecting';
+
     const args = [
       'contracts',
       'factory',
       'write',
-      'create-vault',
+      connectState,
       defaultAdmin,
       nodeOperator,
       nodeOperatorManager,
       String(confirmExpiry),
       String(nodeOperatorFeeRate),
       String(quantity),
+      '--yes',
     ];
 
     if (roles.length > 0) {
-      args.push('--yes', '--roles', JSON.stringify(roles));
+      args.push('--roles', JSON.stringify(roles));
     }
 
     const cli = spawn('yarn', ['lsvCLI', ...args], {
