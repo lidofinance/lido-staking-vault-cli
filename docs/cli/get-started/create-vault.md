@@ -33,6 +33,14 @@ yarn start vo w create-vault create-without-connecting
 
 ## Command Reference
 
+### Sub-commands
+
+| Command                     | Description                                                |
+| --------------------------- | ---------------------------------------------------------- |
+| `create`                    | Creates vault and connects to VaultHub                     |
+| `create-without-connecting` | Creates vault without VaultHub connection                  |
+| `log-creating-vault-data`   | Logs the data of the created vault from a transaction hash |
+
 ### Arguments
 
 | Argument     | Description                | Default |
@@ -256,3 +264,47 @@ yarn start vo r roles
 # Test basic operations
 yarn start vo r health
 ```
+
+## Retrieving Vault Creation Data
+
+If you need to retrieve vault creation data from a previous transaction:
+
+### log-creating-vault-data
+
+Retrieves and displays vault creation information from a transaction hash.
+
+**Usage:**
+
+```bash
+yarn start vo w create-vault log-creating-vault-data <txHash>
+```
+
+**Aliases:**
+
+```bash
+yarn start vo w create-vault log-data <txHash>
+```
+
+**Arguments:**
+
+| Argument   | Description                        | Format |
+| ---------- | ---------------------------------- | ------ |
+| `<txHash>` | Transaction hash of vault creation | 0x...  |
+
+**Example:**
+
+```bash
+yarn start vo w create-vault log-creating-vault-data 0xfedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321
+```
+
+**Output:**
+
+- Vault contract address
+- Dashboard contract address
+- Default admin address
+- Node operator address
+- Node operator manager address(es)
+- Transaction hash
+- Block number
+
+**Use Case:** Retrieve vault details if you lost the creation output or need to verify deployed addresses.

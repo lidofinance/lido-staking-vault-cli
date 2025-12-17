@@ -173,7 +173,7 @@ Initiates the predeposit process for validators within a StakingVault. This comm
 
 **Security:** This command includes comprehensive validation of deposit data, withdrawal credentials, and BLS signatures to ensure compatibility with the vault's configuration.
 
-### proof-and-activate (prove)
+### prove-and-activate (prove)
 
 Creates and submits a cryptographic proof that a validator with the given index has the correct withdrawal credentials pointing to the StakingVault and to send the ACTIVATION_DEPOSIT_AMOUNT (31 ETH) from the staged balance of StakingVault. This proof is essential for the security model of stVaults.
 
@@ -198,29 +198,36 @@ happy path shortcut for the node operator (or depositor) that allows:
 - to activate the validator depositing ACTIVATION_DEPOSIT_AMOUNT (31 ETH) from StakingVault staged balance
 - to top up validator on top of ACTIVATION_DEPOSIT_AMOUNT (31 ETH)
 
-And do it for multiple validators at once by providing an array of validator indexes and amounts
+And do it for multiple validators at once by providing validator indexes and amounts
 
 **Arguments:**
 
-- `<indexes>`: Array of validator indexes to prove on the Beacon Chain
-- `<amounts>`: Array of amounts to top up node operator balance (in wei)
+- `<indexes>`: Validator indexes to prove on the Beacon Chain (comma-separated, e.g., `12345,12346,12347`)
+- `<amounts>`: Amounts (in ETH) to deposit to proven validators on top of ACTIVATION_DEPOSIT_AMOUNT (comma-separated, e.g., `1,2,1.5`)
 
 **Options:**
 
 - `-v, --vault <address>`: Specify vault address (interactive selection if not provided)
 
+**Example:**
+
+```bash
+yarn start deposits w prove-and-top-up 12345,12346,12347 1,2,1.5 -v 0x1234567890123456789012345678901234567890
+```
+
 **Process:**
 
-1. Validates caller is the node operator for the vault
+1. Validates caller is the node operator (or depositor) for the vault
 2. Generates proofs for all specified validator indexes
 3. Validates withdrawal credentials for each validator
 4. Activates validators from PREDEPOSITED state to ACTIVATED state
-5. Tops up validators with specified amounts
+5. Tops up validators with specified amounts on top of the 31 ETH activation deposit
 
 **Requirements:**
 
-- Caller must be the node operator of the vault
+- Caller must be the node operator or depositor of the vault
 - Valid validator indexes that can be proven
+- Sufficient staged balance in the vault for activation and top-ups
 
 ### top-up-existing-validators (top-up-val)
 
@@ -316,56 +323,116 @@ Changes the guarantor address for a node operator and provides refund to the pre
 
 **Use Case:** Allows node operators to change their guarantor while ensuring previous guarantor gets refunded for any existing balance.
 
-### set-no-depositor
+### set-no-depositor (set-no-d)
 
 Sets the depositor for the node operator.
+
+**Options:**
+
+- `-d, --depositor <address>`: Depositor address (interactive selection if not provided)
 
 **Process:**
 
 1. Validates caller is the node operator
-2. Confirms the set depositor operation
-3. Sets the new depositor for the node operator
+2. Prompts for depositor address if not provided
+3. Confirms the set depositor operation
+4. Sets the new depositor for the node operator
 
 **Requirements:**
 
+- Caller must be the node operator
 - New depositor cannot be zero address
 - New depositor must be different from current depositor
 
-**Use Case:** Allows node operators to set their depositor.
+**Use Case:** Allows node operators to set their depositor who can perform deposit operations on their behalf.
 
 ### claim-guarantor-refund (claim-g-refund)
 
 Claims refund for the previous guarantor of the node operator.
 
+**Options:**
+
+- `-r, --recipient <address>`: Recipient address for the refund (interactive selection if not provided)
+
 **Process:**
 
 1. Validates caller is the previous guarantor of the node operator
-2. Confirms the claim operation
-3. Transfers ETH to the previous guarantor
+2. Prompts for recipient address if not provided
+3. Confirms the claim operation
+4. Transfers ETH refund to the specified recipient
 
 **Requirements:**
 
+- Caller must be the previous guarantor
 - Previous guarantor must be different from current guarantor
-- Previous guarantor must have balance
+- Previous guarantor must have claimable balance
 
-**Use Case:** Allows previous guarantors to claim refund for any existing balance.
+**Use Case:** Allows previous guarantors to claim refund for any existing balance after a guarantor change.
 
 ### activate-validator (activate)
 
-Activates the proven validator depositing ACTIVATION_DEPOSIT_AMOUNT (31 ETH) from the staged balance of StakingVault.
+Permissionless method to activate a proven validator by depositing ACTIVATION_DEPOSIT_AMOUNT (31 ETH) from the staged balance of StakingVault.
+
+**Arguments:**
+
+- `<pubkey>`: Validator public key (hex format)
 
 **Process:**
 
-1. Validates caller is the node operator of the validator
-2. Confirms the activate operation
-3. Transfers ACTIVATION_DEPOSIT_AMOUNT (31 ETH) from the staged balance of StakingVault to the validator
+1. Checks that validator is in PROVEN state
+2. Verifies sufficient staged balance for ACTIVATION_DEPOSIT_AMOUNT (31 ETH)
+3. Confirms the activate operation
+4. Deposits ACTIVATION_DEPOSIT_AMOUNT (31 ETH) from the staged balance of StakingVault to the validator on Beacon Chain
 
 **Requirements:**
 
-- Validator must be in PROVEN state
-- Staged balance must be sufficient for ACTIVATION_DEPOSIT_AMOUNT (31 ETH)
+- Validator must be in PROVEN state (withdrawal credentials already proven)
+- StakingVault must have sufficient staged balance for ACTIVATION_DEPOSIT_AMOUNT (31 ETH)
 
-**Use Case:** Allows node operators to activate their validators by depositing 31 ETH from the staged balance of StakingVault.
+**Use Case:** Allows anyone (permissionless) to activate a proven validator by depositing 31 ETH from the vault's staged balance. This is useful for activating validators without requiring node operator action.
+
+### unguaranteed-deposit-to-beacon-chain (unguaranteed-deposit)
+
+Withdraws ether from the vault and deposits directly to provided validators bypassing the default PDG (PredepositGuarantee) process.
+
+**Arguments:**
+
+- `<deposits>`: Array of IStakingVault.Deposit structs containing deposit data
+
+**Options:**
+
+- `-v, --vault <address>`: Specify vault address (interactive selection if not provided)
+- `--no-bls-check`: Skip BLS signature validation (not recommended for production)
+
+**Deposit Format:**
+
+```json
+[
+  {
+    "pubkey": "validator_public_key",
+    "signature": "bls_signature",
+    "amount": "deposit_amount_in_gwei",
+    "deposit_data_root": "merkle_root"
+  }
+]
+```
+
+**Process:**
+
+1. Validates deposit data format
+2. Optionally validates BLS signatures (unless `--no-bls-check` is used)
+3. Confirms the unguaranteed deposit operation
+4. Withdraws ETH from vault and deposits directly to Beacon Chain for each validator
+
+**Requirements:**
+
+- Sufficient ETH balance in the vault
+- Valid deposit data with correct withdrawal credentials
+- Proper BLS signatures (unless validation is skipped)
+
+**Warning:** This bypasses the standard PDG two-phase deposit protection. Use with caution and only when you understand the implications.
+
+**Use Case:** Alternative deposit method that doesn't use the PredepositGuarantee contract. Useful for specific scenarios where direct deposits are preferred, but offers less protection against frontrunning.
 
 ## Withdrawal Credentials
 
