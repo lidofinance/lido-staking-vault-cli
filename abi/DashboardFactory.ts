@@ -89,7 +89,7 @@ export const DashboardFactoryAbi = [
     inputs: [
       {
         internalType: 'contract IStakingVault',
-        name: 'vault',
+        name: '_vault',
         type: 'address',
       },
       {
