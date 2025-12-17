@@ -233,21 +233,16 @@ yarn start deposits w prove-and-top-up '<indexes>' '<amounts>'
 
 **Arguments and Options:**
 
-| Argument/Option        | Description                | Format                 |
-| ---------------------- | -------------------------- | ---------------------- |
-| `<indexes>`            | Array of validator indexes | JSON array of numbers  |
-| `<deposits>`           | Array of deposit data      | JSON array (see above) |
-| `-v, --vault <string>` | Vault address              | 0x...                  |
+| Argument/Option        | Description                                                     | Format                      |
+| ---------------------- | --------------------------------------------------------------- | --------------------------- |
+| `<indexes>`            | Validator indexes                                               | Comma-separated numbers     |
+| `<amounts>`            | Amounts (in ETH) to deposit on top of ACTIVATION_DEPOSIT_AMOUNT | Comma-separated ETH amounts |
+| `-v, --vault <string>` | Vault address                                                   | 0x...                       |
 
 **Example:**
 
 ```bash
-yarn start deposits w prove-and-deposit '[12345, 12346, 12347]' '[{
-  "pubkey": "0x1234...",
-  "signature": "0xabcd...",
-  "amount": "32000000000",
-  "deposit_data_root": "0xfed..."
-}]' -v 0x1234567890123456789012345678901234567890
+yarn start deposits w prove-and-top-up 12345,12346,12347 1,2,1.5 -v 0x1234567890123456789012345678901234567890
 ```
 
 ### Top Up Existing Validators

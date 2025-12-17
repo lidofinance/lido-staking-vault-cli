@@ -1,6 +1,7 @@
 #! /usr/bin/env node
 
 import { getChain } from 'configs';
+import { mainnet } from 'viem/chains';
 
 import { program } from './command/index.js';
 import { logError, logInfo } from './utils/logging/console.js';
@@ -11,23 +12,34 @@ import { disconnectWalletConnect } from './utils/index.js';
 export * from './utils/index.js';
 
 const showTestnetWarning = () => {
-  console.info('\n🎉🎉  HOODI V3 is officially launched!  🎉🎉');
+  console.info('\nHOODI V3 application:');
+  console.info('- 🌐 Web UI: https://stvaults-hoodi.testnet.fi/vaults');
   console.info(
-    '🌐 Web UI is available at: https://stvaults-hoodi.testnet.fi/vaults',
+    '- 📄 Contracts info: https://docs.lido.fi/deployed-contracts/hoodi',
   );
   console.info(
-    '📄 Contracts info: https://docs.lido.fi/deployed-contracts/hoodi',
+    '- 📖 stVaults Doc Center: https://docs.lido.fi/run-on-lido/stvaults',
   );
-  console.info(
-    '📖 stVaults Doc Center: https://docs.lido.fi/run-on-lido/stvaults',
-  );
-  console.info('\n');
-  console.info('🔄 Testnet-1 is available on the testnet-1 branch.');
+  console.info('\n🔄 Testnet-1 is available on the testnet-1 branch.');
   console.info('🔄 Testnet-2 is available on the testnet-2 branch.');
 };
 
+const showMainnetWarning = () => {
+  console.info('\nMainnet V3 application:');
+  console.info('- 🌐 Web UI: https://stvaults.lido.fi/vaults');
+  console.info('- 📄 Contracts info: https://docs.lido.fi/deployed-contracts');
+  console.info(
+    '- 📖 stVaults Doc Center: https://docs.lido.fi/run-on-lido/stvaults',
+  );
+};
+
 program.addHelpText('afterAll', () => {
-  showTestnetWarning();
+  const chain = process.env.CHAIN_ID;
+  if (chain === String(mainnet.id)) {
+    showMainnetWarning();
+  } else {
+    showTestnetWarning();
+  }
   return '';
 });
 
@@ -47,7 +59,14 @@ runCLI()
     process.exit(1);
   })
   .finally(async () => {
-    showTestnetWarning();
+    const chain = await getChain();
+
+    if (chain.id === mainnet.id) {
+      showMainnetWarning();
+    } else {
+      showTestnetWarning();
+    }
+
     await disconnectWalletConnect();
     process.exit(0);
   });
