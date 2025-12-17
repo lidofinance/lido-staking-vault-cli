@@ -35,6 +35,22 @@ For changes between versions see [Changelog](./CHANGELOG.md)
 
 ```bash
 git clone git@github.com:lidofinance/lido-staking-vault-cli.git
+cd lido-staking-vault-cli
+```
+
+### Branch Selection
+
+The repository has two primary branches:
+
+- **`main`** (Recommended): Stable releases with tested and verified features. Ideal for production use and reliable operations.
+- **`develop`**: Active development branch with the latest features. Use this if you want immediate access to new functionality and can handle potentially unstable features.
+
+```bash
+# Switch to stable branch (recommended)
+git checkout main
+
+# Or switch to development branch for latest features
+git checkout develop
 ```
 
 ## Configuration
