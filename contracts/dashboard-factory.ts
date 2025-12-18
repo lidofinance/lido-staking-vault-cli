@@ -11,7 +11,7 @@ import { DashboardFactoryAbi } from 'abi';
 import { getChain, getElUrl } from 'configs';
 
 const DashboardFactoryAddresses: Record<number, Address> = {
-  [hoodi.id]: '0x8eaeeeff64398f28864dbd39492889ff078e04ff',
+  [hoodi.id]: '0xbfe0650638e8a6657Fd04B6156E552F3A6211e33',
 };
 
 export const getDashboardFactoryContract = async (): Promise<
