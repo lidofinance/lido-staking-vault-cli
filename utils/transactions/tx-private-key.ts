@@ -32,6 +32,7 @@ import {
   BatchTxArgs,
   WriteTxArgs,
 } from './types.js';
+import { simulateCallsErrorHandler } from './utils.js';
 
 export const callSimulateWriteMethod = async <
   T extends PartialContract,
@@ -404,10 +405,7 @@ export const callWriteMethodWithReceiptBatchCalls = async (args: {
     account: walletClient.account,
     calls,
   });
-
-  if (simulateResult.results.some((r) => r.error)) {
-    throw new Error('Simulation failed');
-  }
+  simulateCallsErrorHandler(simulateResult);
 
   for (const call of calls) {
     const tx = await walletClient.sendTransaction({
@@ -435,13 +433,13 @@ export const callWriteMethodWithReceiptBatchCalls = async (args: {
       logResult({
         data: [
           ['Transaction hash', tx],
-          ['Call data', call.data],
           ['Contract', call.to],
           ['Transaction status', receipt.status],
           ['Transaction block number', Number(receipt.blockNumber)],
           ['Transaction gas used', Number(receipt.gasUsed)],
         ],
       });
+    logInfo('Transaction Call Data:', call.data);
   }
 };
 
