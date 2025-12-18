@@ -97,6 +97,43 @@ export const DashboardFactoryAbi = [
         name: '_defaultAdmin',
         type: 'address',
       },
+      {
+        internalType: 'address',
+        name: '_nodeOperator',
+        type: 'address',
+      },
+      {
+        internalType: 'address',
+        name: '_nodeOperatorManager',
+        type: 'address',
+      },
+      {
+        internalType: 'uint256',
+        name: '_nodeOperatorFeeBP',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: '_confirmExpiry',
+        type: 'uint256',
+      },
+      {
+        components: [
+          {
+            internalType: 'address',
+            name: 'account',
+            type: 'address',
+          },
+          {
+            internalType: 'bytes32',
+            name: 'role',
+            type: 'bytes32',
+          },
+        ],
+        internalType: 'struct Permissions.RoleAssignment[]',
+        name: '_roleAssignments',
+        type: 'tuple[]',
+      },
     ],
     name: 'createDashboard',
     outputs: [
