@@ -6,3 +6,4 @@ export * from './vault-overview.js';
 export * from './vault-roles.js';
 export * from './create-vault.js';
 export * from './roles.js';
+export * from './connect-vault.js';

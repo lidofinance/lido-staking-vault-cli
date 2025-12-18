@@ -1,5 +1,7 @@
 ---
-sidebar_position: 2
+title: Creating a Vault
+description: Create new Lido Staking Vaults using the CLI
+sidebar_position: 3
 ---
 
 # Creating a Vault
