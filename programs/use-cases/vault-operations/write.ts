@@ -416,9 +416,9 @@ vaultOperationsWrite
   .command('change-tier-by-no')
   .alias('ct-no')
   .description(
-    'vault tier change by node operator with multi-role confirmation',
+    'vault tier change by node operator with multi-role confirmation. For disconnected vaults this option is required',
   )
-  .argument('<tierId>', 'tier id', stringToBigInt)
+  .argument('<tierId>', 'tier id to change to', stringToBigInt)
   .option(
     '-r, --requestedShareLimit <string>',
     'requested share limit (in shares)',
@@ -485,7 +485,7 @@ vaultOperationsWrite
   .command('change-tier')
   .alias('ct')
   .description('vault tier change with multi-role confirmation')
-  .argument('<tierId>', 'tier id', stringToBigInt)
+  .argument('<tierId>', 'tier id to change to', stringToBigInt)
   .option(
     '-r, --requestedShareLimit <string>',
     'requested share limit (in shares)',
@@ -684,7 +684,7 @@ vaultOperationsWrite
   .alias('connect-and-accept')
   .description('changes the tier of the vault and connects to VaultHub')
   .argument('<vaultAddress>', 'vault address', stringToAddress)
-  .argument('<tier>', 'tier to change to', stringToBigInt)
+  .argument('<tierId>', 'tier to change to', stringToBigInt)
   .argument(
     '<requestedShareLimit>',
     'requested new share limit for the vault (in shares)',
