@@ -416,9 +416,9 @@ vaultOperationsWrite
   .command('change-tier-by-no')
   .alias('ct-no')
   .description(
-    'vault tier change by node operator with multi-role confirmation',
+    'vault tier change by node operator with multi-role confirmation. For disconnected vaults this option is required',
   )
-  .argument('<tierId>', 'tier id', stringToBigInt)
+  .argument('<tierId>', 'tier id to change to', stringToBigInt)
   .option(
     '-r, --requestedShareLimit <string>',
     'requested share limit (in shares)',
@@ -485,7 +485,7 @@ vaultOperationsWrite
   .command('change-tier')
   .alias('ct')
   .description('vault tier change with multi-role confirmation')
-  .argument('<tierId>', 'tier id', stringToBigInt)
+  .argument('<tierId>', 'tier id to change to', stringToBigInt)
   .option(
     '-r, --requestedShareLimit <string>',
     'requested share limit (in shares)',
@@ -683,14 +683,14 @@ vaultOperationsWrite
   .command('connect-and-accept-tier')
   .alias('connect-and-accept')
   .description('changes the tier of the vault and connects to VaultHub')
-  .argument('<tier>', 'tier to change to', stringToBigInt)
+  .argument('<vaultAddress>', 'vault address', stringToAddress)
+  .argument('<tierId>', 'tier to change to', stringToBigInt)
   .argument(
     '<requestedShareLimit>',
     'requested new share limit for the vault (in shares)',
     etherToWei,
   )
   .option('-f, --fund', 'optional fund the vault with 1 ETH', false)
-  .option('-v, --vault <string>', 'vault address', stringToAddress)
 
   .addHelpText(
     'after',
@@ -698,20 +698,22 @@ vaultOperationsWrite
   )
   .action(
     async (
+      vaultAddress: Address,
       tier: bigint,
       requestedShareLimit: bigint,
-      { fund, vault }: { fund: boolean; vault: Address },
+      { fund }: { fund: boolean },
     ) => {
       const { contract } = await chooseVaultAndGetDashboard({
-        vault,
+        vault: vaultAddress,
       });
+
       const currentSettledGrowth = await callReadMethodSilent(
         contract,
         'settledGrowth',
       );
 
       const confirm = await confirmOperation(
-        `Are you sure you want to change the tier of the vault ${vault} to ${tier} and connect to VaultHub?
+        `Are you sure you want to change the tier of the vault ${vaultAddress} to ${tier} and connect to VaultHub?
         Requested share limit: ${formatEther(requestedShareLimit)}
         Current settled growth: ${formatEther(currentSettledGrowth)}
         Fund with 1 ETH: ${fund}`,
@@ -720,8 +722,11 @@ vaultOperationsWrite
 
       let value: bigint | undefined;
       if (!fund) {
-        const { isFundConfirmed } = await checkVaultAvailableBalance(vault);
+        const { isFundConfirmed } =
+          await checkVaultAvailableBalance(vaultAddress);
         if (isFundConfirmed) value = parseEther('1');
+      } else {
+        value = parseEther('1');
       }
 
       await callWriteMethodWithReceipt({

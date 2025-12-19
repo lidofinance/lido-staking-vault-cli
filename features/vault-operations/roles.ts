@@ -88,20 +88,16 @@ export const askRoleOperationInfo = async (
   operation: 'grant' | 'revoke',
   rolesOverride?: RoleName[],
 ): Promise<RoleAssignment[]> => {
-  const filteredRoles = DASHBOARD_ROLES_KEYS.filter(
-    (item) => item !== 'DEFAULT_ADMIN_ROLE',
-  );
-
   const role = await selectPrompt(
     'Select the role to ' + operation,
     'value',
-    (rolesOverride ?? filteredRoles).map((role) => ({
+    (rolesOverride ?? DASHBOARD_ROLES_KEYS).map((role) => ({
       title: role,
       value: role,
     })),
   );
 
-  const rolesRemaining = (rolesOverride ?? filteredRoles).filter(
+  const rolesRemaining = (rolesOverride ?? DASHBOARD_ROLES_KEYS).filter(
     (item) => item !== role.value,
   );
 

@@ -1,13 +1,5 @@
-import {
-  decodeErrorResult,
-  encodeFunctionData,
-  Hex,
-  SimulateCallsReturnType,
-  Abi,
-} from 'viem';
+import { encodeFunctionData, Hex, SimulateCallsReturnType, Abi } from 'viem';
 import { waitForTransactionReceipt } from 'viem/actions';
-
-import { DashboardAbi } from 'abi/Dashboard.js';
 
 import { getPublicClient, getWalletConnectClient } from 'providers';
 import {
@@ -20,6 +12,7 @@ import {
 } from 'utils';
 
 import { PartialContract, PopulatedTx, BatchTxArgs } from './types.js';
+import { simulateCallsErrorHandler } from './utils.js';
 
 export const PROVIDER_POLLING_INTERVAL = 12_000;
 export const AA_TX_POLLING_TIMEOUT = 180_000; // 3 minutes
@@ -51,36 +44,8 @@ export const simulateWCWriteTx = async (args: {
       account: walletConnectClient.account,
       calls,
     });
+    simulateCallsErrorHandler(simulateResult, abi);
 
-    if (simulateResult.results.some((r) => r.error)) {
-      const error = simulateResult.results.find((r) => r.error)?.error;
-      const cause = error?.cause as any;
-
-      const data = cause?.data ?? cause?.raw;
-      if (data) {
-        // Check if data is already decoded (object) or needs decoding (hex string)
-        if (typeof data === 'string' && data.startsWith('0x')) {
-          // data is a hex string, decode it
-          const { errorName, args } = decodeErrorResult({
-            abi: abi ?? DashboardAbi,
-            data: data as Hex,
-          });
-
-          const errorArgs = args?.map((a) => a?.toString() ?? '') ?? [];
-          const errorMessage = `${errorName}: ${errorArgs.join(', ')}`;
-          printError(new Error(errorMessage), 'Simulation failed');
-        } else if (typeof data === 'object' && data.errorName) {
-          // data is already decoded, use it directly
-          const errorArgs =
-            data.args?.map((a: any) => a?.toString() ?? '') ?? [];
-          const errorMessage = `${data.errorName}: ${errorArgs.join(', ')}`;
-          printError(new Error(errorMessage), 'Simulation failed');
-        }
-      }
-
-      const shortMessage = cause?.shortMessage;
-      printError(error, shortMessage);
-    }
     hideSpinner();
 
     return simulateResult;
