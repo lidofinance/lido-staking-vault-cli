@@ -77,3 +77,47 @@ export const isValidBytes32 = (hash: string): boolean => {
 export const isNonNegativeBigInt = (value: bigint): boolean => {
   return value >= 0n;
 };
+
+/**
+ * Validates that actual data matches expected data with informative error messages
+ * Performs two-way validation:
+ * 1. All expected keys exist in actual data with correct values
+ * 2. All actual keys exist in expected data with correct values
+ */
+export const validateExpectedData = <T extends Record<string, any>>(
+  actualData: T,
+  expectedData: T,
+  expect: any,
+): void => {
+  // Check all data from expectedData
+  for (const key in expectedData) {
+    const actualValue = actualData[key];
+    const expectedValue = expectedData[key];
+
+    expect(actualValue).toBeDefined();
+
+    if (actualValue !== expectedValue) {
+      throw new Error(
+        `Key "${key}" value mismatch:\n  Got: ${actualValue}\n  Expected: ${expectedValue}`,
+      );
+    }
+
+    expect(actualValue).toBe(expectedValue);
+  }
+
+  // Check all data from actualData in expectedData
+  for (const key in actualData) {
+    const actualValue = actualData[key];
+    const expectedValue = expectedData[key];
+
+    expect(actualValue).toBeDefined();
+
+    if (actualValue !== expectedValue) {
+      throw new Error(
+        `Key "${key}" value mismatch:\n  Got: ${actualValue}\n  Expected: ${expectedValue}`,
+      );
+    }
+
+    expect(actualValue).toBe(expectedValue);
+  }
+};
