@@ -4,6 +4,7 @@ import {
   captureLogResult,
   isValidAddress,
   isValidBytes32,
+  validateExpectedData,
 } from './helpers/test-assertions.js';
 
 const EXPECTED_DATA_HOODI = {
@@ -65,5 +66,7 @@ describe('Lazy Oracle Integration Tests', () => {
     expect(data.latestReportTimestamp).toBe(
       EXPECTED_DATA_HOODI.latestReportTimestamp,
     );
+
+    validateExpectedData(data, EXPECTED_DATA_HOODI, expect);
   });
 });

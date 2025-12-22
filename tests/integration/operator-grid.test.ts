@@ -4,6 +4,7 @@ import {
   captureLogResult,
   isValidAddress,
   isValidBytes32,
+  validateExpectedData,
 } from './helpers/test-assertions.js';
 
 const EXPECTED_DATA_HOODI = {
@@ -55,6 +56,8 @@ describe('Operator Grid Integration Tests', () => {
 
     expect(data.nodeOperatorCount).toBeDefined();
     expect(data.nodeOperatorCount).toBe(EXPECTED_DATA_HOODI.nodeOperatorCount);
+
+    validateExpectedData(data, EXPECTED_DATA_HOODI, expect);
   });
 
   test('should get operator grid roles and return valid data', async () => {

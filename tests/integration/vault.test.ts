@@ -6,6 +6,7 @@ import {
   captureLogResult,
   isValidAddress,
   isValidBytes32,
+  validateExpectedData,
 } from './helpers/test-assertions.js';
 
 const EXPECTED_BASE_INFO_DATA_HOODI = {
@@ -109,5 +110,7 @@ describe('Vault Integration Tests', () => {
     expect(data.withdrawalCredentials).toBe(
       EXPECTED_BASE_INFO_DATA_HOODI.withdrawalCredentials,
     );
+
+    validateExpectedData(data, EXPECTED_BASE_INFO_DATA_HOODI, expect);
   });
 });

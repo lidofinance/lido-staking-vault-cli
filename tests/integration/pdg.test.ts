@@ -4,6 +4,7 @@ import {
   captureLogResult,
   isValidAddress,
   isValidBytes32,
+  validateExpectedData,
 } from './helpers/test-assertions.js';
 
 const EXPECTED_DATA_HOODI = {
@@ -23,8 +24,8 @@ const EXPECTED_DATA_HOODI = {
     '0x0000000000000000000000000000000000000000000000000000000000000402',
   GI_STATE_ROOT:
     '0x0000000000000000000000000000000000000000000000000000000000000b03',
-  MAX_SUPPORTED_WC_VERSION: '2',
-  MIN_SUPPORTED_WC_VERSION: '1',
+  MAX_SUPPORTED_WC_VERSION: 2,
+  MIN_SUPPORTED_WC_VERSION: 1,
   PREDEPOSIT_AMOUNT: 1000000000000000000n,
   PIVOT_SLOT: 0n,
   isPaused: false,
@@ -95,6 +96,8 @@ describe('Predeposit Guarantee Integration Tests', () => {
     expect(data.resumeSinceTimestamp).toBe(
       EXPECTED_DATA_HOODI.resumeSinceTimestamp,
     );
+
+    validateExpectedData(data, EXPECTED_DATA_HOODI, expect);
   });
 
   test('should get PDG roles and return valid data', async () => {

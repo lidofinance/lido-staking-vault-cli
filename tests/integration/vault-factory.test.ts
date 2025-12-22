@@ -1,6 +1,10 @@
 import { describe, test, expect } from 'vitest';
 import { getVaultFactoryInfo } from 'features';
-import { captureLogResult, isValidAddress } from './helpers/test-assertions.js';
+import {
+  captureLogResult,
+  isValidAddress,
+  validateExpectedData,
+} from './helpers/test-assertions.js';
 
 const EXPECTED_DATA_HOODI = {
   CONTRACT_ADDRESS: '0x7Ba269a03eeD86f2f54CB04CA3b4b7626636Df4E',
@@ -30,5 +34,7 @@ describe('Vault Factory Integration Tests', () => {
     expect(data.CONTRACT_ADDRESS).toBeDefined();
     expect(isValidAddress(data.CONTRACT_ADDRESS)).toBe(true);
     expect(data.CONTRACT_ADDRESS).toBe(EXPECTED_DATA_HOODI.CONTRACT_ADDRESS);
+
+    validateExpectedData(data, EXPECTED_DATA_HOODI, expect);
   });
 });

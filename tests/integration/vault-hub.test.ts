@@ -4,6 +4,7 @@ import {
   captureLogResult,
   isValidAddress,
   isValidBytes32,
+  validateExpectedData,
 } from './helpers/test-assertions.js';
 
 const EXPECTED_DATA_HOODI = {
@@ -13,7 +14,7 @@ const EXPECTED_DATA_HOODI = {
   LIDO: '0x3508A952176b3c15387C97BE809eaffB1982176a',
   LIDO_LOCATOR: '0xe2EF9536DAAAEBFf5b1c130957AB3E80056b06D8',
   PAUSE_INFINITELY:
-    '115792089237316195423570985008687907853269984665640564039457584007913129639935',
+    115792089237316195423570985008687907853269984665640564039457584007913129639935n,
   PAUSE_ROLE:
     '0x8d0e4ae4847b49935b55c99f9c3ce025c87e7c4604c35b7ae56929bd32fa5a78',
   RESUME_ROLE:
@@ -80,6 +81,8 @@ describe('Vault Hub Integration Tests', () => {
     expect(data.VAULT_MASTER_ROLE).toBeDefined();
     expect(isValidBytes32(data.VAULT_MASTER_ROLE)).toBe(true);
     expect(data.VAULT_MASTER_ROLE).toBe(EXPECTED_DATA_HOODI.VAULT_MASTER_ROLE);
+
+    validateExpectedData(data, EXPECTED_DATA_HOODI, expect);
   });
 
   test('should get vault hub roles and return valid data', async () => {

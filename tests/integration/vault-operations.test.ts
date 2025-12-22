@@ -8,14 +8,20 @@ import {
 } from 'features';
 import { getDashboardContract } from 'contracts';
 import { loadTestConfig } from './helpers/test-config.js';
-import { captureLogTable, isValidAddress } from './helpers/test-assertions.js';
+import {
+  captureLogTable,
+  isValidAddress,
+  validateExpectedData,
+} from './helpers/test-assertions.js';
 
 const EXPECTED_INFO_DATA_HOODI = {
+  'Vault address': '0x7FbB823699d961bD7A08cBb631bB71242ec86a56',
   'Dashboard address': '0x318FcB0CCE93aBA9C21a1B4B38dbACcCEfF091E0',
   'Vault Hub address': '0x4C9fFC325392090F789255b9948Ab1659b797964',
   'LIDO Locator address': '0xe2EF9536DAAAEBFf5b1c130957AB3E80056b06D8',
   'stETH address': '0x3508A952176b3c15387C97BE809eaffB1982176a',
   'wstETH address': '0x7E99eE3C66636DE415D2d7C880938F2f40f94De4',
+  'Node Operator': '0x463f500FCb218d38FB35BECD20475ea75a79B7A9',
   'Reserve Ratio, BP': 5000,
   'Reserve Ratio, %': '50.00%',
   'Forced Rebalance Threshold, BP': 4950,
@@ -140,6 +146,8 @@ describe('Vault Operations Integration Tests', () => {
         EXPECTED_INFO_DATA_HOODI[key as keyof typeof EXPECTED_INFO_DATA_HOODI],
       );
     }
+
+    validateExpectedData(tableData, EXPECTED_INFO_DATA_HOODI, expect);
   });
 
   test('should get vault health by dashboard and return valid data', async () => {
@@ -158,14 +166,7 @@ describe('Vault Operations Integration Tests', () => {
     // Check that we have health data
     expect(Object.keys(tableData).length).toBeGreaterThan(0);
 
-    for (const key in EXPECTED_HEALTH_DATA_HOODI) {
-      expect(tableData[key]).toBeDefined();
-      expect(tableData[key]).toBe(
-        EXPECTED_HEALTH_DATA_HOODI[
-          key as keyof typeof EXPECTED_HEALTH_DATA_HOODI
-        ],
-      );
-    }
+    validateExpectedData(tableData, EXPECTED_HEALTH_DATA_HOODI, expect);
   });
 
   test('should get vault overview by dashboard and return valid data', async () => {
@@ -184,13 +185,6 @@ describe('Vault Operations Integration Tests', () => {
     // Check that we have overview data
     expect(Object.keys(tableData).length).toBeGreaterThan(0);
 
-    for (const key in EXPECTED_OVERVIEW_DATA_HOODI) {
-      expect(tableData[key]).toBeDefined();
-      expect(tableData[key]).toBe(
-        EXPECTED_OVERVIEW_DATA_HOODI[
-          key as keyof typeof EXPECTED_OVERVIEW_DATA_HOODI
-        ],
-      );
-    }
+    validateExpectedData(tableData, EXPECTED_OVERVIEW_DATA_HOODI, expect);
   });
 });
