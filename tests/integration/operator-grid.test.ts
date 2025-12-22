@@ -16,7 +16,7 @@ const EXPECTED_DATA_HOODI = {
   REGISTRY_ROLE:
     '0xa495a3428837724c7f7648cda02eb83c9c4c778c8688d6f254c7f3f80c154d55',
   DEFAULT_TIER_ID: 0n,
-  nodeOperatorCount: 7n,
+  nodeOperatorCount: 29n,
 };
 
 describe('Operator Grid Integration Tests', () => {
@@ -29,35 +29,14 @@ describe('Operator Grid Integration Tests', () => {
     expect(data).not.toBeNull();
     if (!data) return;
 
-    // Validate required fields exist
-    expect(data.CONTRACT_ADDRESS).toBeDefined();
-    expect(isValidAddress(data.CONTRACT_ADDRESS)).toBe(true);
-    expect(data.CONTRACT_ADDRESS).toBe(EXPECTED_DATA_HOODI.CONTRACT_ADDRESS);
-
-    expect(data.DEFAULT_ADMIN_ROLE).toBeDefined();
-    expect(isValidBytes32(data.DEFAULT_ADMIN_ROLE)).toBe(true);
-    expect(data.DEFAULT_ADMIN_ROLE).toBe(
-      EXPECTED_DATA_HOODI.DEFAULT_ADMIN_ROLE,
-    );
-
-    expect(data.LIDO_LOCATOR).toBeDefined();
-    expect(isValidAddress(data.LIDO_LOCATOR)).toBe(true);
-    expect(data.LIDO_LOCATOR).toBe(EXPECTED_DATA_HOODI.LIDO_LOCATOR);
-
-    expect(data.REGISTRY_ROLE).toBeDefined();
-    expect(isValidBytes32(data.REGISTRY_ROLE)).toBe(true);
-    expect(data.REGISTRY_ROLE).toBe(EXPECTED_DATA_HOODI.REGISTRY_ROLE);
-
-    expect(data.DEFAULT_TIER_OPERATOR).toBeDefined();
-    expect(isValidAddress(data.DEFAULT_TIER_OPERATOR)).toBe(true);
-    expect(data.DEFAULT_TIER_OPERATOR).toBe(
-      EXPECTED_DATA_HOODI.DEFAULT_TIER_OPERATOR,
-    );
-
-    expect(data.nodeOperatorCount).toBeDefined();
-    expect(data.nodeOperatorCount).toBe(EXPECTED_DATA_HOODI.nodeOperatorCount);
-
     validateExpectedData(data, EXPECTED_DATA_HOODI, expect);
+
+    expect(isValidAddress(data.DEFAULT_TIER_OPERATOR)).toBe(true);
+    expect(isValidAddress(data.LIDO_LOCATOR)).toBe(true);
+    expect(isValidAddress(data.CONTRACT_ADDRESS)).toBe(true);
+
+    expect(isValidBytes32(data.REGISTRY_ROLE)).toBe(true);
+    expect(isValidBytes32(data.DEFAULT_ADMIN_ROLE)).toBe(true);
   });
 
   test('should get operator grid roles and return valid data', async () => {

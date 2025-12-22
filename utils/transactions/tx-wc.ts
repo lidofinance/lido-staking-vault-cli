@@ -301,7 +301,9 @@ const callWalletConnectSendCalls = async (args: {
     const publicClient = await getPublicClient();
     const receipt = await waitForTransactionReceipt(publicClient, {
       hash: txHash,
-      confirmations: 3,
+      confirmations: process.env.CONFIRMATIONS
+        ? Number(process.env.CONFIRMATIONS)
+        : 3,
     });
 
     hideReceiptSpinner();

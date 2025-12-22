@@ -26,7 +26,7 @@ const EXPECTED_DATA_HOODI = {
   REPORT_FRESHNESS_DELTA: 172800n,
   reportFreshnessDeltaHours: '48 hours',
   resumeSinceTimestamp: 0n,
-  vaultsCount: 266n,
+  vaultsCount: 335n,
   isPaused: false,
 };
 

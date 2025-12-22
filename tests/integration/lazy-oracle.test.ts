@@ -17,7 +17,7 @@ const EXPECTED_DATA_HOODI = {
   MAX_QUARANTINE_PERIOD: '2592000 (720 hours)',
   MAX_REWARD_RATIO: 65535n,
   MAX_LIDO_FEE_RATE_PER_SECOND: 10000000000000000000n,
-  latestReportTimestamp: '1765314060 (09.12.2025 21:01 UTC)',
+  latestReportTimestamp: '1766379660 (22.12.2025 05:01 UTC)',
   quarantinePeriod: '259200 (72 hours)',
   maxRewardRatioBP: '350 (3.5 %)',
   maxLidoFeeRatePerSecond: '180000000000000000 (0.18 ETH/s)',
@@ -33,40 +33,12 @@ describe('Lazy Oracle Integration Tests', () => {
     expect(data).not.toBeNull();
     if (!data) return;
 
-    // Validate required fields exist
-    expect(data.CONTRACT_ADDRESS).toBeDefined();
-    expect(isValidAddress(data.CONTRACT_ADDRESS)).toBe(true);
-    expect(data.CONTRACT_ADDRESS).toBe(EXPECTED_DATA_HOODI.CONTRACT_ADDRESS);
-
-    expect(data.LIDO_LOCATOR).toBeDefined();
-    expect(isValidAddress(data.LIDO_LOCATOR)).toBe(true);
-    expect(data.LIDO_LOCATOR).toBe(EXPECTED_DATA_HOODI.LIDO_LOCATOR);
-
-    expect(data.DEFAULT_ADMIN_ROLE).toBeDefined();
-    expect(isValidBytes32(data.DEFAULT_ADMIN_ROLE)).toBe(true);
-    expect(data.DEFAULT_ADMIN_ROLE).toBe(
-      EXPECTED_DATA_HOODI.DEFAULT_ADMIN_ROLE,
-    );
-
-    expect(data.UPDATE_SANITY_PARAMS_ROLE).toBeDefined();
-    expect(isValidBytes32(data.UPDATE_SANITY_PARAMS_ROLE)).toBe(true);
-    expect(data.UPDATE_SANITY_PARAMS_ROLE).toBe(
-      EXPECTED_DATA_HOODI.UPDATE_SANITY_PARAMS_ROLE,
-    );
-
-    expect(data.MAX_QUARANTINE_PERIOD).toBeDefined();
-    expect(data.MAX_QUARANTINE_PERIOD).toBe(
-      EXPECTED_DATA_HOODI.MAX_QUARANTINE_PERIOD,
-    );
-
-    expect(data.MAX_REWARD_RATIO).toBeDefined();
-    expect(data.MAX_REWARD_RATIO).toBe(EXPECTED_DATA_HOODI.MAX_REWARD_RATIO);
-
-    expect(data.latestReportTimestamp).toBeDefined();
-    expect(data.latestReportTimestamp).toBe(
-      EXPECTED_DATA_HOODI.latestReportTimestamp,
-    );
-
     validateExpectedData(data, EXPECTED_DATA_HOODI, expect);
+
+    expect(isValidAddress(data.CONTRACT_ADDRESS)).toBe(true);
+    expect(isValidAddress(data.LIDO_LOCATOR)).toBe(true);
+
+    expect(isValidBytes32(data.UPDATE_SANITY_PARAMS_ROLE)).toBe(true);
+    expect(isValidBytes32(data.DEFAULT_ADMIN_ROLE)).toBe(true);
   });
 });
