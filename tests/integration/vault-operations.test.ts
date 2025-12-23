@@ -68,7 +68,7 @@ const EXPECTED_OVERVIEW_DATA_HOODI = {
   'Idle Capital, ETH': '3.93',
   'Locked, ETH': '1.274648391739846297',
   'Total Locked, ETH': '1.274712244559030035',
-  'Collateral, ETH': '1',
+  'Collateral, ETH': '1.274648391739846297',
   'Recently Repaid, ETH': '0',
   'Node Operator Accrued Fee, ETH': '0',
   'Reserved, ETH': '0.01445517851262349',
