@@ -25,8 +25,7 @@ describe('calculateOverviewV2', () => {
       nodeOperatorAccruedFee: 10000000000000000000n, // 10 ETH
       totalMintingCapacityStethWei: 1000000000000000000000n, // 1000 ETH
       unsettledLidoFees: 5000000000000000000n, // 5 ETH
-      minimalReserve: 50000000000000000000n, // 50 ETH
-      lastReportLiabilityInStethWei: 800000000000000000000n, // 800 ETH
+      lastReportMaxLiabilityInStethWei: 800000000000000000000n, // 800 ETH
     };
 
     const result = calculateOverviewV2(args);
@@ -36,6 +35,7 @@ describe('calculateOverviewV2', () => {
     expect(result.availableToWithdrawal).toBe(100000000000000000000n);
     expect(result.idleCapital).toBe(100000000000000000000n);
     expect(result.totalLocked).toBe(65000000000000000000n); // 50 + 10 + 5
+    expect(result.collateral).toBe(50000000000000000000n); // equals locked
     expect(result.recentlyRepaid).toBe(0n); // liability increased, not decreased
     expect(result.totalMintingCapacityStethWei).toBe(1000000000000000000000n);
   });
@@ -58,8 +58,7 @@ describe('calculateOverviewV2', () => {
       nodeOperatorAccruedFee: 10000000000000000000n,
       totalMintingCapacityStethWei: 1000000000000000000000n,
       unsettledLidoFees: 5000000000000000000n,
-      minimalReserve: 50000000000000000000n,
-      lastReportLiabilityInStethWei: 700000000000000000000n,
+      lastReportMaxLiabilityInStethWei: 700000000000000000000n,
     };
 
     const result = calculateOverviewV2(args);
@@ -86,8 +85,7 @@ describe('calculateOverviewV2', () => {
       nodeOperatorAccruedFee: 10000000000000000000n,
       totalMintingCapacityStethWei: 0n, // Zero capacity
       unsettledLidoFees: 5000000000000000000n,
-      minimalReserve: 50000000000000000000n,
-      lastReportLiabilityInStethWei: 800000000000000000000n,
+      lastReportMaxLiabilityInStethWei: 800000000000000000000n,
     };
 
     const result = calculateOverviewV2(args);
@@ -113,42 +111,13 @@ describe('calculateOverviewV2', () => {
       nodeOperatorAccruedFee: 10000000000000000000n,
       totalMintingCapacityStethWei: 1000000000000000000000n,
       unsettledLidoFees: 5000000000000000000n,
-      minimalReserve: 50000000000000000000n,
-      lastReportLiabilityInStethWei: 900000000000000000000n, // 900 ETH
+      lastReportMaxLiabilityInStethWei: 900000000000000000000n, // 900 ETH
     };
 
     const result = calculateOverviewV2(args);
 
     // Recently repaid = 900 - 700 = 200 ETH
     expect(result.recentlyRepaid).toBe(200000000000000000000n);
-  });
-
-  it('should use minimalReserve when greater than calculated collateral', () => {
-    mockCalculateHealth.mockReturnValue({
-      healthRatio: 150,
-      healthRatio18: 150000000000000000000n,
-      isHealthy: true,
-    });
-
-    const args = {
-      totalValue: 1000000000000000000000n,
-      reserveRatioBP: 1000, // 10%
-      liabilitySharesInStethWei: 100000000000000000000n, // 100 ETH (small liability)
-      forcedRebalanceThresholdBP: 500,
-      withdrawableEther: 100000000000000000000n,
-      balance: 100000000000000000000n,
-      locked: 50000000000000000000n,
-      nodeOperatorAccruedFee: 10000000000000000000n,
-      totalMintingCapacityStethWei: 1000000000000000000000n,
-      unsettledLidoFees: 5000000000000000000n,
-      minimalReserve: 500000000000000000000n, // 500 ETH (large minimal reserve)
-      lastReportLiabilityInStethWei: 100000000000000000000n,
-    };
-
-    const result = calculateOverviewV2(args);
-
-    // Collateral should be minimalReserve (500 ETH)
-    expect(result.collateral).toBe(500000000000000000000n);
   });
 
   it('should handle 0% reserve ratio', () => {
@@ -169,17 +138,15 @@ describe('calculateOverviewV2', () => {
       nodeOperatorAccruedFee: 10000000000000000000n,
       totalMintingCapacityStethWei: 1000000000000000000000n,
       unsettledLidoFees: 5000000000000000000n,
-      minimalReserve: 50000000000000000000n,
-      lastReportLiabilityInStethWei: 800000000000000000000n,
+      lastReportMaxLiabilityInStethWei: 800000000000000000000n,
     };
 
     const result = calculateOverviewV2(args);
 
-    // With 0% reserve ratio, oneMinusRR = 10000
-    // liabilityDivOneMinusRR = ceil(900 * 10000 / 10000) = 900 ETH
-    // collateral = max(50, 900) = 900 ETH
-    expect(result.reserved).toBeDefined();
-    expect(result.collateral).toBe(900000000000000000000n);
+    // With 0% reserve ratio, oneMinusRR = 10000, reserved = 0
+    // collateral = locked = 50 ETH
+    expect(result.reserved).toBe(0n);
+    expect(result.collateral).toBe(50000000000000000000n);
   });
 
   it('should calculate reserved correctly', () => {
@@ -200,8 +167,7 @@ describe('calculateOverviewV2', () => {
       nodeOperatorAccruedFee: 10000000000000000000n,
       totalMintingCapacityStethWei: 1000000000000000000000n,
       unsettledLidoFees: 5000000000000000000n,
-      minimalReserve: 50000000000000000000n,
-      lastReportLiabilityInStethWei: 800000000000000000000n,
+      lastReportMaxLiabilityInStethWei: 800000000000000000000n,
     };
 
     const result = calculateOverviewV2(args);
@@ -231,8 +197,7 @@ describe('calculateOverviewV2', () => {
       nodeOperatorAccruedFee: 0n,
       totalMintingCapacityStethWei: 1000000000000000000n,
       unsettledLidoFees: 0n,
-      minimalReserve: 0n,
-      lastReportLiabilityInStethWei: 900000000000000000n,
+      lastReportMaxLiabilityInStethWei: 900000000000000000n,
     };
 
     const result = calculateOverviewV2(args);
@@ -240,5 +205,6 @@ describe('calculateOverviewV2', () => {
     expect(result.healthRatio).toBe(100);
     expect(result.isHealthy).toBe(true);
     expect(result.totalLocked).toBe(0n);
+    expect(result.collateral).toBe(0n);
   });
 });
