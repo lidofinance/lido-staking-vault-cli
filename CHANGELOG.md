@@ -1,8 +1,71 @@
 All notable changes to this project will be documented in this file.
 
-# 1.2.0
+## 1.3.0
 
-## CLI
+### Added
+
+#### Testing & CI/CD
+
+- Migrated testing framework from Jest to Vitest for improved performance and modern tooling
+- Added comprehensive integration tests with Anvil environment configuration
+- Enhanced GitHub Actions workflow with unit and integration test execution
+- Added Foundry installation step to CI pipeline
+- Improved test assertions and logging with additional scenarios and JSON output handling
+
+#### Vault Operations & Tier Management
+
+- Added `connect-and-accept-tier` command with vault address argument for tier change operations
+- Enhanced tier change commands with improved documentation and usage examples
+- Added `effectiveBalance` field to source and target validators in pubkeys utility
+
+#### Contracts & ABIs
+
+- Added `accruedFee` field to VaultViewer ABI
+- Updated contract addresses for Hoodi and Mainnet deployments
+
+#### CLI Enhancements
+
+- Added JSON output option to CLI commands
+- Enhanced console logging throughout the application
+- Improved transaction batching for better performance
+- Added mainnet support with updated testnet warnings in CLI
+- Enhanced deposit verification with structured `depositsY` object and improved logging
+- Added new commands for pool creation finalization and logging pool data for DeFi Wrapper
+
+#### Validator & Proof Management
+
+- Integrated validator checks into proof creation and dashboard error handling
+
+### Changed
+
+- Streamlined pool creation process for DeFi Wrapper operations
+- Updated timestamp formatting in lazy oracle feature and tests
+- Refactored vault operations and integration tests with expected data structures
+- Enhanced transaction log messages with constants for better maintainability
+
+### Fixed
+
+- Fixed dashboard contract retrieval await in operator grid write function
+- Fixed formatting of members list
+- Improved validator skipping logic to ensure proper confirmation handling
+- Updated transaction log message for clarity on vault data retrieval command
+
+### Documentation
+
+- Updated vault operations documentation to clarify tier change commands and their requirements
+- Enhanced vault operations documentation with usage examples and options
+- Updated deposits and wallet-connect documentation
+- Updated README and intro documentation to clarify branch selection and usage
+- Removed redundant header from changelog
+
+### Chore
+
+- Marked `calculateOverview` as deprecated and updated comment in `confirmMint`
+- Removed unused worktree configuration file
+- Updated ESLint configuration and added tests
+- Added CONFIRMATIONS variable to checks workflow for enhanced configuration
+
+## 1.2.0
 
 ### Added
 
@@ -48,9 +111,7 @@ All notable changes to this project will be documented in this file.
 - Dependency bumps (actions/checkout, actions/setup-node, mdast-util-to-hast, node-forge), Docusaurus local search plugin, cache dirs in `.gitignore`.
 - Wrapper v4 ABI updates; DRY’d factory and create ggv pool setups.
 
-# 1.1.0
-
-## CLI
+## 1.1.0
 
 ### Added
 
