@@ -28,6 +28,7 @@ import {
   askRoleOperationInfo,
   callWriteMethodsWithReportFresh,
   checkVaultAvailableBalance,
+  checkIsReportFreshThrowError,
 } from 'features';
 import { getAccount } from 'providers';
 import { getOperatorGridContract } from 'contracts';
@@ -346,6 +347,8 @@ vaultOperationsWrite
 
     const quarantineConfirm = await confirmQuarantine(vaultAddress);
     if (!quarantineConfirm) return;
+
+    await checkIsReportFreshThrowError({ vault: vaultAddress });
 
     const nodeOperatorFeeRecipient = await callReadMethodSilent(
       contract,
