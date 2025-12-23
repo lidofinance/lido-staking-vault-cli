@@ -53,7 +53,11 @@ export const getDeployed = () => {
 };
 
 let chainIdCache: number | undefined;
-const getRpcChainId = async (elURL: string) => {
+const getRpcChainId = async (elURL: string | undefined) => {
+  if (!elURL) {
+    return undefined;
+  }
+
   if (chainIdCache) {
     return chainIdCache;
   }
@@ -90,12 +94,10 @@ const getRpcChainId = async (elURL: string) => {
 
     return rpcChainId;
   } catch (error) {
-    if (!chainIdCache) {
-      logError(
-        'Filed to get RPC chainId. Please check if the EL_URL environment variable is correct or try to use another EL.',
-      );
-      logInfo('Continue work without RPC');
-    }
+    logError(
+      'Failed to get RPC chainId. Please check if the EL_URL environment variable is correct or try to use another EL.',
+    );
+    logInfo('Continue work without RPC validation');
 
     return chainIdCache;
   }
@@ -103,10 +105,8 @@ const getRpcChainId = async (elURL: string) => {
 
 export const getChainId = async () => {
   const config = getConfig();
-  const elURL = getElUrl();
   const deployed = getDeployed();
   const chainId = config.CHAIN_ID;
-  const rpcChainId = await getRpcChainId(elURL);
 
   if (chainId !== deployed.networkId) {
     throw new Error(
@@ -114,10 +114,23 @@ export const getChainId = async () => {
     );
   }
 
-  if (rpcChainId && chainId !== rpcChainId) {
-    throw new Error(
-      `ChainId in env and RPC chainId mismatch. ENV: ${chainId} RPC: ${rpcChainId}`,
-    );
+  // Try to validate chain ID against RPC if EL_URL is provided
+  try {
+    const elURL = getElUrl();
+    const rpcChainId = await getRpcChainId(elURL);
+    if (rpcChainId && chainId !== rpcChainId) {
+      throw new Error(
+        `ChainId in env and RPC chainId mismatch. ENV: ${chainId} RPC: ${rpcChainId}`,
+      );
+    }
+  } catch (error) {
+    // If EL_URL is not set, skip RPC validation
+    if (error instanceof Error && error.message.includes('EL_URL is not set')) {
+      logInfo('EL_URL not set, skipping RPC chain ID validation');
+    } else {
+      // Re-throw other errors
+      throw error;
+    }
   }
 
   return chainId;
@@ -134,9 +147,17 @@ export const getChain = async (): Promise<Chain> => {
   return chain;
 };
 
-export const getElUrl = () => {
+export const getElUrl = (): string => {
   const config = getConfig();
   const elUrls = config.EL_URL as string;
+
+  if (!elUrls) {
+    throw new Error(
+      'EL_URL is not set. Please set EL_URL in your .env file.\n' +
+        'Example: EL_URL=https://your-rpc-endpoint\n' +
+        'See documentation for more details: https://lidofinance.github.io/lido-staking-vault-cli/get-started/configuration',
+    );
+  }
 
   return elUrls.split(',')[0] as string;
 };
