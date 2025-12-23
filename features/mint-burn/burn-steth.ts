@@ -5,8 +5,9 @@ import {
   fetchAndCalculateVaultHealthWithNewValue,
   showSpinner,
   confirmBurn,
-  callWriteMethodWithReceipt,
   callReadMethodSilent,
+  PopulatedTx,
+  callWriteMethodWithCalls,
 } from 'utils';
 import { checkLiabilityShares } from 'features';
 
@@ -14,6 +15,7 @@ export const burnSteth = async (
   contract: DashboardContract,
   amountOfSteth: bigint,
   vault: Address,
+  populatedAllowance?: PopulatedTx,
 ) => {
   const stethContract = await getStethContract();
   const amountOfShares = await callReadMethodSilent(
@@ -60,9 +62,10 @@ export const burnSteth = async (
   });
   if (!confirm) return;
 
-  await callWriteMethodWithReceipt({
+  await callWriteMethodWithCalls({
     contract,
     methodName: 'burnStETH',
     payload: [amountOfSteth],
+    calls: [...(populatedAllowance ? [populatedAllowance] : [])],
   });
 };

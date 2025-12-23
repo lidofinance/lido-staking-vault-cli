@@ -4,6 +4,7 @@ import { Option } from 'commander';
 import {
   getDashboardContract,
   getOperatorGridContract,
+  getPredepositGuaranteeContract,
   getStakingVaultContract,
 } from 'contracts';
 import {
@@ -11,8 +12,10 @@ import {
   burnShares,
   mintSteth,
   burnSteth,
-  checkIsReportFresh,
   checkBLSDeposits,
+  checkPdgIsPaused,
+  callWriteMethodsWithReportFresh,
+  checkValidatorInfo,
 } from 'features';
 import {
   callReadMethod,
@@ -34,6 +37,7 @@ import {
   etherToWei,
   type ValidatorWitness,
   stringToNumber,
+  logError,
 } from 'utils';
 import { RoleAssignment, Deposit } from 'types';
 
@@ -87,10 +91,8 @@ dashboardWrite
     );
     if (!confirm) return;
 
-    const isReportFresh = await checkIsReportFresh(vault);
-    if (!isReportFresh) return;
-
-    await callWriteMethodWithReceipt({
+    await callWriteMethodsWithReportFresh({
+      vault,
       contract,
       methodName: 'voluntaryDisconnect',
       payload: [],
@@ -134,10 +136,8 @@ dashboardWrite
     );
     if (!confirm) return;
 
-    const isReportFresh = await checkIsReportFresh(vault);
-    if (!isReportFresh) return;
-
-    await callWriteMethodWithReceipt({
+    await callWriteMethodsWithReportFresh({
+      vault,
       contract,
       methodName: 'withdraw',
       payload: [recipient, parseEther(ether)],
@@ -622,14 +622,27 @@ dashboardWrite
   .argument('<address>', 'dashboard address', stringToAddress)
   .argument('<validatorIndex...>', 'index of the validator to prove')
   .action(async (address: Address, validatorIndexes: string[]) => {
-    const contract = await getDashboardContract(address);
-    const vault = await callReadMethod(contract, 'stakingVault');
+    const [dashboardContract, pdgContract] = await Promise.all([
+      getDashboardContract(address),
+      getPredepositGuaranteeContract(),
+    ]);
+
+    const vault = await callReadMethod(dashboardContract, 'stakingVault');
     const vaultContract = await getStakingVaultContract(vault);
-    const pdgContract = await callReadMethodSilent(vaultContract, 'depositor');
+    const pdgContractAddress = await callReadMethodSilent(
+      vaultContract,
+      'depositor',
+    );
+
+    const isPaused = await checkPdgIsPaused(pdgContract);
+    if (isPaused) return;
 
     const payload: ValidatorWitness[] = [];
 
-    const pdgPolicy = await callReadMethodSilent(contract, 'pdgPolicy');
+    const pdgPolicy = await callReadMethodSilent(
+      dashboardContract,
+      'pdgPolicy',
+    );
     const isAllowed = pdgPolicy === 2;
 
     if (!isAllowed) {
@@ -644,12 +657,21 @@ dashboardWrite
         message: `Making proof for validator ${validatorIndex}...`,
       });
       const packageProof = await createPDGProof(Number(validatorIndex));
-      const { proof, pubkey, childBlockTimestamp, slot, proposerIndex } =
-        packageProof;
+      const {
+        proof,
+        pubkey,
+        childBlockTimestamp,
+        slot,
+        proposerIndex,
+        validator,
+      } = packageProof;
       hideSpinner();
 
+      const { skip } = await checkValidatorInfo({ pubkey, ...validator });
+      if (skip) continue;
+
       const confirm = await confirmOperation(
-        `Are you sure you want to prove ${pubkey} validator (${validatorIndex}) to the Predeposit Guarantee contract ${pdgContract} in the staking vault ${vault}?
+        `Are you sure you want to prove ${pubkey} validator (${validatorIndex}) to the Predeposit Guarantee contract ${pdgContractAddress} in the staking vault ${vault}?
       Witnesses length: ${proof.length}`,
       );
       if (!confirm) return;
@@ -665,8 +687,18 @@ dashboardWrite
       payload.push(proofItem);
     }
 
+    if (payload.length === 0) {
+      logInfo('No validators to prove. Exiting...');
+      return;
+    }
+
+    const confirmProof = await confirmOperation(
+      `Validators to prove (${payload.length}): ${payload.map((i) => i.pubkey).join(', ')}. Continue?`,
+    );
+    if (!confirmProof) return;
+
     await callWriteMethodWithReceipt({
-      contract,
+      contract: dashboardContract,
       methodName: 'proveUnknownValidatorsToPDG',
       payload: [payload],
     });
@@ -948,13 +980,18 @@ dashboardWrite
   .argument('<address>', 'dashboard address', stringToAddress)
   .action(async (address: Address) => {
     const contract = await getDashboardContract(address);
-    const nodeOperatorFeeRecipient = await callReadMethodSilent(
-      contract,
-      'feeRecipient',
-    );
+    const [nodeOperatorFeeRecipient, accruedFee] = await Promise.all([
+      callReadMethodSilent(contract, 'feeRecipient'),
+      callReadMethodSilent(contract, 'accruedFee'),
+    ]);
+
+    if (accruedFee === 0n) {
+      logError('The node operator has no accrued fee');
+      return;
+    }
 
     const confirm = await confirmOperation(
-      `Are you sure you want to transfer the node operator fee to ${nodeOperatorFeeRecipient}?`,
+      `Are you sure you want to transfer the node operator fee ${formatEther(accruedFee)} ETH to ${nodeOperatorFeeRecipient}?`,
     );
     if (!confirm) return;
 

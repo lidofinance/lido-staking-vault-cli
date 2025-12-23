@@ -1,52 +1,53 @@
-import { describe, test, expect, jest, beforeEach } from '@jest/globals';
-jest.mock(
-  'multiformats/cid',
-  () => {
-    class MockCID {
-      str: string;
-      constructor(str: string) {
-        this.str = str;
-      }
-      toString() {
-        return this.str;
-      }
-      equals(other: any) {
-        return other && other.str === this.str;
-      }
-      static parse(str: string) {
-        return new MockCID(str);
-      }
-    }
-    return { CID: MockCID };
-  },
-  { virtual: true },
-);
-import { CID } from 'multiformats/cid';
-import * as ipfs from '../../utils/ipfs.js';
+import { describe, test, expect, vi, beforeEach } from 'vitest';
 
-jest.mock('blockstore-core', () => ({ MemoryBlockstore: jest.fn() }), {
-  virtual: true,
+vi.mock('multiformats/cid', () => {
+  class MockCID {
+    str: string;
+    constructor(str: string) {
+      this.str = str;
+    }
+    toString() {
+      return this.str;
+    }
+    equals(other: any) {
+      return other && other.str === this.str;
+    }
+    static parse(str: string) {
+      return new MockCID(str);
+    }
+  }
+  return { CID: MockCID };
 });
-jest.mock('ipfs-unixfs-importer', () => ({ importer: jest.fn() }), {
-  virtual: true,
-});
-jest.mock('../../utils/logging/console.js', () => ({
-  logInfo: jest.fn(),
-  logTable: jest.fn(),
+
+vi.mock('blockstore-core', () => ({ MemoryBlockstore: vi.fn() }));
+vi.mock('ipfs-unixfs-importer', () => ({ importer: vi.fn() }));
+vi.mock('../../utils/logging/console.js', () => ({
+  logInfo: vi.fn(),
+  logTable: vi.fn(),
 }));
 
-const logInfo = require('../../utils/logging/console.js').logInfo as jest.Mock;
-const logTable = require('../../utils/logging/console.js')
-  .logTable as jest.Mock;
-const importer = require('ipfs-unixfs-importer').importer as jest.Mock;
+import { CID } from 'multiformats/cid';
+import * as ipfs from '../../utils/ipfs.js';
+import type { Mock } from 'vitest';
 
 const fakeCid = CID.parse(
   'bafkreigh2akiscaildcjk2d6gtrevhb7f7esg6k4t4u5p4sqkgfa6vlriu',
 );
 
-beforeEach(() => {
-  jest.clearAllMocks();
-  (global as any).fetch = jest.fn();
+let logInfo: Mock;
+let logTable: Mock;
+let importer: Mock;
+
+beforeEach(async () => {
+  vi.clearAllMocks();
+  global.fetch = vi.fn() as any;
+
+  const loggingModule = await import('../../utils/logging/console.js');
+  logInfo = loggingModule.logInfo as unknown as Mock;
+  logTable = loggingModule.logTable as unknown as Mock;
+
+  const importerModule = await import('ipfs-unixfs-importer');
+  importer = importerModule.importer as unknown as Mock;
 });
 
 describe('ipfs helpers', () => {
@@ -56,7 +57,7 @@ describe('ipfs helpers', () => {
     const buffer = encoder.encode(jsonData).buffer;
     const testCid = fakeCid.toString();
 
-    (global as any).fetch.mockResolvedValueOnce({
+    (global.fetch as Mock).mockResolvedValueOnce({
       ok: true,
       text: async () => jsonData,
       arrayBuffer: async () => buffer,
@@ -76,7 +77,7 @@ describe('ipfs helpers', () => {
   });
 
   test('fetchIPFS throws on bad response', async () => {
-    (global as any).fetch.mockResolvedValueOnce({
+    (global.fetch as Mock).mockResolvedValueOnce({
       ok: false,
       statusText: 'bad',
     });
@@ -87,7 +88,7 @@ describe('ipfs helpers', () => {
 
   test('fetchIPFSBuffer returns buffer', async () => {
     const buf = new ArrayBuffer(4);
-    (global as any).fetch.mockResolvedValueOnce({
+    (global.fetch as Mock).mockResolvedValueOnce({
       ok: true,
       arrayBuffer: async () => buf,
     });
@@ -116,8 +117,16 @@ describe('ipfs helpers', () => {
     const encoder = new TextEncoder();
     const fileContent = encoder.encode(jsonData);
 
-    jest.spyOn(ipfs, 'fetchIPFSBuffer').mockResolvedValueOnce(fileContent);
-    jest.spyOn(ipfs, 'calculateIPFSAddCID').mockResolvedValueOnce(fakeCid);
+    // Mock fetch to prevent actual network calls
+    (global.fetch as Mock).mockResolvedValueOnce({
+      ok: true,
+      arrayBuffer: async () => fileContent.buffer,
+    });
+
+    importer.mockImplementationOnce(async function* () {
+      yield { cid: fakeCid };
+    });
+
     const res = await ipfs.fetchIPFSDirectAndVerify(fakeCid.toString());
     expect(res.fileContent).toEqual(fileContent);
     expect(res.json).toEqual({ test: 123 });
@@ -132,8 +141,17 @@ describe('ipfs helpers', () => {
     const encoder = new TextEncoder();
     const fileContent = encoder.encode(jsonData);
 
-    jest.spyOn(ipfs, 'fetchIPFSBuffer').mockResolvedValueOnce(fileContent);
-    jest.spyOn(ipfs, 'calculateIPFSAddCID').mockResolvedValueOnce(other);
+    // Mock fetch to return the file content
+    (global.fetch as Mock).mockResolvedValueOnce({
+      ok: true,
+      arrayBuffer: async () => fileContent.buffer,
+    });
+
+    // Mock importer to return different CID
+    importer.mockImplementationOnce(async function* () {
+      yield { cid: other };
+    });
+
     await expect(
       ipfs.fetchIPFSDirectAndVerify(fakeCid.toString()),
     ).rejects.toThrow('CID mismatch');

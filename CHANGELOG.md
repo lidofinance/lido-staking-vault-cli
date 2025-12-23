@@ -1,6 +1,117 @@
-# 1.1.0
+All notable changes to this project will be documented in this file.
 
-## CLI
+## 1.3.0
+
+### Added
+
+#### Testing & CI/CD
+
+- Migrated testing framework from Jest to Vitest for improved performance and modern tooling
+- Added comprehensive integration tests with Anvil environment configuration
+- Enhanced GitHub Actions workflow with unit and integration test execution
+- Added Foundry installation step to CI pipeline
+- Improved test assertions and logging with additional scenarios and JSON output handling
+
+#### Vault Operations & Tier Management
+
+- Added `connect-and-accept-tier` command with vault address argument for tier change operations
+- Enhanced tier change commands with improved documentation and usage examples
+- Added `effectiveBalance` field to source and target validators in pubkeys utility
+
+#### Contracts & ABIs
+
+- Added `accruedFee` field to VaultViewer ABI
+- Updated contract addresses for Hoodi and Mainnet deployments
+
+#### CLI Enhancements
+
+- Added JSON output option to CLI commands
+- Enhanced console logging throughout the application
+- Improved transaction batching for better performance
+- Added mainnet support with updated testnet warnings in CLI
+- Enhanced deposit verification with structured `depositsY` object and improved logging
+- Added new commands for pool creation finalization and logging pool data for DeFi Wrapper
+
+#### Validator & Proof Management
+
+- Integrated validator checks into proof creation and dashboard error handling
+
+### Changed
+
+- Streamlined pool creation process for DeFi Wrapper operations
+- Updated timestamp formatting in lazy oracle feature and tests
+- Refactored vault operations and integration tests with expected data structures
+- Enhanced transaction log messages with constants for better maintainability
+
+### Fixed
+
+- Fixed dashboard contract retrieval await in operator grid write function
+- Fixed formatting of members list
+- Improved validator skipping logic to ensure proper confirmation handling
+- Updated transaction log message for clarity on vault data retrieval command
+
+### Documentation
+
+- Updated vault operations documentation to clarify tier change commands and their requirements
+- Enhanced vault operations documentation with usage examples and options
+- Updated deposits and wallet-connect documentation
+- Updated README and intro documentation to clarify branch selection and usage
+- Removed redundant header from changelog
+
+### Chore
+
+- Marked `calculateOverview` as deprecated and updated comment in `confirmMint`
+- Removed unused worktree configuration file
+- Updated ESLint configuration and added tests
+- Added CONFIRMATIONS variable to checks workflow for enhanced configuration
+
+## 1.2.0
+
+### Added
+
+#### DeFi Wrapper & Reporting
+
+- Pool lifecycle enhancements: factories, pool creation/finalization, and richer pool info (including fresh report checks and stETH-specific details).
+- Wrapper health monitoring commands and dev-tools integration; mainnet support with improved CLI logging.
+- Updated ABIs with new error types/state mutability; vault record command and total value remainder logging in quarantine flow.
+
+#### Consolidation Flow
+
+- EOA and Safe consolidation paths with batching/no-batching options and optional auth list.
+- Calldata fetching plus consolidation hash generator utilities; options for pubkeys/struct inputs.
+- Stronger role validation, confirmations, async handling, and balance/fee prompts for validators.
+
+#### Validators, Deposits, Metrics
+
+- Awaited BLS validation and deposit checks for node operators and depositors.
+- Cached node-operator accrued fee calculations; settledGrowth handling for no-rewards vaults.
+- ETH-formatted/CSV metrics output; validator balance prompts for fee calculations; UI env write helper.
+
+### Changed
+
+- Consolidation logic streamlined and moved into features; improved validator checks and conditional logging.
+- Report submission returns explicit boolean; confirm-expiry handling updated.
+- Deposit validation simplified (removed redundant contract checks); share-limit commands rely on `stringToAddress`/`formatEther`.
+- VaultViewer/VaultHub/LazyOracle ABIs refreshed; revokeDelegate uses `getCode`; factory/ABI setup DRY’d; repository/package metadata tweaks.
+
+### Fixed
+
+- Fee exemption handling and consolidation request validation (including no-consolidation cases).
+- Validator totals converted to wei; awaited BLS validation; corrected extraValues/ABI references.
+- JSON format checks and CL data fetch error handling; clearer confirmation variable naming.
+- WalletConnect/Gnosis Safe edge cases with clearer failure logging; minor spinners/casts cleanup.
+
+### Documentation
+
+- Consolidation docs refreshed (fee exemption terminology, new commands, JSON format guidance) and new consolidation doc added.
+- Wrapper documentation restructured with new commands/examples; reward adjustment wording switched to fee exemption.
+
+### Chore
+
+- Dependency bumps (actions/checkout, actions/setup-node, mdast-util-to-hast, node-forge), Docusaurus local search plugin, cache dirs in `.gitignore`.
+- Wrapper v4 ABI updates; DRY’d factory and create ggv pool setups.
+
+## 1.1.0
 
 ### Added
 

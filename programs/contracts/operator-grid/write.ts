@@ -116,7 +116,7 @@ operatorGridWrite
       'vaultConnection',
       [vault],
     );
-    const dashboardContract = getDashboardContract(vaultConnection.owner);
+    const dashboardContract = await getDashboardContract(vaultConnection.owner);
     const log = await confirmProposal({
       contract: contract as any,
       vault,

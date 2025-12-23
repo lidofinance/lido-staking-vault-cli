@@ -1,7 +1,17 @@
-import { Address, parseEventLogs, parseEther } from 'viem';
+import {
+  Address,
+  parseEventLogs,
+  parseEther,
+  Hex,
+  TransactionReceipt,
+} from 'viem';
 
 import { RoleAssignment, VaultWithDashboard } from 'types';
-import { getVaultFactoryContract } from 'contracts';
+import {
+  getDashboardContract,
+  getStakingVaultContract,
+  getVaultFactoryContract,
+} from 'contracts';
 import { VaultFactoryAbi } from 'abi/index.js';
 import {
   callWriteMethodWithReceipt,
@@ -13,8 +23,25 @@ import {
   validateAddressesMap,
   validateAddressMap,
   logInfo,
+  callReadMethodSilent,
 } from 'utils';
 import { program } from 'command';
+
+export type CreateVaultResult = {
+  vault: Address;
+  dashboard: Address;
+  owner: Address;
+  nodeOperator: Address;
+  nodeOperatorManager: readonly Address[];
+  tx: Hex;
+  blockNumber: bigint;
+};
+
+export const isCreateVaultResult = (
+  result: Pick<CreateVaultResult, 'tx'> | CreateVaultResult | undefined,
+): result is CreateVaultResult => {
+  return result !== undefined && 'vault' in result;
+};
 
 export const prepareCreateVaultPayload = (args: {
   defaultAdmin: Address;
@@ -78,7 +105,7 @@ export const createVault = async (
   methodName:
     | 'createVaultWithDashboard'
     | 'createVaultWithDashboardWithoutConnectingToVaultHub' = 'createVaultWithDashboard',
-) => {
+): Promise<Pick<CreateVaultResult, 'tx'> | CreateVaultResult | undefined> => {
   const contract = await getVaultFactoryContract();
 
   const {
@@ -104,18 +131,32 @@ export const createVault = async (
     ],
     value: isNeedValue ? parseEther('1') : undefined,
   });
-  if (!result) return;
-  if (program.opts().populateTx) {
+  if (!result) {
+    throw new Error('Transaction failed');
+  }
+
+  if (program.opts().populateTx && result.tx) {
     return { tx: result.tx };
   }
   const { receipt, tx } = result;
 
   // Gnosis safe case
-  if (!receipt) {
-    logInfo('Transaction has been sent');
+  if (!receipt || !tx) {
+    logInfo(
+      'Transaction has been sent. Use "vault-operations write create-vault log-creating-vault-data" command to get the Vault data after the transaction is signed and executed',
+    );
     return;
   }
 
+  const eventData = await getCreateVaultEventData(receipt, tx);
+
+  return eventData;
+};
+
+export const getCreateVaultEventData = async (
+  receipt: TransactionReceipt,
+  tx: Hex,
+): Promise<CreateVaultResult> => {
   const events = parseEventLogs({
     abi: VaultFactoryAbi,
     logs: receipt.logs,
@@ -130,10 +171,28 @@ export const createVault = async (
   const dashboard = dashboardEvent?.args.dashboard;
   const owner = dashboardEvent?.args.admin;
 
+  if (!vault || !dashboard || !owner) {
+    throw new Error('Vault, dashboard or owner not found');
+  }
+
+  const dashboardContract = await getDashboardContract(dashboard);
+  const vaultContract = await getStakingVaultContract(vault);
+  const [nodeOperator, nodeOperatorManagerRole] = await Promise.all([
+    callReadMethodSilent(vaultContract, 'nodeOperator'),
+    callReadMethodSilent(dashboardContract, 'NODE_OPERATOR_MANAGER_ROLE'),
+  ]);
+  const nodeOperatorManager = await callReadMethodSilent(
+    dashboardContract,
+    'getRoleMembers',
+    [nodeOperatorManagerRole],
+  );
+
   return {
     vault,
     dashboard,
     owner,
+    nodeOperator,
+    nodeOperatorManager,
     tx,
     blockNumber: receipt.blockNumber,
   };
@@ -145,8 +204,10 @@ export const getVaultFactoryInfo = async () => {
   try {
     const BEACON = await contract.read.BEACON();
     const LIDO_LOCATOR = await contract.read.LIDO_LOCATOR();
+    const CONTRACT_ADDRESS = contract.address;
 
     const payload = {
+      CONTRACT_ADDRESS,
       BEACON,
       LIDO_LOCATOR,
     };

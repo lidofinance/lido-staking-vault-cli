@@ -1,5 +1,7 @@
 ---
-sidebar_position: 3
+title: Supply (Fund) and Withdrawal
+description: Funding and withdrawing ETH from Lido Staking Vaults
+sidebar_position: 4
 ---
 
 # Supply (Fund) and Withdrawal

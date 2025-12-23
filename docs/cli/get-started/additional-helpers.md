@@ -1,5 +1,7 @@
 ---
-sidebar_position: 7
+title: Additional Helpers
+description: Useful utility commands for working with Lido Staking Vaults
+sidebar_position: 8
 ---
 
 # Additional Helpers

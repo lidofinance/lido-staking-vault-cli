@@ -23,6 +23,9 @@ export const getTargetAndSourceValidatorsInfo = (
         status: targetValidatorInfo.status,
         balance: parseGwei(targetValidatorInfo.balance),
         index: targetValidatorInfo.index,
+        effectiveBalance: parseGwei(
+          targetValidatorInfo.validator.effective_balance,
+        ),
       },
       sourceValidators: new Map(),
     });
@@ -42,6 +45,9 @@ export const getTargetAndSourceValidatorsInfo = (
           status: sourceValidatorInfo.status,
           balance: parseGwei(sourceValidatorInfo.balance),
           index: sourceValidatorInfo.index,
+          effectiveBalance: parseGwei(
+            sourceValidatorInfo.validator.effective_balance,
+          ),
         });
     });
   });

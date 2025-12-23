@@ -64,7 +64,11 @@ export const confirmFund = async (
 
 export const confirmOperation = async (message: string) => {
   const opts = program.opts();
-  if (opts.yes) return true;
+  const isTestEnvironment =
+    process.env.NODE_ENV === 'test' ||
+    process.env.CI === 'true' ||
+    process.env.VITEST === 'true';
+  if (opts.yes || isTestEnvironment) return true;
 
   const { confirm } = await confirmPrompt(message, 'confirm');
 

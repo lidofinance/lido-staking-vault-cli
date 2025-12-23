@@ -6,33 +6,49 @@ import {
   confirmOperation,
   submitReport,
   logInfo,
+  PopulatedTx,
+  logError,
 } from 'utils';
+import { checkIsDisconnected } from './connection.js';
 
-const checkIsDisconnected = async (vault: Address) => {
-  const vaultHubContract = await getVaultHubContract();
-  const connection = await callReadMethodSilent(
-    vaultHubContract,
-    'vaultConnection',
-    [vault],
-  );
-
-  const isDisconnected =
-    connection.owner === '0x0000000000000000000000000000000000000000' ||
-    connection.vaultIndex === 0n;
-
-  if (isDisconnected) {
-    logInfo('⚠️  The vault is not connected to VaultHub  ⚠️');
-    return true;
-  }
-
-  return false;
-};
-
-export const checkIsReportFresh = async (vault: Address) => {
+export const checkIsReportFreshThrowError = async ({
+  vault,
+}: {
+  vault: Address;
+}): Promise<void> => {
   const vaultHubContract = await getVaultHubContract();
   const isDisconnected = await checkIsDisconnected(vault);
 
-  if (isDisconnected) return true;
+  if (isDisconnected) {
+    logError('The vault is disconnected');
+    throw new Error(`The vault ${vault} is disconnected`);
+  }
+
+  const isReportFresh = await callReadMethodSilent(
+    vaultHubContract,
+    'isReportFresh',
+    [vault],
+  );
+
+  if (!isReportFresh) {
+    logError(
+      'The report is not fresh. Submit a fresh report to update the vault data by command: report w submit',
+    );
+    throw new Error(`The report for vault ${vault} is not fresh`);
+  }
+};
+
+export const checkIsReportFresh = async ({
+  vault,
+  populateTx = false,
+}: {
+  vault: Address;
+  populateTx?: boolean;
+}): Promise<{ isFresh: boolean; data?: PopulatedTx }> => {
+  const vaultHubContract = await getVaultHubContract();
+  const isDisconnected = await checkIsDisconnected(vault);
+
+  if (isDisconnected) return { isFresh: true, data: undefined };
 
   const isReportFresh = await callReadMethodSilent(
     vaultHubContract,
@@ -45,16 +61,16 @@ export const checkIsReportFresh = async (vault: Address) => {
     const confirm = await confirmOperation(
       'Do you want to submit a fresh report?',
     );
-    if (!confirm) return false;
+    if (!confirm) return { isFresh: false, data: undefined };
 
-    const isReportSubmitted = await submitReport({ vault });
+    const result = await submitReport({ vault, populateTx });
 
-    return isReportSubmitted;
+    return result;
   }
 
   logInfo('The report is fresh');
 
-  return isReportFresh;
+  return { isFresh: true, data: undefined };
 };
 
 export const reportFreshWarning = async (vault: Address): Promise<boolean> => {

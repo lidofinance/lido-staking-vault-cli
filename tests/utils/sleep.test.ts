@@ -1,15 +1,15 @@
-import { describe, test, expect, jest } from '@jest/globals';
+import { describe, test, expect, vi } from 'vitest';
 
 import { sleep } from '../../utils/sleep.js';
 
 describe('sleep', () => {
   test('waits specified time', async () => {
-    jest.useFakeTimers();
-    const spy = jest.fn();
+    vi.useFakeTimers();
+    const spy = vi.fn();
     const p = sleep(500).then(spy);
-    jest.advanceTimersByTime(500);
+    vi.advanceTimersByTime(500);
     await p;
     expect(spy).toHaveBeenCalled();
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 });

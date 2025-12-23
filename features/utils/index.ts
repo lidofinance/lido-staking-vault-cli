@@ -5,3 +5,4 @@ export * from './get-address.js';
 export * from './quarantine.js';
 export * from './settled-growth.js';
 export * from './get-boolean.js';
+export * from './connection.js';

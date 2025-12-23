@@ -6,8 +6,10 @@ const MIN_CONFIRM_EXPIRY = 24 * 60 * 60; // 24 hours
 const MIN_CONFIRM_EXPIRY_TESTNET = 1 * 60 * 60; // 1 hour
 const MAX_CONFIRM_EXPIRY = 24 * 60 * 60 * 30; // 30 days
 
-const validateConfirmExpiry = (confirmExpiry: number) => {
-  const minInHours = MIN_CONFIRM_EXPIRY / 3600;
+const validateConfirmExpiry = (confirmExpiry: number, isTestnet = false) => {
+  const minInHours = isTestnet
+    ? MIN_CONFIRM_EXPIRY_TESTNET / 3600
+    : MIN_CONFIRM_EXPIRY / 3600;
   const maxInHours = MAX_CONFIRM_EXPIRY / 3600;
 
   if (confirmExpiry < minInHours)
@@ -69,12 +71,12 @@ export const getConfirmExpiry = async ({
     );
     if (!confirmExpiryValue.value) throw new Error('Invalid confirm expiry');
 
-    validateConfirmExpiry(confirmExpiryValue.value);
+    validateConfirmExpiry(confirmExpiryValue.value, isTestnet);
 
     return confirmExpiryValue.value * 3600;
   }
 
-  validateConfirmExpiry(confirmExpiry / 3600);
+  validateConfirmExpiry(confirmExpiry / 3600, isTestnet);
 
   return confirmExpiry;
 };

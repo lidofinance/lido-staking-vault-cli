@@ -27,6 +27,11 @@ export interface ValidatorWitnessWithWC extends ValidatorWitness {
   withdrawalCredentials: Hex;
   slot: bigint;
   proposerIndex: bigint;
+  validator: {
+    effectiveBalance: number;
+    activationEpoch: number;
+    slashed: boolean;
+  };
 }
 
 const slotToTimestamp = (slot: number, genesisTimestamp: number): number => {
@@ -88,6 +93,11 @@ export const createPDGProof = async (
     childBlockTimestamp: BigInt(headerByParentTimestamp),
     slot: BigInt(beaconHeader.slot),
     proposerIndex: BigInt(beaconHeader.proposer_index),
+    validator: {
+      effectiveBalance: validator.effectiveBalance,
+      activationEpoch: validator.activationEpoch,
+      slashed: validator.slashed,
+    },
   };
 
   return result;

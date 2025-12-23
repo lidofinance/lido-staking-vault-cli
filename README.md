@@ -35,6 +35,22 @@ For changes between versions see [Changelog](./CHANGELOG.md)
 
 ```bash
 git clone git@github.com:lidofinance/lido-staking-vault-cli.git
+cd lido-staking-vault-cli
+```
+
+### Branch Selection
+
+The repository has two primary branches:
+
+- **`main`** (Recommended): Stable releases with tested and verified features. Ideal for production use and reliable operations.
+- **`develop`**: Active development branch with the latest features. Use this if you want immediate access to new functionality and can handle potentially unstable features.
+
+```bash
+# Switch to stable branch (recommended)
+git checkout main
+
+# Or switch to development branch for latest features
+git checkout develop
 ```
 
 ## Configuration
@@ -108,6 +124,48 @@ yarn start contracts hub r v-count
   - [VaultHub](https://lidofinance.github.io/lido-staking-vault-cli/commands/contracts/vault-hub)
   - [VaultViewer](https://lidofinance.github.io/lido-staking-vault-cli/commands/contracts/vault-viewer)
   - [Vault](https://lidofinance.github.io/lido-staking-vault-cli/commands/contracts/vault)
+
+## Testing
+
+### Unit Tests
+
+Run unit tests for utilities and helpers:
+
+```bash
+yarn test
+```
+
+### Integration Tests
+
+Integration tests run on a forked chain to test real contract interactions.
+
+#### Setup
+
+1. Install dependencies (includes Anvil via `@viem/anvil`):
+
+   ```bash
+   yarn install
+   ```
+
+2. Create test configuration:
+   ```bash
+   cp env.test.example .env.test
+   # Edit .env.test and set your RPC_URL
+   ```
+
+#### Running Tests
+
+Anvil starts automatically when you run tests:
+
+```bash
+# All integration tests (Anvil starts automatically)
+yarn test:integration
+
+# Watch mode
+yarn test:integration:watch
+```
+
+For detailed information, see [tests/integration/README.md](tests/integration/README.md).
 
 ## Documentation
 

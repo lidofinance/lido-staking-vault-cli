@@ -1,4 +1,4 @@
-import { type Address, formatEther } from 'viem';
+import { type Address, formatEther, parseEther } from 'viem';
 import { Option } from 'commander';
 
 import {
@@ -11,23 +11,30 @@ import {
   callReadMethodSilent,
   logError,
   stringToBigInt,
+  jsonToRoleAssignment,
+  isPopulatedTx,
 } from 'utils';
 import {
   chooseVaultAndGetDashboard,
   getAddress,
   mintShares,
-  checkIsReportFresh,
   mintSteth,
   burnShares,
   burnSteth,
   checkVaultRole,
   checkAllowance,
   confirmQuarantine,
+  logRolesOperations,
+  askRoleOperationInfo,
+  callWriteMethodsWithReportFresh,
+  checkVaultAvailableBalance,
+  checkIsReportFreshThrowError,
 } from 'features';
 import { getAccount } from 'providers';
+import { getOperatorGridContract } from 'contracts';
+import { RoleAssignment } from 'types';
 
 import { vaultOperations } from './main.js';
-import { getOperatorGridContract } from 'contracts';
 
 export const vaultOperationsWrite = vaultOperations
   .command('write')
@@ -61,7 +68,8 @@ vaultOperationsWrite
     );
     if (!confirm) return;
 
-    await callWriteMethodWithReceipt({
+    await callWriteMethodsWithReportFresh({
+      vault: vaultAddress,
       contract,
       methodName: 'fund',
       payload: [],
@@ -99,10 +107,8 @@ vaultOperationsWrite
       );
       if (!confirm) return;
 
-      const isReportFresh = await checkIsReportFresh(vaultAddress);
-      if (!isReportFresh) return;
-
-      await callWriteMethodWithReceipt({
+      await callWriteMethodsWithReportFresh({
+        vault: vaultAddress,
         contract,
         methodName: 'withdraw',
         payload: [recipientAddress, ether],
@@ -245,9 +251,20 @@ vaultOperationsWrite
 
     const account = await getAccount();
     await checkVaultRole(contract, 'BURN_ROLE', account.address);
-    await checkAllowance(contract, amountOfShares, 'shares');
+    const allowanceCall = await checkAllowance(
+      contract,
+      amountOfShares,
+      'shares',
+      true,
+    );
 
-    await burnShares(contract, amountOfShares, vaultAddress, 'burnShares');
+    await burnShares(
+      contract,
+      amountOfShares,
+      vaultAddress,
+      'burnShares',
+      isPopulatedTx(allowanceCall?.data) ? allowanceCall.data : undefined,
+    );
   });
 
 vaultOperationsWrite
@@ -267,9 +284,19 @@ vaultOperationsWrite
 
     const account = await getAccount();
     await checkVaultRole(contract, 'BURN_ROLE', account.address);
-    await checkAllowance(contract, amountOfSteth, 'steth');
+    const allowanceCall = await checkAllowance(
+      contract,
+      amountOfSteth,
+      'steth',
+      true,
+    );
 
-    await burnSteth(contract, amountOfSteth, vaultAddress);
+    await burnSteth(
+      contract,
+      amountOfSteth,
+      vaultAddress,
+      isPopulatedTx(allowanceCall?.data) ? allowanceCall.data : undefined,
+    );
   });
 
 vaultOperationsWrite
@@ -291,9 +318,20 @@ vaultOperationsWrite
 
     const account = await getAccount();
     await checkVaultRole(contract, 'BURN_ROLE', account.address);
-    await checkAllowance(contract, amountOfWsteth, 'wsteth');
+    const allowanceCall = await checkAllowance(
+      contract,
+      amountOfWsteth,
+      'wsteth',
+      true,
+    );
 
-    await burnShares(contract, amountOfWsteth, vaultAddress, 'burnWstETH');
+    await burnShares(
+      contract,
+      amountOfWsteth,
+      vaultAddress,
+      'burnWstETH',
+      isPopulatedTx(allowanceCall?.data) ? allowanceCall.data : undefined,
+    );
   });
 
 vaultOperationsWrite
@@ -309,6 +347,8 @@ vaultOperationsWrite
 
     const quarantineConfirm = await confirmQuarantine(vaultAddress);
     if (!quarantineConfirm) return;
+
+    await checkIsReportFreshThrowError({ vault: vaultAddress });
 
     const nodeOperatorFeeRecipient = await callReadMethodSilent(
       contract,
@@ -379,9 +419,9 @@ vaultOperationsWrite
   .command('change-tier-by-no')
   .alias('ct-no')
   .description(
-    'vault tier change by node operator with multi-role confirmation',
+    'vault tier change by node operator with multi-role confirmation. For disconnected vaults this option is required',
   )
-  .argument('<tierId>', 'tier id', stringToBigInt)
+  .argument('<tierId>', 'tier id to change to', stringToBigInt)
   .option(
     '-r, --requestedShareLimit <string>',
     'requested share limit (in shares)',
@@ -435,10 +475,8 @@ vaultOperationsWrite
         );
       }
 
-      // TODO: only for confirmation
-      await checkIsReportFresh(vaultAddress);
-
-      await callWriteMethodWithReceipt({
+      await callWriteMethodsWithReportFresh({
+        vault: vaultAddress,
         contract: operatorGridContract,
         methodName: 'changeTier',
         payload: [vaultAddress, tierId, currentShareLimit],
@@ -450,7 +488,7 @@ vaultOperationsWrite
   .command('change-tier')
   .alias('ct')
   .description('vault tier change with multi-role confirmation')
-  .argument('<tierId>', 'tier id', stringToBigInt)
+  .argument('<tierId>', 'tier id to change to', stringToBigInt)
   .option(
     '-r, --requestedShareLimit <string>',
     'requested share limit (in shares)',
@@ -499,10 +537,8 @@ vaultOperationsWrite
         account.address,
       );
 
-      // TODO: only for confirmation
-      await checkIsReportFresh(vaultAddress);
-
-      await callWriteMethodWithReceipt({
+      await callWriteMethodsWithReportFresh({
+        vault: vaultAddress,
         contract,
         methodName: 'changeTier',
         payload: [tierId, currentShareLimit],
@@ -532,11 +568,175 @@ vaultOperationsWrite
     );
     if (!confirm) return;
 
-    await checkIsReportFresh(vaultAddress);
-
-    await callWriteMethodWithReceipt({
+    await callWriteMethodsWithReportFresh({
+      vault: vaultAddress,
       contract,
       methodName: 'syncTier',
       payload: [],
     });
   });
+
+vaultOperationsWrite
+  .command('role-grant')
+  .description('mass-grants multiple roles to multiple accounts.')
+  .option(
+    '-r, --roleAssignments <string>',
+    'JSON array of role assignments',
+    jsonToRoleAssignment,
+  )
+  .option('-v, --vault <string>', 'vault address', stringToAddress)
+  .addHelpText(
+    'after',
+    `Role assignment format:
+    [{
+      "account": "...",
+      "role": "..."
+    }
+    {second role assignment}
+    ...]`,
+  )
+  .action(
+    async ({
+      roleAssignments,
+      vault,
+    }: {
+      roleAssignments: RoleAssignment[];
+      vault: Address;
+    }) => {
+      const { contract } = await chooseVaultAndGetDashboard({
+        vault,
+      });
+
+      let roleAssignmentsValue: RoleAssignment[] = [];
+      if (roleAssignments) {
+        roleAssignmentsValue = roleAssignments;
+      } else {
+        roleAssignmentsValue = await askRoleOperationInfo(contract, 'grant');
+      }
+
+      const confirm = await logRolesOperations(
+        contract,
+        roleAssignmentsValue,
+        'grant',
+      );
+      if (!confirm) return;
+
+      await callWriteMethodWithReceipt({
+        contract,
+        methodName: 'grantRoles',
+        payload: [roleAssignmentsValue],
+      });
+    },
+  );
+
+vaultOperationsWrite
+  .command('role-revoke')
+  .description('mass-revokes multiple roles from multiple accounts')
+  .option(
+    '-r, --roleAssignments <string>',
+    'JSON array of role assignments',
+    jsonToRoleAssignment,
+  )
+  .option('-v, --vault <string>', 'vault address', stringToAddress)
+  .addHelpText(
+    'after',
+    `Role assignment format:
+    [{
+      "account": "...",
+      "role": "..."
+    }
+    {second role assignment}
+    ...]`,
+  )
+  .action(
+    async ({
+      roleAssignments,
+      vault,
+    }: {
+      roleAssignments: RoleAssignment[];
+      vault: Address;
+    }) => {
+      const { contract } = await chooseVaultAndGetDashboard({
+        vault,
+      });
+
+      let roleAssignmentsValue: RoleAssignment[] = [];
+      if (roleAssignments) {
+        roleAssignmentsValue = roleAssignments;
+      } else {
+        roleAssignmentsValue = await askRoleOperationInfo(contract, 'revoke');
+      }
+
+      const confirm = await logRolesOperations(
+        contract,
+        roleAssignmentsValue,
+        'revoke',
+      );
+      if (!confirm) return;
+
+      await callWriteMethodWithReceipt({
+        contract,
+        methodName: 'revokeRoles',
+        payload: [roleAssignmentsValue],
+      });
+    },
+  );
+
+vaultOperationsWrite
+  .command('connect-and-accept-tier')
+  .alias('connect-and-accept')
+  .description('changes the tier of the vault and connects to VaultHub')
+  .argument('<vaultAddress>', 'vault address', stringToAddress)
+  .argument('<tierId>', 'tier to change to', stringToBigInt)
+  .argument(
+    '<requestedShareLimit>',
+    'requested new share limit for the vault (in shares)',
+    etherToWei,
+  )
+  .option('-f, --fund', 'optional fund the vault with 1 ETH', false)
+
+  .addHelpText(
+    'after',
+    `Reverts if settledGrowth is not corrected after the vault is disconnected`,
+  )
+  .action(
+    async (
+      vaultAddress: Address,
+      tier: bigint,
+      requestedShareLimit: bigint,
+      { fund }: { fund: boolean },
+    ) => {
+      const { contract } = await chooseVaultAndGetDashboard({
+        vault: vaultAddress,
+      });
+
+      const currentSettledGrowth = await callReadMethodSilent(
+        contract,
+        'settledGrowth',
+      );
+
+      const confirm = await confirmOperation(
+        `Are you sure you want to change the tier of the vault ${vaultAddress} to ${tier} and connect to VaultHub?
+        Requested share limit: ${formatEther(requestedShareLimit)}
+        Current settled growth: ${formatEther(currentSettledGrowth)}
+        Fund with 1 ETH: ${fund}`,
+      );
+      if (!confirm) return;
+
+      let value: bigint | undefined;
+      if (!fund) {
+        const { isFundConfirmed } =
+          await checkVaultAvailableBalance(vaultAddress);
+        if (isFundConfirmed) value = parseEther('1');
+      } else {
+        value = parseEther('1');
+      }
+
+      await callWriteMethodWithReceipt({
+        contract,
+        methodName: 'connectAndAcceptTier',
+        payload: [tier, requestedShareLimit],
+        value,
+      });
+    },
+  );

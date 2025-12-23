@@ -1,13 +1,5 @@
-import {
-  decodeErrorResult,
-  encodeFunctionData,
-  Hex,
-  SimulateCallsReturnType,
-  Abi,
-} from 'viem';
+import { encodeFunctionData, Hex, SimulateCallsReturnType, Abi } from 'viem';
 import { waitForTransactionReceipt } from 'viem/actions';
-
-import { DashboardAbi } from 'abi/Dashboard.js';
 
 import { getPublicClient, getWalletConnectClient } from 'providers';
 import {
@@ -20,9 +12,14 @@ import {
 } from 'utils';
 
 import { PartialContract, PopulatedTx, BatchTxArgs } from './types.js';
+import { simulateCallsErrorHandler } from './utils.js';
 
 export const PROVIDER_POLLING_INTERVAL = 12_000;
 export const AA_TX_POLLING_TIMEOUT = 180_000; // 3 minutes
+
+export const isPopulatedTx = (tx: any): tx is PopulatedTx => {
+  return !!tx && tx.to !== undefined && tx.data !== undefined;
+};
 
 export const simulateWCWriteTx = async (args: {
   calls: PopulatedTx[];
@@ -47,31 +44,14 @@ export const simulateWCWriteTx = async (args: {
       account: walletConnectClient.account,
       calls,
     });
+    simulateCallsErrorHandler(simulateResult, abi);
 
-    if (simulateResult.results.some((r) => r.error)) {
-      const error = simulateResult.results.find((r) => r.error)?.error;
-      const cause = error?.cause as any;
-
-      const data = cause?.data ?? cause?.raw;
-      if (data) {
-        const { errorName, args } = decodeErrorResult({
-          abi: abi ?? DashboardAbi,
-          data,
-        });
-
-        const errorArgs = args?.map((a) => a?.toString() ?? '') ?? [];
-        const errorMessage = `${errorName}: ${errorArgs.join(', ')}`;
-        printError(new Error(errorMessage), 'Simulation failed');
-      }
-
-      const shortMessage = cause?.shortMessage;
-      printError(error, shortMessage);
-    }
     hideSpinner();
 
     return simulateResult;
   } catch (err) {
     hideSpinner();
+    await disconnectWalletConnect();
 
     if (!skipError) printError(err, 'Error when simulating write method');
 
@@ -321,7 +301,9 @@ const callWalletConnectSendCalls = async (args: {
     const publicClient = await getPublicClient();
     const receipt = await waitForTransactionReceipt(publicClient, {
       hash: txHash,
-      confirmations: 3,
+      confirmations: process.env.CONFIRMATIONS
+        ? Number(process.env.CONFIRMATIONS)
+        : 3,
     });
 
     hideReceiptSpinner();

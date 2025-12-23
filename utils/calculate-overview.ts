@@ -22,6 +22,7 @@ export const formatBP = (bp: number | bigint) =>
 export const formatRatio = (r: number) =>
   isFinite(r) ? `${r.toFixed(4)}%` : '∞';
 
+/** @deprecated */
 export const calculateOverview = (args: OverviewArgs) => {
   const {
     totalValue,

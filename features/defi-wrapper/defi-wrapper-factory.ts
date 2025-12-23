@@ -65,20 +65,23 @@ export type BaseFactoryOptions = {
 // сommon filaliztion step between two pools
 export const finalizePoolCreation = async (
   contract: Awaited<ReturnType<typeof getFactoryContract>>,
-  vaultConfig: VaultConfig,
-  timelockConfig: TimelockConfig,
-  commonPoolConfig: CommonPoolConfig,
   creationEventData: Awaited<ReturnType<typeof getCreatePoolEventData>>,
 ) => {
   if (
     !creationEventData.auxiliaryConfig ||
     !creationEventData.strategyFactory ||
     !creationEventData.strategyDeployBytes ||
-    !creationEventData.intermediate
+    !creationEventData.intermediate ||
+    !creationEventData.vaultConfig ||
+    !creationEventData.timelockConfig ||
+    !creationEventData.commonPoolConfig
   ) {
     logError('Missing required data for pool creation finalize');
     return;
   }
+
+  const vaultHubContract = await getVaultHubContract();
+  const CONNECT_DEPOSIT = await vaultHubContract.read.CONNECT_DEPOSIT();
 
   logInfo('Pool Creation Finalize');
 
@@ -86,18 +89,21 @@ export const finalizePoolCreation = async (
     contract,
     methodName: 'createPoolFinish',
     payload: [
-      vaultConfig,
-      timelockConfig,
-      commonPoolConfig,
+      creationEventData.vaultConfig,
+      creationEventData.timelockConfig,
+      creationEventData.commonPoolConfig,
       creationEventData.auxiliaryConfig,
       creationEventData.strategyFactory,
       creationEventData.strategyDeployBytes,
       creationEventData.intermediate,
     ],
+    value: CONNECT_DEPOSIT,
   });
 
   if (!finalizeResult.receipt || !finalizeResult.tx) {
-    logInfo('Transaction has been sent');
+    logInfo(
+      'Transaction has been sent. Use "log-finalizing-pool-data" command to get the Pool data after the transaction is signed and executed',
+    );
     return;
   }
 
@@ -307,9 +313,6 @@ export const promtBaseVaultConfiguration = async ({
   name,
   symbol,
 }: BaseFactoryOptions) => {
-  const vaultHubContract = await getVaultHubContract();
-  const CONNECT_DEPOSIT = await vaultHubContract.read.CONNECT_DEPOSIT();
-
   const nodeOperatorAddress = await getAddress(nodeOperator, 'Node Operator');
   const nodeOperatorManagerAddress = await getAddress(
     nodeOperatorManager,
@@ -359,6 +362,5 @@ export const promtBaseVaultConfiguration = async ({
     vaultConfig,
     timelockConfig,
     commonPoolConfig,
-    CONNECT_DEPOSIT,
   };
 };
