@@ -13,16 +13,10 @@ import { getTestClient } from '../../providers';
 import {
   PROPOSAL_STATUS,
   getProposalDetails,
-  getAfterSubmitDelay,
   getAfterScheduleDelay,
   canExecute,
   executeProposal,
 } from './dgEmergencyProtectedTimeLockContract';
-import {
-  canScheduleProposal,
-  scheduleProposal,
-  waitForNormalState,
-} from './dualGovernanceContract';
 import { getStandConfig, getChain, getElUrl } from '../../config';
 import { vote, canVote } from './aragonVotingContract';
 import { getLdoTokenBalanceAt } from './ldoTokenContract';
@@ -116,13 +110,12 @@ export const voteWithImpersonatedAccounts = async (
   }
 };
 
-// Process proposals: schedule submitted proposals and execute scheduled proposals
+// Process proposals: execute scheduled proposals
 export const processProposals = async (
   account: Account,
   proposalIds: bigint[],
 ): Promise<void> => {
   const proposalsToBeProcessed = [...proposalIds];
-  const submittedProposals: bigint[] = [];
   const scheduledProposals: bigint[] = [];
 
   const copyProposalsToBeProcessed = [...proposalsToBeProcessed];
@@ -130,13 +123,7 @@ export const processProposals = async (
     const proposalDetails = await getProposalDetails(proposalId);
     const proposalStatus = proposalDetails.status;
 
-    if (proposalStatus === PROPOSAL_STATUS.submitted) {
-      submittedProposals.push(proposalId);
-      proposalsToBeProcessed.splice(
-        proposalsToBeProcessed.indexOf(proposalId),
-        1,
-      );
-    } else if (proposalStatus === PROPOSAL_STATUS.scheduled) {
+    if (proposalStatus === PROPOSAL_STATUS.scheduled) {
       scheduledProposals.push(proposalId);
       proposalsToBeProcessed.splice(
         proposalsToBeProcessed.indexOf(proposalId),
@@ -150,37 +137,6 @@ export const processProposals = async (
         proposalsToBeProcessed.indexOf(proposalId),
         1,
       );
-    }
-  }
-
-  if (submittedProposals.length > 0) {
-    const afterSubmitDelay = await getAfterSubmitDelay();
-    const testClient = getTestClient();
-
-    await testClient.increaseTime({ seconds: Number(afterSubmitDelay) + 1 });
-    await testClient.mine({ blocks: 1 });
-
-    const firstProposalId = submittedProposals[0];
-    if (!firstProposalId) {
-      throw new Error('No proposals to schedule');
-    }
-
-    let iterations = 0;
-    const MAX_ITERATIONS = 100;
-
-    while (!(await canScheduleProposal(firstProposalId))) {
-      await waitForNormalState();
-      iterations += 1;
-      if (iterations > MAX_ITERATIONS) {
-        throw new Error(
-          `Unable to schedule the proposal. (${firstProposalId})`,
-        );
-      }
-    }
-
-    for (const proposalId of submittedProposals) {
-      await scheduleProposal(account, proposalId);
-      scheduledProposals.push(proposalId);
     }
   }
 
@@ -200,8 +156,10 @@ export const processProposals = async (
         const proposalDetails = await getProposalDetails(proposalId);
         const currentBlock = await testClient.getBlock();
         const currentTimestamp = BigInt(currentBlock.timestamp);
+        const scheduledAt = BigInt(proposalDetails.scheduledAt);
+        const timeSinceScheduled = currentTimestamp - scheduledAt;
         throw new Error(
-          `Proposal ${proposalId} cannot be executed. Status: ${proposalDetails.status}, submittedAt: ${proposalDetails.submittedAt}, scheduledAt: ${proposalDetails.scheduledAt}, currentTime: ${currentTimestamp}, afterScheduleDelay: ${afterScheduleDelay}`,
+          `Proposal ${proposalId} cannot be executed. Status: ${proposalDetails.status}, submittedAt: ${proposalDetails.submittedAt}, scheduledAt: ${proposalDetails.scheduledAt}, currentTime: ${currentTimestamp}, afterScheduleDelay: ${afterScheduleDelay}, timeSinceScheduled: ${timeSinceScheduled}`,
         );
       }
 
@@ -210,7 +168,9 @@ export const processProposals = async (
       const proposalDetails = await getProposalDetails(proposalId);
 
       if (proposalDetails.status !== PROPOSAL_STATUS.executed) {
-        throw new Error(`Proposal ${proposalId} execution failed`);
+        throw new Error(
+          `Proposal ${proposalId} execution failed. Status: ${proposalDetails.status}`,
+        );
       }
     }
   }

@@ -10,12 +10,9 @@ import {
 } from '../testData/roles.data';
 import lsvCLI from '../utils/lsvCLI';
 import { Address, formatEther } from 'viem';
-import {
-  getTotalValue,
-  getTotalMintingCapacityShares,
-  isVaultConnected,
-} from '../contracts';
+import { getTotalValue, isVaultConnected } from '../contracts';
 import process from 'node:process';
+import { LIDO_CONNECTION_COLLATERAL } from '../testData/consts';
 
 const CONFIRM_EXPIRY = 86400;
 const NO_FEE_RATE = 100;
@@ -101,46 +98,64 @@ test.describe.serial.only('Vault smoke test', () => {
       const supplyRolePK = ethereumNodeService.getAccount(
         getPermissionRole(ROLES.FUND).index,
       ).secretKey;
-      const {
-        totalValueEth: cliTotalValueEthBeforeSupply,
-        totalMintingCapacitySteth: cliTotalMintingCapacityStethBeforeSupply,
-      } = await lsvCLI.dashboard.overview(dashboardAddress);
-
       const supplyAmount = '31';
 
-      expect(
-        cliTotalMintingCapacityStethBeforeSupply,
-        `Restrict minting using collateral for newly created vault`,
-      ).toBe('0');
-
-      await lsvCLI.vo.supply(vaultAddress, supplyAmount, supplyRolePK);
-
-      const expectedTotalValueEthAfterSupply = String(
-        parseFloat(supplyAmount) + parseFloat(cliTotalValueEthBeforeSupply),
+      await lsvCLI.dashboard.supplyVault(
+        dashboardAddress,
+        supplyAmount,
+        supplyRolePK,
       );
-      const expectedTotalMintingCapacitySharesAfterSupply = formatEther(
-        await getTotalMintingCapacityShares(dashboardAddress),
-      );
-      const {
-        totalValueEth: cliTotalValueEthAfterSupply,
-        totalMintingCapacityShares: cliTotalMintingCapacitySharesAfterSupply,
-      } = await lsvCLI.dashboard.overview(dashboardAddress);
+
       const contractTotalValueEthAfterSupply = formatEther(
         await getTotalValue(dashboardAddress),
       );
+      const expectedTotalValueEthAfterSupply = String(
+        parseFloat(supplyAmount) + parseFloat(LIDO_CONNECTION_COLLATERAL),
+      );
 
       expect(
-        cliTotalValueEthAfterSupply,
-        'CLI total value ETH after supply should be calculated correctly',
+        contractTotalValueEthAfterSupply,
+        `Total value after supply should be ${supplyAmount} + ${LIDO_CONNECTION_COLLATERAL} = ${expectedTotalValueEthAfterSupply}`,
       ).toBe(expectedTotalValueEthAfterSupply);
-      expect(
-        cliTotalValueEthAfterSupply,
-        'CLI total value ETH after supply should match contract total value',
-      ).toBe(contractTotalValueEthAfterSupply);
-      expect(
-        cliTotalMintingCapacitySharesAfterSupply,
-        'Additional supply on top of Lido connection collateral updates "TotalMintingCapacity"',
-      ).toBe(expectedTotalMintingCapacitySharesAfterSupply);
+    });
+  });
+
+  test('Create vault without connecting to VaultHub', async ({
+    ethereumNodeService,
+  }) => {
+    const vmAccount = ethereumNodeService.getAccount(
+      getPermissionRole(ROLES.DEFAULT_ADMIN).index,
+    );
+
+    await test.step('Create vault disconnected from VaultHub', async () => {
+      const vaultData = await lsvCLI.factory.createVault({
+        defaultAdmin: roles.defaultAdmin.address,
+        nodeOperator: roles.nodeOperator.address,
+        nodeOperatorManager: roles.nodeOperatorManager.address,
+        confirmExpiry: CONFIRM_EXPIRY,
+        nodeOperatorFeeRate: NO_FEE_RATE,
+        privateKey: vmAccount.secretKey,
+        connectedToVh: false,
+      });
+
+      await test.step('Check vault not connected to VaultHub', async () => {
+        const cliIsVaultConnectedToVaultHub = await lsvCLI.hub.isVaultConnected(
+          vaultData.vaultAddress,
+        );
+        const contractIsVaultConnectedToVaultHub = await isVaultConnected(
+          vaultData.vaultAddress,
+        );
+        const expectedVaultConnection = false;
+
+        expect(
+          cliIsVaultConnectedToVaultHub,
+          'Check cli connection state correct with contract',
+        ).toBe(contractIsVaultConnectedToVaultHub);
+        expect(
+          cliIsVaultConnectedToVaultHub,
+          'Created vault should be not connected to VaultHub',
+        ).toBe(expectedVaultConnection);
+      });
     });
   });
 });
