@@ -9,11 +9,18 @@ import {
 } from 'viem';
 import { getChain, getElUrl } from '../config';
 
+const HTTP_TIMEOUT = process.env.CI ? 180_000 : 120_000;
+
 export const getTestClient = () =>
   createTestClient({
     chain: getChain(),
     mode: 'anvil',
-    transport: http(getElUrl()),
+    transport: http(getElUrl(), {
+      timeout: HTTP_TIMEOUT,
+      batch: {
+        wait: 100,
+      },
+    }),
   })
     .extend(publicActions)
     .extend(walletActions);
@@ -26,7 +33,12 @@ export const getBalanceEth = async (address: Address) => {
 export const getClient = () =>
   createPublicClient({
     chain: getChain(),
-    transport: http(getElUrl()),
+    transport: http(getElUrl(), {
+      timeout: HTTP_TIMEOUT,
+      batch: {
+        wait: 100,
+      },
+    }),
   });
 
 export const jumpForward = async (seconds: number) => {
