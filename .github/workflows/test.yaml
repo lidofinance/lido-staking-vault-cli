@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       # Required envs
-      CHAIN_ID: ${{ github.event.inputs.CHAIN_ID || '560048'}}
+      CHAIN_ID: ${{ github.event.inputs.CHAIN_ID || '1'}}
       # Node.js configuration
       NODE_OPTIONS: --max-old-space-size=4096
 

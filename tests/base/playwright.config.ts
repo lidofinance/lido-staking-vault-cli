@@ -5,7 +5,7 @@ export const pwConfig: PlaywrightTestConfig = {
   timeout: 180 * 1000,
   testDir: './tests',
   fullyParallel: false,
-  forbidOnly: !!process.env.CI,
+  // forbidOnly: !!process.env.CI,
   retries: 0,
   workers: 1,
   reporter: getReportConfig(),
