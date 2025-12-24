@@ -1,5 +1,17 @@
 All notable changes to this project will be documented in this file.
 
+## 1.3.1
+
+### Fixed
+
+#### Vault Operations
+
+- Removed report check for fund operation to allow funding without report validation
+
+#### CLI Configuration
+
+- Updated IPFS gateway option to require a string argument for proper configuration
+
 ## 1.3.0
 
 ### Added
