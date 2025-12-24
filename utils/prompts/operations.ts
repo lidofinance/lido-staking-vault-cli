@@ -64,17 +64,11 @@ export const confirmFund = async (
 
 export const confirmOperation = async (message: string) => {
   const opts = program.opts();
-  if (opts.yes) return true;
-
-  // In test environment, automatically skip prompts
-  if (
+  const isTestEnvironment =
     process.env.NODE_ENV === 'test' ||
     process.env.CI === 'true' ||
-    process.env.VITEST === 'true'
-  ) {
-    logCancel('Skipping prompt in test environment');
-    return false;
-  }
+    process.env.VITEST === 'true';
+  if (opts.yes || isTestEnvironment) return true;
 
   const { confirm } = await confirmPrompt(message, 'confirm');
 

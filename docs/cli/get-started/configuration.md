@@ -1,10 +1,44 @@
 ---
+title: Configuration
+description: Configure your environment variables and wallet settings
 sidebar_position: 1
 ---
 
 # Configuration
 
 Before using the Lido Staking Vault CLI, you need to configure your environment variables and wallet settings. This guide covers all necessary configuration steps to get started.
+
+## Installation
+
+### Clone from Repository
+
+```bash
+git clone git@github.com:lidofinance/lido-staking-vault-cli.git
+cd lido-staking-vault-cli
+```
+
+### Choosing a Branch
+
+The repository maintains two primary branches:
+
+- **`main`** (Recommended): Stable, tested, and production-ready releases. Use this branch for reliable operation with verified features.
+- **`develop`**: Latest features and ongoing development. Choose this branch if you want access to cutting-edge functionality and are comfortable with potentially unstable features.
+
+```bash
+# For stable releases (recommended)
+git checkout main
+
+# For latest features in development
+git checkout develop
+```
+
+### Install Dependencies
+
+After cloning and selecting your branch, install dependencies:
+
+```bash
+yarn install
+```
 
 ## Environment Variables
 

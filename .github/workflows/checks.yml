@@ -48,6 +48,7 @@ jobs:
           CHAIN_ID: ${{ vars.CHAIN_ID }}
           FORK_BLOCK_NUMBER: ${{ vars.FORK_BLOCK_NUMBER }}
           DEPLOYED: ${{ vars.DEPLOYED }}
+          CONFIRMATIONS: ${{ vars.CONFIRMATIONS }}
           ANVIL_PORT: 8545
           NODE_ENV: test
           VITEST: true

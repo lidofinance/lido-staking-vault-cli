@@ -1,5 +1,7 @@
 ---
-sidebar_position: 4
+title: Mint and Burn Tokens
+description: Mint and burn stETH-based tokens in Lido Staking Vaults
+sidebar_position: 5
 ---
 
 # Mint and Burn Tokens

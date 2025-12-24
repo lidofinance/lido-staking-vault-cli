@@ -58,7 +58,6 @@ export const getVaultOverviewByDashboard = async (
       totalValue,
       locked,
       remainingMintingCapacityShares,
-      minimalReserve,
       nodeOperatorFeeRate,
       nodeOperatorAccruedFee,
       settledGrowth,
@@ -69,7 +68,6 @@ export const getVaultOverviewByDashboard = async (
       contract.read.totalValue(),
       contract.read.locked(),
       contract.read.remainingMintingCapacityShares([0n]),
-      contract.read.minimalReserve(),
       contract.read.feeRate(),
       contract.read.accruedFee(),
       contract.read.settledGrowth(),
@@ -104,7 +102,7 @@ export const getVaultOverviewByDashboard = async (
       tierShareLimitStethWei,
       groupShareLimitStethWei,
       remainingMintingCapacityStethWei,
-      lastReportLiabilityInStethWei,
+      lastReportMaxLiabilityInStethWei,
     ] = await Promise.all([
       stethContract.read.getPooledEthByShares([totalMintingCapacityShares]),
       stethContract.read.getPooledEthByShares([shareLimit]),
@@ -113,7 +111,7 @@ export const getVaultOverviewByDashboard = async (
       stethContract.read.getPooledEthByShares([remainingMintingCapacityShares]),
       report
         ? stethContract.read.getPooledEthBySharesRoundUp([
-            BigInt(report.data.liabilityShares),
+            BigInt(report.data.maxLiabilityShares),
           ])
         : 0n,
     ]);
@@ -129,8 +127,7 @@ export const getVaultOverviewByDashboard = async (
       nodeOperatorAccruedFee,
       totalMintingCapacityStethWei,
       unsettledLidoFees: vaultObligation[1],
-      minimalReserve,
-      lastReportLiabilityInStethWei,
+      lastReportMaxLiabilityInStethWei,
     });
 
     hideSpinner();

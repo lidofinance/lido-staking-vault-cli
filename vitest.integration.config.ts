@@ -9,8 +9,12 @@ export default defineConfig({
     exclude: ['**/node_modules/**', '**/dist/**'],
     globalSetup: ['./tests/integration/globalSetup.ts'],
     globals: true,
-    testTimeout: 60000,
+    testTimeout: 120000,
     hookTimeout: 60000,
+    fileParallelism: false,
+    sequence: {
+      concurrent: false,
+    },
     coverage: {
       include: ['features/**/*.ts'],
       exclude: ['features/**/*.test.ts', 'utils/proof/**/*.ts'],

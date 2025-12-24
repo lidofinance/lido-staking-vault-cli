@@ -4,6 +4,7 @@ export type ValidatorInfo = {
   status: string;
   balance: bigint;
   index: string;
+  effectiveBalance: bigint;
 };
 
 export type PubkeyMap = Record<Hex, Hex[]>;

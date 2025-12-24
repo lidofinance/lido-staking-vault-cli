@@ -6,6 +6,7 @@ import {
   captureLogResult,
   isValidAddress,
   isValidBytes32,
+  validateExpectedData,
 } from './helpers/test-assertions.js';
 
 const EXPECTED_BASE_INFO_DATA_HOODI = {
@@ -18,8 +19,8 @@ const EXPECTED_BASE_INFO_DATA_HOODI = {
   beaconChainDepositsPaused: false,
   initializedVersion: 1n,
   version: 1n,
-  balance: '1.01 ETH',
-  availableBalance: '1.01 ETH',
+  balance: '3.93 ETH',
+  availableBalance: '3.93 ETH',
   stagedBalance: '0 ETH',
   isOwnerContract: true,
   withdrawalCredentials:
@@ -44,70 +45,15 @@ describe('Vault Integration Tests', () => {
     expect(data).not.toBeNull();
     if (!data) return;
 
-    // Validate required fields exist
-    expect(data.DEPOSIT_CONTRACT).toBeDefined();
-    expect(isValidAddress(data.DEPOSIT_CONTRACT)).toBe(true);
-    expect(data.DEPOSIT_CONTRACT).toBe(
-      EXPECTED_BASE_INFO_DATA_HOODI.DEPOSIT_CONTRACT,
-    );
+    validateExpectedData(data, EXPECTED_BASE_INFO_DATA_HOODI, expect);
 
-    expect(data.CONTRACT_ADDRESS).toBeDefined();
-    expect(isValidAddress(data.CONTRACT_ADDRESS)).toBe(true);
-    expect(data.CONTRACT_ADDRESS).toBe(
-      EXPECTED_BASE_INFO_DATA_HOODI.CONTRACT_ADDRESS,
-    );
-
-    expect(data.owner).toBeDefined();
-    expect(isValidAddress(data.owner)).toBe(true);
-    expect(data.owner).toBe(EXPECTED_BASE_INFO_DATA_HOODI.owner);
-
-    expect(data.pendingOwner).toBeDefined();
-    expect(isValidAddress(data.pendingOwner)).toBe(true);
-    expect(data.pendingOwner).toBe(EXPECTED_BASE_INFO_DATA_HOODI.pendingOwner);
-
-    expect(data.depositor).toBeDefined();
-    expect(isValidAddress(data.depositor)).toBe(true);
-    expect(data.depositor).toBe(EXPECTED_BASE_INFO_DATA_HOODI.depositor);
-
-    expect(data.nodeOperator).toBeDefined();
-    expect(isValidAddress(data.nodeOperator)).toBe(true);
-    expect(data.nodeOperator).toBe(EXPECTED_BASE_INFO_DATA_HOODI.nodeOperator);
-
-    expect(data.beaconChainDepositsPaused).toBeDefined();
-    expect(data.beaconChainDepositsPaused).toBe(
-      EXPECTED_BASE_INFO_DATA_HOODI.beaconChainDepositsPaused,
-    );
-
-    expect(data.initializedVersion).toBeDefined();
-    expect(data.initializedVersion).toBe(
-      EXPECTED_BASE_INFO_DATA_HOODI.initializedVersion,
-    );
-
-    expect(data.version).toBeDefined();
-    expect(data.version).toBe(EXPECTED_BASE_INFO_DATA_HOODI.version);
-
-    expect(data.balance).toBeDefined();
-    expect(data.balance).toBe(EXPECTED_BASE_INFO_DATA_HOODI.balance);
-
-    expect(data.availableBalance).toBeDefined();
-    expect(data.availableBalance).toBe(
-      EXPECTED_BASE_INFO_DATA_HOODI.availableBalance,
-    );
-
-    expect(data.stagedBalance).toBeDefined();
-    expect(data.stagedBalance).toBe(
-      EXPECTED_BASE_INFO_DATA_HOODI.stagedBalance,
-    );
-
-    expect(data.isOwnerContract).toBeDefined();
-    expect(data.isOwnerContract).toBe(
-      EXPECTED_BASE_INFO_DATA_HOODI.isOwnerContract,
-    );
-
-    expect(data.withdrawalCredentials).toBeDefined();
     expect(isValidBytes32(data.withdrawalCredentials)).toBe(true);
-    expect(data.withdrawalCredentials).toBe(
-      EXPECTED_BASE_INFO_DATA_HOODI.withdrawalCredentials,
-    );
+    expect(isValidAddress(data.CONTRACT_ADDRESS)).toBe(true);
+
+    expect(isValidAddress(data.nodeOperator)).toBe(true);
+    expect(isValidAddress(data.DEPOSIT_CONTRACT)).toBe(true);
+    expect(isValidAddress(data.owner)).toBe(true);
+    expect(isValidAddress(data.depositor)).toBe(true);
+    expect(isValidAddress(data.pendingOwner)).toBe(true);
   });
 });

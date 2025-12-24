@@ -12,8 +12,7 @@ type OverviewArgs = {
   nodeOperatorAccruedFee: bigint;
   totalMintingCapacityStethWei: bigint;
   unsettledLidoFees: bigint;
-  minimalReserve: bigint;
-  lastReportLiabilityInStethWei: bigint;
+  lastReportMaxLiabilityInStethWei: bigint;
 };
 
 const BASIS_POINTS = 10_000n;
@@ -41,8 +40,7 @@ export const calculateOverviewV2 = (args: OverviewArgs) => {
     nodeOperatorAccruedFee,
     totalMintingCapacityStethWei,
     unsettledLidoFees,
-    minimalReserve,
-    lastReportLiabilityInStethWei,
+    lastReportMaxLiabilityInStethWei,
   } = args;
 
   const { healthRatio, isHealthy } = calculateHealth({
@@ -55,14 +53,10 @@ export const calculateOverviewV2 = (args: OverviewArgs) => {
   const totalLocked = locked + nodeOperatorAccruedFee + unsettledLidoFees;
   const RR = BigInt(reserveRatioBP);
   const oneMinusRR = BASIS_POINTS - RR;
-  const liabilityDivOneMinusRR =
-    oneMinusRR === 0n
-      ? 0n
-      : ceilDiv(liabilitySharesInStethWei * BASIS_POINTS, oneMinusRR);
 
-  const collateral = bigIntMax(minimalReserve, liabilityDivOneMinusRR);
+  const collateral = locked;
   const recentlyRepaid = bigIntMax(
-    lastReportLiabilityInStethWei - liabilitySharesInStethWei,
+    lastReportMaxLiabilityInStethWei - liabilitySharesInStethWei,
     0n,
   );
 
