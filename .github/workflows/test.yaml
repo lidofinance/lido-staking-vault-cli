@@ -20,7 +20,7 @@ jobs:
     env:
       # Required envs
       CHAIN_ID: ${{ github.event.inputs.CHAIN_ID || '1'}}
-      RPC_URL: 'https://ethereum-rpc.publicnode.com'
+      RPC_URL: 'https://eth.drpc.org'
       # Node.js configuration
       NODE_OPTIONS: --max-old-space-size=4096
 
