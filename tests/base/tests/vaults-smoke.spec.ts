@@ -94,7 +94,7 @@ test.describe.serial.only('Vault smoke test', () => {
       });
     });
 
-    await test.step(`Supply vault as  ${ROLES.FUND}`, async () => {
+    await test.step(`Supply vault as ${ROLES.FUND}`, async () => {
       const supplyRolePK = ethereumNodeService.getAccount(
         getPermissionRole(ROLES.FUND).index,
       ).secretKey;
