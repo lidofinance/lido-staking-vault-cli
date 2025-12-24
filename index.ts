@@ -25,8 +25,14 @@ const showTestnetWarning = () => {
 };
 
 const showMainnetWarning = () => {
+  const now = new Date();
+  const targetDate = new Date('2026-01-29');
+  const shouldShowLinks = now >= targetDate;
+
   console.info('\nMainnet V3 application:');
-  console.info('- 🌐 Web UI: https://stvaults.lido.fi/vaults');
+  if (shouldShowLinks) {
+    console.info('- 🌐 Web UI: https://stvaults.lido.fi/vaults');
+  }
   console.info('- 📄 Contracts info: https://docs.lido.fi/deployed-contracts');
   console.info(
     '- 📖 stVaults Doc Center: https://docs.lido.fi/run-on-lido/stvaults',
