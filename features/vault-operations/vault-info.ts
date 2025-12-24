@@ -12,9 +12,11 @@ import {
 } from 'utils';
 import { getPublicClient } from 'providers';
 import { reportFreshWarning } from 'features';
+import { getStakingVaultContract } from 'contracts';
 
 export const getVaultInfoByDashboard = async (contract: DashboardContract) => {
   const vault = await callReadMethodSilent(contract, 'stakingVault');
+  const vaultContract = await getStakingVaultContract(vault);
   await reportFreshWarning(vault);
 
   const hideSpinner = showSpinner();
@@ -67,9 +69,12 @@ export const getVaultInfoByDashboard = async (contract: DashboardContract) => {
       contract.read.MAX_CONFIRM_EXPIRY(),
       contract.read.MIN_CONFIRM_EXPIRY(),
     ]);
-    const balance = await publicClient.getBalance({
-      address: vault,
-    });
+    const [balance, nodeOperator] = await Promise.all([
+      publicClient.getBalance({
+        address: vault,
+      }),
+      callReadMethodSilent(vaultContract, 'nodeOperator'),
+    ]);
 
     hideSpinner();
 
@@ -83,6 +88,7 @@ export const getVaultInfoByDashboard = async (contract: DashboardContract) => {
         ['LIDO Locator address', lidoLocator],
         ['stETH address', steth],
         ['wstETH address', wsteth],
+        ['Node Operator', nodeOperator],
         ['Reserve Ratio, BP', vaultConnection.reserveRatioBP],
         ['Reserve Ratio, %', formatBP(vaultConnection.reserveRatioBP)],
         [

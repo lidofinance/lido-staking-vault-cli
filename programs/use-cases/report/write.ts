@@ -33,7 +33,7 @@ reportWrite
   .alias('submit')
   .description('submit report by vault')
   .option('-v, --vault <string>', 'vault address')
-  .option('-g, --gateway', 'ipfs gateway url')
+  .option('-g, --gateway <string>', 'ipfs gateway url')
   .addHelpText(
     'after',
     '\n\u2192 Submitting report is permissionless operation. Anyone can submit a report for any stVault.',
@@ -50,7 +50,7 @@ reportWrite
   .command('by-vaults-submit')
   .description('submit report for vaults')
   .argument('<vaults...>', 'vaults addresses')
-  .option('-g, --gateway', 'ipfs gateway url')
+  .option('-g, --gateway <string>', 'ipfs gateway url')
   .option('-e, --skip-error', 'skip error')
   .addHelpText(
     'after',
@@ -106,7 +106,7 @@ reportWrite
 reportWrite
   .command('submit-all')
   .description('submit report for all vaults')
-  .option('-g, --gateway', 'ipfs gateway url')
+  .option('-g, --gateway <string>', 'ipfs gateway url')
   .option('-e, --skip-error', 'skip error')
   .addHelpText(
     'after',

@@ -6,7 +6,7 @@ import { TargetAndSourceValidators } from './types.js';
 export const logAllTargetValidatorsTable = async (
   targetAndSourceValidators: TargetAndSourceValidators,
 ) => {
-  const rows: Array<[string, string, string, string]> = [];
+  const rows: Array<[string, string, string, string, string]> = [];
 
   for (const [
     target,
@@ -16,6 +16,7 @@ export const logAllTargetValidatorsTable = async (
       target,
       targetValidatorInfo.status,
       `${formatUnits(targetValidatorInfo.balance, 18)} ETH`,
+      `${formatUnits(targetValidatorInfo.effectiveBalance, 18)} ETH`,
       targetValidatorInfo.index,
     ]);
   }
@@ -23,7 +24,7 @@ export const logAllTargetValidatorsTable = async (
   logInfo('Target Validators Info');
   logTable({
     params: {
-      head: ['Pubkey', 'Status', 'Balance', 'index'],
+      head: ['Pubkey', 'Status', 'Balance', 'Effective Balance', 'index'],
     },
     data: rows,
   });
@@ -32,7 +33,7 @@ export const logAllTargetValidatorsTable = async (
 export const logAllSourceValidatorsTable = async (
   targetAndSourceValidators: TargetAndSourceValidators,
 ) => {
-  const rows: Array<[string, string, string, string]> = [];
+  const rows: Array<[string, string, string, string, string]> = [];
 
   for (const [, { sourceValidators }] of targetAndSourceValidators) {
     for (const [source, sourceValidatorInfo] of sourceValidators) {
@@ -40,6 +41,7 @@ export const logAllSourceValidatorsTable = async (
         source,
         sourceValidatorInfo.status,
         `${formatUnits(sourceValidatorInfo.balance, 18)} ETH`,
+        `${formatUnits(sourceValidatorInfo.effectiveBalance, 18)} ETH`,
         sourceValidatorInfo.index,
       ]);
     }
@@ -48,7 +50,7 @@ export const logAllSourceValidatorsTable = async (
   logInfo('Source Validators Info');
   logTable({
     params: {
-      head: ['Pubkey', 'Status', 'Balance', 'index'],
+      head: ['Pubkey', 'Status', 'Balance', 'Effective Balance', 'index'],
     },
     data: rows,
   });

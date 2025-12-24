@@ -32,6 +32,12 @@ import {
   BatchTxArgs,
   WriteTxArgs,
 } from './types.js';
+import { simulateCallsErrorHandler } from './utils.js';
+
+const isTestEnvironment =
+  process.env.NODE_ENV === 'test' ||
+  process.env.CI === 'true' ||
+  process.env.VITEST === 'true';
 
 export const callSimulateWriteMethod = async <
   T extends PartialContract,
@@ -48,12 +54,13 @@ export const callSimulateWriteMethod = async <
     withSpinner = true,
     skipError = false,
   } = args;
-  const hideSpinner = withSpinner
-    ? showSpinner({
-        type: 'bouncingBall',
-        message: 'Simulating...',
-      })
-    : () => {};
+  const hideSpinner =
+    withSpinner && !isTestEnvironment
+      ? showSpinner({
+          type: 'bouncingBall',
+          message: 'Simulating...',
+        })
+      : () => {};
 
   try {
     const method = contract.simulate[methodName];
@@ -111,12 +118,13 @@ export const callWriteMethod = async <
     throw new Error('Simulation failed');
   }
 
-  const hideSpinner = withSpinner
-    ? showSpinner({
-        type: 'bouncingBar',
-        message: 'Waiting for transaction receipt...',
-      })
-    : () => {};
+  const hideSpinner =
+    withSpinner && !isTestEnvironment
+      ? showSpinner({
+          type: 'bouncingBar',
+          message: 'Waiting for transaction receipt...',
+        })
+      : () => {};
   try {
     const method = contract.write[methodName];
     const tx = await method?.(payload, {
@@ -128,6 +136,7 @@ export const callWriteMethod = async <
     hideSpinner();
 
     !silent &&
+      !isTestEnvironment &&
       logResult({
         data: [
           ['Method name', methodName],
@@ -155,7 +164,7 @@ export const callReadMethod = async <
   methodName: M,
   ...payload: [...Parameters<T['read'][M]>, { silent?: boolean }?]
 ): Promise<ReturnType<T['read'][M]>> => {
-  const hideSpinner = showSpinner();
+  const hideSpinner = !isTestEnvironment ? showSpinner() : () => {};
   const isSilent = payload[payload.length - 1]?.silent ?? false;
 
   try {
@@ -163,7 +172,7 @@ export const callReadMethod = async <
     const result = await method?.(...payload);
     hideSpinner();
 
-    if (isSilent) return result;
+    if (isSilent || isTestEnvironment) return result;
 
     const base = [
       ['Method name', methodName],
@@ -287,8 +296,11 @@ export const callWriteMethodWithReceipt = async <
       value,
     });
 
-    !silent && logInfo('Populated transaction data:', data);
     !silent &&
+      !isTestEnvironment &&
+      logInfo('Populated transaction data:', data);
+    !silent &&
+      !isTestEnvironment &&
       logResult({
         data: [
           ['Method name', methodName],
@@ -332,21 +344,25 @@ export const callWriteMethodWithReceipt = async <
     skipError,
   });
 
-  const hideSpinner = withSpinner
-    ? showSpinner({
-        type: 'bouncingBar',
-        message: 'Waiting for transaction receipt...',
-      })
-    : () => {};
+  const hideSpinner =
+    withSpinner && !isTestEnvironment
+      ? showSpinner({
+          type: 'bouncingBar',
+          message: 'Waiting for transaction receipt...',
+        })
+      : () => {};
 
   try {
     const receipt = await waitForTransactionReceipt(publicClient, {
       hash: tx,
-      confirmations: 3,
+      confirmations: process.env.CONFIRMATIONS
+        ? Number(process.env.CONFIRMATIONS)
+        : 3,
     });
     hideSpinner();
 
     !silent &&
+      !isTestEnvironment &&
       logResult({
         data: [
           ['Transaction hash', tx],
@@ -404,10 +420,7 @@ export const callWriteMethodWithReceiptBatchCalls = async (args: {
     account: walletClient.account,
     calls,
   });
-
-  if (simulateResult.results.some((r) => r.error)) {
-    throw new Error('Simulation failed');
-  }
+  simulateCallsErrorHandler(simulateResult);
 
   for (const call of calls) {
     const tx = await walletClient.sendTransaction({
@@ -418,30 +431,34 @@ export const callWriteMethodWithReceiptBatchCalls = async (args: {
       value: call.value,
     });
 
-    const hideSpinner = withSpinner
-      ? showSpinner({
-          type: 'bouncingBar',
-          message: 'Waiting for transaction receipt...',
-        })
-      : () => {};
+    const hideSpinner =
+      withSpinner && !isTestEnvironment
+        ? showSpinner({
+            type: 'bouncingBar',
+            message: 'Waiting for transaction receipt...',
+          })
+        : () => {};
 
     const receipt = await waitForTransactionReceipt(publicClient, {
       hash: tx,
-      confirmations: 3,
+      confirmations: process.env.CONFIRMATIONS
+        ? Number(process.env.CONFIRMATIONS)
+        : 3,
     });
     hideSpinner();
 
     !silent &&
+      !isTestEnvironment &&
       logResult({
         data: [
           ['Transaction hash', tx],
-          ['Call data', call.data],
           ['Contract', call.to],
           ['Transaction status', receipt.status],
           ['Transaction block number', Number(receipt.blockNumber)],
           ['Transaction gas used', Number(receipt.gasUsed)],
         ],
       });
+    logInfo('Transaction Call Data:', call.data);
   }
 };
 

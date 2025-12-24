@@ -45,6 +45,7 @@ export const addDummyTargetAndSourceValidator = (
         status: 'active_ongoing',
         balance: feeExemption,
         index: '0',
+        effectiveBalance: feeExemption,
       },
       sourceValidators: new Map([
         [
@@ -53,6 +54,7 @@ export const addDummyTargetAndSourceValidator = (
             status: 'active_ongoing',
             balance: feeExemption,
             index: '0',
+            effectiveBalance: feeExemption,
           },
         ],
       ]),

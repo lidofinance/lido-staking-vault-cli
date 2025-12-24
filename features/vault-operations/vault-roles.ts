@@ -66,7 +66,7 @@ export const getVaultRolesByDashboard = async (contract: DashboardContract) => {
         return {
           Role: key,
           Keccak: roles[key],
-          Members: accounts.length > 0 ? accounts.join(', ') : 'None',
+          Members: accounts.length > 0 ? accounts.join(',\n') : 'None',
         };
       }),
     );

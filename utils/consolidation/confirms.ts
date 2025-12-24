@@ -33,13 +33,13 @@ export const calculateAndConfirmFeeExemption = async (
   for (const [, { sourceValidators }] of targetAndSourceValidators) {
     for (const [source, sourceValidatorInfo] of sourceValidators) {
       if (sourceValidatorInfo.status === 'active_ongoing') {
-        feeExemption += sourceValidatorInfo.balance;
+        feeExemption += sourceValidatorInfo.effectiveBalance;
       } else {
         const confirm = await confirmOperation(
           `Validator with this pubkey ${source} is not in active state. Should we consider its balance for fee exemption?`,
         );
         if (confirm) {
-          feeExemption += sourceValidatorInfo.balance;
+          feeExemption += sourceValidatorInfo.effectiveBalance;
         }
       }
     }

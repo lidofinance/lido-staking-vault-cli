@@ -1,7 +1,7 @@
 ---
 title: WalletConnect (WC)
 description: Use WalletConnect with the CLI to sign and send transactions from your mobile/desktop wallet
-sidebar_position: 3
+sidebar_position: 2
 ---
 
 # WalletConnect Integration
@@ -125,6 +125,8 @@ yarn start report w submit --wallet-connect
 #### 3. Connect Gnosis Safe to CLI
 
 When the CLI displays the QR code and URI:
+
+<img src={require('@site/static/img/wc_qr.png').default} alt="WC QR code" width="600" style={{ display: 'block', margin: '0 auto' }} />
 
 **Option A: Using Safe Mobile App**
 

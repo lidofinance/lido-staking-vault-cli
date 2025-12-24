@@ -37,6 +37,7 @@ import {
   etherToWei,
   type ValidatorWitness,
   stringToNumber,
+  logError,
 } from 'utils';
 import { RoleAssignment, Deposit } from 'types';
 
@@ -979,13 +980,18 @@ dashboardWrite
   .argument('<address>', 'dashboard address', stringToAddress)
   .action(async (address: Address) => {
     const contract = await getDashboardContract(address);
-    const nodeOperatorFeeRecipient = await callReadMethodSilent(
-      contract,
-      'feeRecipient',
-    );
+    const [nodeOperatorFeeRecipient, accruedFee] = await Promise.all([
+      callReadMethodSilent(contract, 'feeRecipient'),
+      callReadMethodSilent(contract, 'accruedFee'),
+    ]);
+
+    if (accruedFee === 0n) {
+      logError('The node operator has no accrued fee');
+      return;
+    }
 
     const confirm = await confirmOperation(
-      `Are you sure you want to transfer the node operator fee to ${nodeOperatorFeeRecipient}?`,
+      `Are you sure you want to transfer the node operator fee ${formatEther(accruedFee)} ETH to ${nodeOperatorFeeRecipient}?`,
     );
     if (!confirm) return;
 
