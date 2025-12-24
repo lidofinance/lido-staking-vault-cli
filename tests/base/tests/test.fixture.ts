@@ -15,7 +15,7 @@ export const test = base.extend<
 >({
   // nodeRunOptions param configured via globalSetup
   nodeRunOptions: [
-    ['--load-state=./state.json', '--state-interval=1'], // default runOptions
+    ['--dump-state=./state.json', '--state-interval=1'], // default runOptions
     { scope: 'worker' },
   ],
   ethereumNodeService: [

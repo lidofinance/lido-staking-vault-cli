@@ -100,11 +100,7 @@ test.describe.serial.only('Vault smoke test', () => {
       ).secretKey;
       const supplyAmount = '31';
 
-      await lsvCLI.dashboard.supplyVault(
-        dashboardAddress,
-        supplyAmount,
-        supplyRolePK,
-      );
+      await lsvCLI.vo.supply(vaultAddress, supplyAmount, supplyRolePK);
 
       const contractTotalValueEthAfterSupply = formatEther(
         await getTotalValue(dashboardAddress),

@@ -69,52 +69,52 @@
 // // // //   });
 // // // // });
 // // //
-import { test } from './test.fixture';
-import { Hex, Address } from 'viem';
-import { privateKeyToAccount } from 'viem/accounts';
-import { getStandConfig } from '../config';
-import {
-  getProposalsCount,
-  processProposals,
-  checkLidoLocatorImplementation,
-} from '../tempDelete/contracts';
-import process from 'node:process';
-
-test.use({
-  nodeRunOptions: ['--dump-state=./state.json'],
-});
-
-test('Setup: submit DG proposals starting from id=6', async ({
-  ethereumNodeService,
-}) => {
-  const account = privateKeyToAccount(
-    ethereumNodeService.getAccount(0).secretKey as Hex,
-  );
-
-  await test.step('Setup env for CLI', async () => {
-    const standConfig = getStandConfig();
-    if (ethereumNodeService.state) {
-      process.env.DEPLOYED = `../../../configs/${standConfig.deployed}`;
-      process.env.EL_URL = ethereumNodeService.state.nodeUrl;
-      process.env.CHAIN_ID = standConfig.networkConfig.chainId.toString();
-    } else throw new Error('EthereumNodeService node ready');
-  });
-
-  await test.step('SubmitDG from proposal id=6', async () => {
-    const proposalsCount = await getProposalsCount();
-    const targetProposalId = 6n;
-
-    if (proposalsCount >= targetProposalId) {
-      const proposalIds: bigint[] = [targetProposalId];
-      await processProposals(account, proposalIds);
-    }
-  });
-
-  await test.step('Check proposal submitted', async () => {
-    // Check that LidoLocator implementation has been updated
-    const expectedLidoLocatorImplementation =
-      '0x2f8779042EFaEd4c53db2Ce293eB6B3f7096C72d' as Address;
-    await checkLidoLocatorImplementation(expectedLidoLocatorImplementation);
-  });
-});
-// export {};
+// import { test } from './test.fixture';
+// import { Hex, Address } from 'viem';
+// import { privateKeyToAccount } from 'viem/accounts';
+// import { getStandConfig } from '../config';
+// import {
+//   getProposalsCount,
+//   processProposals,
+//   checkLidoLocatorImplementation,
+// } from '../tempDelete/contracts';
+// import process from 'node:process';
+//
+// test.use({
+//   nodeRunOptions: ['--dump-state=./state.json'],
+// });
+//
+// test('Setup: submit DG proposals starting from id=6', async ({
+//   ethereumNodeService,
+// }) => {
+//   const account = privateKeyToAccount(
+//     ethereumNodeService.getAccount(0).secretKey as Hex,
+//   );
+//
+//   await test.step('Setup env for CLI', async () => {
+//     const standConfig = getStandConfig();
+//     if (ethereumNodeService.state) {
+//       process.env.DEPLOYED = `../../../configs/${standConfig.deployed}`;
+//       process.env.EL_URL = ethereumNodeService.state.nodeUrl;
+//       process.env.CHAIN_ID = standConfig.networkConfig.chainId.toString();
+//     } else throw new Error('EthereumNodeService node ready');
+//   });
+//
+//   await test.step('SubmitDG from proposal id=6', async () => {
+//     const proposalsCount = await getProposalsCount();
+//     const targetProposalId = 6n;
+//
+//     if (proposalsCount >= targetProposalId) {
+//       const proposalIds: bigint[] = [targetProposalId];
+//       await processProposals(account, proposalIds);
+//     }
+//   });
+//
+//   await test.step('Check proposal submitted', async () => {
+//     // Check that LidoLocator implementation has been updated
+//     const expectedLidoLocatorImplementation =
+//       '0x2f8779042EFaEd4c53db2Ce293eB6B3f7096C72d' as Address;
+//     await checkLidoLocatorImplementation(expectedLidoLocatorImplementation);
+//   });
+// });
+export {};
