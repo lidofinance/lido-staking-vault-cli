@@ -68,8 +68,7 @@ vaultOperationsWrite
     );
     if (!confirm) return;
 
-    await callWriteMethodsWithReportFresh({
-      vault: vaultAddress,
+    await callWriteMethodWithReceipt({
       contract,
       methodName: 'fund',
       payload: [],
