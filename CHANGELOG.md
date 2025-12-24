@@ -1,5 +1,19 @@
 All notable changes to this project will be documented in this file.
 
+## 1.4.0
+
+### Added
+
+#### CLI Enhancements
+
+- Conditional display of Mainnet V3 Web UI link based on target date (2026-01-29)
+
+### Fixed
+
+#### Contracts Updates
+
+- Updated Mainnet VaultViewer contract address to the new redeployed address (0x93DaaEa5D290Da9a7A6A65fe4F6C1D3ebb44E0e1)
+
 ## 1.3.1
 
 ### Fixed
