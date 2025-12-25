@@ -562,10 +562,10 @@
     reflect-metadata "^0.1.13"
     rxjs "^7.5.6"
 
-"@lidofinance/wallets-testing-wallets@^1.39.0":
-  version "1.39.0"
-  resolved "https://registry.yarnpkg.com/@lidofinance/wallets-testing-wallets/-/wallets-testing-wallets-1.39.0.tgz#53913d9f410ba2eb48f517d175d5b5e3ad065ee2"
-  integrity sha512-HUPU1X4cb3f5UYpZqhWc1PN75btrKAAKhZRkxa5/QplibY2I4WJ+M+arehXwTTJyKCI+q11qUq0lEj/gw6j1Jw==
+"@lidofinance/wallets-testing-wallets@1.41.1":
+  version "1.41.1"
+  resolved "https://registry.yarnpkg.com/@lidofinance/wallets-testing-wallets/-/wallets-testing-wallets-1.41.1.tgz#ce44488e4d5e0e8a99891ca0b8d226a45117361e"
+  integrity sha512-OVtP6ny6ePGh781UCz3fNHspeUE3pDk74TIS5UhVzJCa3cYa7Qm7wMHzsvEj5l62DgW/TOtW6wHhwRVHC2mpfw==
   dependencies:
     big.js "^6.2.1"
     expect "^28.1.3"
