@@ -15,7 +15,7 @@ import { getChain, getElUrl } from 'configs';
 
 const VaultViewerAddresses: Record<number, Address> = {
   [hoodi.id]: '0xEAfD3F8DC0ABA14B81344ea0B869DdF9F7e18221',
-  [mainnet.id]: '0x57dAb476c3E37a2410076C9568d796e429fd8418', // TODO: update to the redeployed address
+  [mainnet.id]: '0x93DaaEa5D290Da9a7A6A65fe4F6C1D3ebb44E0e1',
 };
 
 export const getVaultViewerContract = async (): Promise<
