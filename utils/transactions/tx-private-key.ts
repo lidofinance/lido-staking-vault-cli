@@ -35,9 +35,7 @@ import {
 import { simulateCallsErrorHandler } from './utils.js';
 
 const isTestEnvironment =
-  process.env.NODE_ENV === 'test' ||
-  process.env.CI === 'true' ||
-  process.env.VITEST === 'true';
+  process.env.NODE_ENV === 'test' || process.env.VITEST === 'true';
 
 export const callSimulateWriteMethod = async <
   T extends PartialContract,
