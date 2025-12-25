@@ -74,6 +74,11 @@ export class OperatorGridMock {
     await test.step(`Register group for ${nodeOperator} with shareLimit=${shareLimit}`, async () => {
       const registry = await this.getRegistryRoleAddress();
 
+      await this.client.setBalance({
+        address: registry,
+        value: parseEther('10'),
+      });
+
       await this.client.impersonateAccount({ address: registry });
 
       const hash = await this.operatorGridContract.write.registerGroup(
@@ -90,6 +95,11 @@ export class OperatorGridMock {
   async registerTier(nodeOperator: string, tiers: TierParams[]) {
     await test.step(`Register tier for ${nodeOperator}`, async () => {
       const registry = await this.getRegistryRoleAddress();
+
+      await this.client.setBalance({
+        address: registry,
+        value: parseEther('10'),
+      });
 
       await this.client.impersonateAccount({ address: registry });
 

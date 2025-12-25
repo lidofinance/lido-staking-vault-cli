@@ -24,6 +24,7 @@ export const test = base.extend<
       const ethereumNodeService = new EthereumNodeService({
         ...nodeConfig,
         runOptions: nodeRunOptions,
+        derivationPath: "m/44'/60'/2025'/0/0",
         rpcUrl: networkConfig.rpcUrl,
       });
       await ethereumNodeService.startNode();

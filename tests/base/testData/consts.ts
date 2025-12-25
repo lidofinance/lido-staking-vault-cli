@@ -1,3 +1,5 @@
+import { getStandConfig } from '../config';
+
 export type TierParams = {
   shareLimit: bigint;
   reserveRatioBP: bigint;
@@ -9,9 +11,20 @@ export type TierParams = {
 
 export const DEFAULT_TIER_ID = 0;
 
+const getShareLimitForChain = (): bigint => {
+  // Hoodi (chainId: 560048) -> 100000000000000000000000
+  // Mainnet (chainId: 1) -> 0
+  const chainId = getStandConfig().networkConfig.chainId;
+  if (chainId === 560048) {
+    return BigInt('100000000000000000000000');
+  } else if (chainId === 1) {
+    return BigInt('0');
+  }
+  throw new Error(`Unsupported chainId: ${chainId}`);
+};
+
 export const DEFAULT_TIER_PARAMS: TierParams = {
-  // for Hoodi set 100000000000000000000000, for mainnet phase 0 = 0
-  shareLimit: BigInt('100000000000000000000000'),
+  shareLimit: getShareLimitForChain(),
   reserveRatioBP: BigInt('5000'),
   forcedRebalanceThresholdBP: BigInt('4975'),
   infraFeeBP: BigInt('100'),
