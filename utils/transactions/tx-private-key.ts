@@ -31,6 +31,7 @@ import {
   PopulatedTx,
   BatchTxArgs,
   WriteTxArgs,
+  ReadTxArgs,
 } from './types.js';
 import { simulateCallsErrorHandler } from './utils.js';
 
@@ -158,19 +159,24 @@ export const callReadMethod = async <
   T extends ReadContract,
   M extends keyof T['read'] & string,
 >(
-  contract: T,
-  methodName: M,
-  ...payload: [...Parameters<T['read'][M]>, { silent?: boolean }?]
+  args: ReadTxArgs<T, M>,
 ): Promise<ReturnType<T['read'][M]>> => {
-  const hideSpinner = !isTestEnvironment ? showSpinner() : () => {};
-  const isSilent = payload[payload.length - 1]?.silent ?? false;
+  const {
+    contract,
+    methodName,
+    payload,
+    withSpinner = true,
+    silent = false,
+  } = args;
+  const hideSpinner =
+    withSpinner && !isTestEnvironment ? showSpinner() : () => {};
 
   try {
     const method = contract.read[methodName];
     const result = await method?.(...payload);
     hideSpinner();
 
-    if (isSilent || isTestEnvironment) return result;
+    if (silent || isTestEnvironment) return result;
 
     const base = [
       ['Method name', methodName],
@@ -224,12 +230,22 @@ export const callReadMethodSilent = async <
   T extends ReadContract,
   M extends keyof T['read'] & string,
 >(
-  contract: T,
-  methodName: M,
-  ...payload: Parameters<T['read'][M]>
+  args: ReadTxArgs<T, M>,
 ): Promise<ReturnType<T['read'][M]>> => {
-  return callReadMethod(contract, methodName, ...payload, {
-    silent: true,
+  const {
+    contract,
+    methodName,
+    payload,
+    silent = true,
+    withSpinner = true,
+  } = args;
+
+  return callReadMethod({
+    contract,
+    methodName,
+    payload,
+    silent,
+    withSpinner,
   });
 };
 

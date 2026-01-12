@@ -18,11 +18,11 @@ export const burnSteth = async (
   populatedAllowance?: PopulatedTx,
 ) => {
   const stethContract = await getStethContract();
-  const amountOfShares = await callReadMethodSilent(
-    stethContract,
-    'getSharesByPooledEth',
-    [amountOfSteth],
-  );
+  const amountOfShares = await callReadMethodSilent({
+    contract: stethContract,
+    methodName: 'getSharesByPooledEth',
+    payload: [[amountOfSteth]],
+  });
 
   const isLiabilitySharesOk = await checkLiabilityShares(
     contract,

@@ -64,7 +64,11 @@ reportWrite
         _vaultsDataRefSlot,
         _vaultsDataTreeRoot,
         vaultsDataReportCid,
-      ] = await callReadMethod(lazyOracleContract, 'latestReportData');
+      ] = await callReadMethod({
+        contract: lazyOracleContract,
+        methodName: 'latestReportData',
+        payload: [],
+      });
 
       const proofs = await getReportProofByVaults({
         cid: vaultsDataReportCid,
@@ -120,7 +124,11 @@ reportWrite
         _vaultsDataRefSlot,
         _vaultsDataTreeRoot,
         vaultsDataReportCid,
-      ] = await callReadMethod(lazyOracleContract, 'latestReportData');
+      ] = await callReadMethod({
+        contract: lazyOracleContract,
+        methodName: 'latestReportData',
+        payload: [],
+      });
 
       const proofs = await getReportProofs({
         cid: vaultsDataReportCid,

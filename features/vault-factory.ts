@@ -178,14 +178,22 @@ export const getCreateVaultEventData = async (
   const dashboardContract = await getDashboardContract(dashboard);
   const vaultContract = await getStakingVaultContract(vault);
   const [nodeOperator, nodeOperatorManagerRole] = await Promise.all([
-    callReadMethodSilent(vaultContract, 'nodeOperator'),
-    callReadMethodSilent(dashboardContract, 'NODE_OPERATOR_MANAGER_ROLE'),
+    callReadMethodSilent({
+      contract: vaultContract,
+      methodName: 'nodeOperator',
+      payload: [],
+    }),
+    callReadMethodSilent({
+      contract: dashboardContract,
+      methodName: 'NODE_OPERATOR_MANAGER_ROLE',
+      payload: [],
+    }),
   ]);
-  const nodeOperatorManager = await callReadMethodSilent(
-    dashboardContract,
-    'getRoleMembers',
-    [nodeOperatorManagerRole],
-  );
+  const nodeOperatorManager = await callReadMethodSilent({
+    contract: dashboardContract,
+    methodName: 'getRoleMembers',
+    payload: [[nodeOperatorManagerRole]],
+  });
 
   return {
     vault,

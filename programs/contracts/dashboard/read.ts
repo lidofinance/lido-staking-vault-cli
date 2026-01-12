@@ -79,11 +79,11 @@ dashboardRead
   .argument('<vault>', 'vault address', stringToAddress)
   .action(async (vault: Address) => {
     const vaultHub = await getVaultHubContract();
-    const vaultConnection = await callReadMethodSilent(
-      vaultHub,
-      'vaultConnection',
-      [vault],
-    );
+    const vaultConnection = await callReadMethodSilent({
+      contract: vaultHub,
+      methodName: 'vaultConnection',
+      payload: [[vault]],
+    });
     logResult({
       data: [['Dashboard Address', vaultConnection.owner]],
     });
@@ -95,7 +95,11 @@ dashboardRead
   .argument('<dashboard>', 'dashboard address', stringToAddress)
   .action(async (dashboard: Address) => {
     const dashboardContract = await getDashboardContract(dashboard);
-    const vault = await callReadMethodSilent(dashboardContract, 'stakingVault');
+    const vault = await callReadMethodSilent({
+      contract: dashboardContract,
+      methodName: 'stakingVault',
+      payload: [],
+    });
 
     logResult({
       data: [['Vault Address', vault]],
@@ -156,10 +160,11 @@ dashboardRead
   .argument('<address>', 'dashboard address', stringToAddress)
   .action(async (address: Address) => {
     const contract = await getDashboardContract(address);
-    const confirmingRoles = await callReadMethodSilent(
+    const confirmingRoles = await callReadMethodSilent({
       contract,
-      'confirmingRoles',
-    );
+      methodName: 'confirmingRoles',
+      payload: [],
+    });
     const confirmingRolesNames: RoleName[] = [
       'DEFAULT_ADMIN_ROLE',
       'NODE_OPERATOR_MANAGER_ROLE',

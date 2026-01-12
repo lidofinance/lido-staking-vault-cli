@@ -11,8 +11,14 @@ export const getNodeOperatorFeeRatesByBlockNumbers = async (
   for (const blockNumber of blockNumbers) {
     let fee = await cache.getNodeOperatorFeeRate(vaultAddress, blockNumber);
     if (fee === null) {
-      const feeRate = await callReadMethodSilent(dashboardContract, 'feeRate', {
-        blockNumber: BigInt(blockNumber),
+      const feeRate = await callReadMethodSilent({
+        contract: dashboardContract,
+        methodName: 'feeRate',
+        payload: [
+          {
+            blockNumber: BigInt(blockNumber),
+          },
+        ],
       });
       fee = BigInt(feeRate);
       await cache.setNodeOperatorFeeRate(vaultAddress, blockNumber, fee);
@@ -34,13 +40,15 @@ export const getSettledGrowthsByBlockNumbers = async (
   for (const blockNumber of blockNumbers) {
     let settledGrowth = await cache.getSettledGrowth(vaultAddress, blockNumber);
     if (settledGrowth === null) {
-      settledGrowth = await callReadMethodSilent(
-        dashboardContract,
-        'settledGrowth',
-        {
-          blockNumber: BigInt(blockNumber),
-        },
-      );
+      settledGrowth = await callReadMethodSilent({
+        contract: dashboardContract,
+        methodName: 'settledGrowth',
+        payload: [
+          {
+            blockNumber: BigInt(blockNumber),
+          },
+        ],
+      });
       await cache.setSettledGrowth(vaultAddress, blockNumber, settledGrowth);
     }
 
@@ -63,13 +71,15 @@ export const getNodeOperatorAccruedFeeByBlockNumbers = async (
       blockNumber,
     );
     if (nodeOperatorAccruedFee === null) {
-      nodeOperatorAccruedFee = await callReadMethodSilent(
-        dashboardContract,
-        'accruedFee',
-        {
-          blockNumber: BigInt(blockNumber),
-        },
-      );
+      nodeOperatorAccruedFee = await callReadMethodSilent({
+        contract: dashboardContract,
+        methodName: 'accruedFee',
+        payload: [
+          {
+            blockNumber: BigInt(blockNumber),
+          },
+        ],
+      });
       await cache.setNodeOperatorAccruedFee(
         vaultAddress,
         blockNumber,

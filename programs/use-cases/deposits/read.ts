@@ -66,16 +66,16 @@ depositsRead
     const pdgContract = await getPredepositGuaranteeContract();
     const nodeOperator = await specifyNodeOperatorAddress();
 
-    const totalBalance = await callReadMethodSilent(
-      pdgContract,
-      'nodeOperatorBalance',
-      [nodeOperator],
-    );
-    const unlockedBalance = await callReadMethodSilent(
-      pdgContract,
-      'unlockedBalance',
-      [nodeOperator],
-    );
+    const totalBalance = await callReadMethodSilent({
+      contract: pdgContract,
+      methodName: 'nodeOperatorBalance',
+      payload: [[nodeOperator]],
+    });
+    const unlockedBalance = await callReadMethodSilent({
+      contract: pdgContract,
+      methodName: 'unlockedBalance',
+      payload: [[nodeOperator]],
+    });
 
     logResult({
       data: [
@@ -97,31 +97,31 @@ depositsRead
     const pdgContract = await getPredepositGuaranteeContract();
     const nodeOperator = await specifyNodeOperatorAddress();
 
-    const totalBalance = await callReadMethodSilent(
-      pdgContract,
-      'nodeOperatorBalance',
-      [nodeOperator],
-    );
-    const unlockedBalance = await callReadMethodSilent(
-      pdgContract,
-      'unlockedBalance',
-      [nodeOperator],
-    );
-    const depositor = await callReadMethodSilent(
-      pdgContract,
-      'nodeOperatorDepositor',
-      [nodeOperator],
-    );
-    const guarantor = await callReadMethodSilent(
-      pdgContract,
-      'nodeOperatorGuarantor',
-      [nodeOperator],
-    );
-    const claimableRefund = await callReadMethodSilent(
-      pdgContract,
-      'claimableRefund',
-      [guarantor],
-    );
+    const totalBalance = await callReadMethodSilent({
+      contract: pdgContract,
+      methodName: 'nodeOperatorBalance',
+      payload: [[nodeOperator]],
+    });
+    const unlockedBalance = await callReadMethodSilent({
+      contract: pdgContract,
+      methodName: 'unlockedBalance',
+      payload: [[nodeOperator]],
+    });
+    const depositor = await callReadMethodSilent({
+      contract: pdgContract,
+      methodName: 'nodeOperatorDepositor',
+      payload: [[nodeOperator]],
+    });
+    const guarantor = await callReadMethodSilent({
+      contract: pdgContract,
+      methodName: 'nodeOperatorGuarantor',
+      payload: [[nodeOperator]],
+    });
+    const claimableRefund = await callReadMethodSilent({
+      contract: pdgContract,
+      methodName: 'claimableRefund',
+      payload: [[guarantor]],
+    });
     const isYourselfDepositor = depositor === currentAccount.address;
     const isYourselfGuarantor = guarantor === currentAccount.address;
 
@@ -151,11 +151,11 @@ depositsRead
       vault,
     });
     const contract = await getPredepositGuaranteeContract();
-    const pendingActivations = await callReadMethodSilent(
+    const pendingActivations = await callReadMethodSilent({
       contract,
-      'pendingActivations',
-      [vaultAddress],
-    );
+      methodName: 'pendingActivations',
+      payload: [[vaultAddress]],
+    });
 
     logResult({
       data: [['Pending Activations of validators', pendingActivations]],

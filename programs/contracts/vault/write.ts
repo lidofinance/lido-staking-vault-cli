@@ -299,11 +299,11 @@ vaultWrite
       const contract = await getStakingVaultContract(address);
       const concatenatedPubkeys = pubkeys.join('') as `0x${string}`;
 
-      const fee = await callReadMethodSilent(
+      const fee = await callReadMethodSilent({
         contract,
-        'calculateValidatorWithdrawalFee',
-        [BigInt(amounts.length)],
-      );
+        methodName: 'calculateValidatorWithdrawalFee',
+        payload: [[BigInt(amounts.length)]],
+      });
 
       const confirmationMessage = `Are you sure you want to eject the validators 
       ${pubkeys.join(', ')} 

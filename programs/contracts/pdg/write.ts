@@ -76,15 +76,17 @@ pdgWrite
       if (isPaused) return;
 
       if (options.blsCheck) {
-        const PREDEPOSIT_AMOUNT = await callReadMethod(
-          pdgContract,
-          'PREDEPOSIT_AMOUNT',
-        );
+        const PREDEPOSIT_AMOUNT = await callReadMethod({
+          contract: pdgContract,
+          methodName: 'PREDEPOSIT_AMOUNT',
+          payload: [],
+        });
         const vaultContract = await getStakingVaultContract(vault);
-        const withdrawalCredentials = await callReadMethod(
-          vaultContract,
-          'withdrawalCredentials',
-        );
+        const withdrawalCredentials = await callReadMethod({
+          contract: vaultContract,
+          methodName: 'withdrawalCredentials',
+          payload: [],
+        });
 
         for (const deposit of deposits) {
           const isBLSValid = await isValidBLSDeposit(

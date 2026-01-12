@@ -29,7 +29,11 @@ import { reportFreshWarning } from 'features';
 export const getVaultOverviewByDashboard = async (
   contract: DashboardContract,
 ) => {
-  const vault = await callReadMethodSilent(contract, 'stakingVault');
+  const vault = await callReadMethodSilent({
+    contract,
+    methodName: 'stakingVault',
+    payload: [],
+  });
   await reportFreshWarning(vault);
 
   const hideSpinner = showSpinner();
@@ -39,10 +43,11 @@ export const getVaultOverviewByDashboard = async (
 
   try {
     const lazyOracleContract = await getLazyOracleContract();
-    const [_timestamp, _refSlot, _treeRoot, cid] = await callReadMethodSilent(
-      lazyOracleContract,
-      'latestReportData',
-    );
+    const [_timestamp, _refSlot, _treeRoot, cid] = await callReadMethodSilent({
+      contract: lazyOracleContract,
+      methodName: 'latestReportData',
+      payload: [],
+    });
     report = await getVaultReport({ vault, cid });
   } catch (error) {
     logInfo('No report found');
@@ -79,23 +84,23 @@ export const getVaultOverviewByDashboard = async (
     const balance = await publicClient.getBalance({
       address: vault,
     });
-    const vaultObligation = await callReadMethodSilent(
-      vaultHubContract,
-      'obligations',
-      [vault],
-    );
-    const tierInfo = await callReadMethodSilent(
-      operatorGridContract,
-      'vaultTierInfo',
-      [vault],
-    );
+    const vaultObligation = await callReadMethodSilent({
+      contract: vaultHubContract,
+      methodName: 'obligations',
+      payload: [[vault]],
+    });
+    const tierInfo = await callReadMethodSilent({
+      contract: operatorGridContract,
+      methodName: 'vaultTierInfo',
+      payload: [[vault]],
+    });
     const isNoHaveGroup =
       tierInfo[0] === '0xFFfFfFffFFfffFFfFFfFFFFFffFFFffffFfFFFfF';
-    const nodeOperatorGroup = await callReadMethodSilent(
-      operatorGridContract,
-      'group',
-      [tierInfo[0]],
-    );
+    const nodeOperatorGroup = await callReadMethodSilent({
+      contract: operatorGridContract,
+      methodName: 'group',
+      payload: [[tierInfo[0]]],
+    });
     const [
       totalMintingCapacityStethWei,
       shareLimitStethWei,

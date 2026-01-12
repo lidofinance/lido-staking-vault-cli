@@ -58,12 +58,16 @@ VaultHubRead.command('vault-info-by-index')
     const contract = await getVaultHubContract();
 
     try {
-      const vault = await callReadMethod(contract, 'vaultByIndex', [biIndex]);
-      const vaultConnection = await callReadMethod(
+      const vault = await callReadMethod({
         contract,
-        'vaultConnection',
-        [vault],
-      );
+        methodName: 'vaultByIndex',
+        payload: [[biIndex]],
+      });
+      const vaultConnection = await callReadMethod({
+        contract,
+        methodName: 'vaultConnection',
+        payload: [[vault]],
+      });
 
       logResult({
         data: [
@@ -87,9 +91,11 @@ VaultHubRead.command('v-record')
     const contract = await getVaultHubContract();
 
     try {
-      const vaultRecord = await callReadMethodSilent(contract, 'vaultRecord', [
-        vault,
-      ]);
+      const vaultRecord = await callReadMethodSilent({
+        contract,
+        methodName: 'vaultRecord',
+        payload: [[vault]],
+      });
 
       logInfo('Vault Record');
       logResult({
