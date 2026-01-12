@@ -136,11 +136,11 @@ export const getValidatorStatus = async (validatorPubkey: Hex) => {
   try {
     const contract = await getPredepositGuaranteeContract();
 
-    const { stage, stakingVault, nodeOperator } = await callReadMethodSilent(
+    const { stage, stakingVault, nodeOperator } = await callReadMethodSilent({
       contract,
-      'validatorStatus',
-      [hexValidatorPubkey],
-    );
+      methodName: 'validatorStatus',
+      payload: [[hexValidatorPubkey]],
+    });
 
     hideSpinner();
 

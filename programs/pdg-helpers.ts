@@ -67,17 +67,23 @@ predepositGuaranteeHelpers
         proposerIndex,
       } = packageProof;
 
-      await callReadMethodSilent(pdgContract, 'validatePubKeyWCProof', [
-        {
-          proof,
-          pubkey,
-          validatorIndex: BigInt(validatorIndex),
-          childBlockTimestamp,
-          slot,
-          proposerIndex,
-        },
-        withdrawalCredentials,
-      ]);
+      await callReadMethodSilent({
+        contract: pdgContract,
+        methodName: 'validatePubKeyWCProof',
+        payload: [
+          [
+            {
+              proof,
+              pubkey,
+              validatorIndex: BigInt(validatorIndex),
+              childBlockTimestamp,
+              slot,
+              proposerIndex,
+            },
+            withdrawalCredentials,
+          ],
+        ],
+      });
 
       logResult({});
       logInfo('-----------------proof verified-----------------');
@@ -176,11 +182,19 @@ predepositGuaranteeHelpers
         message: 'Loading metadata...',
       });
       const pdg = await getPredepositGuaranteeContract();
-      const PREDEPOSIT_AMOUNT = await callReadMethod(pdg, 'PREDEPOSIT_AMOUNT');
+      const PREDEPOSIT_AMOUNT = await callReadMethod({
+        contract: pdg,
+        methodName: 'PREDEPOSIT_AMOUNT',
+        payload: [],
+      });
 
       if (vault) {
         const vaultContract = await getStakingVaultContract(vault);
-        const wc = await callReadMethod(vaultContract, 'withdrawalCredentials');
+        const wc = await callReadMethod({
+          contract: vaultContract,
+          methodName: 'withdrawalCredentials',
+          payload: [],
+        });
         withdrawalCredentials = wc;
       }
       hideMetadataSpinner();
@@ -250,11 +264,11 @@ predepositGuaranteeHelpers
           },
         };
         try {
-          await callReadMethodSilent(pdg, 'verifyDepositMessage', [
-            deposit,
-            depositsY,
-            withdrawalCredentials,
-          ]);
+          await callReadMethodSilent({
+            contract: pdg,
+            methodName: 'verifyDepositMessage',
+            payload: [[deposit, depositsY, withdrawalCredentials]],
+          });
 
           hideSpinner();
           logInfo(`✅ ONCHAIN 🔗 SIGNATURE VALID for Pubkey ${deposit.pubkey}`);

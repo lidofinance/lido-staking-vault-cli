@@ -21,19 +21,21 @@ export const checkValidatorStageAndStagedBalanceForActivation = async (
   pdgContract: PredepositGuaranteeContract,
   pubkey: Hex,
 ) => {
-  const { stage, stakingVault } = await callReadMethodSilent(
-    pdgContract,
-    'validatorStatus',
-    [pubkey],
-  );
-  const vaultStagedBalance = await callReadMethodSilent(
-    await getStakingVaultContract(stakingVault),
-    'stagedBalance',
-  );
-  const ACTIVATION_DEPOSIT_AMOUNT = await callReadMethodSilent(
-    pdgContract,
-    'ACTIVATION_DEPOSIT_AMOUNT',
-  );
+  const { stage, stakingVault } = await callReadMethodSilent({
+    contract: pdgContract,
+    methodName: 'validatorStatus',
+    payload: [[pubkey]],
+  });
+  const vaultStagedBalance = await callReadMethodSilent({
+    contract: await getStakingVaultContract(stakingVault),
+    methodName: 'stagedBalance',
+    payload: [],
+  });
+  const ACTIVATION_DEPOSIT_AMOUNT = await callReadMethodSilent({
+    contract: pdgContract,
+    methodName: 'ACTIVATION_DEPOSIT_AMOUNT',
+    payload: [],
+  });
 
   if (vaultStagedBalance < ACTIVATION_DEPOSIT_AMOUNT) {
     throw new Error(

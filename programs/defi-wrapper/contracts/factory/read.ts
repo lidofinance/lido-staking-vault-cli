@@ -45,17 +45,49 @@ factoryRead
       steth,
       wsteth,
     ] = await Promise.all([
-      callReadMethodSilent(contract, 'DUMMY_IMPLEMENTATION'),
-      callReadMethodSilent(contract, 'GGV_STRATEGY_FACTORY'),
-      callReadMethodSilent(contract, 'STV_POOL_FACTORY'),
-      callReadMethodSilent(contract, 'STV_STETH_POOL_FACTORY'),
-      callReadMethodSilent(contract, 'TIMELOCK_FACTORY'),
-      callReadMethodSilent(contract, 'VAULT_FACTORY'),
-      callReadMethodSilent(contract, 'WITHDRAWAL_QUEUE_FACTORY'),
+      callReadMethodSilent({
+        contract,
+        methodName: 'DUMMY_IMPLEMENTATION',
+        payload: [],
+      }),
+      callReadMethodSilent({
+        contract,
+        methodName: 'GGV_STRATEGY_FACTORY',
+        payload: [],
+      }),
+      callReadMethodSilent({
+        contract,
+        methodName: 'STV_POOL_FACTORY',
+        payload: [],
+      }),
+      callReadMethodSilent({
+        contract,
+        methodName: 'STV_STETH_POOL_FACTORY',
+        payload: [],
+      }),
+      callReadMethodSilent({
+        contract,
+        methodName: 'TIMELOCK_FACTORY',
+        payload: [],
+      }),
+      callReadMethodSilent({
+        contract,
+        methodName: 'VAULT_FACTORY',
+        payload: [],
+      }),
+      callReadMethodSilent({
+        contract,
+        methodName: 'WITHDRAWAL_QUEUE_FACTORY',
+        payload: [],
+      }),
 
-      callReadMethodSilent(contract, 'LAZY_ORACLE'),
-      callReadMethodSilent(contract, 'STETH'),
-      callReadMethodSilent(contract, 'WSTETH'),
+      callReadMethodSilent({
+        contract,
+        methodName: 'LAZY_ORACLE',
+        payload: [],
+      }),
+      callReadMethodSilent({ contract, methodName: 'STETH', payload: [] }),
+      callReadMethodSilent({ contract, methodName: 'WSTETH', payload: [] }),
     ]);
 
     logResult({

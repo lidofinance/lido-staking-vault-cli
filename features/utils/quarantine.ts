@@ -11,11 +11,11 @@ import {
 export const checkQuarantine = async (vault: Address) => {
   const lazyOracleContract = await getLazyOracleContract();
 
-  const quarantine = await callReadMethodSilent(
-    lazyOracleContract,
-    'vaultQuarantine',
-    [vault],
-  );
+  const quarantine = await callReadMethodSilent({
+    contract: lazyOracleContract,
+    methodName: 'vaultQuarantine',
+    payload: [[vault]],
+  });
 
   if (!quarantine.isActive)
     return {

@@ -51,11 +51,12 @@ const getStvPoolInfo = async (address: Address) => {
     contract.read.getAllowListSize(),
   ]);
 
-  const isDepositsPaused = await callReadMethodSilent(
+  const isDepositsPaused = await callReadMethodSilent({
     contract,
-    'isFeaturePaused',
-    [DEPOSITS_FEATURE],
-  );
+    methodName: 'isFeaturePaused',
+    payload: [[DEPOSITS_FEATURE]],
+  });
+
   const isReportFresh = await reportFreshWarning(vault);
 
   return {
@@ -106,11 +107,11 @@ const getStvStethPoolInfo = async (address: Address) => {
     contract.read.MINTING_FEATURE(),
   ]);
 
-  const isMintingPaused = await callReadMethodSilent(
+  const isMintingPaused = await callReadMethodSilent({
     contract,
-    'isFeaturePaused',
-    [MINTING_FEATURE],
-  );
+    methodName: 'isFeaturePaused',
+    payload: [[MINTING_FEATURE]],
+  });
 
   return {
     WSTETH,

@@ -34,3 +34,4 @@ export * from './timestamp.js';
 export * from './wallet-connect.js';
 export * from './csv-file.js';
 export * from './consolidation/index.js';
+export * from './rate-limit.js';

@@ -30,14 +30,18 @@ export const getDashboardByVault = async (vault: Address) => {
     }
 
     const vaultContract = await getStakingVaultContract(vault);
-    vaultOwner = await callReadMethodSilent(vaultContract, 'owner');
+    vaultOwner = await callReadMethodSilent({
+      contract: vaultContract,
+      methodName: 'owner',
+      payload: [],
+    });
   } else {
     const vaultHub = await getVaultHubContract();
-    const vaultConnection = await callReadMethodSilent(
-      vaultHub,
-      'vaultConnection',
-      [vault],
-    );
+    const vaultConnection = await callReadMethodSilent({
+      contract: vaultHub,
+      methodName: 'vaultConnection',
+      payload: [[vault]],
+    });
 
     vaultOwner = vaultConnection.owner;
   }

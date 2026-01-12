@@ -15,7 +15,11 @@ import { reportFreshWarning } from 'features';
 import { getStakingVaultContract } from 'contracts';
 
 export const getVaultInfoByDashboard = async (contract: DashboardContract) => {
-  const vault = await callReadMethodSilent(contract, 'stakingVault');
+  const vault = await callReadMethodSilent({
+    contract,
+    methodName: 'stakingVault',
+    payload: [],
+  });
   const vaultContract = await getStakingVaultContract(vault);
   await reportFreshWarning(vault);
 
@@ -73,7 +77,11 @@ export const getVaultInfoByDashboard = async (contract: DashboardContract) => {
       publicClient.getBalance({
         address: vault,
       }),
-      callReadMethodSilent(vaultContract, 'nodeOperator'),
+      callReadMethodSilent({
+        contract: vaultContract,
+        methodName: 'nodeOperator',
+        payload: [],
+      }),
     ]);
 
     hideSpinner();

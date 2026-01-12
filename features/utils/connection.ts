@@ -5,11 +5,11 @@ import { callReadMethodSilent, logInfo } from 'utils';
 
 export const checkIsDisconnected = async (vault: Address) => {
   const vaultHubContract = await getVaultHubContract();
-  const connection = await callReadMethodSilent(
-    vaultHubContract,
-    'vaultConnection',
-    [vault],
-  );
+  const connection = await callReadMethodSilent({
+    contract: vaultHubContract,
+    methodName: 'vaultConnection',
+    payload: [[vault]],
+  });
 
   const isDisconnected =
     connection.owner === '0x0000000000000000000000000000000000000000' ||

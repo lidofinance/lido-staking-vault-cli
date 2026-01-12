@@ -6,10 +6,11 @@ export const checkBLSDeposits = async (
   vaultContract: StakingVaultContract,
   deposits: Deposit[],
 ) => {
-  const withdrawalCredentials = await callReadMethod(
-    vaultContract,
-    'withdrawalCredentials',
-  );
+  const withdrawalCredentials = await callReadMethod({
+    contract: vaultContract,
+    methodName: 'withdrawalCredentials',
+    payload: [],
+  });
 
   for (const deposit of deposits) {
     const isBLSValid = await isValidBLSDeposit(deposit, withdrawalCredentials);
@@ -27,14 +28,16 @@ export const checkBLSWithAmountDeposits = async (
   vaultContract: StakingVaultContract,
   deposits: Deposit[],
 ) => {
-  const PREDEPOSIT_AMOUNT = await callReadMethod(
-    pdgContract,
-    'PREDEPOSIT_AMOUNT',
-  );
-  const withdrawalCredentials = await callReadMethod(
-    vaultContract,
-    'withdrawalCredentials',
-  );
+  const PREDEPOSIT_AMOUNT = await callReadMethod({
+    contract: pdgContract,
+    methodName: 'PREDEPOSIT_AMOUNT',
+    payload: [],
+  });
+  const withdrawalCredentials = await callReadMethod({
+    contract: vaultContract,
+    methodName: 'withdrawalCredentials',
+    payload: [],
+  });
 
   for (const deposit of deposits) {
     const isBLSValid = await isValidBLSDeposit(deposit, withdrawalCredentials);

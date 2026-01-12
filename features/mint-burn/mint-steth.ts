@@ -19,11 +19,11 @@ export const mintSteth = async (
   vault: Address,
 ) => {
   const stethContract = await getStethContract();
-  const amountOfShares = await callReadMethodSilent(
-    stethContract,
-    'getSharesByPooledEth',
-    [amountOfSteth],
-  );
+  const amountOfShares = await callReadMethodSilent({
+    contract: stethContract,
+    methodName: 'getSharesByPooledEth',
+    payload: [[amountOfSteth]],
+  });
 
   const isMintingCapacityOk = await checkMintingCapacity(
     contract,

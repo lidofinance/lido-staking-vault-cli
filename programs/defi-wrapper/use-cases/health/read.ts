@@ -68,9 +68,21 @@ healthRead
 
       // Get pool configuration
       const [poolForcedRebalanceThresholdBP, name, symbol] = await Promise.all([
-        callReadMethodSilent(poolContract, 'poolForcedRebalanceThresholdBP'),
-        callReadMethodSilent(poolContract, 'name'),
-        callReadMethodSilent(poolContract, 'symbol'),
+        callReadMethodSilent({
+          contract: poolContract,
+          methodName: 'poolForcedRebalanceThresholdBP',
+          payload: [],
+        }),
+        callReadMethodSilent({
+          contract: poolContract,
+          methodName: 'name',
+          payload: [],
+        }),
+        callReadMethodSilent({
+          contract: poolContract,
+          methodName: 'symbol',
+          payload: [],
+        }),
       ]);
 
       logInfo(
@@ -99,11 +111,11 @@ healthRead
           const debtShares = balance.debtShares;
 
           // Still check contract's isHealthy for comparison
-          const isHealthy = await callReadMethodSilent(
-            poolContract,
-            'isHealthyOf',
-            [account],
-          );
+          const isHealthy = await callReadMethodSilent({
+            contract: poolContract,
+            methodName: 'isHealthyOf',
+            payload: [[account]],
+          });
 
           if (options.verbose) {
             logInfo(`Account: ${account}
@@ -124,18 +136,20 @@ healthRead
           // Calculate values in ETH
           const stvInEth =
             stvBalance > 0n
-              ? await callReadMethodSilent(poolContract, 'previewRedeem', [
-                  stvBalance,
-                ])
+              ? await callReadMethodSilent({
+                  contract: poolContract,
+                  methodName: 'previewRedeem',
+                  payload: [[stvBalance]],
+                })
               : 0n;
 
           const debtInEth =
             debtShares > 0n
-              ? await callReadMethodSilent(
-                  stethContract,
-                  'getPooledEthBySharesRoundUp',
-                  [debtShares],
-                )
+              ? await callReadMethodSilent({
+                  contract: stethContract,
+                  methodName: 'getPooledEthBySharesRoundUp',
+                  payload: [[debtShares]],
+                })
               : 0n;
 
           if (options.verbose) {
@@ -288,10 +302,26 @@ healthRead
       // Get pool info
       const [name, symbol, totalExceedingMintedSteth, vaultAddress] =
         await Promise.all([
-          callReadMethodSilent(poolContract, 'name'),
-          callReadMethodSilent(poolContract, 'symbol'),
-          callReadMethodSilent(poolContract, 'totalExceedingMintedSteth'),
-          callReadMethodSilent(poolContract, 'VAULT'),
+          callReadMethodSilent({
+            contract: poolContract,
+            methodName: 'name',
+            payload: [],
+          }),
+          callReadMethodSilent({
+            contract: poolContract,
+            methodName: 'symbol',
+            payload: [],
+          }),
+          callReadMethodSilent({
+            contract: poolContract,
+            methodName: 'totalExceedingMintedSteth',
+            payload: [],
+          }),
+          callReadMethodSilent({
+            contract: poolContract,
+            methodName: 'VAULT',
+            payload: [],
+          }),
         ]);
 
       logInfo(`Pool: ${name} (${symbol}) at ${address}\n`);
@@ -313,28 +343,28 @@ healthRead
             continue;
           }
 
-          const isHealthy = await callReadMethodSilent(
-            poolContract,
-            'isHealthyOf',
-            [account],
-          );
+          const isHealthy = await callReadMethodSilent({
+            contract: poolContract,
+            methodName: 'isHealthyOf',
+            payload: [[account]],
+          });
 
           if (!isHealthy) {
             // Call previewForceRebalance
             const [stethShares, stvToBurn, isUndercollateralized] =
-              await callReadMethodSilent(
-                poolContract,
-                'previewForceRebalance',
-                [account],
-              );
+              await callReadMethodSilent({
+                contract: poolContract,
+                methodName: 'previewForceRebalance',
+                payload: [[account]],
+              });
 
             if (stvToBurn > 0n) {
               // Convert stETH shares to ETH
-              const stethInEth = await callReadMethodSilent(
-                stethContract,
-                'getPooledEthBySharesRoundUp',
-                [stethShares],
-              );
+              const stethInEth = await callReadMethodSilent({
+                contract: stethContract,
+                methodName: 'getPooledEthBySharesRoundUp',
+                payload: [[stethShares]],
+              });
 
               rebalanceRequirements.push({
                 account,

@@ -53,29 +53,73 @@ stvStethPoolRead
       totalSupply,
       totalUnassignedLiabilityShares,
     ] = await Promise.all([
-      callReadMethodSilent(contract, 'poolType'),
+      callReadMethodSilent({ contract, methodName: 'poolType', payload: [] }),
 
-      callReadMethodSilent(contract, 'DEFAULT_ADMIN_ROLE'),
-      callReadMethodSilent(contract, 'DEPOSIT_ROLE'),
-      callReadMethodSilent(contract, 'ALLOW_LIST_MANAGER_ROLE'),
+      callReadMethodSilent({
+        contract,
+        methodName: 'DEFAULT_ADMIN_ROLE',
+        payload: [],
+      }),
+      callReadMethodSilent({
+        contract,
+        methodName: 'DEPOSIT_ROLE',
+        payload: [],
+      }),
+      callReadMethodSilent({
+        contract,
+        methodName: 'ALLOW_LIST_MANAGER_ROLE',
+        payload: [],
+      }),
 
-      callReadMethodSilent(contract, 'DASHBOARD'),
-      callReadMethodSilent(contract, 'VAULT'),
-      callReadMethodSilent(contract, 'STETH'),
-      callReadMethodSilent(contract, 'VAULT_HUB'),
-      callReadMethodSilent(contract, 'WITHDRAWAL_QUEUE'),
+      callReadMethodSilent({ contract, methodName: 'DASHBOARD', payload: [] }),
+      callReadMethodSilent({ contract, methodName: 'VAULT', payload: [] }),
+      callReadMethodSilent({ contract, methodName: 'STETH', payload: [] }),
+      callReadMethodSilent({ contract, methodName: 'VAULT_HUB', payload: [] }),
+      callReadMethodSilent({
+        contract,
+        methodName: 'WITHDRAWAL_QUEUE',
+        payload: [],
+      }),
 
-      callReadMethodSilent(contract, 'ALLOW_LIST_ENABLED'),
+      callReadMethodSilent({
+        contract,
+        methodName: 'ALLOW_LIST_ENABLED',
+        payload: [],
+      }),
 
-      callReadMethodSilent(contract, 'name'),
-      callReadMethodSilent(contract, 'symbol'),
-      callReadMethodSilent(contract, 'totalAssets'),
+      callReadMethodSilent({ contract, methodName: 'name', payload: [] }),
+      callReadMethodSilent({ contract, methodName: 'symbol', payload: [] }),
+      callReadMethodSilent({
+        contract,
+        methodName: 'totalAssets',
+        payload: [],
+      }),
 
-      callReadMethodSilent(contract, 'totalExceedingMintedSteth'),
-      callReadMethodSilent(contract, 'totalLiabilityShares'),
-      callReadMethodSilent(contract, 'totalNominalAssets'),
-      callReadMethodSilent(contract, 'totalSupply'),
-      callReadMethodSilent(contract, 'totalUnassignedLiabilityShares'),
+      callReadMethodSilent({
+        contract,
+        methodName: 'totalExceedingMintedSteth',
+        payload: [],
+      }),
+      callReadMethodSilent({
+        contract,
+        methodName: 'totalLiabilityShares',
+        payload: [],
+      }),
+      callReadMethodSilent({
+        contract,
+        methodName: 'totalNominalAssets',
+        payload: [],
+      }),
+      callReadMethodSilent({
+        contract,
+        methodName: 'totalSupply',
+        payload: [],
+      }),
+      callReadMethodSilent({
+        contract,
+        methodName: 'totalUnassignedLiabilityShares',
+        payload: [],
+      }),
     ]);
 
     logResult({

@@ -6,10 +6,11 @@ export const checkLiabilityShares = async (
   contract: DashboardContract,
   amountOfShares: bigint,
 ) => {
-  const liabilityShares = await callReadMethodSilent(
+  const liabilityShares = await callReadMethodSilent({
     contract,
-    'liabilityShares',
-  );
+    methodName: 'liabilityShares',
+    payload: [],
+  });
 
   if (amountOfShares > liabilityShares) {
     logError(

@@ -10,6 +10,7 @@ import {
   printError,
   selectPrompt,
   showSpinner,
+  executeBatchedWithRateLimit,
 } from 'utils';
 import { getAccount } from 'providers';
 
@@ -24,6 +25,10 @@ type VaultMembers = {
 
 const LIMIT = 100n;
 
+/**
+ * Get all vaults
+ * @returns Address[] - Array of vault addresses
+ */
 export const getAllVaults = async () => {
   const hideSpinner = showSpinner({
     message: 'Getting vaults...',
@@ -31,15 +36,20 @@ export const getAllVaults = async () => {
 
   try {
     const contract = await getVaultViewerContract();
-    const totalVaults = await callReadMethodSilent(contract, 'vaultsCount');
+    const totalVaults = await callReadMethodSilent({
+      contract,
+      methodName: 'vaultsCount',
+      payload: [],
+    });
     const vaultsByOwner: Address[] = [];
 
     for (let i = 0n; i < totalVaults; i += LIMIT) {
-      const vaults = await callReadMethodSilent(
+      const vaults = await callReadMethodSilent({
         contract,
-        'vaultAddressesBatch',
-        [i, LIMIT],
-      );
+        methodName: 'vaultAddressesBatch',
+        payload: [[i, LIMIT]],
+        withSpinner: false,
+      });
       vaultsByOwner.push(...vaults);
     }
 
@@ -53,6 +63,11 @@ export const getAllVaults = async () => {
   }
 };
 
+/**
+ * Get vaults by address
+ * @param address - Address of the account
+ * @returns Record<Address, string[]> - Map of vault addresses to roles
+ */
 export const getVaultsByAddress = async (
   address: Address,
 ): Promise<Record<Address, string[]>> => {
@@ -66,38 +81,55 @@ export const getVaultsByAddress = async (
   const addressLower = address.toLowerCase();
   const vaultsByRole: Record<Address, string[]> = {};
 
-  // Get roles from dashboard impl
-  const hideSpinner = showSpinner({
+  // Get roles from dashboard impl with rate limiting
+  const hideRolesSpinner = showSpinner({
     message: 'Getting roles...',
   });
-  const rolesValues: Hex[] = await Promise.all(
-    DASHBOARD_ROLES_KEYS.map((key) => (dashboardImpl.read as any)[key]()),
+  const rolesValues: Hex[] = await executeBatchedWithRateLimit(
+    DASHBOARD_ROLES_KEYS,
+    (key) => (dashboardImpl.read as any)[key](),
   );
-  hideSpinner();
+  hideRolesSpinner();
+
+  const hideMembersSpinner = showSpinner({
+    message: 'Getting members...',
+  });
 
   // Get roles and members from vaults (dashboard)
   for (let i = 0; i < vaults.length; i += Number(LIMIT)) {
-    const batch = await callReadMethodSilent(contract, 'roleMembersBatch', [
-      vaults.slice(i, i + Number(LIMIT)),
-      rolesValues,
-    ]);
+    const batch = await callReadMethodSilent({
+      contract,
+      methodName: 'roleMembersBatch',
+      payload: [[vaults.slice(i, i + Number(LIMIT)), rolesValues]],
+      withSpinner: false,
+    });
     vaultsWithMembers.push(...batch);
   }
 
-  // Get depositors from pdg for node operators in vaults
+  hideMembersSpinner();
+
+  const hideDepositorsSpinner = showSpinner({
+    message: 'Getting depositors...',
+  });
+
+  // Get depositors from pdg for node operators in vaults with rate limiting
   const nodeOperatorsAndVault = vaultsWithMembers.map(
     ({ nodeOperator, vault }) => ({ nodeOperator, vault }),
   );
-  const depositorsWithVault = await Promise.all(
-    nodeOperatorsAndVault.map(async ({ nodeOperator, vault }) => {
-      const depositor = await callReadMethodSilent(
-        pdg,
-        'nodeOperatorDepositor',
-        [nodeOperator],
-      );
+  const depositorsWithVault = await executeBatchedWithRateLimit(
+    nodeOperatorsAndVault,
+    async ({ nodeOperator, vault }) => {
+      const depositor = await callReadMethodSilent({
+        contract: pdg,
+        methodName: 'nodeOperatorDepositor',
+        payload: [[nodeOperator]],
+        withSpinner: false,
+      });
       return { depositor, vault };
-    }),
+    },
   );
+  hideDepositorsSpinner();
+
   for (const { depositor, vault } of depositorsWithVault) {
     if (depositor.toLowerCase() === addressLower) {
       vaultsByRole[vault] = ['Depositor'];
@@ -137,41 +169,59 @@ export const getVaultsByAddress = async (
   return vaultsByRole;
 };
 
+/**
+ * Get vaults by role and member
+ * @param role - Role to get vaults for
+ * @param member - Member to get vaults for
+ * @returns Address[] - Array of vault addresses
+ */
 export const getVaultsByRoleMember = async (role: Hex, member: Address) => {
   const contract = await getVaultViewerContract();
   const vaults = await getAllVaults();
   const vaultsByRole: Address[] = [];
 
   for (let i = 0; i < vaults.length; i += Number(LIMIT)) {
-    const vaults = await callReadMethodSilent(contract, 'vaultsByRoleBatch', [
-      role,
-      member,
-      BigInt(i),
-      BigInt(LIMIT),
-    ]);
+    const vaults = await callReadMethodSilent({
+      contract,
+      methodName: 'vaultsByRoleBatch',
+      payload: [[role, member, BigInt(i), BigInt(LIMIT)]],
+    });
     vaultsByRole.push(...vaults);
   }
 
   return vaultsByRole;
 };
 
+/**
+ * Get vaults by owner
+ * @param address - Address of the owner
+ * @returns Address[] - Array of vault addresses
+ */
 export const getVaultsByOwner = async (address: Address) => {
   const contract = await getVaultViewerContract();
-  const totalVaults = await callReadMethodSilent(contract, 'vaultsCount');
+  const totalVaults = await callReadMethodSilent({
+    contract,
+    methodName: 'vaultsCount',
+    payload: [],
+  });
   const vaultsByOwner: Address[] = [];
 
   for (let i = 0n; i < totalVaults; i += LIMIT) {
-    const vaults = await callReadMethodSilent(contract, 'vaultsByOwnerBatch', [
-      address,
-      i,
-      LIMIT,
-    ]);
+    const vaults = await callReadMethodSilent({
+      contract,
+      methodName: 'vaultsByOwnerBatch',
+      payload: [[address, i, LIMIT]],
+    });
     vaultsByOwner.push(...vaults);
   }
 
   return vaultsByOwner;
 };
 
+/**
+ * Choose a vault
+ * @returns Address - Address of the chosen vault
+ */
 export const chooseVault = async () => {
   const account = await getAccount();
 

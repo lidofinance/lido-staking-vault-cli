@@ -111,11 +111,11 @@ operatorGridWrite
     const contract = await getOperatorGridContract();
 
     const vaultHub = await getVaultHubContract();
-    const vaultConnection = await callReadMethodSilent(
-      vaultHub,
-      'vaultConnection',
-      [vault],
-    );
+    const vaultConnection = await callReadMethodSilent({
+      contract: vaultHub,
+      methodName: 'vaultConnection',
+      payload: [[vault]],
+    });
     const dashboardContract = await getDashboardContract(vaultConnection.owner);
     const log = await confirmProposal({
       contract: contract as any,

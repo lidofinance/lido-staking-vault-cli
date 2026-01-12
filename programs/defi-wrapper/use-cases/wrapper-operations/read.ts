@@ -118,7 +118,11 @@ wrapperOperationsRead
   .argument('<address>', 'wrapper address', stringToAddress)
   .action(async (address: Address) => {
     const contract = await getStvPoolContract(address);
-    const vault = await callReadMethodSilent(contract, 'VAULT');
+    const vault = await callReadMethodSilent({
+      contract,
+      methodName: 'VAULT',
+      payload: [],
+    });
 
     const isReportFresh = await checkIsReportFresh({ vault });
     logResult({});
