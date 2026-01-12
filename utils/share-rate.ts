@@ -7,11 +7,23 @@ export const calculateShareRate = async (
   const stEthContract = await getStethContract();
 
   const [totalSupply, getTotalShares] = await Promise.all([
-    callReadMethodSilent(stEthContract, 'totalSupply', {
-      blockNumber: BigInt(blockNumber),
+    callReadMethodSilent({
+      contract: stEthContract,
+      methodName: 'totalSupply',
+      payload: [
+        {
+          blockNumber: BigInt(blockNumber),
+        },
+      ],
     }),
-    callReadMethodSilent(stEthContract, 'getTotalShares', {
-      blockNumber: BigInt(blockNumber),
+    callReadMethodSilent({
+      contract: stEthContract,
+      methodName: 'getTotalShares',
+      payload: [
+        {
+          blockNumber: BigInt(blockNumber),
+        },
+      ],
     }),
   ]);
   const shareRate =

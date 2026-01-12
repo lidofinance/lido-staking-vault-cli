@@ -190,7 +190,11 @@ export const getReserveRatioGapBP = async (
 
 const validateReserveRatioGapBP = async (reserveRatioGapBP: number) => {
   const operatorGrid = await getOperatorGridContract();
-  const defaultTier = await callReadMethodSilent(operatorGrid, 'tier', [0n]);
+  const defaultTier = await callReadMethodSilent({
+    contract: operatorGrid,
+    methodName: 'tier',
+    payload: [[0n]],
+  });
 
   if (!defaultTier)
     throw new Error(

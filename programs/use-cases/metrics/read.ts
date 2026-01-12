@@ -65,7 +65,11 @@ metricsRead
       _vaultsDataRefSlot,
       _vaultsDataTreeRoot,
       vaultsDataReportCid,
-    ] = await callReadMethod(lazyOracleContract, 'latestReportData');
+    ] = await callReadMethod({
+      contract: lazyOracleContract,
+      methodName: 'latestReportData',
+      payload: [],
+    });
 
     const { cacheUse, csv } = program.opts();
     const reportCurrent = await getVaultReport(
@@ -138,7 +142,11 @@ metricsRead
       _vaultsDataRefSlot,
       _vaultsDataTreeRoot,
       vaultsDataReportCid,
-    ] = await callReadMethod(lazyOracleContract, 'latestReportData');
+    ] = await callReadMethod({
+      contract: lazyOracleContract,
+      methodName: 'latestReportData',
+      payload: [],
+    });
 
     const { cacheUse, csv } = program.opts();
     const history = await getVaultReportHistory(
@@ -222,7 +230,11 @@ metricsRead
       _vaultsDataRefSlot,
       _vaultsDataTreeRoot,
       vaultsDataReportCid,
-    ] = await callReadMethod(lazyOracleContract, 'latestReportData');
+    ] = await callReadMethod({
+      contract: lazyOracleContract,
+      methodName: 'latestReportData',
+      payload: [],
+    });
 
     const { cacheUse, csv } = program.opts();
     const history = await getVaultReportHistory(
@@ -309,7 +321,11 @@ metricsRead
       _vaultsDataRefSlot,
       _vaultsDataTreeRoot,
       vaultsDataReportCid,
-    ] = await callReadMethod(lazyOracleContract, 'latestReportData');
+    ] = await callReadMethod({
+      contract: lazyOracleContract,
+      methodName: 'latestReportData',
+      payload: [],
+    });
     const { cacheUse } = program.opts();
 
     if (simplified) {
@@ -349,7 +365,11 @@ metricsRead
       _vaultsDataRefSlot,
       _vaultsDataTreeRoot,
       vaultsDataReportCid,
-    ] = await callReadMethod(lazyOracleContract, 'latestReportData');
+    ] = await callReadMethod({
+      contract: lazyOracleContract,
+      methodName: 'latestReportData',
+      payload: [],
+    });
 
     const { cacheUse } = program.opts();
     const chartsData = await fetchRewardsChartsData({

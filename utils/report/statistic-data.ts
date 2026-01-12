@@ -21,13 +21,15 @@ export const getReportStatisticData = async (args: StatisticDataArgs) => {
   const reportRefBlockNumber = reports.current.blockNumber;
   const reportPrevBlockNumber = reports.previous.blockNumber;
 
-  const nodeOperatorAccruedFee = await callReadMethodSilent(
-    dashboardContract,
-    'accruedFee',
-    {
-      blockNumber: BigInt(reportRefBlockNumber),
-    },
-  );
+  const nodeOperatorAccruedFee = await callReadMethodSilent({
+    contract: dashboardContract,
+    methodName: 'accruedFee',
+    payload: [
+      {
+        blockNumber: BigInt(reportRefBlockNumber),
+      },
+    ],
+  });
   const [shareRatePrev, shareRateCurr] = await Promise.all([
     calculateShareRate(reportPrevBlockNumber),
     calculateShareRate(reportRefBlockNumber),

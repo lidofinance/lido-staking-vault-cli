@@ -55,7 +55,11 @@ VaultHubWrite.command('v-connect')
       infraFeeBP,
       liquidityFeeBP,
       reservationFeeBP,
-    ] = await callReadMethod(operatorGridContract, 'vaultTierInfo', [address]);
+    ] = await callReadMethod({
+      contract: operatorGridContract,
+      methodName: 'vaultTierInfo',
+      payload: [[address]],
+    });
 
     const confirm = await confirmOperation(
       `Are you sure you want to connect the vault ${address} with share limit ${shareLimit}, reserve ratio ${reserveRatioBP}, reserve ratio threshold ${forcedRebalanceThresholdBP}, treasury fee ${infraFeeBP}, liquidity fee ${liquidityFeeBP}, reservation fee ${reservationFeeBP}?`,
@@ -390,11 +394,11 @@ VaultHubWrite.command('trigger-validator-withdrawals')
       if (!confirm) return;
 
       const vaultContract = await getStakingVaultContract(address);
-      const fee = await callReadMethod(
-        vaultContract,
-        'calculateValidatorWithdrawalFee',
-        [BigInt(amounts.length)],
-      );
+      const fee = await callReadMethod({
+        contract: vaultContract,
+        methodName: 'calculateValidatorWithdrawalFee',
+        payload: [[BigInt(amounts.length)]],
+      });
 
       const gweiAmounts = amounts.map((amount) =>
         parseEther(formatEther(amount), 'gwei'),

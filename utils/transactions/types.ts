@@ -51,3 +51,14 @@ export type WriteTxArgs<
   skipError?: boolean;
   populateTx?: boolean;
 };
+
+export type ReadTxArgs<
+  T extends ReadContract,
+  M extends keyof T['read'] & string,
+> = {
+  contract: T;
+  methodName: M;
+  payload: Parameters<T['read'][M]> | never[];
+  withSpinner?: boolean;
+  silent?: boolean;
+};

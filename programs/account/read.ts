@@ -82,7 +82,11 @@ accountRead
     const accountAddress = (await getAccount()).address;
     const stethContract = await getStethContract();
 
-    await callReadMethod(stethContract, 'allowance', [accountAddress, address]);
+    await callReadMethod({
+      contract: stethContract,
+      methodName: 'allowance',
+      payload: [[accountAddress, address]],
+    });
   });
 
 accountRead
@@ -93,8 +97,9 @@ accountRead
     const accountAddress = (await getAccount()).address;
     const wstethContract = await getWstethContract();
 
-    await callReadMethod(wstethContract, 'allowance', [
-      accountAddress,
-      address,
-    ]);
+    await callReadMethod({
+      contract: wstethContract,
+      methodName: 'allowance',
+      payload: [[accountAddress, address]],
+    });
   });

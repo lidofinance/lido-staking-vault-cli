@@ -51,26 +51,74 @@ withdrawalQueueRead
       unfinalizedAssets,
       unfinalizedStv,
     ] = await Promise.all([
-      callReadMethodSilent(contract, 'DEFAULT_ADMIN_ROLE'),
-      callReadMethodSilent(contract, 'WITHDRAWALS_PAUSE_ROLE'),
-      callReadMethodSilent(contract, 'WITHDRAWALS_RESUME_ROLE'),
-      callReadMethodSilent(contract, 'FINALIZE_ROLE'),
+      callReadMethodSilent({
+        contract,
+        methodName: 'DEFAULT_ADMIN_ROLE',
+        payload: [],
+      }),
+      callReadMethodSilent({
+        contract,
+        methodName: 'WITHDRAWALS_PAUSE_ROLE',
+        payload: [],
+      }),
+      callReadMethodSilent({
+        contract,
+        methodName: 'WITHDRAWALS_RESUME_ROLE',
+        payload: [],
+      }),
+      callReadMethodSilent({
+        contract,
+        methodName: 'FINALIZE_ROLE',
+        payload: [],
+      }),
 
-      callReadMethodSilent(contract, 'DASHBOARD'),
-      callReadMethodSilent(contract, 'LAZY_ORACLE'),
-      callReadMethodSilent(contract, 'STETH'),
-      callReadMethodSilent(contract, 'VAULT_HUB'),
-      callReadMethodSilent(contract, 'VAULT'),
+      callReadMethodSilent({ contract, methodName: 'DASHBOARD', payload: [] }),
+      callReadMethodSilent({
+        contract,
+        methodName: 'LAZY_ORACLE',
+        payload: [],
+      }),
+      callReadMethodSilent({ contract, methodName: 'STETH', payload: [] }),
+      callReadMethodSilent({ contract, methodName: 'VAULT_HUB', payload: [] }),
+      callReadMethodSilent({ contract, methodName: 'VAULT', payload: [] }),
 
-      callReadMethodSilent(contract, 'MIN_WITHDRAWAL_DELAY_TIME_IN_SECONDS'),
+      callReadMethodSilent({
+        contract,
+        methodName: 'MIN_WITHDRAWAL_DELAY_TIME_IN_SECONDS',
+        payload: [],
+      }),
 
-      callReadMethodSilent(contract, 'calculateCurrentStethShareRate'),
-      callReadMethodSilent(contract, 'getLastCheckpointIndex'),
-      callReadMethodSilent(contract, 'getLastFinalizedRequestId'),
-      callReadMethodSilent(contract, 'getLastRequestId'),
+      callReadMethodSilent({
+        contract,
+        methodName: 'calculateCurrentStethShareRate',
+        payload: [],
+      }),
+      callReadMethodSilent({
+        contract,
+        methodName: 'getLastCheckpointIndex',
+        payload: [],
+      }),
+      callReadMethodSilent({
+        contract,
+        methodName: 'getLastFinalizedRequestId',
+        payload: [],
+      }),
+      callReadMethodSilent({
+        contract,
+        methodName: 'getLastRequestId',
+        payload: [],
+      }),
 
-      callReadMethodSilent(contract, 'unfinalizedAssets'),
-      callReadMethodSilent(contract, 'unfinalizedStv'),
+      callReadMethodSilent({
+        contract,
+        methodName: 'unfinalizedAssets',
+        payload: [],
+      }),
+      callReadMethodSilent({
+        contract,
+        methodName: 'unfinalizedStv',
+        payload: [],
+      }),
     ]);
 
     logResult({

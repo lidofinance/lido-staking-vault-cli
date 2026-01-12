@@ -54,11 +54,11 @@ export const grantRoleFromImpersonatedAccount = async ({
     args: [role, currentAccount],
   });
 
-  const roleMembersAfter = await callReadMethodSilent(
-    contract,
-    'getRoleMembers',
-    [role],
-  );
+  const roleMembersAfter = await callReadMethodSilent({
+    contract: contract,
+    methodName: 'getRoleMembers',
+    payload: [[role]],
+  });
   logInfo('Role members after granting: ', roleMembersAfter);
   if (!roleMembersAfter.includes(currentAccount)) {
     logInfo(`Address ${currentAccount} does not have the ${roleName} role`);
