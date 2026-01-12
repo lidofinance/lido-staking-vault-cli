@@ -3,19 +3,26 @@ import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import { executeBatchedWithRateLimit } from '../../utils/rate-limit.js';
 
 describe('executeBatchedWithRateLimit', () => {
+  const originalEnv = process.env;
+
   beforeEach(() => {
     vi.useFakeTimers();
+    // Reset environment variables before each test
+    process.env = { ...originalEnv };
+    delete process.env.RATE_LIMIT_BATCH_SIZE;
+    delete process.env.RATE_LIMIT_DELAY_MS;
   });
 
   afterEach(() => {
     vi.useRealTimers();
+    process.env = originalEnv;
   });
 
   test('processes all items and returns results in order', async () => {
     const items = [1, 2, 3, 4, 5];
     const executor = vi.fn(async (item: number) => item * 2);
 
-    const promise = executeBatchedWithRateLimit(items, 2, 100, executor);
+    const promise = executeBatchedWithRateLimit(items, executor, 2, 100);
 
     // Advance timers to complete all batches
     await vi.advanceTimersByTimeAsync(300);
@@ -36,9 +43,9 @@ describe('executeBatchedWithRateLimit', () => {
 
     const promise = executeBatchedWithRateLimit(
       items,
+      executor,
       batchSize,
       100,
-      executor,
     );
 
     // First batch (3 items) should be called immediately
@@ -65,9 +72,9 @@ describe('executeBatchedWithRateLimit', () => {
 
     const promise = executeBatchedWithRateLimit(
       items,
+      executor,
       batchSize,
       delayMs,
-      executor,
     );
 
     // First batch
@@ -92,9 +99,9 @@ describe('executeBatchedWithRateLimit', () => {
 
     const promise = executeBatchedWithRateLimit(
       items,
+      executor,
       batchSize,
       1000,
-      executor,
     );
 
     // First batch
@@ -114,7 +121,7 @@ describe('executeBatchedWithRateLimit', () => {
     const items: number[] = [];
     const executor = vi.fn(async (item: number) => item);
 
-    const results = await executeBatchedWithRateLimit(items, 2, 100, executor);
+    const results = await executeBatchedWithRateLimit(items, executor, 2, 100);
 
     expect(results).toEqual([]);
     expect(executor).not.toHaveBeenCalled();
@@ -124,7 +131,7 @@ describe('executeBatchedWithRateLimit', () => {
     const items = [42];
     const executor = vi.fn(async (item: number) => item * 2);
 
-    const results = await executeBatchedWithRateLimit(items, 5, 100, executor);
+    const results = await executeBatchedWithRateLimit(items, executor, 5, 100);
 
     expect(results).toEqual([84]);
     expect(executor).toHaveBeenCalledTimes(1);
@@ -134,7 +141,7 @@ describe('executeBatchedWithRateLimit', () => {
     const items = [1, 2, 3];
     const executor = vi.fn(async (item: number) => item);
 
-    const results = await executeBatchedWithRateLimit(items, 10, 100, executor);
+    const results = await executeBatchedWithRateLimit(items, executor, 10, 100);
 
     expect(results).toEqual([1, 2, 3]);
     expect(executor).toHaveBeenCalledTimes(3);
@@ -156,9 +163,9 @@ describe('executeBatchedWithRateLimit', () => {
 
     const promise = executeBatchedWithRateLimit(
       items,
+      executor,
       batchSize,
       100,
-      executor,
     );
 
     await vi.advanceTimersByTimeAsync(50);
@@ -179,7 +186,7 @@ describe('executeBatchedWithRateLimit', () => {
       return item;
     });
 
-    const promise = executeBatchedWithRateLimit(items, 2, 100, executor).catch(
+    const promise = executeBatchedWithRateLimit(items, executor, 2, 100).catch(
       (error) => error,
     );
 
@@ -201,7 +208,7 @@ describe('executeBatchedWithRateLimit', () => {
       return `${item.id}: ${item.name}`;
     });
 
-    const promise = executeBatchedWithRateLimit(items, 2, 100, executor);
+    const promise = executeBatchedWithRateLimit(items, executor, 2, 100);
 
     await vi.advanceTimersByTimeAsync(200);
 
@@ -225,9 +232,9 @@ describe('executeBatchedWithRateLimit', () => {
 
     const promise = executeBatchedWithRateLimit(
       items,
+      executor,
       batchSize,
       delayMs,
-      executor,
     );
 
     // Batch 1: items 1-5 (t=0)
@@ -258,12 +265,100 @@ describe('executeBatchedWithRateLimit', () => {
     const items = ['a', 'b', 'c'];
     const executor = vi.fn(async (item: string) => item.toUpperCase());
 
-    const promise = executeBatchedWithRateLimit(items, 2, 100, executor);
+    const promise = executeBatchedWithRateLimit(items, executor, 2, 100);
 
     await vi.advanceTimersByTimeAsync(200);
 
     const results = await promise;
 
     expect(results).toEqual(['A', 'B', 'C']);
+  });
+
+  test('uses default batch size and delay when not specified', async () => {
+    const items = Array.from({ length: 250 }, (_, i) => i + 1);
+    const executor = vi.fn(async (item: number) => item);
+
+    const promise = executeBatchedWithRateLimit(items, executor);
+
+    // Default batch size is 120, so first batch should process 120 items
+    await vi.advanceTimersByTimeAsync(0);
+    expect(executor).toHaveBeenCalledTimes(120);
+
+    // Default delay is 500ms, second batch should process after delay
+    await vi.advanceTimersByTimeAsync(500);
+    expect(executor).toHaveBeenCalledTimes(240);
+
+    // Last batch (10 items)
+    await vi.advanceTimersByTimeAsync(500);
+    expect(executor).toHaveBeenCalledTimes(250);
+
+    const results = await promise;
+    expect(results).toEqual(items);
+  });
+
+  test('uses environment variable for batch size', async () => {
+    process.env.RATE_LIMIT_BATCH_SIZE = '10';
+
+    const items = Array.from({ length: 25 }, (_, i) => i + 1);
+    const executor = vi.fn(async (item: number) => item);
+
+    const promise = executeBatchedWithRateLimit(items, executor);
+
+    // Should use batch size of 10 from env var
+    await vi.advanceTimersByTimeAsync(0);
+    expect(executor).toHaveBeenCalledTimes(10);
+
+    await vi.advanceTimersByTimeAsync(500);
+    expect(executor).toHaveBeenCalledTimes(20);
+
+    await vi.advanceTimersByTimeAsync(500);
+    expect(executor).toHaveBeenCalledTimes(25);
+
+    const results = await promise;
+    expect(results).toEqual(items);
+  });
+
+  test('uses environment variable for delay', async () => {
+    process.env.RATE_LIMIT_DELAY_MS = '1500';
+
+    const items = [1, 2, 3, 4];
+    const executor = vi.fn(async (item: number) => item);
+
+    const promise = executeBatchedWithRateLimit(items, executor, 2);
+
+    // First batch
+    await vi.advanceTimersByTimeAsync(0);
+    expect(executor).toHaveBeenCalledTimes(2);
+
+    // Should use delay of 1500ms from env var
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(executor).toHaveBeenCalledTimes(2); // Still waiting
+
+    await vi.advanceTimersByTimeAsync(500);
+    expect(executor).toHaveBeenCalledTimes(4); // Second batch completed
+
+    const results = await promise;
+    expect(results).toEqual([1, 2, 3, 4]);
+  });
+
+  test('explicit parameters override environment variables', async () => {
+    process.env.RATE_LIMIT_BATCH_SIZE = '10';
+    process.env.RATE_LIMIT_DELAY_MS = '1000';
+
+    const items = [1, 2, 3, 4, 5, 6];
+    const executor = vi.fn(async (item: number) => item);
+
+    const promise = executeBatchedWithRateLimit(items, executor, 3, 200);
+
+    // Should use explicit batch size of 3, not env var of 10
+    await vi.advanceTimersByTimeAsync(0);
+    expect(executor).toHaveBeenCalledTimes(3);
+
+    // Should use explicit delay of 200ms, not env var of 1000ms
+    await vi.advanceTimersByTimeAsync(200);
+    expect(executor).toHaveBeenCalledTimes(6);
+
+    const results = await promise;
+    expect(results).toEqual([1, 2, 3, 4, 5, 6]);
   });
 });

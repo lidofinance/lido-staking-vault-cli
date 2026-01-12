@@ -24,8 +24,6 @@ type VaultMembers = {
 };
 
 const LIMIT = 100n;
-const RATE_LIMIT_BATCH_SIZE = 120; // Max parallel requests per batch
-const RATE_LIMIT_DELAY_MS = 500; // Delay between batches
 
 /**
  * Get all vaults
@@ -89,8 +87,6 @@ export const getVaultsByAddress = async (
   });
   const rolesValues: Hex[] = await executeBatchedWithRateLimit(
     DASHBOARD_ROLES_KEYS,
-    RATE_LIMIT_BATCH_SIZE,
-    RATE_LIMIT_DELAY_MS,
     (key) => (dashboardImpl.read as any)[key](),
   );
   hideRolesSpinner();
@@ -122,8 +118,6 @@ export const getVaultsByAddress = async (
   );
   const depositorsWithVault = await executeBatchedWithRateLimit(
     nodeOperatorsAndVault,
-    RATE_LIMIT_BATCH_SIZE,
-    RATE_LIMIT_DELAY_MS,
     async ({ nodeOperator, vault }) => {
       const depositor = await callReadMethodSilent({
         contract: pdg,
