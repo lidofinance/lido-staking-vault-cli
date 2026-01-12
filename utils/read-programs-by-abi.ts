@@ -154,7 +154,7 @@ export function generateReadCommands<T, U extends Abi>(
           await callReadMethod({
             contract,
             methodName: fnName,
-            payload: fnArgs,
+            payload: [fnArgs],
           });
         else
           await callReadMethod({ contract, methodName: fnName, payload: [] });
