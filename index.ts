@@ -74,5 +74,11 @@ runCLI()
     }
 
     await disconnectWalletConnect();
-    process.exit(0);
+
+    // If the command is not charts, exit
+    // It is necessary to keep the screen open for charts
+    const isCharts = ['charts', 'charts-apr', 'charts-rewards', 'metrics'].some(
+      (command) => process.argv.includes(command),
+    );
+    if (!isCharts) process.exit(0);
   });
