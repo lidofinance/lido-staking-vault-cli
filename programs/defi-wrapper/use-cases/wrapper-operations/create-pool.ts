@@ -1,4 +1,4 @@
-import { Address, Hex } from 'viem';
+import { Address, Hex, zeroAddress } from 'viem';
 import { getTransactionReceipt } from 'viem/actions';
 import { Command, Option } from 'commander';
 
@@ -36,6 +36,7 @@ type MintableOptions = {
 
 type AllowlistableOptions = {
   allowListEnabled?: boolean;
+  allowListManager?: Address;
 };
 
 const FIRST_STEP_MESSAGE =
@@ -161,11 +162,17 @@ applyCommonOptions(
     'is allowlist enabled (true/false)',
     stringToBoolean,
   )
+  .option(
+    '-alm, --allowListManager <allowListManager>',
+    'allowlist manager address',
+    stringToAddress,
+  )
   .action(
     async (
       address: Address,
       {
         allowListEnabled,
+        allowListManager,
         ...baseOptions
       }: BaseFactoryOptions & AllowlistableOptions,
     ) => {
@@ -179,13 +186,16 @@ applyCommonOptions(
         'AllowList',
       );
 
+      const allowListManagerValue = allowListManager ?? zeroAddress;
+
       const confirmationMessage = `Are you sure you want to create a new STV pool with a configured wrapper?\n
          ${prepareCreationConfigrationText(
            vaultConfig,
            timelockConfig,
            commonPoolConfig,
          )}
-        allowListEnabled: ${allowListEnabledValue}\n`;
+        allowListEnabled: ${allowListEnabledValue}
+        allowListManager: ${allowListManagerValue === zeroAddress ? '<none>' : allowListManagerValue}\n`;
 
       const confirm = await confirmOperation(confirmationMessage);
       if (!confirm) return;
@@ -198,6 +208,7 @@ applyCommonOptions(
           timelockConfig,
           commonPoolConfig,
           allowListEnabledValue,
+          allowListManagerValue,
         ],
       });
 
@@ -244,12 +255,18 @@ applyCommonOptions(
     'is allowlist enabled (true/false)',
     stringToBoolean,
   )
+  .option(
+    '-alm, --allowListManager <allowListManager>',
+    'allowlist manager address',
+    stringToAddress,
+  )
   .action(
     async (
       address: Address,
       {
         reserveRatioGapBP,
         allowListEnabled,
+        allowListManager,
         ...baseOptions
       }: BaseFactoryOptions & AllowlistableOptions & MintableOptions,
     ) => {
@@ -264,6 +281,8 @@ applyCommonOptions(
       const reserveRatioGapBPValue =
         await getReserveRatioGapBP(reserveRatioGapBP);
 
+      const allowListManagerValue = allowListManager ?? zeroAddress;
+
       const confirmationMessage = `Are you sure you want to create a new STV-STETH pool with minting enabled?\n
         ${prepareCreationConfigrationText(
           vaultConfig,
@@ -271,6 +290,7 @@ applyCommonOptions(
           commonPoolConfig,
         )}
         allowListEnabled: ${allowListEnabledValue}
+        allowListManager: ${allowListManagerValue === zeroAddress ? '<none>' : allowListManagerValue}
         reserveRatioGapBP: ${reserveRatioGapBPValue}\n`;
       const confirm = await confirmOperation(confirmationMessage);
       if (!confirm) return;
@@ -283,6 +303,7 @@ applyCommonOptions(
           timelockConfig,
           commonPoolConfig,
           allowListEnabledValue,
+          allowListManagerValue,
           BigInt(reserveRatioGapBPValue),
         ],
       });

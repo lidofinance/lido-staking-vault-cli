@@ -51,14 +51,14 @@ defiWrapperTools
       const publicClient = await getTestClient();
       const contract = await getStvStethPoolContract(address);
 
-      const forcedRebalanceThresholdBP = await callReadMethodSilent(
+      const poolForcedRebalanceThresholdBP = await callReadMethodSilent(
         contract,
-        'forcedRebalanceThresholdBP',
+        'poolForcedRebalanceThresholdBP',
       );
 
       logInfo('\n=== Wrapper Configuration ===');
       logInfo(
-        `Force rebalance threshold: ${forcedRebalanceThresholdBP} BP (${Number(forcedRebalanceThresholdBP) / 100}%)`,
+        `Pool forced rebalance threshold: ${poolForcedRebalanceThresholdBP} BP (${Number(poolForcedRebalanceThresholdBP) / 100}%)`,
       );
 
       const [vault, vaultHub] = await Promise.all([

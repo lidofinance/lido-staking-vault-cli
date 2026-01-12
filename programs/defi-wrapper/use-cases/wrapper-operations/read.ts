@@ -48,16 +48,16 @@ wrapperOperationsRead
         typeof poolInfo.RESERVE_RATIO_GAP_BP === 'bigint'
           ? ['RESERVE_RATIO_GAP_BP', poolInfo.RESERVE_RATIO_GAP_BP]
           : undefined,
-        typeof poolInfo.reserveRatioBP === 'bigint'
+        typeof poolInfo.poolReserveRatioBP === 'bigint'
           ? [
               'Reserve Ratio, BP',
-              `${poolInfo.reserveRatioBP} (${formatBP(poolInfo.reserveRatioBP)})`,
+              `${poolInfo.poolReserveRatioBP} (${formatBP(poolInfo.poolReserveRatioBP)})`,
             ]
           : undefined,
-        typeof poolInfo.forcedRebalanceThresholdBP === 'bigint'
+        typeof poolInfo.poolForcedRebalanceThresholdBP === 'bigint'
           ? [
               'Forced Rebalance Threshold, BP',
-              `${poolInfo.forcedRebalanceThresholdBP} (${formatBP(poolInfo.forcedRebalanceThresholdBP)})`,
+              `${poolInfo.poolForcedRebalanceThresholdBP} (${formatBP(poolInfo.poolForcedRebalanceThresholdBP)})`,
             ]
           : undefined,
         typeof poolInfo.maxLossSocializationBP === 'bigint'
