@@ -13,15 +13,16 @@ export * from './utils/index.js';
 
 const showTestnetWarning = () => {
   console.info('\nHOODI V3 application:');
+  console.info(
+    '- 📖 CLI Docs: https://lidofinance.github.io/lido-staking-vault-cli/',
+  );
   console.info('- 🌐 Web UI: https://stvaults-hoodi.testnet.fi/vaults');
   console.info(
     '- 📄 Contracts info: https://docs.lido.fi/deployed-contracts/hoodi',
   );
   console.info(
-    '- 📖 stVaults Doc Center: https://docs.lido.fi/run-on-lido/stvaults',
+    '- 📖 stVaults Doc Center: https://docs.lido.fi/run-on-lido/stvaults\n',
   );
-  console.info('\n🔄 Testnet-1 is available on the testnet-1 branch.');
-  console.info('🔄 Testnet-2 is available on the testnet-2 branch.');
 };
 
 const showMainnetWarning = () => {
@@ -30,12 +31,15 @@ const showMainnetWarning = () => {
   const shouldShowLinks = now >= targetDate;
 
   console.info('\nMainnet V3 application:');
+  console.info(
+    '- 📖 CLI Docs: https://lidofinance.github.io/lido-staking-vault-cli/',
+  );
   if (shouldShowLinks) {
     console.info('- 🌐 Web UI: https://stvaults.lido.fi/vaults');
   }
   console.info('- 📄 Contracts info: https://docs.lido.fi/deployed-contracts');
   console.info(
-    '- 📖 stVaults Doc Center: https://docs.lido.fi/run-on-lido/stvaults',
+    '- 📖 stVaults Doc Center: https://docs.lido.fi/run-on-lido/stvaults\n',
   );
 };
 
