@@ -121,16 +121,6 @@
         "name": "develop",
         "channel": "alpha",
         "prerelease": "alpha"
-      },
-      {
-        "name": "testnet-2",
-        "channel": "alpha",
-        "prerelease": "alpha-testnet-2"
-      },
-      {
-        "name": "testnet-3",
-        "channel": "alpha",
-        "prerelease": "alpha-testnet-3"
       }
     ]
   },
