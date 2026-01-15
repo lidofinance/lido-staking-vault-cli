@@ -198,7 +198,7 @@ export const logCreatePoolEventData = async (
   logInfo('Auxiliary Config');
   logResult({
     data: [
-      ['Allowlist Enabled', eventData.auxiliaryConfig?.allowlistEnabled],
+      ['Allowlist Enabled', eventData.auxiliaryConfig?.allowListEnabled],
       ['Minting Enabled', eventData.auxiliaryConfig?.mintingEnabled],
       ['Reserve Ratio Gap BP', eventData.auxiliaryConfig?.reserveRatioGapBP],
     ],

@@ -67,10 +67,10 @@ healthRead
       logInfo('Fetching pool configuration...');
 
       // Get pool configuration
-      const [forcedRebalanceThresholdBP, name, symbol] = await Promise.all([
+      const [poolForcedRebalanceThresholdBP, name, symbol] = await Promise.all([
         callReadMethodSilent({
           contract: poolContract,
-          methodName: 'forcedRebalanceThresholdBP',
+          methodName: 'poolForcedRebalanceThresholdBP',
           payload: [],
         }),
         callReadMethodSilent({
@@ -86,7 +86,7 @@ healthRead
       ]);
 
       logInfo(
-        `Pool: ${name} (${symbol}) at ${address}\nForced Rebalance Threshold: ${formatBP(forcedRebalanceThresholdBP)}\n`,
+        `Pool: ${name} (${symbol}) at ${address}\nPool Forced Rebalance Threshold: ${formatBP(poolForcedRebalanceThresholdBP)}\n`,
       );
 
       // Check health for each account
@@ -156,7 +156,7 @@ healthRead
             logInfo(`  stvInEth: ${formatEther(stvInEth)} ETH`);
             logInfo(`  debtInEth: ${formatEther(debtInEth)} ETH`);
             logInfo(
-              `  forcedRebalanceThresholdBP: ${formatBP(forcedRebalanceThresholdBP)}`,
+              `  poolForcedRebalanceThresholdBP: ${formatBP(poolForcedRebalanceThresholdBP)}`,
             );
           }
 
@@ -165,7 +165,7 @@ healthRead
             assets: stvInEth,
             stethShares: debtShares,
             debtInEth,
-            forcedRebalanceThresholdBP,
+            forcedRebalanceThresholdBP: poolForcedRebalanceThresholdBP,
             verbose: options.verbose,
           });
           // Calculate display metrics
@@ -177,7 +177,7 @@ healthRead
             assets: stvInEth,
             stethShares: debtShares,
             debtInEth,
-            forcedRebalanceThresholdBP,
+            forcedRebalanceThresholdBP: poolForcedRebalanceThresholdBP,
             verbose: options.verbose,
           });
 
@@ -259,7 +259,7 @@ healthRead
 
       logInfo(`\nTotal Unhealthy Accounts: ${unhealthyPositions.length}`);
       logInfo(
-        `Threshold: ${(Number(forcedRebalanceThresholdBP) / 100).toFixed(2)}%`,
+        `Threshold: ${(Number(poolForcedRebalanceThresholdBP) / 100).toFixed(2)}%`,
       );
     },
   );
