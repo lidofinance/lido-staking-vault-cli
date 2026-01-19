@@ -28,6 +28,8 @@ import {
   stringToNumberArray,
   parseValidatorTopUpArray,
   etherToWeiArray,
+  fetchNodeSyncingStatus,
+  fetchBeaconHeader,
 } from 'utils';
 import { Deposit, ValidatorTopUp } from 'types';
 
@@ -71,6 +73,19 @@ pdgWrite
       options: { blsCheck: boolean },
     ) => {
       const pdgContract = await getPredepositGuaranteeContract();
+
+      const nodeStatus = await fetchNodeSyncingStatus();
+      const beaconHeaderJson = await fetchBeaconHeader('finalized');
+
+      logInfo('Node syncing status');
+      logTable({
+        data: [
+          ['Is syncing', nodeStatus.data.is_syncing],
+          ['Sync distance', nodeStatus.data.sync_distance],
+          ['Head slot', nodeStatus.data.head_slot],
+          ['Finalized slot', beaconHeaderJson.data.header.message.slot],
+        ],
+      });
 
       const isPaused = await checkPdgIsPaused(pdgContract);
       if (isPaused) return;
@@ -150,6 +165,18 @@ pdgWrite
     const validatorIndex = await confirmMakeProof(index);
     if (!validatorIndex) return;
 
+    const nodeStatus = await fetchNodeSyncingStatus();
+    const beaconHeaderJson = await fetchBeaconHeader('finalized');
+
+    logInfo('Node syncing status');
+    logTable({
+      data: [
+        ['Is syncing', nodeStatus.data.is_syncing],
+        ['Sync distance', nodeStatus.data.sync_distance],
+        ['Head slot', nodeStatus.data.head_slot],
+        ['Finalized slot', beaconHeaderJson.data.header.message.slot],
+      ],
+    });
     const hideSpinner = showSpinner({
       type: 'bouncingBar',
       message: 'Making proof...',
