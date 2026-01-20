@@ -28,6 +28,8 @@ import {
   callReadMethodSilent,
   stringToNumber,
   fetchValidatorsInfo,
+  fetchNodeSyncingStatus,
+  fetchBeaconHeader,
 } from 'utils';
 import { checkPdgIsPaused } from 'features';
 
@@ -53,6 +55,18 @@ predepositGuaranteeHelpers
     if (!validatorIndex) return;
 
     const pdgContract = await getPredepositGuaranteeContract();
+    const nodeStatus = await fetchNodeSyncingStatus();
+    const beaconHeaderJson = await fetchBeaconHeader('finalized');
+
+    logInfo('Node syncing status');
+    logTable({
+      data: [
+        ['Is syncing', nodeStatus.data.is_syncing],
+        ['Sync distance', nodeStatus.data.sync_distance],
+        ['Head slot', nodeStatus.data.head_slot],
+        ['Finalized slot', beaconHeaderJson.data.header.message.slot],
+      ],
+    });
 
     const hideSpinner = showSpinner();
     try {
@@ -114,6 +128,19 @@ predepositGuaranteeHelpers
   .action(async ({ index }: { index: number }) => {
     const validatorIndex = await confirmMakeProof(index);
     if (!validatorIndex) return;
+
+    const nodeStatus = await fetchNodeSyncingStatus();
+    const beaconHeaderJson = await fetchBeaconHeader('finalized');
+
+    logInfo('Node syncing status');
+    logTable({
+      data: [
+        ['Is syncing', nodeStatus.data.is_syncing],
+        ['Sync distance', nodeStatus.data.sync_distance],
+        ['Head slot', nodeStatus.data.head_slot],
+        ['Finalized slot', beaconHeaderJson.data.header.message.slot],
+      ],
+    });
 
     const hideSpinner = showSpinner();
     try {
