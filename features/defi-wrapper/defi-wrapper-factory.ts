@@ -380,6 +380,16 @@ export const promtBaseVaultConfiguration = async ({
   };
 };
 
+const logAndThrowEthSimulateV1Error = (error: unknown) => {
+  logError(
+    'Could not simulate pool creation. Use `--skip-simulation true` to skip it.',
+  );
+  logInfo(
+    'Some RPC providers do not support eth_simulateV1. Consider switching to another RPC provider.',
+  );
+  throw error;
+};
+
 export const simulatePoolCreation = async (
   contract: Awaited<ReturnType<typeof getFactoryContract>>,
   creationMethodName:
@@ -396,10 +406,8 @@ export const simulatePoolCreation = async (
     await getVaultHubContract()
   ).read.CONNECT_DEPOSIT();
 
-  try {
-    // var is used to allow usage outside of try-catch and retain type
-    // eslint-disable-next-line no-var
-    var creationCalls = await publicClient.simulateCalls({
+  const creationCalls = await publicClient
+    .simulateCalls({
       account: account.address,
       calls: [
         {
@@ -411,16 +419,8 @@ export const simulatePoolCreation = async (
           }),
         },
       ],
-    });
-  } catch (error) {
-    logError(
-      'Could not simulate pool creation. Use `--skip-simulation true` to skip it.',
-    );
-    logInfo(
-      'Some RPC providers do not support eth_simulateV1. Consider switching to another RPC provider.',
-    );
-    throw error;
-  }
+    })
+    .catch(logAndThrowEthSimulateV1Error);
 
   const creationTx = creationCalls.results[0];
 
@@ -432,10 +432,10 @@ export const simulatePoolCreation = async (
 
   const creationEventData = await getCreatePoolEventData(
     {
-      logs: creationTx.logs as any,
+      logs: creationTx.logs,
       blockNumber: 0n,
       transactionHash: zeroAddress,
-    } as any,
+    } as unknown as TransactionReceipt,
     zeroAddress,
     true,
   );
@@ -451,11 +451,8 @@ export const simulatePoolCreation = async (
   ) {
     throw new Error('Failed to parse strategy factory from simulation');
   }
-
-  try {
-    // var is used to allow usage outside of try-catch and retain type
-    // eslint-disable-next-line no-var
-    var fullCalls = await publicClient.simulateCalls({
+  const fullCalls = await publicClient
+    .simulateCalls({
       account: account.address,
       calls: [
         {
@@ -484,16 +481,8 @@ export const simulatePoolCreation = async (
           }),
         },
       ],
-    });
-  } catch (error) {
-    logError(
-      'Could not simulate pool creation&finalization. Use `--skip-simulation true` to skip it.',
-    );
-    logInfo(
-      'Some RPC providers do not support eth_simulateV1. Consider switching to another RPC provider.',
-    );
-    throw error;
-  }
+    })
+    .catch(logAndThrowEthSimulateV1Error);
 
   if (fullCalls.results[1].status !== 'success') {
     logError('Pool finalization simulation failed');
@@ -505,10 +494,10 @@ export const simulatePoolCreation = async (
   if (logSimulation) {
     const finalizeEventData = await getFinalizePoolEventData(
       {
-        logs: fullCalls.results[1].logs as any,
+        logs: fullCalls.results[1].logs,
         blockNumber: 0n,
         transactionHash: zeroAddress,
-      } as any,
+      } as unknown as TransactionReceipt,
       zeroAddress,
       true,
     );
