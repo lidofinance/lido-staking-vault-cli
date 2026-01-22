@@ -132,7 +132,7 @@ export function generateReadCommands<T, U extends Abi>(
       try {
         const contract = await createContractAsync(cliArgs[0]);
         const fnArgs =
-          inputs.length > 0 ? cliArgs.slice(0, inputs.length) : undefined;
+          inputs.length > 0 ? cliArgs.slice(1, inputs.length + 1) : undefined;
 
         if (fnArgs) await callReadMethod(contract, fnName, fnArgs);
         else await callReadMethod(contract, fnName);
