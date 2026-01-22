@@ -58,3 +58,4 @@ yarn start defi-wrapper contracts factory -h
 | create-pool-ggv \<address>       | initiates deployment of a GGV strategy pool                   |
 | create-pool-stv \<address>       | initiates deployment of a STV staking pool                    |
 | create-pool-stv-steth \<address> | initiates deployment of a STV-STETH pool with minting enabled |
+| create-pool-custom \<address>    | initiates deployment of a custom pool                         |

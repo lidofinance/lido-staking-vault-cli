@@ -29,7 +29,11 @@ import { reportFreshWarning } from 'features';
 export const getVaultOverviewByDashboard = async (
   contract: DashboardContract,
 ) => {
-  const vault = await callReadMethodSilent(contract, 'stakingVault');
+  const vault = await callReadMethodSilent({
+    contract,
+    methodName: 'stakingVault',
+    payload: [],
+  });
   await reportFreshWarning(vault);
 
   const hideSpinner = showSpinner();
@@ -39,10 +43,11 @@ export const getVaultOverviewByDashboard = async (
 
   try {
     const lazyOracleContract = await getLazyOracleContract();
-    const [_timestamp, _refSlot, _treeRoot, cid] = await callReadMethodSilent(
-      lazyOracleContract,
-      'latestReportData',
-    );
+    const [_timestamp, _refSlot, _treeRoot, cid] = await callReadMethodSilent({
+      contract: lazyOracleContract,
+      methodName: 'latestReportData',
+      payload: [],
+    });
     report = await getVaultReport({ vault, cid });
   } catch (error) {
     logInfo('No report found');
@@ -58,7 +63,6 @@ export const getVaultOverviewByDashboard = async (
       totalValue,
       locked,
       remainingMintingCapacityShares,
-      minimalReserve,
       nodeOperatorFeeRate,
       nodeOperatorAccruedFee,
       settledGrowth,
@@ -69,7 +73,6 @@ export const getVaultOverviewByDashboard = async (
       contract.read.totalValue(),
       contract.read.locked(),
       contract.read.remainingMintingCapacityShares([0n]),
-      contract.read.minimalReserve(),
       contract.read.feeRate(),
       contract.read.accruedFee(),
       contract.read.settledGrowth(),
@@ -81,30 +84,30 @@ export const getVaultOverviewByDashboard = async (
     const balance = await publicClient.getBalance({
       address: vault,
     });
-    const vaultObligation = await callReadMethodSilent(
-      vaultHubContract,
-      'obligations',
-      [vault],
-    );
-    const tierInfo = await callReadMethodSilent(
-      operatorGridContract,
-      'vaultTierInfo',
-      [vault],
-    );
+    const vaultObligation = await callReadMethodSilent({
+      contract: vaultHubContract,
+      methodName: 'obligations',
+      payload: [[vault]],
+    });
+    const tierInfo = await callReadMethodSilent({
+      contract: operatorGridContract,
+      methodName: 'vaultTierInfo',
+      payload: [[vault]],
+    });
     const isNoHaveGroup =
       tierInfo[0] === '0xFFfFfFffFFfffFFfFFfFFFFFffFFFffffFfFFFfF';
-    const nodeOperatorGroup = await callReadMethodSilent(
-      operatorGridContract,
-      'group',
-      [tierInfo[0]],
-    );
+    const nodeOperatorGroup = await callReadMethodSilent({
+      contract: operatorGridContract,
+      methodName: 'group',
+      payload: [[tierInfo[0]]],
+    });
     const [
       totalMintingCapacityStethWei,
       shareLimitStethWei,
       tierShareLimitStethWei,
       groupShareLimitStethWei,
       remainingMintingCapacityStethWei,
-      lastReportLiabilityInStethWei,
+      lastReportMaxLiabilityInStethWei,
     ] = await Promise.all([
       stethContract.read.getPooledEthByShares([totalMintingCapacityShares]),
       stethContract.read.getPooledEthByShares([shareLimit]),
@@ -113,7 +116,7 @@ export const getVaultOverviewByDashboard = async (
       stethContract.read.getPooledEthByShares([remainingMintingCapacityShares]),
       report
         ? stethContract.read.getPooledEthBySharesRoundUp([
-            BigInt(report.data.liabilityShares),
+            BigInt(report.data.maxLiabilityShares),
           ])
         : 0n,
     ]);
@@ -129,8 +132,7 @@ export const getVaultOverviewByDashboard = async (
       nodeOperatorAccruedFee,
       totalMintingCapacityStethWei,
       unsettledLidoFees: vaultObligation[1],
-      minimalReserve,
-      lastReportLiabilityInStethWei,
+      lastReportMaxLiabilityInStethWei,
     });
 
     hideSpinner();

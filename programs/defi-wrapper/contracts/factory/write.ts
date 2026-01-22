@@ -1,4 +1,4 @@
-import { Address } from 'viem';
+import { Address, Hex, zeroAddress } from 'viem';
 import { Command, Option } from 'commander';
 
 import {
@@ -10,6 +10,7 @@ import {
   confirmOperation,
   stringToNumber,
   stringToBoolean,
+  stringToHash,
 } from 'utils';
 import { getFactoryContract } from 'contracts/defi-wrapper/index.js';
 import {
@@ -31,21 +32,19 @@ type MintableOptions = {
 
 type AllowlistableOptions = {
   allowListEnabled?: boolean;
+  allowListManager?: Address;
 };
+
+type CustomPoolOptions = {
+  mintingEnabled?: boolean;
+  strategyFactory?: Address;
+  strategyFactoryDeployBytes?: Hex;
+};
+
+// CONSTANTS & HELPERS
 
 const FIRST_STEP_MESSAGE =
   'Transaction has been sent. Use "dw use-cases wrapper-operations write create-pool-finalize" command to finalize the pool creation after the transaction is signed and executed';
-
-const factoryWrite = factory
-  .command('write')
-  .alias('w')
-  .description('write commands');
-
-factoryWrite.addOption(new Option('-cmd2json'));
-factoryWrite.on('option:-cmd2json', function () {
-  logInfo(getCommandsJson(factoryWrite));
-  process.exit();
-});
 
 // adds common options for all wrapper creation commands
 const applyCommonOptions = (command: Command): Command => {
@@ -86,17 +85,64 @@ const applyCommonOptions = (command: Command): Command => {
     );
 };
 
+const ALLOW_LIST_ENABLED_OPTION = [
+  '-al, --allowList <allowListEnabled>',
+  'is allowlist enabled (true/false)',
+  stringToBoolean,
+] as const;
+
+const ALLOW_LIST_MANAGER_OPTION = [
+  '-alm, --allowListManager <allowListManager>',
+  'allowlist manager address',
+  stringToAddress,
+] as const;
+
+const RR_GAP_BP_OPTION = [
+  '-rrg, --reserveRatioGapBP <reserveRatioGapBP>',
+  'reserve ratio gap in basis points',
+  stringToNumber,
+] as const;
+
+const MINTING_ENABLED_OPTION = [
+  '-me, --mintingEnabled <mintingEnabled>',
+  'is minting enabled (true/false)',
+  stringToBoolean,
+] as const;
+
+const STRATEGY_FACTORY_OPTION = [
+  '-sf, --strategyFactory <strategyFactory>',
+  'address of the strategy factory to use',
+  stringToAddress,
+] as const;
+
+const STRATEGY_FACTORY_DEPLOY_BYTES_OPTION = [
+  '-sfd, --strategyFactoryDeployBytes <strategyFactoryDeployBytes>',
+  'deployment bytecode for the strategy factory',
+  stringToHash,
+] as const;
+
+// CORE FACTORY COMMAND
+
+const factoryWrite = factory
+  .command('write')
+  .alias('w')
+  .description('write commands');
+
+factoryWrite.addOption(new Option('-cmd2json'));
+factoryWrite.on('option:-cmd2json', function () {
+  logInfo(getCommandsJson(factoryWrite));
+  process.exit();
+});
+
+// CREATE POOL COMMANDS
+
 applyCommonOptions(
   factoryWrite
     .command('create-pool-ggv')
     .description('initiates deployment of a GGV strategy pool')
     .argument('<address>', 'factory address', stringToAddress),
 )
-  .option(
-    '-rrg, --reserveRatioGapBP <reserveRatioGapBP>',
-    'reserve ratio gap in basis points',
-    stringToNumber,
-  )
+  .option(...RR_GAP_BP_OPTION)
   .action(
     async (
       address: Address,
@@ -152,16 +198,14 @@ applyCommonOptions(
     .description('initiates deployment of a STV staking pool')
     .argument('<address>', 'factory address', stringToAddress),
 )
-  .option(
-    '-al, --allowList <allowListEnabled>',
-    'is allowlist enabled (true/false)',
-    stringToBoolean,
-  )
+  .option(...ALLOW_LIST_ENABLED_OPTION)
+  .option(...ALLOW_LIST_MANAGER_OPTION)
   .action(
     async (
       address: Address,
       {
         allowListEnabled,
+        allowListManager,
         ...baseOptions
       }: BaseFactoryOptions & AllowlistableOptions,
     ) => {
@@ -175,13 +219,16 @@ applyCommonOptions(
         'AllowList',
       );
 
+      const allowListManagerValue = allowListManager ?? zeroAddress;
+
       const confirmationMessage = `Are you sure you want to create a new STV pool with a configured wrapper?\n
          ${prepareCreationConfigrationText(
            vaultConfig,
            timelockConfig,
            commonPoolConfig,
-         )}
-        allowListEnabled: ${allowListEnabledValue}\n`;
+         )} 
+        allowListEnabled: ${allowListEnabledValue}
+        allowListManager: ${allowListManagerValue === zeroAddress ? '<none>' : allowListManagerValue}\n`;
 
       const confirm = await confirmOperation(confirmationMessage);
       if (!confirm) return;
@@ -194,6 +241,7 @@ applyCommonOptions(
           timelockConfig,
           commonPoolConfig,
           allowListEnabledValue,
+          allowListManagerValue,
         ],
       });
 
@@ -230,22 +278,16 @@ applyCommonOptions(
     )
     .argument('<address>', 'factory address', stringToAddress),
 )
-  .option(
-    '-rrg, --reserveRatioGapBP <reserveRatioGapBP>',
-    'reserve ratio gap in basis points',
-    stringToNumber,
-  )
-  .option(
-    '-al, --allowList <allowListEnabled>',
-    'is allowlist enabled (true/false)',
-    stringToBoolean,
-  )
+  .option(...RR_GAP_BP_OPTION)
+  .option(...ALLOW_LIST_ENABLED_OPTION)
+  .option(...ALLOW_LIST_MANAGER_OPTION)
   .action(
     async (
       address: Address,
       {
         reserveRatioGapBP,
         allowListEnabled,
+        allowListManager,
         ...baseOptions
       }: BaseFactoryOptions & AllowlistableOptions & MintableOptions,
     ) => {
@@ -260,6 +302,8 @@ applyCommonOptions(
       const reserveRatioGapBPValue =
         await getReserveRatioGapBP(reserveRatioGapBP);
 
+      const allowListManagerValue = allowListManager ?? zeroAddress;
+
       const confirmationMessage = `Are you sure you want to create a new STV-STETH pool with minting enabled?\n
         ${prepareCreationConfigrationText(
           vaultConfig,
@@ -267,6 +311,7 @@ applyCommonOptions(
           commonPoolConfig,
         )}
         allowListEnabled: ${allowListEnabledValue}
+        allowListManager: ${allowListManagerValue === zeroAddress ? '<none>' : allowListManagerValue}
         reserveRatioGapBP: ${reserveRatioGapBPValue}\n`;
       const confirm = await confirmOperation(confirmationMessage);
       if (!confirm) return;
@@ -279,7 +324,99 @@ applyCommonOptions(
           timelockConfig,
           commonPoolConfig,
           allowListEnabledValue,
+          allowListManagerValue,
           BigInt(reserveRatioGapBPValue),
+        ],
+      });
+
+      if (!result.receipt || !result.tx) {
+        logInfo(FIRST_STEP_MESSAGE);
+        return;
+      }
+
+      const eventData = await getCreatePoolEventData(result.receipt, result.tx);
+
+      await logCreatePoolEventData(eventData);
+
+      await finalizePoolCreation(contract, eventData);
+    },
+  );
+
+applyCommonOptions(
+  factoryWrite
+    .command('create-pool-custom')
+    .description('initiates deployment of a custom pool')
+    .argument('<address>', 'factory address', stringToAddress),
+)
+  .option(...RR_GAP_BP_OPTION)
+  .option(...ALLOW_LIST_ENABLED_OPTION)
+  .option(...ALLOW_LIST_MANAGER_OPTION)
+  .option(...MINTING_ENABLED_OPTION)
+  .option(...STRATEGY_FACTORY_OPTION)
+  .option(...STRATEGY_FACTORY_DEPLOY_BYTES_OPTION)
+  .action(
+    async (
+      address: Address,
+      {
+        reserveRatioGapBP,
+        allowListManager,
+        allowListEnabled,
+        mintingEnabled,
+        strategyFactory,
+        strategyFactoryDeployBytes,
+        ...baseOptions
+      }: CustomPoolOptions &
+        BaseFactoryOptions &
+        AllowlistableOptions &
+        MintableOptions,
+    ) => {
+      const contract = await getFactoryContract(address);
+      const { vaultConfig, timelockConfig, commonPoolConfig } =
+        await promtBaseVaultConfiguration(baseOptions);
+
+      const allowListEnabledValue = await getBoolean(
+        allowListEnabled,
+        'AllowList',
+      );
+
+      const allowListManagerValue = allowListManager ?? zeroAddress;
+
+      const reserveRatioGapBPValue =
+        await getReserveRatioGapBP(reserveRatioGapBP);
+
+      const confirmationMessage = `Are you sure you want to create a new custom pool?\n
+        ${prepareCreationConfigrationText(
+          vaultConfig,
+          timelockConfig,
+          commonPoolConfig,
+        )}
+        strategyFactory: ${strategyFactory ? strategyFactory : '<none>'}
+        strategyFactoryDeployBytes: ${
+          strategyFactoryDeployBytes ? strategyFactoryDeployBytes : '<none>'
+        }
+        mintingEnabled: ${mintingEnabled !== undefined ? mintingEnabled : true}
+        allowListEnabled: ${allowListEnabledValue}
+        allowListManager: ${allowListManagerValue === zeroAddress ? '<none>' : allowListManagerValue}
+        reserveRatioGapBP: ${reserveRatioGapBPValue}\n`;
+
+      const confirm = await confirmOperation(confirmationMessage);
+      if (!confirm) return;
+
+      const result = await callWriteMethodWithReceipt({
+        contract,
+        methodName: 'createPoolStart',
+        payload: [
+          vaultConfig,
+          timelockConfig,
+          commonPoolConfig,
+          {
+            allowListEnabled: allowListEnabledValue,
+            allowListManager: allowListManagerValue,
+            reserveRatioGapBP: BigInt(reserveRatioGapBPValue),
+            mintingEnabled: true,
+          },
+          strategyFactory ?? zeroAddress,
+          strategyFactoryDeployBytes ?? '0x',
         ],
       });
 

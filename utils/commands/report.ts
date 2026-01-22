@@ -34,12 +34,16 @@ export const submitReport = async ({
     _vaultsDataRefSlot,
     _vaultsDataTreeRoot,
     vaultsDataReportCid,
-  ] = await callReadMethod(lazyOracleContract, 'latestReportData');
-  const isReportFresh = await callReadMethodSilent(
-    vaultHubContract,
-    'isReportFresh',
-    [vault],
-  );
+  ] = await callReadMethod({
+    contract: lazyOracleContract,
+    methodName: 'latestReportData',
+    payload: [],
+  });
+  const isReportFresh = await callReadMethodSilent({
+    contract: vaultHubContract,
+    methodName: 'isReportFresh',
+    payload: [[vault]],
+  });
 
   if (isReportFresh) {
     logCancel('Report is fresh. You dont need to submit it again');

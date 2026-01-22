@@ -126,6 +126,8 @@ yarn start report w submit --wallet-connect
 
 When the CLI displays the QR code and URI:
 
+<img src={require('@site/static/img/wc_qr.png').default} alt="WC QR code" width="600" style={{ display: 'block', margin: '0 auto' }} />
+
 **Option A: Using Safe Mobile App**
 
 1. Open Safe app on your mobile device

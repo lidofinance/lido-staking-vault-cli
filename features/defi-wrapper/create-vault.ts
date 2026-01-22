@@ -7,8 +7,8 @@ import {
   type VaultConfig,
 } from './defi-wrapper-factory.js';
 
-const MIN_TIME_IN_HOURS = 60 * 60; // 1 hour
-const MAX_TIME_IN_HOURS = 24 * 60 * 60 * 30; // 30 days
+const MIN_TIME_IN_SECONDS = 60 * 60; // 1 hour
+const MAX_TIME_IN_SECONDS = 60 * 60 * 24 * 30; // 30 days
 
 const MAX_POOL_TOKEN_NAME_LENGTH = 14;
 const MIN_POOL_TOKEN_NAME_LENGTH = 3;
@@ -56,9 +56,14 @@ const validatePoolTokenName = (name: string) => {
  * @param name - The name of the time
  * @throws Error if the time is invalid
  */
-const validateTimeInHours = (timeInHours: number, name: string) => {
-  const minInHours = MIN_TIME_IN_HOURS / 3600;
-  const maxInHours = MAX_TIME_IN_HOURS / 3600;
+const validateTimeInHours = (
+  timeInHours: number,
+  name: string,
+  minTimeSeconds?: number,
+  maxTimeSeconds?: number,
+) => {
+  const minInHours = (minTimeSeconds ?? MIN_TIME_IN_SECONDS) / 3600;
+  const maxInHours = (maxTimeSeconds ?? MAX_TIME_IN_SECONDS) / 3600;
 
   if (timeInHours < minInHours)
     throw new Error(
@@ -83,7 +88,7 @@ export const getMinWithdrawalDelayTime = async (
 ): Promise<number> => {
   if (!minWithdrawalDelayTime) {
     const minWithdrawalDelayTimeValue = await numberPrompt(
-      `Enter the min withdrawal delay time (in hours) (min: ${MIN_TIME_IN_HOURS / 3600} hours, max: ${MAX_TIME_IN_HOURS / 3600} hours)`,
+      `Enter the min withdrawal delay time (in hours) (min: ${MIN_TIME_IN_SECONDS / 3600} hours, max: ${MAX_TIME_IN_SECONDS / 3600} hours)`,
       'value',
     );
     if (!minWithdrawalDelayTimeValue.value)
@@ -115,18 +120,16 @@ export const getMinDelaySeconds = async (
 ): Promise<number> => {
   if (!minDelaySeconds) {
     const minDelaySecondsValue = await numberPrompt(
-      `Enter the min execution delay for timelock governance (min: ${MIN_TIME_IN_HOURS / 3600} hours, max: ${MAX_TIME_IN_HOURS / 3600} hours)`,
+      `Enter the min execution delay for timelock governance (min: 0, max: ${MAX_TIME_IN_SECONDS / 3600} hours)`,
       'value',
     );
-    if (!minDelaySecondsValue.value)
-      throw new Error('Invalid min delay seconds');
+    if (typeof minDelaySecondsValue.value !== 'number')
+      throw new Error('Invalid min timelock delay ');
 
-    validateTimeInHours(minDelaySecondsValue.value, 'Min delay seconds');
-
-    return minDelaySecondsValue.value * 3600;
+    minDelaySeconds = minDelaySecondsValue.value * 3600;
   }
 
-  validateTimeInHours(minDelaySeconds / 3600, 'Min delay seconds');
+  validateTimeInHours(minDelaySeconds / 3600, 'Min delay seconds', 0);
 
   return minDelaySeconds;
 };
@@ -190,7 +193,11 @@ export const getReserveRatioGapBP = async (
 
 const validateReserveRatioGapBP = async (reserveRatioGapBP: number) => {
   const operatorGrid = await getOperatorGridContract();
-  const defaultTier = await callReadMethodSilent(operatorGrid, 'tier', [0n]);
+  const defaultTier = await callReadMethodSilent({
+    contract: operatorGrid,
+    methodName: 'tier',
+    payload: [[0n]],
+  });
 
   if (!defaultTier)
     throw new Error(

@@ -89,7 +89,11 @@ export const checkVaultRole = async (
   roleName: RoleName,
   address: Address,
 ) => {
-  const ownerRole = await callReadMethodSilent(contract, 'DEFAULT_ADMIN_ROLE');
+  const ownerRole = await callReadMethodSilent({
+    contract,
+    methodName: 'DEFAULT_ADMIN_ROLE',
+    payload: [],
+  });
   const ownerMembers = await contract.read.getRoleMembers([ownerRole]);
   if (
     ownerMembers.some(
@@ -98,7 +102,11 @@ export const checkVaultRole = async (
   )
     return true;
 
-  const roleKeccak = await callReadMethodSilent(contract, roleName);
+  const roleKeccak = await callReadMethodSilent({
+    contract,
+    methodName: roleName,
+    payload: [],
+  });
   const roleMembers = await contract.read.getRoleMembers([roleKeccak]);
 
   const hasRole = roleMembers

@@ -51,11 +51,12 @@ const getStvPoolInfo = async (address: Address) => {
     contract.read.getAllowListSize(),
   ]);
 
-  const isDepositsPaused = await callReadMethodSilent(
+  const isDepositsPaused = await callReadMethodSilent({
     contract,
-    'isFeaturePaused',
-    [DEPOSITS_FEATURE],
-  );
+    methodName: 'isFeaturePaused',
+    payload: [[DEPOSITS_FEATURE]],
+  });
+
   const isReportFresh = await reportFreshWarning(vault);
 
   return {
@@ -88,8 +89,8 @@ const getStvStethPoolInfo = async (address: Address) => {
     WSTETH,
     RESERVE_RATIO_GAP_BP,
     totalMintedStethShares,
-    reserveRatioBP,
-    forcedRebalanceThresholdBP,
+    poolReserveRatioBP,
+    poolForcedRebalanceThresholdBP,
     totalExceedingMintedStethShares,
     totalExceedingMintedSteth,
     maxLossSocializationBP,
@@ -98,26 +99,26 @@ const getStvStethPoolInfo = async (address: Address) => {
     contract.read.WSTETH(),
     contract.read.RESERVE_RATIO_GAP_BP(),
     contract.read.totalMintedStethShares(),
-    contract.read.reserveRatioBP(),
-    contract.read.forcedRebalanceThresholdBP(),
+    contract.read.poolReserveRatioBP(),
+    contract.read.poolForcedRebalanceThresholdBP(),
     contract.read.totalExceedingMintedStethShares(),
     contract.read.totalExceedingMintedSteth(),
     contract.read.maxLossSocializationBP(),
     contract.read.MINTING_FEATURE(),
   ]);
 
-  const isMintingPaused = await callReadMethodSilent(
+  const isMintingPaused = await callReadMethodSilent({
     contract,
-    'isFeaturePaused',
-    [MINTING_FEATURE],
-  );
+    methodName: 'isFeaturePaused',
+    payload: [[MINTING_FEATURE]],
+  });
 
   return {
     WSTETH,
     RESERVE_RATIO_GAP_BP,
     totalMintedStethShares,
-    reserveRatioBP,
-    forcedRebalanceThresholdBP,
+    poolReserveRatioBP,
+    poolForcedRebalanceThresholdBP,
     totalExceedingMintedStethShares,
     totalExceedingMintedSteth,
     maxLossSocializationBP,

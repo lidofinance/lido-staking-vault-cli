@@ -7,8 +7,36 @@ import {
   submitReport,
   logInfo,
   PopulatedTx,
+  logError,
 } from 'utils';
 import { checkIsDisconnected } from './connection.js';
+
+export const checkIsReportFreshThrowError = async ({
+  vault,
+}: {
+  vault: Address;
+}): Promise<void> => {
+  const vaultHubContract = await getVaultHubContract();
+  const isDisconnected = await checkIsDisconnected(vault);
+
+  if (isDisconnected) {
+    logError('The vault is disconnected');
+    throw new Error(`The vault ${vault} is disconnected`);
+  }
+
+  const isReportFresh = await callReadMethodSilent({
+    contract: vaultHubContract,
+    methodName: 'isReportFresh',
+    payload: [[vault]],
+  });
+
+  if (!isReportFresh) {
+    logError(
+      'The report is not fresh. Submit a fresh report to update the vault data by command: report w submit',
+    );
+    throw new Error(`The report for vault ${vault} is not fresh`);
+  }
+};
 
 export const checkIsReportFresh = async ({
   vault,
@@ -22,11 +50,11 @@ export const checkIsReportFresh = async ({
 
   if (isDisconnected) return { isFresh: true, data: undefined };
 
-  const isReportFresh = await callReadMethodSilent(
-    vaultHubContract,
-    'isReportFresh',
-    [vault],
-  );
+  const isReportFresh = await callReadMethodSilent({
+    contract: vaultHubContract,
+    methodName: 'isReportFresh',
+    payload: [[vault]],
+  });
 
   if (!isReportFresh) {
     logInfo('The report is not fresh');
@@ -51,11 +79,11 @@ export const reportFreshWarning = async (vault: Address): Promise<boolean> => {
 
   if (isDisconnected) return true;
 
-  const isReportFresh = await callReadMethodSilent(
-    vaultHubContract,
-    'isReportFresh',
-    [vault],
-  );
+  const isReportFresh = await callReadMethodSilent({
+    contract: vaultHubContract,
+    methodName: 'isReportFresh',
+    payload: [[vault]],
+  });
 
   if (!isReportFresh) {
     console.info('____________________________________________________');

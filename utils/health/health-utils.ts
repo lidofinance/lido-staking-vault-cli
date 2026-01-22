@@ -1,26 +1,42 @@
 import { formatEther } from 'viem';
 
 import { callReadMethodSilent } from 'utils';
-import { DashboardContract, getStethContract } from 'contracts';
+import { DashboardContract, getStethContract, StethContract } from 'contracts';
 
 import { calculateHealth } from './calculate-health.js';
 
-export const fetchVaultMetrics = async (contract: DashboardContract) => {
+export const fetchVaultMetrics = async (
+  contract: DashboardContract,
+): Promise<{
+  totalValue: bigint;
+  liabilityShares: bigint;
+  forcedRebalanceThresholdBP: number;
+  liabilitySharesInStethWei: bigint;
+  stethContract: StethContract;
+}> => {
   const stethContract = await getStethContract();
 
   const [totalValue, liabilityShares, vaultConnection] = await Promise.all([
-    callReadMethodSilent(contract, 'totalValue'), // BigInt, in wei
-    callReadMethodSilent(contract, 'liabilityShares'), // BigInt, in shares
-    callReadMethodSilent(contract, 'vaultConnection'),
+    callReadMethodSilent({ contract, methodName: 'totalValue', payload: [] }), // BigInt, in wei
+    callReadMethodSilent({
+      contract,
+      methodName: 'liabilityShares',
+      payload: [],
+    }), // BigInt, in shares
+    callReadMethodSilent({
+      contract,
+      methodName: 'vaultConnection',
+      payload: [],
+    }),
   ]);
 
   const { forcedRebalanceThresholdBP } = vaultConnection;
 
-  const liabilitySharesInStethWei = await callReadMethodSilent(
-    stethContract,
-    'getPooledEthBySharesRoundUp',
-    [liabilityShares],
-  ); // BigInt
+  const liabilitySharesInStethWei = await callReadMethodSilent({
+    contract: stethContract,
+    methodName: 'getPooledEthBySharesRoundUp',
+    payload: [[liabilityShares]],
+  }); // BigInt
 
   return {
     totalValue,
@@ -77,10 +93,16 @@ export const fetchAndCalculateVaultHealthWithNewValue = async (
     ? liabilityShares + value
     : liabilityShares - value;
   const [newLiabilitySharesInStethWei, valueInStethWei] = await Promise.all([
-    callReadMethodSilent(stethContract, 'getPooledEthBySharesRoundUp', [
-      newLiabilityShares,
-    ]),
-    callReadMethodSilent(stethContract, 'getPooledEthByShares', [value]),
+    callReadMethodSilent({
+      contract: stethContract,
+      methodName: 'getPooledEthBySharesRoundUp',
+      payload: [[newLiabilityShares]],
+    }),
+    callReadMethodSilent({
+      contract: stethContract,
+      methodName: 'getPooledEthByShares',
+      payload: [[value]],
+    }),
   ]);
 
   const currentVaultHealth = calculateHealth({

@@ -130,12 +130,34 @@ export function generateReadCommands<T, U extends Abi>(
 
     fnCommand.action(async (...cliArgs: any[]) => {
       try {
-        const contract = await createContractAsync(cliArgs[0]);
-        const fnArgs =
-          inputs.length > 0 ? cliArgs.slice(1, inputs.length + 1) : undefined;
+        let contract: ReadContract;
+        let fnArgs: any[] | undefined;
 
-        if (fnArgs) await callReadMethod(contract, fnName, fnArgs);
-        else await callReadMethod(contract, fnName);
+        if (isNeedsAddress) {
+          // The first argument is the contract address
+          const address = cliArgs[0];
+          // The rest are the function arguments
+          fnArgs = cliArgs.slice(1);
+          // Create the contract async with address
+          contract = await createContractAsync(address);
+        } else {
+          // Create the contract async without address
+          contract = await (
+            createContractAsync as () => Promise<ReadContract>
+          )();
+          fnArgs = cliArgs; // all the passed arguments are the function arguments
+        }
+
+        fnArgs = inputs.length > 0 ? fnArgs.slice(0, inputs.length) : undefined;
+
+        if (fnArgs)
+          await callReadMethod({
+            contract,
+            methodName: fnName,
+            payload: [fnArgs],
+          });
+        else
+          await callReadMethod({ contract, methodName: fnName, payload: [] });
       } catch (error) {
         console.error(`Error calling function ${fnName}:`, error);
         process.exit(1);

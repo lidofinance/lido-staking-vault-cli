@@ -13,7 +13,11 @@ export const getVaultHealthByDashboard = async (
   contract: DashboardContract,
 ) => {
   try {
-    const vault = await callReadMethodSilent(contract, 'stakingVault');
+    const vault = await callReadMethodSilent({
+      contract,
+      methodName: 'stakingVault',
+      payload: [],
+    });
     await reportFreshWarning(vault);
 
     const {

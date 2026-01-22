@@ -6,16 +6,18 @@ export const checkVaultAvailableBalance = async (
   vault: Address,
 ): Promise<{ isFundConfirmed: boolean }> => {
   const vaultHub = await getVaultHubContract();
-  const connectDeposit = await callReadMethodSilent(
-    vaultHub,
-    'CONNECT_DEPOSIT',
-  );
+  const connectDeposit = await callReadMethodSilent({
+    contract: vaultHub,
+    methodName: 'CONNECT_DEPOSIT',
+    payload: [],
+  });
 
   const vaultContract = await getStakingVaultContract(vault);
-  const availableBalance = await callReadMethodSilent(
-    vaultContract,
-    'availableBalance',
-  );
+  const availableBalance = await callReadMethodSilent({
+    contract: vaultContract,
+    methodName: 'availableBalance',
+    payload: [],
+  });
 
   if (availableBalance < connectDeposit) {
     logInfo(

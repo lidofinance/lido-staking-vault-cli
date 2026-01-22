@@ -16,21 +16,21 @@ export const checkNOBalancePDGforDeposit = async (
 ) => {
   const currentAccount = await getAccount();
 
-  const balance = await callReadMethodSilent(
-    pdgContract,
-    'nodeOperatorBalance',
-    [nodeOperator],
-  );
-  const unlockedBalance = await callReadMethodSilent(
-    pdgContract,
-    'unlockedBalance',
-    [nodeOperator],
-  );
-  const nodeOperatorGuarantor = await callReadMethodSilent(
-    pdgContract,
-    'nodeOperatorGuarantor',
-    [nodeOperator],
-  );
+  const balance = await callReadMethodSilent({
+    contract: pdgContract,
+    methodName: 'nodeOperatorBalance',
+    payload: [[nodeOperator]],
+  });
+  const unlockedBalance = await callReadMethodSilent({
+    contract: pdgContract,
+    methodName: 'unlockedBalance',
+    payload: [[nodeOperator]],
+  });
+  const nodeOperatorGuarantor = await callReadMethodSilent({
+    contract: pdgContract,
+    methodName: 'nodeOperatorGuarantor',
+    payload: [[nodeOperator]],
+  });
   let amountToTopUp = 0n;
   let isNeedTopUp = false;
 
@@ -74,15 +74,16 @@ export const checkNOBalancePDGforDeposits = async (
   nodeOperator: Address,
   countOfDeposits: number,
 ) => {
-  const PREDEPOSIT_AMOUNT = await callReadMethodSilent(
-    pdgContract,
-    'PREDEPOSIT_AMOUNT',
-  );
-  const unlockedBalance = await callReadMethodSilent(
-    pdgContract,
-    'unlockedBalance',
-    [nodeOperator],
-  );
+  const PREDEPOSIT_AMOUNT = await callReadMethodSilent({
+    contract: pdgContract,
+    methodName: 'PREDEPOSIT_AMOUNT',
+    payload: [],
+  });
+  const unlockedBalance = await callReadMethodSilent({
+    contract: pdgContract,
+    methodName: 'unlockedBalance',
+    payload: [[nodeOperator]],
+  });
 
   const amountToTopUp = PREDEPOSIT_AMOUNT * BigInt(countOfDeposits);
 
@@ -103,10 +104,16 @@ export const checkNodeOperatorOrDepositorForDeposit = async (
   pdg: PredepositGuaranteeContract,
 ) => {
   const currentAccount = await getAccount();
-  const vaultNodeOperator = await callReadMethodSilent(vault, 'nodeOperator');
-  const noDepositor = await callReadMethodSilent(pdg, 'nodeOperatorDepositor', [
-    vaultNodeOperator,
-  ]);
+  const vaultNodeOperator = await callReadMethodSilent({
+    contract: vault,
+    methodName: 'nodeOperator',
+    payload: [],
+  });
+  const noDepositor = await callReadMethodSilent({
+    contract: pdg,
+    methodName: 'nodeOperatorDepositor',
+    payload: [[vaultNodeOperator]],
+  });
 
   if (
     noDepositor.toLocaleLowerCase() !==
@@ -126,10 +133,16 @@ export const checkAndSpecifyNodeOperatorForTopUpOrWithdraw = async (
   isTopUp: boolean,
 ) => {
   const currentAccount = await getAccount();
-  const vaultNodeOperator = await callReadMethodSilent(vault, 'nodeOperator');
-  const noGuarantor = await callReadMethodSilent(pdg, 'nodeOperatorGuarantor', [
-    vaultNodeOperator,
-  ]);
+  const vaultNodeOperator = await callReadMethodSilent({
+    contract: vault,
+    methodName: 'nodeOperator',
+    payload: [],
+  });
+  const noGuarantor = await callReadMethodSilent({
+    contract: pdg,
+    methodName: 'nodeOperatorGuarantor',
+    payload: [[vaultNodeOperator]],
+  });
 
   const isNoGuarantor =
     noGuarantor.toLocaleLowerCase() ===
@@ -164,11 +177,11 @@ export const getGuarantor = async (
   pdgContract: PredepositGuaranteeContract,
 ) => {
   const currentAccount = await getAccount();
-  const balance = await callReadMethodSilent(
-    pdgContract,
-    'nodeOperatorBalance',
-    [currentAccount.address],
-  );
+  const balance = await callReadMethodSilent({
+    contract: pdgContract,
+    methodName: 'nodeOperatorBalance',
+    payload: [[currentAccount.address]],
+  });
 
   if (balance.locked > 0n) {
     throw new Error(

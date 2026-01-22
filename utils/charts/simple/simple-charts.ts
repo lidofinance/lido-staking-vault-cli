@@ -37,7 +37,11 @@ export const renderSimpleCharts = async ({
   cacheUse?: boolean;
 }) => {
   const dashboardContract = await getDashboardContract(dashboard);
-  const vault = await callReadMethodSilent(dashboardContract, 'stakingVault');
+  const vault = await callReadMethodSilent({
+    contract: dashboardContract,
+    methodName: 'stakingVault',
+    payload: [],
+  });
 
   logInfo(
     `\n=== Getting report history for vault ${vault} (CID: ${cid}) ===\n`,

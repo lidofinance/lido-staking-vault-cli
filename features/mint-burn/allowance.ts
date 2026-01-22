@@ -31,16 +31,17 @@ export const checkAllowance = async (
   if (token === 'steth' || isShares) {
     const stethContract = await getStethContract();
 
-    const allowance = await callReadMethodSilent(stethContract, 'allowance', [
-      accountAddress,
-      contract.address,
-    ]);
+    const allowance = await callReadMethodSilent({
+      contract: stethContract,
+      methodName: 'allowance',
+      payload: [[accountAddress, contract.address]],
+    });
     if (isShares) {
-      currentAmount = await callReadMethodSilent(
-        stethContract,
-        'getPooledEthByShares',
-        [amount],
-      );
+      currentAmount = await callReadMethodSilent({
+        contract: stethContract,
+        methodName: 'getPooledEthByShares',
+        payload: [[amount]],
+      });
     }
 
     if (allowance < currentAmount) {
@@ -61,11 +62,11 @@ export const checkAllowance = async (
   } else {
     const wstethContract = await getWstethContract();
 
-    const wstethAllowance = await callReadMethodSilent(
-      wstethContract,
-      'allowance',
-      [accountAddress, contract.address],
-    );
+    const wstethAllowance = await callReadMethodSilent({
+      contract: wstethContract,
+      methodName: 'allowance',
+      payload: [[accountAddress, contract.address]],
+    });
     if (wstethAllowance < amount) {
       logInfo('Insufficient allowance');
 

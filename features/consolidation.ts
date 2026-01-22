@@ -1,8 +1,8 @@
 import {
-  Hex,
   Address,
   hexToBigInt,
   decodeFunctionData,
+  Hex,
   isHex,
   formatEther,
 } from 'viem';
@@ -148,11 +148,13 @@ export const consolidationRequestsAndIncreaseFeeExemption = async ({
   if (targetAndSourceValidators.size > 0) {
     // 1. Fetch consolidation request encoded calls and increase fee exemption amount encoded call.
     const [feeExemptionEncodedCallResult, consolidationRequestEncodedCalls] =
-      await callReadMethodSilent(
-        consolidationContract,
-        'getConsolidationRequestsAndFeeExemptionEncodedCalls',
-        [sourcePubkeysFlattened, targetPubkeys, dashboard, feeExemption],
-      );
+      await callReadMethodSilent({
+        contract: consolidationContract,
+        methodName: 'getConsolidationRequestsAndFeeExemptionEncodedCalls',
+        payload: [
+          [sourcePubkeysFlattened, targetPubkeys, dashboard, feeExemption],
+        ],
+      });
     feeExemptionEncodedCall = feeExemptionEncodedCallResult;
 
     // 2. Create populated transactions for consolidation requests
@@ -198,11 +200,13 @@ const getConsolidationRequestsAndFeeExemptionEncodedCalls = async (
     await getValidatorConsolidationRequestsContract();
 
   const [feeExemptionEncodedCall, consolidationRequestEncodedCalls] =
-    await callReadMethodSilent(
-      consolidationContract,
-      'getConsolidationRequestsAndFeeExemptionEncodedCalls',
-      [sourcePubkeysFlattened, targetPubkeys, dashboard, feeExemption],
-    );
+    await callReadMethodSilent({
+      contract: consolidationContract,
+      methodName: 'getConsolidationRequestsAndFeeExemptionEncodedCalls',
+      payload: [
+        [sourcePubkeysFlattened, targetPubkeys, dashboard, feeExemption],
+      ],
+    });
   return [feeExemptionEncodedCall, consolidationRequestEncodedCalls];
 };
 
@@ -298,10 +302,11 @@ export const confirmNewFeeExemption = async (
   dashboardContract: DashboardContract,
   newFeeExemption: bigint,
 ) => {
-  const settledGrowth = await callReadMethodSilent(
-    dashboardContract,
-    'settledGrowth',
-  );
+  const settledGrowth = await callReadMethodSilent({
+    contract: dashboardContract,
+    methodName: 'settledGrowth',
+    payload: [],
+  });
 
   if (settledGrowth < newFeeExemption) {
     return {

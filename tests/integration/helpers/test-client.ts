@@ -94,3 +94,18 @@ export const getCurrentTimestamp = async (
 export const getAccountFromPrivateKey = (privateKey: string) => {
   return privateKeyToAccount(privateKey as `0x${string}`);
 };
+
+/**
+ * Resets Anvil state to a specific block number
+ * This is useful for ensuring tests don't affect each other
+ */
+export const resetAnvilState = async (
+  testClient: ReturnType<typeof createAnvilTestClient>,
+  blockNumber?: bigint,
+) => {
+  console.info('---- Resetting Anvil state to block number ---->', blockNumber);
+  await testClient.reset({
+    blockNumber,
+  });
+  console.info('---- Resetting Anvil state done ----');
+};

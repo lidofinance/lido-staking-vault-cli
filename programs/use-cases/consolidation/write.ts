@@ -99,10 +99,11 @@ consolidationWrite
         getAccount(),
         getDashboardContract(dashboard),
       ]);
-      const vault = await callReadMethodSilent(
-        dashboardContract,
-        'stakingVault',
-      );
+      const vault = await callReadMethodSilent({
+        contract: dashboardContract,
+        methodName: 'stakingVault',
+        payload: [],
+      });
 
       await checkVaultRole(
         dashboardContract,
