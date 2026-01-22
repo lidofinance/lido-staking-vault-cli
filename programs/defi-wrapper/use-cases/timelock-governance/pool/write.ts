@@ -1,5 +1,9 @@
 import { Option } from 'commander';
-import { resolveRole } from 'features/defi-wrapper/index.js';
+import {
+  DEFAULT_PREDECESSOR,
+  processSalt,
+  resolveRole,
+} from 'features/defi-wrapper/index.js';
 import {
   logInfo,
   getCommandsJson,
@@ -11,7 +15,7 @@ import {
   textPrompt,
 } from 'utils';
 import { pool } from './main.js';
-import { Address, Hex, encodeFunctionData, stringToHex } from 'viem';
+import { Address, encodeFunctionData } from 'viem';
 import {
   getTimeLockContract,
   getStvPoolContract,
@@ -78,9 +82,7 @@ poolWrite
         getStvPoolContract,
       );
 
-      const finalSalt = options?.salt
-        ? stringToHex(options.salt)
-        : ('0x0000000000000000000000000000000000000000000000000000000000000000' as Hex);
+      const finalSalt = processSalt(options?.salt);
 
       let account: Address;
       if (!accountInput) {
@@ -109,8 +111,7 @@ poolWrite
         args: [role, account],
       });
 
-      const predecessor =
-        '0x0000000000000000000000000000000000000000000000000000000000000000' as Hex;
+      const predecessor = DEFAULT_PREDECESSOR;
 
       // Calculate operation ID
       const operationId = await callReadMethodSilent({
@@ -193,9 +194,7 @@ poolWrite
         getStvPoolContract,
       );
 
-      const finalSalt = options?.salt
-        ? stringToHex(options.salt)
-        : ('0x0000000000000000000000000000000000000000000000000000000000000000' as Hex);
+      const finalSalt = processSalt(options?.salt);
 
       let account: Address;
       if (!accountInput) {
@@ -217,8 +216,7 @@ poolWrite
         args: [role, account],
       });
 
-      const predecessor =
-        '0x0000000000000000000000000000000000000000000000000000000000000000' as Hex;
+      const predecessor = DEFAULT_PREDECESSOR;
 
       // Calculate operation ID (must match the one from schedule)
       const operationId = await callReadMethodSilent({
@@ -341,9 +339,7 @@ poolWrite
         getStvPoolContract,
       );
 
-      const finalSalt = options?.salt
-        ? stringToHex(options.salt)
-        : ('0x0000000000000000000000000000000000000000000000000000000000000000' as Hex);
+      const finalSalt = processSalt(options?.salt);
 
       let account: Address;
       if (!accountInput) {
@@ -372,8 +368,7 @@ poolWrite
         args: [role, account],
       });
 
-      const predecessor =
-        '0x0000000000000000000000000000000000000000000000000000000000000000' as Hex;
+      const predecessor = DEFAULT_PREDECESSOR;
 
       // Calculate operation ID
       const operationId = await callReadMethodSilent({
@@ -456,9 +451,7 @@ poolWrite
         getStvPoolContract,
       );
 
-      const finalSalt = options?.salt
-        ? stringToHex(options.salt)
-        : ('0x0000000000000000000000000000000000000000000000000000000000000000' as Hex);
+      const finalSalt = processSalt(options?.salt);
 
       let account: Address;
       if (!accountInput) {
@@ -480,8 +473,7 @@ poolWrite
         args: [role, account],
       });
 
-      const predecessor =
-        '0x0000000000000000000000000000000000000000000000000000000000000000' as Hex;
+      const predecessor = DEFAULT_PREDECESSOR;
 
       // Calculate operation ID (must match the one from schedule)
       const operationId = await callReadMethodSilent({
@@ -610,9 +602,7 @@ poolWrite
         );
       }
 
-      const finalSalt = options?.salt
-        ? stringToHex(options.salt)
-        : ('0x0000000000000000000000000000000000000000000000000000000000000000' as Hex);
+      const finalSalt = processSalt(options?.salt);
 
       const timelockContract = await getTimeLockContract(timelock);
 
@@ -630,8 +620,7 @@ poolWrite
         args: [maxSocializablePortionBP],
       });
 
-      const predecessor =
-        '0x0000000000000000000000000000000000000000000000000000000000000000' as Hex;
+      const predecessor = DEFAULT_PREDECESSOR;
 
       // Calculate operation ID
       const operationId = await callReadMethodSilent({
@@ -722,9 +711,7 @@ poolWrite
         );
       }
 
-      const finalSalt = options?.salt
-        ? stringToHex(options.salt)
-        : ('0x0000000000000000000000000000000000000000000000000000000000000000' as Hex);
+      const finalSalt = processSalt(options?.salt);
 
       const timelockContract = await getTimeLockContract(timelock);
 
@@ -735,8 +722,7 @@ poolWrite
         args: [maxSocializablePortionBP],
       });
 
-      const predecessor =
-        '0x0000000000000000000000000000000000000000000000000000000000000000' as Hex;
+      const predecessor = DEFAULT_PREDECESSOR;
 
       // Calculate operation ID (must match the one from schedule)
       const operationId = await callReadMethodSilent({

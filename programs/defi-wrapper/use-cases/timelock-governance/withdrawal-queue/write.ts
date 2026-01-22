@@ -3,6 +3,7 @@ import {
   proposeOperation,
   executeOperation,
   resolveRole,
+  processSalt,
 } from 'features/defi-wrapper/index.js';
 import {
   logInfo,
@@ -12,7 +13,7 @@ import {
   textPrompt,
 } from 'utils';
 import { withdrawalQueueTimelockGovernance } from './main.js';
-import { Address, Hex, encodeFunctionData, stringToHex } from 'viem';
+import { Address, encodeFunctionData } from 'viem';
 import { getWithdrawalQueueContract } from 'contracts/defi-wrapper/index.js';
 import { WithdrawalQueueAbi } from 'abi/defi-wrapper/index.js';
 
@@ -82,9 +83,7 @@ withdrawalQueueWrite
         getWithdrawalQueueContract,
       );
 
-      const finalSalt = options?.salt
-        ? stringToHex(options.salt)
-        : ('0x0000000000000000000000000000000000000000000000000000000000000000' as Hex);
+      const finalSalt = processSalt(options?.salt);
 
       let account: Address;
       if (!accountInput) {
@@ -169,9 +168,7 @@ withdrawalQueueWrite
         getWithdrawalQueueContract,
       );
 
-      const finalSalt = options?.salt
-        ? stringToHex(options.salt)
-        : ('0x0000000000000000000000000000000000000000000000000000000000000000' as Hex);
+      const finalSalt = processSalt(options?.salt);
 
       let account: Address;
       if (!accountInput) {
@@ -256,9 +253,7 @@ withdrawalQueueWrite
         getWithdrawalQueueContract,
       );
 
-      const finalSalt = options?.salt
-        ? stringToHex(options.salt)
-        : ('0x0000000000000000000000000000000000000000000000000000000000000000' as Hex);
+      const finalSalt = processSalt(options?.salt);
 
       let account: Address;
       if (!accountInput) {
@@ -343,9 +338,7 @@ withdrawalQueueWrite
         getWithdrawalQueueContract,
       );
 
-      const finalSalt = options?.salt
-        ? stringToHex(options.salt)
-        : ('0x0000000000000000000000000000000000000000000000000000000000000000' as Hex);
+      const finalSalt = processSalt(options?.salt);
 
       let account: Address;
       if (!accountInput) {

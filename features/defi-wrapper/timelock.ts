@@ -4,9 +4,18 @@ import {
   confirmOperation,
   callReadMethodSilent,
 } from 'utils';
-import { Address, Hex } from 'viem';
+import { Address, Hex, stringToHex, zeroHash } from 'viem';
 import { getTimeLockContract } from 'contracts/defi-wrapper/index.js';
 import { getPublicClient } from 'providers';
+
+// Common constants
+export const DEFAULT_SALT = zeroHash;
+export const DEFAULT_PREDECESSOR = zeroHash;
+
+// Helper function to process salt option
+export const processSalt = (saltOption?: string): Hex => {
+  return saltOption ? stringToHex(saltOption) : DEFAULT_SALT;
+};
 
 // Helper function to resolve role
 export const resolveRole = async (
@@ -50,8 +59,7 @@ export const proposeOperation = async (
     payload: [],
   });
 
-  const predecessor =
-    '0x0000000000000000000000000000000000000000000000000000000000000000' as Hex;
+  const predecessor = DEFAULT_PREDECESSOR;
 
   const operationId = await callReadMethodSilent({
     contract: timelockContract,
@@ -97,8 +105,7 @@ export const executeOperation = async (
   confirmationMessage: string,
 ): Promise<void> => {
   const timelockContract = await getTimeLockContract(timelock);
-  const predecessor =
-    '0x0000000000000000000000000000000000000000000000000000000000000000' as Hex;
+  const predecessor = DEFAULT_PREDECESSOR;
 
   const operationId = await callReadMethodSilent({
     contract: timelockContract,

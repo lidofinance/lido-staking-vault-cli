@@ -1,19 +1,19 @@
 import { Option } from 'commander';
 import {
+  proposeOperation,
+  executeOperation,
+  processSalt,
+} from 'features/defi-wrapper/index.js';
+import {
   logInfo,
   getCommandsJson,
   stringToAddress,
-  callWriteMethodWithReceipt,
-  confirmOperation,
-  callReadMethodSilent,
   addressPrompt,
   textPrompt,
 } from 'utils';
 import { proxy } from './main.js';
-import { Address, Hex, encodeFunctionData, stringToHex } from 'viem';
-import { getTimeLockContract } from 'contracts/defi-wrapper/index.js';
+import { Address, Hex, encodeFunctionData } from 'viem';
 import { OssifiableProxyAbi } from 'abi/defi-wrapper/index.js';
-import { getPublicClient } from 'providers';
 
 const proxyWrite = proxy
   .command('write')
@@ -25,132 +25,6 @@ proxyWrite.on('option:-cmd2json', function () {
   logInfo(getCommandsJson(proxyWrite));
   process.exit();
 });
-
-// Helper function for propose operations
-const proposeOperation = async (
-  timelock: Address,
-  target: Address,
-  data: Hex,
-  salt: Hex,
-  functionName: string,
-  confirmationMessage: string,
-): Promise<Hex> => {
-  const timelockContract = await getTimeLockContract(timelock);
-  const minDelay = await callReadMethodSilent({
-    contract: timelockContract,
-    methodName: 'getMinDelay',
-    payload: [],
-  });
-
-  const predecessor =
-    '0x0000000000000000000000000000000000000000000000000000000000000000' as Hex;
-
-  const operationId = await callReadMethodSilent({
-    contract: timelockContract,
-    methodName: 'hashOperation',
-    payload: [[target, 0n, data, predecessor, salt]],
-  });
-  logInfo('Proposing operation:');
-  logInfo(`  Operation ID: ${operationId}`);
-  logInfo(`  Target: ${target}`);
-  logInfo(`  Value: 0`);
-  logInfo(`  Payload: ${data}`);
-  logInfo(`  Predecessor: ${predecessor}`);
-  logInfo(`  Salt: ${salt}`);
-  logInfo(`  Function: ${functionName}`);
-  logInfo(`  Min delay: ${minDelay} seconds`);
-
-  const confirm = await confirmOperation(confirmationMessage);
-  if (!confirm) {
-    throw new Error('Operation cancelled by user');
-  }
-
-  await callWriteMethodWithReceipt({
-    contract: timelockContract,
-    methodName: 'schedule',
-    payload: [target, 0n, data, predecessor, salt, minDelay],
-  });
-
-  logInfo(`✅ Operation proposed successfully!`);
-  logInfo(`   Operation ID: ${operationId}`);
-  logInfo(`   Execute after: ${minDelay} seconds`);
-
-  return operationId;
-};
-
-// Helper function for execute operations
-const executeOperation = async (
-  timelock: Address,
-  target: Address,
-  data: Hex,
-  salt: Hex,
-  functionName: string,
-  confirmationMessage: string,
-): Promise<void> => {
-  const timelockContract = await getTimeLockContract(timelock);
-  const predecessor =
-    '0x0000000000000000000000000000000000000000000000000000000000000000' as Hex;
-
-  const operationId = await callReadMethodSilent({
-    contract: timelockContract,
-    methodName: 'hashOperation',
-    payload: [[target, 0n, data, predecessor, salt]],
-  });
-  logInfo('Calculated operation details:');
-  logInfo(`  Operation ID: ${operationId}`);
-  logInfo(`  Target: ${target}`);
-  logInfo(`  Value: 0`);
-  logInfo(`  Payload: ${data}`);
-  logInfo(`  Predecessor: ${predecessor}`);
-  logInfo(`  Salt: ${salt}`);
-
-  const state = await callReadMethodSilent({
-    contract: timelockContract,
-    methodName: 'getOperationState',
-    payload: [[operationId]],
-  });
-  if (state === 0) {
-    logInfo('❌ Operation not found (Unset)');
-    logInfo(`   Operation ID: ${operationId}`);
-    return;
-  }
-  if (state === 3) {
-    logInfo('✅ Operation already executed (Done)');
-    return;
-  }
-  if (state === 1) {
-    const timestamp = await callReadMethodSilent({
-      contract: timelockContract,
-      methodName: 'getTimestamp',
-      payload: [[operationId]],
-    });
-    const publicClient = await getPublicClient();
-    const currentBlock = await publicClient.getBlock({ blockTag: 'latest' });
-    const now = currentBlock.timestamp;
-    const waitTime = timestamp > now ? timestamp - now : 0n;
-    logInfo(
-      `⏳ Operation is waiting. Will be ready at timestamp ${timestamp} (in ${waitTime} seconds)`,
-    );
-    return;
-  }
-
-  logInfo('Executing operation:');
-  logInfo(`  Operation ID: ${operationId}`);
-  logInfo(`  Target: ${target}`);
-  logInfo(`  Function: ${functionName}`);
-
-  const confirm = await confirmOperation(confirmationMessage);
-  if (!confirm) return;
-
-  await callWriteMethodWithReceipt({
-    contract: timelockContract,
-    methodName: 'execute',
-    payload: [target, 0n, data, predecessor, salt],
-  });
-
-  logInfo(`✅ Operation executed successfully!`);
-  logInfo(`   Operation ID: ${operationId}`);
-};
 
 // propose-upgrade-to
 proxyWrite
@@ -194,9 +68,7 @@ proxyWrite
 
       const newImplementation = stringToAddress(newImplementationInput);
 
-      const finalSalt = options?.salt
-        ? stringToHex(options.salt)
-        : ('0x0000000000000000000000000000000000000000000000000000000000000000' as Hex);
+      const finalSalt = processSalt(options?.salt);
 
       const data = encodeFunctionData({
         abi: OssifiableProxyAbi,
@@ -257,9 +129,7 @@ proxyWrite
 
       const newImplementation = stringToAddress(newImplementationInput);
 
-      const finalSalt = options?.salt
-        ? stringToHex(options.salt)
-        : ('0x0000000000000000000000000000000000000000000000000000000000000000' as Hex);
+      const finalSalt = processSalt(options?.salt);
 
       const data = encodeFunctionData({
         abi: OssifiableProxyAbi,
@@ -334,9 +204,7 @@ proxyWrite
 
       const setupCalldata = setupCalldataInput as Hex;
 
-      const finalSalt = options?.salt
-        ? stringToHex(options.salt)
-        : ('0x0000000000000000000000000000000000000000000000000000000000000000' as Hex);
+      const finalSalt = processSalt(options?.salt);
 
       const data = encodeFunctionData({
         abi: OssifiableProxyAbi,
@@ -411,9 +279,7 @@ proxyWrite
 
       const setupCalldata = setupCalldataInput as Hex;
 
-      const finalSalt = options?.salt
-        ? stringToHex(options.salt)
-        : ('0x0000000000000000000000000000000000000000000000000000000000000000' as Hex);
+      const finalSalt = processSalt(options?.salt);
 
       const data = encodeFunctionData({
         abi: OssifiableProxyAbi,

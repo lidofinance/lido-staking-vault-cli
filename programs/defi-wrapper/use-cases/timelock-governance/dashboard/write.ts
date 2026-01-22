@@ -3,6 +3,7 @@ import {
   proposeOperation,
   executeOperation,
   resolveRole,
+  processSalt,
 } from 'features/defi-wrapper/index.js';
 import {
   logInfo,
@@ -12,7 +13,7 @@ import {
   textPrompt,
 } from 'utils';
 import { dashboardTimelockGovernance } from './main.js';
-import { Address, Hex, encodeFunctionData, stringToHex } from 'viem';
+import { Address, encodeFunctionData } from 'viem';
 import { getDashboardContract } from 'contracts/index.js';
 import { DashboardAbi } from 'abi/index.js';
 
@@ -74,10 +75,7 @@ dashboardWrite
         getDashboardContract,
       );
 
-      const finalSalt = options?.salt
-        ? stringToHex(options.salt)
-        : ('0x0000000000000000000000000000000000000000000000000000000000000000' as Hex);
-
+      const finalSalt = processSalt(options?.salt);
       let account: Address;
       if (!accountInput) {
         const accountPrompt = await addressPrompt(
@@ -153,10 +151,7 @@ dashboardWrite
         getDashboardContract,
       );
 
-      const finalSalt = options?.salt
-        ? stringToHex(options.salt)
-        : ('0x0000000000000000000000000000000000000000000000000000000000000000' as Hex);
-
+      const finalSalt = processSalt(options?.salt);
       let account: Address;
       if (!accountInput) {
         const accountPrompt = await addressPrompt(
@@ -232,10 +227,7 @@ dashboardWrite
         getDashboardContract,
       );
 
-      const finalSalt = options?.salt
-        ? stringToHex(options.salt)
-        : ('0x0000000000000000000000000000000000000000000000000000000000000000' as Hex);
-
+      const finalSalt = processSalt(options?.salt);
       let account: Address;
       if (!accountInput) {
         const accountPrompt = await addressPrompt(
@@ -311,9 +303,7 @@ dashboardWrite
         getDashboardContract,
       );
 
-      const finalSalt = options?.salt
-        ? stringToHex(options.salt)
-        : ('0x0000000000000000000000000000000000000000000000000000000000000000' as Hex);
+      const finalSalt = processSalt(options?.salt);
 
       let account: Address;
       if (!accountInput) {
@@ -395,9 +385,7 @@ dashboardWrite
       const tierId = BigInt(tierIdInput);
       const shareLimit = BigInt(shareLimitInput);
 
-      const finalSalt = options?.salt
-        ? stringToHex(options.salt)
-        : ('0x0000000000000000000000000000000000000000000000000000000000000000' as Hex);
+      const finalSalt = processSalt(options?.salt);
 
       const data = encodeFunctionData({
         abi: DashboardAbi,
@@ -468,9 +456,7 @@ dashboardWrite
       const tierId = BigInt(tierIdInput);
       const shareLimit = BigInt(shareLimitInput);
 
-      const finalSalt = options?.salt
-        ? stringToHex(options.salt)
-        : ('0x0000000000000000000000000000000000000000000000000000000000000000' as Hex);
+      const finalSalt = processSalt(options?.salt);
 
       const data = encodeFunctionData({
         abi: DashboardAbi,
@@ -518,9 +504,7 @@ dashboardWrite
         dashboardAddress = dashboardPrompt.dashboard as Address;
       }
 
-      const finalSalt = options?.salt
-        ? stringToHex(options.salt)
-        : ('0x0000000000000000000000000000000000000000000000000000000000000000' as Hex);
+      const finalSalt = processSalt(options?.salt);
 
       const data = encodeFunctionData({
         abi: DashboardAbi,
@@ -568,9 +552,7 @@ dashboardWrite
         dashboardAddress = dashboardPrompt.dashboard as Address;
       }
 
-      const finalSalt = options?.salt
-        ? stringToHex(options.salt)
-        : ('0x0000000000000000000000000000000000000000000000000000000000000000' as Hex);
+      const finalSalt = processSalt(options?.salt);
 
       const data = encodeFunctionData({
         abi: DashboardAbi,
@@ -630,9 +612,7 @@ dashboardWrite
 
       const shareLimit = BigInt(shareLimitInput);
 
-      const finalSalt = options?.salt
-        ? stringToHex(options.salt)
-        : ('0x0000000000000000000000000000000000000000000000000000000000000000' as Hex);
+      const finalSalt = processSalt(options?.salt);
 
       const data = encodeFunctionData({
         abi: DashboardAbi,
@@ -692,9 +672,7 @@ dashboardWrite
 
       const shareLimit = BigInt(shareLimitInput);
 
-      const finalSalt = options?.salt
-        ? stringToHex(options.salt)
-        : ('0x0000000000000000000000000000000000000000000000000000000000000000' as Hex);
+      const finalSalt = processSalt(options?.salt);
 
       const data = encodeFunctionData({
         abi: DashboardAbi,
@@ -762,9 +740,7 @@ dashboardWrite
         throw new Error('PDG policy must be 0, 1, or 2');
       }
 
-      const finalSalt = options?.salt
-        ? stringToHex(options.salt)
-        : ('0x0000000000000000000000000000000000000000000000000000000000000000' as Hex);
+      const finalSalt = processSalt(options?.salt);
 
       const data = encodeFunctionData({
         abi: DashboardAbi,
@@ -831,9 +807,7 @@ dashboardWrite
         throw new Error('PDG policy must be 0, 1, or 2');
       }
 
-      const finalSalt = options?.salt
-        ? stringToHex(options.salt)
-        : ('0x0000000000000000000000000000000000000000000000000000000000000000' as Hex);
+      const finalSalt = processSalt(options?.salt);
 
       const data = encodeFunctionData({
         abi: DashboardAbi,
@@ -894,9 +868,7 @@ dashboardWrite
 
       const newOwner = stringToAddress(newOwnerInput);
 
-      const finalSalt = options?.salt
-        ? stringToHex(options.salt)
-        : ('0x0000000000000000000000000000000000000000000000000000000000000000' as Hex);
+      const finalSalt = processSalt(options?.salt);
 
       const data = encodeFunctionData({
         abi: DashboardAbi,
@@ -959,9 +931,7 @@ dashboardWrite
 
       const newOwner = stringToAddress(newOwnerInput);
 
-      const finalSalt = options?.salt
-        ? stringToHex(options.salt)
-        : ('0x0000000000000000000000000000000000000000000000000000000000000000' as Hex);
+      const finalSalt = processSalt(options?.salt);
 
       const data = encodeFunctionData({
         abi: DashboardAbi,

@@ -13,6 +13,7 @@ import { common } from './main.js';
 import { Address, Hex, stringToHex, isHex } from 'viem';
 import { getTimeLockContract } from 'contracts/defi-wrapper/index.js';
 import { getPublicClient } from 'providers';
+import { processSalt } from 'features/defi-wrapper/index.js';
 
 const commonWrite = common
   .command('write')
@@ -88,11 +89,7 @@ commonWrite
           : stringToHex(options.predecessor)
         : ('0x0000000000000000000000000000000000000000000000000000000000000000' as Hex);
 
-      const salt = options?.salt
-        ? isHex(options.salt)
-          ? options.salt
-          : stringToHex(options.salt)
-        : ('0x0000000000000000000000000000000000000000000000000000000000000000' as Hex);
+      const salt = processSalt(options?.salt);
 
       const timelockContract = await getTimeLockContract(timelock);
 
