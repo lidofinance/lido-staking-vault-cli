@@ -1,4 +1,5 @@
 import { Option } from 'commander';
+import { resolveRole } from 'features/defi-wrapper/index.js';
 import {
   logInfo,
   getCommandsJson,
@@ -63,7 +64,6 @@ poolWrite
       }
 
       // Resolve role
-      let role: Hex;
       if (!roleInput) {
         const rolePrompt = await textPrompt(
           'Enter role (bytes32 hex or role name like DEFAULT_ADMIN_ROLE)',
@@ -72,24 +72,11 @@ poolWrite
         roleInput = rolePrompt.role as string;
       }
 
-      // If it's a role name, try to get it from the pool contract
-      if (!roleInput.startsWith('0x')) {
-        const poolContract = await getStvPoolContract(poolAddress);
-        try {
-          role = (await callReadMethodSilent({
-            contract: poolContract,
-            methodName: roleInput as any,
-            payload: [],
-          })) as Hex;
-          logInfo(`Resolved role "${roleInput}" to ${role}`);
-        } catch {
-          throw new Error(
-            `Failed to resolve role "${roleInput}". Please provide a valid role name (e.g., DEFAULT_ADMIN_ROLE) or bytes32 hex.`,
-          );
-        }
-      } else {
-        role = stringToHex(roleInput);
-      }
+      const role = await resolveRole(
+        roleInput,
+        poolAddress,
+        getStvPoolContract,
+      );
 
       const finalSalt = options?.salt
         ? stringToHex(options.salt)
@@ -192,7 +179,6 @@ poolWrite
       }
 
       // Resolve role
-      let role: Hex;
       if (!roleInput) {
         const rolePrompt = await textPrompt(
           'Enter role (bytes32 hex or role name like DEFAULT_ADMIN_ROLE)',
@@ -201,24 +187,11 @@ poolWrite
         roleInput = rolePrompt.role as string;
       }
 
-      // If it's a role name, try to get it from the pool contract
-      if (!roleInput.startsWith('0x')) {
-        const poolContract = await getStvPoolContract(poolAddress);
-        try {
-          role = (await callReadMethodSilent({
-            contract: poolContract,
-            methodName: roleInput as any,
-            payload: [],
-          })) as Hex;
-          logInfo(`Resolved role "${roleInput}" to ${role}`);
-        } catch {
-          throw new Error(
-            `Failed to resolve role "${roleInput}". Please provide a valid role name (e.g., DEFAULT_ADMIN_ROLE) or bytes32 hex.`,
-          );
-        }
-      } else {
-        role = stringToHex(roleInput);
-      }
+      const role = await resolveRole(
+        roleInput,
+        poolAddress,
+        getStvPoolContract,
+      );
 
       const finalSalt = options?.salt
         ? stringToHex(options.salt)
@@ -354,7 +327,6 @@ poolWrite
       }
 
       // Resolve role
-      let role: Hex;
       if (!roleInput) {
         const rolePrompt = await textPrompt(
           'Enter role (bytes32 hex or role name like DEFAULT_ADMIN_ROLE)',
@@ -363,24 +335,11 @@ poolWrite
         roleInput = rolePrompt.role as string;
       }
 
-      // If it's a role name, try to get it from the pool contract
-      if (!roleInput.startsWith('0x')) {
-        const poolContract = await getStvPoolContract(poolAddress);
-        try {
-          role = (await callReadMethodSilent({
-            contract: poolContract,
-            methodName: roleInput as any,
-            payload: [],
-          })) as Hex;
-          logInfo(`Resolved role "${roleInput}" to ${role}`);
-        } catch {
-          throw new Error(
-            `Failed to resolve role "${roleInput}". Please provide a valid role name (e.g., DEFAULT_ADMIN_ROLE) or bytes32 hex.`,
-          );
-        }
-      } else {
-        role = stringToHex(roleInput);
-      }
+      const role = await resolveRole(
+        roleInput,
+        poolAddress,
+        getStvPoolContract,
+      );
 
       const finalSalt = options?.salt
         ? stringToHex(options.salt)
@@ -483,7 +442,6 @@ poolWrite
       }
 
       // Resolve role
-      let role: Hex;
       if (!roleInput) {
         const rolePrompt = await textPrompt(
           'Enter role (bytes32 hex or role name like DEFAULT_ADMIN_ROLE)',
@@ -492,24 +450,11 @@ poolWrite
         roleInput = rolePrompt.role as string;
       }
 
-      // If it's a role name, try to get it from the pool contract
-      if (!roleInput.startsWith('0x')) {
-        const poolContract = await getStvPoolContract(poolAddress);
-        try {
-          role = (await callReadMethodSilent({
-            contract: poolContract,
-            methodName: roleInput as any,
-            payload: [],
-          })) as Hex;
-          logInfo(`Resolved role "${roleInput}" to ${role}`);
-        } catch {
-          throw new Error(
-            `Failed to resolve role "${roleInput}". Please provide a valid role name (e.g., DEFAULT_ADMIN_ROLE) or bytes32 hex.`,
-          );
-        }
-      } else {
-        role = stringToHex(roleInput);
-      }
+      const role = await resolveRole(
+        roleInput,
+        poolAddress,
+        getStvPoolContract,
+      );
 
       const finalSalt = options?.salt
         ? stringToHex(options.salt)
