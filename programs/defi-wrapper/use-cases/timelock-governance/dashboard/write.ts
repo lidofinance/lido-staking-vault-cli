@@ -9,14 +9,14 @@ import {
   addressPrompt,
   textPrompt,
 } from 'utils';
-import { dashboard } from './main.js';
+import { dashboardTimelockGovernance } from './main.js';
 import { Address, Hex, encodeFunctionData, stringToHex } from 'viem';
 import { getTimeLockContract } from 'contracts/defi-wrapper/index.js';
 import { getDashboardContract } from 'contracts/index.js';
 import { DashboardAbi } from 'abi/index.js';
 import { getPublicClient } from 'providers';
 
-const dashboardWrite = dashboard
+const dashboardWrite = dashboardTimelockGovernance
   .command('write')
   .alias('w')
   .description('dashboard timelock write commands');
@@ -35,10 +35,11 @@ const resolveRole = async (
   if (!roleInput.startsWith('0x')) {
     const dashboardContract = await getDashboardContract(dashboardAddress);
     try {
-      const role = (await callReadMethodSilent(
-        dashboardContract,
-        roleInput as any,
-      )) as Hex;
+      const role = (await callReadMethodSilent({
+        contract: dashboardContract,
+        methodName: roleInput as any,
+        payload: [],
+      })) as Hex;
       logInfo(`Resolved role "${roleInput}" to ${role}`);
       return role;
     } catch {
@@ -61,16 +62,20 @@ const proposeOperation = async (
   confirmationMessage: string,
 ): Promise<Hex> => {
   const timelockContract = await getTimeLockContract(timelock);
-  const minDelay = await callReadMethodSilent(timelockContract, 'getMinDelay');
+  const minDelay = await callReadMethodSilent({
+    contract: timelockContract,
+    methodName: 'getMinDelay',
+    payload: [],
+  });
 
   const predecessor =
     '0x0000000000000000000000000000000000000000000000000000000000000000' as Hex;
 
-  const operationId = await callReadMethodSilent(
-    timelockContract,
-    'hashOperation',
-    [target, 0n, data, predecessor, salt],
-  );
+  const operationId = await callReadMethodSilent({
+    contract: timelockContract,
+    methodName: 'hashOperation',
+    payload: [[target, 0n, data, predecessor, salt]],
+  });
 
   logInfo('Proposing operation:');
   logInfo(`  Operation ID: ${operationId}`);
@@ -113,11 +118,11 @@ const executeOperation = async (
   const predecessor =
     '0x0000000000000000000000000000000000000000000000000000000000000000' as Hex;
 
-  const operationId = await callReadMethodSilent(
-    timelockContract,
-    'hashOperation',
-    [target, 0n, data, predecessor, salt],
-  );
+  const operationId = await callReadMethodSilent({
+    contract: timelockContract,
+    methodName: 'hashOperation',
+    payload: [[target, 0n, data, predecessor, salt]],
+  });
 
   logInfo('Calculated operation details:');
   logInfo(`  Operation ID: ${operationId}`);
@@ -127,11 +132,11 @@ const executeOperation = async (
   logInfo(`  Predecessor: ${predecessor}`);
   logInfo(`  Salt: ${salt}`);
 
-  const state = await callReadMethodSilent(
-    timelockContract,
-    'getOperationState',
-    [operationId],
-  );
+  const state = await callReadMethodSilent({
+    contract: timelockContract,
+    methodName: 'getOperationState',
+    payload: [[operationId]],
+  });
 
   if (state === 0) {
     logInfo('❌ Operation not found (Unset)');
@@ -143,11 +148,11 @@ const executeOperation = async (
     return;
   }
   if (state === 1) {
-    const timestamp = await callReadMethodSilent(
-      timelockContract,
-      'getTimestamp',
-      [operationId],
-    );
+    const timestamp = await callReadMethodSilent({
+      contract: timelockContract,
+      methodName: 'getTimestamp',
+      payload: [[operationId]],
+    });
     const publicClient = await getPublicClient();
     const currentBlock = await publicClient.getBlock({ blockTag: 'latest' });
     const now = currentBlock.timestamp;

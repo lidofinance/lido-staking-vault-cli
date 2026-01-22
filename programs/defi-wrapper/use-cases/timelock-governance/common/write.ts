@@ -97,19 +97,17 @@ commonWrite
       const timelockContract = await getTimeLockContract(timelock);
 
       // Calculate operation ID to check state
-      const operationId = await callReadMethodSilent(
-        timelockContract,
-        'hashOperation',
-        [target, finalValue, payload, predecessor, salt],
-      );
-
+      const operationId = await callReadMethodSilent({
+        contract: timelockContract,
+        methodName: 'hashOperation',
+        payload: [[target, finalValue, payload, predecessor, salt]],
+      });
       // Check operation state
-      const state = await callReadMethodSilent(
-        timelockContract,
-        'getOperationState',
-        [operationId],
-      );
-
+      const state = await callReadMethodSilent({
+        contract: timelockContract,
+        methodName: 'getOperationState',
+        payload: [[operationId]],
+      });
       // OperationState: Unset=0, Waiting=1, Ready=2, Done=3
       if (state === 0) {
         logInfo('❌ Operation not found (Unset)');
@@ -120,11 +118,11 @@ commonWrite
         return;
       }
       if (state === 1) {
-        const timestamp = await callReadMethodSilent(
-          timelockContract,
-          'getTimestamp',
-          [operationId],
-        );
+        const timestamp = await callReadMethodSilent({
+          contract: timelockContract,
+          methodName: 'getTimestamp',
+          payload: [[operationId]],
+        });
         const publicClient = await getPublicClient();
         const currentBlock = await publicClient.getBlock({
           blockTag: 'latest',
@@ -188,12 +186,11 @@ commonWrite
     const timelockContract = await getTimeLockContract(timelock);
 
     // Check operation state
-    const state = await callReadMethodSilent(
-      timelockContract,
-      'getOperationState',
-      [operationId],
-    );
-
+    const state = await callReadMethodSilent({
+      contract: timelockContract,
+      methodName: 'getOperationState',
+      payload: [[operationId]],
+    });
     if (state === 0) {
       logInfo('❌ Operation not found (Unset)');
       return;

@@ -36,17 +36,20 @@ const proposeOperation = async (
   confirmationMessage: string,
 ): Promise<Hex> => {
   const timelockContract = await getTimeLockContract(timelock);
-  const minDelay = await callReadMethodSilent(timelockContract, 'getMinDelay');
+  const minDelay = await callReadMethodSilent({
+    contract: timelockContract,
+    methodName: 'getMinDelay',
+    payload: [],
+  });
 
   const predecessor =
     '0x0000000000000000000000000000000000000000000000000000000000000000' as Hex;
 
-  const operationId = await callReadMethodSilent(
-    timelockContract,
-    'hashOperation',
-    [target, 0n, data, predecessor, salt],
-  );
-
+  const operationId = await callReadMethodSilent({
+    contract: timelockContract,
+    methodName: 'hashOperation',
+    payload: [[target, 0n, data, predecessor, salt]],
+  });
   logInfo('Proposing operation:');
   logInfo(`  Operation ID: ${operationId}`);
   logInfo(`  Target: ${target}`);
@@ -88,12 +91,11 @@ const executeOperation = async (
   const predecessor =
     '0x0000000000000000000000000000000000000000000000000000000000000000' as Hex;
 
-  const operationId = await callReadMethodSilent(
-    timelockContract,
-    'hashOperation',
-    [target, 0n, data, predecessor, salt],
-  );
-
+  const operationId = await callReadMethodSilent({
+    contract: timelockContract,
+    methodName: 'hashOperation',
+    payload: [[target, 0n, data, predecessor, salt]],
+  });
   logInfo('Calculated operation details:');
   logInfo(`  Operation ID: ${operationId}`);
   logInfo(`  Target: ${target}`);
@@ -102,12 +104,11 @@ const executeOperation = async (
   logInfo(`  Predecessor: ${predecessor}`);
   logInfo(`  Salt: ${salt}`);
 
-  const state = await callReadMethodSilent(
-    timelockContract,
-    'getOperationState',
-    [operationId],
-  );
-
+  const state = await callReadMethodSilent({
+    contract: timelockContract,
+    methodName: 'getOperationState',
+    payload: [[operationId]],
+  });
   if (state === 0) {
     logInfo('❌ Operation not found (Unset)');
     logInfo(`   Operation ID: ${operationId}`);
@@ -118,11 +119,11 @@ const executeOperation = async (
     return;
   }
   if (state === 1) {
-    const timestamp = await callReadMethodSilent(
-      timelockContract,
-      'getTimestamp',
-      [operationId],
-    );
+    const timestamp = await callReadMethodSilent({
+      contract: timelockContract,
+      methodName: 'getTimestamp',
+      payload: [[operationId]],
+    });
     const publicClient = await getPublicClient();
     const currentBlock = await publicClient.getBlock({ blockTag: 'latest' });
     const now = currentBlock.timestamp;

@@ -1,6 +1,6 @@
 import { timelockGovernance } from '../main.js';
 
-export const dashboard = timelockGovernance
+export const dashboardTimelockGovernance = timelockGovernance
   .command('dashboard')
   .alias('d')
   .description('dashboard timelock governance commands');

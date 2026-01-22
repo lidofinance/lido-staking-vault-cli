@@ -36,7 +36,11 @@ proxyRead
     }
 
     const proxyContract = await getOssifiableProxyContract(proxyAddress);
-    const admin = await callReadMethodSilent(proxyContract, 'proxy__getAdmin');
+    const admin = await callReadMethodSilent({
+      contract: proxyContract,
+      methodName: 'proxy__getAdmin',
+      payload: [],
+    });
 
     logResult({
       data: [
@@ -60,10 +64,11 @@ proxyRead
     }
 
     const proxyContract = await getOssifiableProxyContract(proxyAddress);
-    const implementation = await callReadMethodSilent(
-      proxyContract,
-      'proxy__getImplementation',
-    );
+    const implementation = await callReadMethodSilent({
+      contract: proxyContract,
+      methodName: 'proxy__getImplementation',
+      payload: [],
+    });
 
     logResult({
       data: [
@@ -87,10 +92,11 @@ proxyRead
     }
 
     const proxyContract = await getOssifiableProxyContract(proxyAddress);
-    const isOssified = await callReadMethodSilent(
-      proxyContract,
-      'proxy__getIsOssified',
-    );
+    const isOssified = await callReadMethodSilent({
+      contract: proxyContract,
+      methodName: 'proxy__getIsOssified',
+      payload: [],
+    });
 
     logResult({
       data: [

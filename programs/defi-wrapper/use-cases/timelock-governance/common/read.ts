@@ -7,10 +7,14 @@ import {
   logResult,
   addressPrompt,
   textPrompt,
+  logError,
 } from 'utils';
 import { common } from './main.js';
 import { Address, Hex, stringToHex, isHex } from 'viem';
-import { getTimeLockContract } from 'contracts/defi-wrapper/index.js';
+import {
+  getStvPoolContract,
+  getTimeLockContract,
+} from 'contracts/defi-wrapper/index.js';
 import { getPublicClient } from 'providers';
 
 const commonRead = common
@@ -24,6 +28,50 @@ commonRead.on('option:-cmd2json', function () {
   process.exit();
 });
 
+commonRead
+  .command('get-timelock-address')
+  .description(
+    'get address of timelock governances contracts based on pool address',
+  )
+  .argument('[pool]', 'pool contract address', stringToAddress)
+  .action(async (pool?: Address) => {
+    if (!pool) {
+      const poolPrompt = await addressPrompt(
+        'Enter pool contract address',
+        'pool',
+      );
+      pool = poolPrompt.pool as Address;
+    }
+    const stvPoolContract = await getStvPoolContract(pool);
+    const defaultAdminRole = await callReadMethodSilent({
+      contract: stvPoolContract,
+      methodName: 'DEFAULT_ADMIN_ROLE',
+      payload: [],
+    });
+
+    const admins = await callReadMethodSilent({
+      contract: stvPoolContract,
+      methodName: 'getRoleMembers',
+      payload: [[defaultAdminRole]],
+    });
+
+    if (admins.length === 0) {
+      logError('No timelock governance found for the pool');
+      return;
+    }
+
+    if (admins.length === 1) {
+      logResult({
+        data: [['Timelock Governance Address', admins[0]]],
+      });
+    }
+
+    if (admins.length > 1) {
+      logError('Multiple admins found for the pool; Invalid configuration:');
+      const data = admins.map((addr, index) => [`Admin ${index + 1}`, addr]);
+      logResult({ data });
+    }
+  });
 commonRead
   .command('get-operation-state')
   .description('get the state of a timelock operation')
@@ -55,11 +103,11 @@ commonRead
     }
 
     const timelockContract = await getTimeLockContract(timelock);
-    const state = await callReadMethodSilent(
-      timelockContract,
-      'getOperationState',
-      [operationId],
-    );
+    const state = await callReadMethodSilent({
+      contract: timelockContract,
+      methodName: 'getOperationState',
+      payload: [[operationId]],
+    });
 
     // OperationState: Unset=0, Waiting=1, Ready=2, Done=3
     const stateNames = ['Unset', 'Waiting', 'Ready', 'Done'];
@@ -73,11 +121,11 @@ commonRead
     });
 
     if (state === 1) {
-      const timestamp = await callReadMethodSilent(
-        timelockContract,
-        'getTimestamp',
-        [operationId],
-      );
+      const timestamp = await callReadMethodSilent({
+        contract: timelockContract,
+        methodName: 'getTimestamp',
+        payload: [[operationId]],
+      });
       const publicClient = await getPublicClient();
       const currentBlock = await publicClient.getBlock({ blockTag: 'latest' });
       const now = currentBlock.timestamp;
@@ -119,11 +167,11 @@ commonRead
     }
 
     const timelockContract = await getTimeLockContract(timelock);
-    const timestamp = await callReadMethodSilent(
-      timelockContract,
-      'getTimestamp',
-      [operationId],
-    );
+    const timestamp = await callReadMethodSilent({
+      contract: timelockContract,
+      methodName: 'getTimestamp',
+      payload: [[operationId]],
+    });
 
     const publicClient = await getPublicClient();
     const currentBlock = await publicClient.getBlock({ blockTag: 'latest' });
@@ -155,10 +203,11 @@ commonRead
     }
 
     const timelockContract = await getTimeLockContract(timelock);
-    const minDelay = await callReadMethodSilent(
-      timelockContract,
-      'getMinDelay',
-    );
+    const minDelay = await callReadMethodSilent({
+      contract: timelockContract,
+      methodName: 'getMinDelay',
+      payload: [],
+    });
 
     logResult({
       data: [
@@ -199,9 +248,11 @@ commonRead
     }
 
     const timelockContract = await getTimeLockContract(timelock);
-    const isOp = await callReadMethodSilent(timelockContract, 'isOperation', [
-      operationId,
-    ]);
+    const isOp = await callReadMethodSilent({
+      contract: timelockContract,
+      methodName: 'isOperation',
+      payload: [[operationId]],
+    });
 
     logResult({
       data: [
@@ -241,11 +292,11 @@ commonRead
     }
 
     const timelockContract = await getTimeLockContract(timelock);
-    const isPending = await callReadMethodSilent(
-      timelockContract,
-      'isOperationPending',
-      [operationId],
-    );
+    const isPending = await callReadMethodSilent({
+      contract: timelockContract,
+      methodName: 'isOperationPending',
+      payload: [[operationId]],
+    });
 
     logResult({
       data: [
@@ -285,11 +336,11 @@ commonRead
     }
 
     const timelockContract = await getTimeLockContract(timelock);
-    const isReady = await callReadMethodSilent(
-      timelockContract,
-      'isOperationReady',
-      [operationId],
-    );
+    const isReady = await callReadMethodSilent({
+      contract: timelockContract,
+      methodName: 'isOperationReady',
+      payload: [[operationId]],
+    });
 
     logResult({
       data: [
@@ -329,11 +380,11 @@ commonRead
     }
 
     const timelockContract = await getTimeLockContract(timelock);
-    const isDone = await callReadMethodSilent(
-      timelockContract,
-      'isOperationDone',
-      [operationId],
-    );
+    const isDone = await callReadMethodSilent({
+      contract: timelockContract,
+      methodName: 'isOperationDone',
+      payload: [[operationId]],
+    });
 
     logResult({
       data: [
@@ -379,20 +430,36 @@ commonRead
 
     const [state, timestamp, isOp, isPending, isReady, isDone] =
       await Promise.all([
-        callReadMethodSilent(timelockContract, 'getOperationState', [
-          operationId,
-        ]),
-        callReadMethodSilent(timelockContract, 'getTimestamp', [operationId]),
-        callReadMethodSilent(timelockContract, 'isOperation', [operationId]),
-        callReadMethodSilent(timelockContract, 'isOperationPending', [
-          operationId,
-        ]),
-        callReadMethodSilent(timelockContract, 'isOperationReady', [
-          operationId,
-        ]),
-        callReadMethodSilent(timelockContract, 'isOperationDone', [
-          operationId,
-        ]),
+        callReadMethodSilent({
+          contract: timelockContract,
+          methodName: 'getOperationState',
+          payload: [[operationId]],
+        }),
+        callReadMethodSilent({
+          contract: timelockContract,
+          methodName: 'getTimestamp',
+          payload: [[operationId]],
+        }),
+        callReadMethodSilent({
+          contract: timelockContract,
+          methodName: 'isOperation',
+          payload: [[operationId]],
+        }),
+        callReadMethodSilent({
+          contract: timelockContract,
+          methodName: 'isOperationPending',
+          payload: [[operationId]],
+        }),
+        callReadMethodSilent({
+          contract: timelockContract,
+          methodName: 'isOperationReady',
+          payload: [[operationId]],
+        }),
+        callReadMethodSilent({
+          contract: timelockContract,
+          methodName: 'isOperationDone',
+          payload: [[operationId]],
+        }),
       ]);
 
     const stateNames = ['Unset', 'Waiting', 'Ready', 'Done'];

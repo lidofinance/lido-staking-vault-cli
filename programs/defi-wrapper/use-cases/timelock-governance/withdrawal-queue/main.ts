@@ -1,6 +1,6 @@
 import { timelockGovernance } from '../main.js';
 
-export const withdrawalQueue = timelockGovernance
+export const withdrawalQueueTimelockGovernance = timelockGovernance
   .command('withdrawal-queue')
   .alias('wq')
   .description('withdrawal queue timelock governance commands');

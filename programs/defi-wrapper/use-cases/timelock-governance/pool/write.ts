@@ -76,10 +76,11 @@ poolWrite
       if (!roleInput.startsWith('0x')) {
         const poolContract = await getStvPoolContract(poolAddress);
         try {
-          role = (await callReadMethodSilent(
-            poolContract,
-            roleInput as any,
-          )) as Hex;
+          role = (await callReadMethodSilent({
+            contract: poolContract,
+            methodName: roleInput as any,
+            payload: [],
+          })) as Hex;
           logInfo(`Resolved role "${roleInput}" to ${role}`);
         } catch {
           throw new Error(
@@ -108,10 +109,11 @@ poolWrite
       const timelockContract = await getTimeLockContract(timelock);
 
       // Get min delay
-      const minDelay = await callReadMethodSilent(
-        timelockContract,
-        'getMinDelay',
-      );
+      const minDelay = await callReadMethodSilent({
+        contract: timelockContract,
+        methodName: 'getMinDelay',
+        payload: [],
+      });
 
       // Encode grantRole call
       const data = encodeFunctionData({
@@ -124,12 +126,11 @@ poolWrite
         '0x0000000000000000000000000000000000000000000000000000000000000000' as Hex;
 
       // Calculate operation ID
-      const operationId = await callReadMethodSilent(
-        timelockContract,
-        'hashOperation',
-        [poolAddress, 0n, data, predecessor, finalSalt],
-      );
-
+      const operationId = await callReadMethodSilent({
+        contract: timelockContract,
+        methodName: 'hashOperation',
+        payload: [[poolAddress, 0n, data, predecessor, finalSalt]],
+      });
       logInfo('Proposing operation:');
       logInfo(`  Operation ID: ${operationId}`);
       logInfo(`  Target: ${poolAddress}`);
@@ -204,10 +205,11 @@ poolWrite
       if (!roleInput.startsWith('0x')) {
         const poolContract = await getStvPoolContract(poolAddress);
         try {
-          role = (await callReadMethodSilent(
-            poolContract,
-            roleInput as any,
-          )) as Hex;
+          role = (await callReadMethodSilent({
+            contract: poolContract,
+            methodName: roleInput as any,
+            payload: [],
+          })) as Hex;
           logInfo(`Resolved role "${roleInput}" to ${role}`);
         } catch {
           throw new Error(
@@ -246,11 +248,11 @@ poolWrite
         '0x0000000000000000000000000000000000000000000000000000000000000000' as Hex;
 
       // Calculate operation ID (must match the one from schedule)
-      const operationId = await callReadMethodSilent(
-        timelockContract,
-        'hashOperation',
-        [poolAddress, 0n, data, predecessor, finalSalt],
-      );
+      const operationId = await callReadMethodSilent({
+        contract: timelockContract,
+        methodName: 'hashOperation',
+        payload: [[poolAddress, 0n, data, predecessor, finalSalt]],
+      });
 
       logInfo('Calculated operation details:');
       logInfo(`  Operation ID: ${operationId}`);
@@ -261,12 +263,11 @@ poolWrite
       logInfo(`  Salt: ${finalSalt}`);
 
       // Check operation state
-      const state = await callReadMethodSilent(
-        timelockContract,
-        'getOperationState',
-        [operationId],
-      );
-
+      const state = await callReadMethodSilent({
+        contract: timelockContract,
+        methodName: 'getOperationState',
+        payload: [[operationId]],
+      });
       // OperationState: Unset=0, Waiting=1, Ready=2, Done=3
       if (state === 0) {
         logInfo('❌ Operation not found (Unset)');
@@ -281,11 +282,11 @@ poolWrite
         return;
       }
       if (state === 1) {
-        const timestamp = await callReadMethodSilent(
-          timelockContract,
-          'getTimestamp',
-          [operationId],
-        );
+        const timestamp = await callReadMethodSilent({
+          contract: timelockContract,
+          methodName: 'getTimestamp',
+          payload: [[operationId]],
+        });
         const publicClient = await getPublicClient();
         const currentBlock = await publicClient.getBlock({
           blockTag: 'latest',
@@ -366,10 +367,11 @@ poolWrite
       if (!roleInput.startsWith('0x')) {
         const poolContract = await getStvPoolContract(poolAddress);
         try {
-          role = (await callReadMethodSilent(
-            poolContract,
-            roleInput as any,
-          )) as Hex;
+          role = (await callReadMethodSilent({
+            contract: poolContract,
+            methodName: roleInput as any,
+            payload: [],
+          })) as Hex;
           logInfo(`Resolved role "${roleInput}" to ${role}`);
         } catch {
           throw new Error(
@@ -398,10 +400,11 @@ poolWrite
       const timelockContract = await getTimeLockContract(timelock);
 
       // Get min delay
-      const minDelay = await callReadMethodSilent(
-        timelockContract,
-        'getMinDelay',
-      );
+      const minDelay = await callReadMethodSilent({
+        contract: timelockContract,
+        methodName: 'getMinDelay',
+        payload: [],
+      });
 
       // Encode revokeRole call
       const data = encodeFunctionData({
@@ -414,12 +417,11 @@ poolWrite
         '0x0000000000000000000000000000000000000000000000000000000000000000' as Hex;
 
       // Calculate operation ID
-      const operationId = await callReadMethodSilent(
-        timelockContract,
-        'hashOperation',
-        [poolAddress, 0n, data, predecessor, finalSalt],
-      );
-
+      const operationId = await callReadMethodSilent({
+        contract: timelockContract,
+        methodName: 'hashOperation',
+        payload: [[poolAddress, 0n, data, predecessor, finalSalt]],
+      });
       logInfo('Proposing operation:');
       logInfo(`  Operation ID: ${operationId}`);
       logInfo(`  Target: ${poolAddress}`);
@@ -494,10 +496,11 @@ poolWrite
       if (!roleInput.startsWith('0x')) {
         const poolContract = await getStvPoolContract(poolAddress);
         try {
-          role = (await callReadMethodSilent(
-            poolContract,
-            roleInput as any,
-          )) as Hex;
+          role = (await callReadMethodSilent({
+            contract: poolContract,
+            methodName: roleInput as any,
+            payload: [],
+          })) as Hex;
           logInfo(`Resolved role "${roleInput}" to ${role}`);
         } catch {
           throw new Error(
@@ -536,12 +539,11 @@ poolWrite
         '0x0000000000000000000000000000000000000000000000000000000000000000' as Hex;
 
       // Calculate operation ID (must match the one from schedule)
-      const operationId = await callReadMethodSilent(
-        timelockContract,
-        'hashOperation',
-        [poolAddress, 0n, data, predecessor, finalSalt],
-      );
-
+      const operationId = await callReadMethodSilent({
+        contract: timelockContract,
+        methodName: 'hashOperation',
+        payload: [[poolAddress, 0n, data, predecessor, finalSalt]],
+      });
       logInfo('Calculated operation details:');
       logInfo(`  Operation ID: ${operationId}`);
       logInfo(`  Target: ${poolAddress}`);
@@ -551,11 +553,11 @@ poolWrite
       logInfo(`  Salt: ${finalSalt}`);
 
       // Check operation state
-      const state = await callReadMethodSilent(
-        timelockContract,
-        'getOperationState',
-        [operationId],
-      );
+      const state = await callReadMethodSilent({
+        contract: timelockContract,
+        methodName: 'getOperationState',
+        payload: [[operationId]],
+      });
 
       // OperationState: Unset=0, Waiting=1, Ready=2, Done=3
       if (state === 0) {
@@ -571,11 +573,11 @@ poolWrite
         return;
       }
       if (state === 1) {
-        const timestamp = await callReadMethodSilent(
-          timelockContract,
-          'getTimestamp',
-          [operationId],
-        );
+        const timestamp = await callReadMethodSilent({
+          contract: timelockContract,
+          methodName: 'getTimestamp',
+          payload: [[operationId]],
+        });
         const publicClient = await getPublicClient();
         const currentBlock = await publicClient.getBlock({
           blockTag: 'latest',
@@ -670,10 +672,11 @@ poolWrite
       const timelockContract = await getTimeLockContract(timelock);
 
       // Get min delay
-      const minDelay = await callReadMethodSilent(
-        timelockContract,
-        'getMinDelay',
-      );
+      const minDelay = await callReadMethodSilent({
+        contract: timelockContract,
+        methodName: 'getMinDelay',
+        payload: [],
+      });
 
       // Encode setMaxLossSocializationBP call
       const data = encodeFunctionData({
@@ -686,12 +689,11 @@ poolWrite
         '0x0000000000000000000000000000000000000000000000000000000000000000' as Hex;
 
       // Calculate operation ID
-      const operationId = await callReadMethodSilent(
-        timelockContract,
-        'hashOperation',
-        [poolAddress, 0n, data, predecessor, finalSalt],
-      );
-
+      const operationId = await callReadMethodSilent({
+        contract: timelockContract,
+        methodName: 'hashOperation',
+        payload: [[poolAddress, 0n, data, predecessor, finalSalt]],
+      });
       logInfo('Proposing operation:');
       logInfo(`  Operation ID: ${operationId}`);
       logInfo(`  Target: ${poolAddress}`);
@@ -792,11 +794,11 @@ poolWrite
         '0x0000000000000000000000000000000000000000000000000000000000000000' as Hex;
 
       // Calculate operation ID (must match the one from schedule)
-      const operationId = await callReadMethodSilent(
-        timelockContract,
-        'hashOperation',
-        [poolAddress, 0n, data, predecessor, finalSalt],
-      );
+      const operationId = await callReadMethodSilent({
+        contract: timelockContract,
+        methodName: 'hashOperation',
+        payload: [[poolAddress, 0n, data, predecessor, finalSalt]],
+      });
 
       logInfo('Calculated operation details:');
       logInfo(`  Operation ID: ${operationId}`);
@@ -807,11 +809,11 @@ poolWrite
       logInfo(`  Salt: ${finalSalt}`);
 
       // Check operation state
-      const state = await callReadMethodSilent(
-        timelockContract,
-        'getOperationState',
-        [operationId],
-      );
+      const state = await callReadMethodSilent({
+        contract: timelockContract,
+        methodName: 'getOperationState',
+        payload: [[operationId]],
+      });
 
       // OperationState: Unset=0, Waiting=1, Ready=2, Done=3
       if (state === 0) {
@@ -827,11 +829,11 @@ poolWrite
         return;
       }
       if (state === 1) {
-        const timestamp = await callReadMethodSilent(
-          timelockContract,
-          'getTimestamp',
-          [operationId],
-        );
+        const timestamp = await callReadMethodSilent({
+          contract: timelockContract,
+          methodName: 'getTimestamp',
+          payload: [[operationId]],
+        });
         const publicClient = await getPublicClient();
         const currentBlock = await publicClient.getBlock({
           blockTag: 'latest',
