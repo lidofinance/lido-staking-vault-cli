@@ -8,14 +8,44 @@ import {
   addressPrompt,
   textPrompt,
   logError,
+  stringToBigInt,
 } from 'utils';
 import { common } from './main.js';
-import { Address, Hex, stringToHex, isHex } from 'viem';
+import { Address, Hex, stringToHex, isHex, decodeFunctionData } from 'viem';
 import {
   getStvPoolContract,
   getTimeLockContract,
 } from 'contracts/defi-wrapper/index.js';
 import { getPublicClient } from 'providers';
+
+import { DashboardAbi } from 'abi';
+import { StvPoolAbi } from 'abi/defi-wrapper/StvPool.js';
+import { StvStETHPoolAbi } from 'abi/defi-wrapper/StvStETHPool.js';
+import { WithdrawalQueueAbi } from 'abi/defi-wrapper/WithdrawalQueue.js';
+import { OssifiableProxyAbi } from 'abi/defi-wrapper/OssifiableProxy.js';
+import { TimeLockAbi } from 'abi/defi-wrapper/TimeLock.js';
+import { DistributorAbi } from 'abi/defi-wrapper/Distributor.js';
+
+// all abis of expected timelock governed contracts
+const mixAbi = [
+  ...DashboardAbi,
+  ...StvPoolAbi,
+  ...StvStETHPoolAbi,
+  ...WithdrawalQueueAbi,
+  ...OssifiableProxyAbi,
+  ...TimeLockAbi,
+  ...DistributorAbi,
+];
+
+const getTimelock = async (argAddress: Address | undefined) => {
+  if (argAddress) return getTimeLockContract(argAddress);
+
+  const timelockPrompt = await addressPrompt(
+    'Enter timelock contract address',
+    'timelock',
+  );
+  return getTimeLockContract(timelockPrompt.timelock as Address);
+};
 
 const commonRead = common
   .command('read')
@@ -72,6 +102,107 @@ commonRead
       logResult({ data });
     }
   });
+
+commonRead
+  .command('get-last-operations')
+  .description('get last timelock operations')
+  .argument('[timelock]', 'timelock contract address', stringToAddress)
+  .option(
+    '-n, --number <number>',
+    'number of blocks to look back',
+    stringToBigInt,
+    5000n,
+  )
+  .action(
+    async (
+      timelockAddress: Address | undefined,
+      options: { number: bigint },
+    ) => {
+      const client = await getPublicClient();
+      const timelock = await getTimelock(timelockAddress);
+      const currentBlock = await client.getBlock({ blockTag: 'latest' });
+
+      const toBlock = currentBlock.number;
+      let fromBlock = toBlock - options.number;
+      if (fromBlock < 0n) fromBlock = 0n;
+
+      const events = await timelock.getEvents.CallScheduled(undefined, {
+        toBlock,
+        fromBlock,
+        strict: true,
+      } as const);
+
+      logInfo(
+        `Found ${events.length} CallScheduled events from block ${fromBlock} to ${toBlock}:`,
+      );
+
+      for (const event of events) {
+        const { data, delay, id, index, predecessor, target, value } =
+          event.args as Required<typeof event.args>;
+
+        let waitTime = 0n;
+        const timestamp = 0n;
+
+        const state = await callReadMethodSilent({
+          contract: timelock,
+          methodName: 'getOperationState',
+          payload: [[id]],
+        });
+
+        if (state === 1) {
+          const timestamp = await callReadMethodSilent({
+            contract: timelock,
+            methodName: 'getTimestamp',
+            payload: [[id]],
+          });
+
+          const now = currentBlock.timestamp;
+          waitTime = timestamp > now ? timestamp - now : 0n;
+        }
+
+        const stateNames = ['Unset', 'Waiting', 'Ready', 'Done'];
+        const stateName = stateNames[state] || 'Unknown';
+
+        let args, functionName;
+
+        try {
+          const decodeResult = decodeFunctionData({
+            abi: mixAbi,
+            data,
+          });
+          args = decodeResult.args;
+          functionName = decodeResult.functionName;
+        } catch (e) {
+          args = [];
+          functionName = 'Unknown function';
+        }
+
+        logResult({
+          data: [
+            ['Operation ID', id],
+            ['Operation Index', index.toString()],
+            ['State', stateName],
+            ['Target', target],
+            ['Value (ETH)', value.toString()],
+            ['Data', data],
+            ['Function', functionName],
+            [
+              'Arguments',
+              JSON.stringify(args, (_key, value) =>
+                typeof value === 'bigint' ? value.toString() + 'n' : value,
+              ),
+            ],
+
+            ['Delay (seconds)', delay.toString()],
+            ['Predecessor', predecessor],
+            ['Wait Time (seconds)', waitTime.toString()],
+            ['Ready Timestamp', timestamp.toString()],
+          ],
+        });
+      }
+    },
+  );
+
 commonRead
   .command('get-operation-state')
   .description('get the state of a timelock operation')
