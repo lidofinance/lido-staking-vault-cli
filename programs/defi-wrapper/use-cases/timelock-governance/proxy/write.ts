@@ -3,6 +3,9 @@ import {
   proposeOperation,
   executeOperation,
   processSalt,
+  TIMELOCK_ARGUMENT,
+  getPromptTimelock,
+  SALT_OPTION,
 } from 'features/defi-wrapper/index.js';
 import {
   logInfo,
@@ -10,10 +13,72 @@ import {
   stringToAddress,
   addressPrompt,
   textPrompt,
+  stringToHex,
 } from 'utils';
 import { proxy } from './main.js';
 import { Address, Hex, encodeFunctionData } from 'viem';
 import { OssifiableProxyAbi } from 'abi/defi-wrapper/index.js';
+import { getOssifiableProxyContract } from 'contracts/defi-wrapper/index.js';
+
+// Common helpers
+
+const PROXY_ARGUMENT = [
+  '[proxy]',
+  'proxy contract address',
+  stringToAddress,
+] as const;
+
+const NEW_IMPLEMENTATION_ARGUMENT = [
+  '[newImplementation]',
+  'new implementation address',
+  stringToAddress,
+] as const;
+
+const SETUP_CALLDATA_ARGUMENT = [
+  '[setupCalldata]',
+  'setup calldata (hex)',
+  stringToHex,
+] as const;
+
+const promptProxy = async (proxyAddress?: Address) => {
+  if (!proxyAddress) {
+    const proxyPrompt = await addressPrompt(
+      'Enter proxy contract address',
+      'proxy',
+    );
+    proxyAddress = proxyPrompt.proxy as Address;
+  }
+  return getOssifiableProxyContract(proxyAddress);
+};
+
+const promptNewImplementation = async (
+  newImplementationInput?: string,
+): Promise<Address> => {
+  if (!newImplementationInput) {
+    const newImplementationPrompt = await addressPrompt(
+      'Enter new implementation address',
+      'newImplementation',
+    );
+    newImplementationInput =
+      newImplementationPrompt.newImplementation as string;
+  }
+
+  return stringToAddress(newImplementationInput);
+};
+
+const promptSetupCalldata = async (
+  setupCalldataInput?: string,
+): Promise<Hex> => {
+  if (!setupCalldataInput) {
+    const setupCalldataPrompt = await textPrompt(
+      'Enter setup calldata (hex)',
+      'setupCalldata',
+    );
+    setupCalldataInput = setupCalldataPrompt.setupCalldata as string;
+  }
+
+  return setupCalldataInput as Hex;
+};
 
 const proxyWrite = proxy
   .command('write')
@@ -30,10 +95,10 @@ proxyWrite.on('option:-cmd2json', function () {
 proxyWrite
   .command('propose-upgrade-to')
   .description('propose upgrading proxy implementation via Timelock')
-  .argument('[timelock]', 'timelock contract address', stringToAddress)
-  .argument('[proxy]', 'proxy contract address', stringToAddress)
-  .argument('[newImplementation]', 'new implementation address')
-  .option('-s, --salt <salt>', 'salt for operation (bytes32 hex, default: 0x0)')
+  .argument(...TIMELOCK_ARGUMENT)
+  .argument(...PROXY_ARGUMENT)
+  .argument(...NEW_IMPLEMENTATION_ARGUMENT)
+  .option(...SALT_OPTION)
   .action(
     async (
       timelock?: Address,
@@ -41,32 +106,11 @@ proxyWrite
       newImplementationInput?: string,
       options?: { salt?: string },
     ) => {
-      if (!timelock) {
-        const timelockPrompt = await addressPrompt(
-          'Enter timelock contract address',
-          'timelock',
-        );
-        timelock = timelockPrompt.timelock as Address;
-      }
-
-      if (!proxyAddress) {
-        const proxyPrompt = await addressPrompt(
-          'Enter proxy contract address',
-          'proxy',
-        );
-        proxyAddress = proxyPrompt.proxy as Address;
-      }
-
-      if (!newImplementationInput) {
-        const newImplementationPrompt = await addressPrompt(
-          'Enter new implementation address',
-          'newImplementation',
-        );
-        newImplementationInput =
-          newImplementationPrompt.newImplementation as string;
-      }
-
-      const newImplementation = stringToAddress(newImplementationInput);
+      const timelockContract = await getPromptTimelock(timelock);
+      const proxyContract = await promptProxy(proxyAddress);
+      const newImplementation = await promptNewImplementation(
+        newImplementationInput,
+      );
 
       const finalSalt = processSalt(options?.salt);
 
@@ -77,12 +121,12 @@ proxyWrite
       });
 
       await proposeOperation(
-        timelock,
-        proxyAddress,
+        timelockContract.address,
+        proxyContract.address,
         data,
         finalSalt,
         `proxy__upgradeTo(${newImplementation})`,
-        `Are you sure you want to propose upgrading proxy ${proxyAddress} to implementation ${newImplementation}?`,
+        `Are you sure you want to propose upgrading proxy ${proxyContract.address} to implementation ${newImplementation}?`,
       );
     },
   );
@@ -91,10 +135,10 @@ proxyWrite
 proxyWrite
   .command('execute-upgrade-to')
   .description('execute upgrading proxy implementation via Timelock')
-  .argument('[timelock]', 'timelock contract address', stringToAddress)
-  .argument('[proxy]', 'proxy contract address', stringToAddress)
-  .argument('[newImplementation]', 'new implementation address')
-  .option('-s, --salt <salt>', 'salt for operation (bytes32 hex, default: 0x0)')
+  .argument(...TIMELOCK_ARGUMENT)
+  .argument(...PROXY_ARGUMENT)
+  .argument(...NEW_IMPLEMENTATION_ARGUMENT)
+  .option(...SALT_OPTION)
   .action(
     async (
       timelock?: Address,
@@ -102,32 +146,11 @@ proxyWrite
       newImplementationInput?: string,
       options?: { salt?: string },
     ) => {
-      if (!timelock) {
-        const timelockPrompt = await addressPrompt(
-          'Enter timelock contract address',
-          'timelock',
-        );
-        timelock = timelockPrompt.timelock as Address;
-      }
-
-      if (!proxyAddress) {
-        const proxyPrompt = await addressPrompt(
-          'Enter proxy contract address',
-          'proxy',
-        );
-        proxyAddress = proxyPrompt.proxy as Address;
-      }
-
-      if (!newImplementationInput) {
-        const newImplementationPrompt = await addressPrompt(
-          'Enter new implementation address',
-          'newImplementation',
-        );
-        newImplementationInput =
-          newImplementationPrompt.newImplementation as string;
-      }
-
-      const newImplementation = stringToAddress(newImplementationInput);
+      const timelockContract = await getPromptTimelock(timelock);
+      const proxyContract = await promptProxy(proxyAddress);
+      const newImplementation = await promptNewImplementation(
+        newImplementationInput,
+      );
 
       const finalSalt = processSalt(options?.salt);
 
@@ -138,12 +161,12 @@ proxyWrite
       });
 
       await executeOperation(
-        timelock,
-        proxyAddress,
+        timelockContract.address,
+        proxyContract.address,
         data,
         finalSalt,
         `proxy__upgradeTo(${newImplementation})`,
-        `Are you sure you want to execute upgrading proxy ${proxyAddress} to implementation ${newImplementation}?`,
+        `Are you sure you want to execute upgrading proxy ${proxyContract.address} to implementation ${newImplementation}?`,
       );
     },
   );
@@ -154,11 +177,11 @@ proxyWrite
   .description(
     'propose upgrading proxy implementation with setup call via Timelock',
   )
-  .argument('[timelock]', 'timelock contract address', stringToAddress)
-  .argument('[proxy]', 'proxy contract address', stringToAddress)
-  .argument('[newImplementation]', 'new implementation address')
-  .argument('[setupCalldata]', 'setup calldata (hex)')
-  .option('-s, --salt <salt>', 'salt for operation (bytes32 hex, default: 0x0)')
+  .argument(...TIMELOCK_ARGUMENT)
+  .argument(...PROXY_ARGUMENT)
+  .argument(...NEW_IMPLEMENTATION_ARGUMENT)
+  .argument(...SETUP_CALLDATA_ARGUMENT)
+  .option(...SALT_OPTION)
   .action(
     async (
       timelock?: Address,
@@ -167,42 +190,12 @@ proxyWrite
       setupCalldataInput?: string,
       options?: { salt?: string },
     ) => {
-      if (!timelock) {
-        const timelockPrompt = await addressPrompt(
-          'Enter timelock contract address',
-          'timelock',
-        );
-        timelock = timelockPrompt.timelock as Address;
-      }
-
-      if (!proxyAddress) {
-        const proxyPrompt = await addressPrompt(
-          'Enter proxy contract address',
-          'proxy',
-        );
-        proxyAddress = proxyPrompt.proxy as Address;
-      }
-
-      if (!newImplementationInput) {
-        const newImplementationPrompt = await addressPrompt(
-          'Enter new implementation address',
-          'newImplementation',
-        );
-        newImplementationInput =
-          newImplementationPrompt.newImplementation as string;
-      }
-
-      const newImplementation = stringToAddress(newImplementationInput);
-
-      if (!setupCalldataInput) {
-        const setupCalldataPrompt = await textPrompt(
-          'Enter setup calldata (hex)',
-          'setupCalldata',
-        );
-        setupCalldataInput = setupCalldataPrompt.setupCalldata as string;
-      }
-
-      const setupCalldata = setupCalldataInput as Hex;
+      const timelockContract = await getPromptTimelock(timelock);
+      const proxyContract = await promptProxy(proxyAddress);
+      const newImplementation = await promptNewImplementation(
+        newImplementationInput,
+      );
+      const setupCalldata = await promptSetupCalldata(setupCalldataInput);
 
       const finalSalt = processSalt(options?.salt);
 
@@ -213,12 +206,12 @@ proxyWrite
       });
 
       await proposeOperation(
-        timelock,
-        proxyAddress,
+        timelockContract.address,
+        proxyContract.address,
         data,
         finalSalt,
         `proxy__upgradeToAndCall(${newImplementation}, ${setupCalldata})`,
-        `Are you sure you want to propose upgrading proxy ${proxyAddress} to implementation ${newImplementation} with setup call?`,
+        `Are you sure you want to propose upgrading proxy ${proxyContract.address} to implementation ${newImplementation} with setup call?`,
       );
     },
   );
@@ -229,11 +222,11 @@ proxyWrite
   .description(
     'execute upgrading proxy implementation with setup call via Timelock',
   )
-  .argument('[timelock]', 'timelock contract address', stringToAddress)
-  .argument('[proxy]', 'proxy contract address', stringToAddress)
-  .argument('[newImplementation]', 'new implementation address')
-  .argument('[setupCalldata]', 'setup calldata (hex)')
-  .option('-s, --salt <salt>', 'salt for operation (bytes32 hex, default: 0x0)')
+  .argument(...TIMELOCK_ARGUMENT)
+  .argument(...PROXY_ARGUMENT)
+  .argument(...NEW_IMPLEMENTATION_ARGUMENT)
+  .argument(...SETUP_CALLDATA_ARGUMENT)
+  .option(...SALT_OPTION)
   .action(
     async (
       timelock?: Address,
@@ -242,42 +235,12 @@ proxyWrite
       setupCalldataInput?: string,
       options?: { salt?: string },
     ) => {
-      if (!timelock) {
-        const timelockPrompt = await addressPrompt(
-          'Enter timelock contract address',
-          'timelock',
-        );
-        timelock = timelockPrompt.timelock as Address;
-      }
-
-      if (!proxyAddress) {
-        const proxyPrompt = await addressPrompt(
-          'Enter proxy contract address',
-          'proxy',
-        );
-        proxyAddress = proxyPrompt.proxy as Address;
-      }
-
-      if (!newImplementationInput) {
-        const newImplementationPrompt = await addressPrompt(
-          'Enter new implementation address',
-          'newImplementation',
-        );
-        newImplementationInput =
-          newImplementationPrompt.newImplementation as string;
-      }
-
-      const newImplementation = stringToAddress(newImplementationInput);
-
-      if (!setupCalldataInput) {
-        const setupCalldataPrompt = await textPrompt(
-          'Enter setup calldata (hex)',
-          'setupCalldata',
-        );
-        setupCalldataInput = setupCalldataPrompt.setupCalldata as string;
-      }
-
-      const setupCalldata = setupCalldataInput as Hex;
+      const timelockContract = await getPromptTimelock(timelock);
+      const proxyContract = await promptProxy(proxyAddress);
+      const newImplementation = await promptNewImplementation(
+        newImplementationInput,
+      );
+      const setupCalldata = await promptSetupCalldata(setupCalldataInput);
 
       const finalSalt = processSalt(options?.salt);
 
@@ -288,12 +251,12 @@ proxyWrite
       });
 
       await executeOperation(
-        timelock,
-        proxyAddress,
+        timelockContract.address,
+        proxyContract.address,
         data,
         finalSalt,
         `proxy__upgradeToAndCall(${newImplementation}, ${setupCalldata})`,
-        `Are you sure you want to execute upgrading proxy ${proxyAddress} to implementation ${newImplementation} with setup call?`,
+        `Are you sure you want to execute upgrading proxy ${proxyContract.address} to implementation ${newImplementation} with setup call?`,
       );
     },
   );

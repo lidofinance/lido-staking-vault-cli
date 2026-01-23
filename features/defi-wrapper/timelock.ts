@@ -3,14 +3,133 @@ import {
   callWriteMethodWithReceipt,
   confirmOperation,
   callReadMethodSilent,
+  stringToAddress,
+  addressPrompt,
+  stringToHash,
+  textPrompt,
 } from 'utils';
-import { Address, Hex, stringToHex, zeroHash, isHash } from 'viem';
+import {
+  Address,
+  Hex,
+  stringToHex,
+  zeroHash,
+  isHash,
+  GetContractReturnType,
+  WalletClient,
+  PublicClient,
+  Abi,
+  formatEther,
+} from 'viem';
 import { getTimeLockContract } from 'contracts/defi-wrapper/index.js';
-import { getPublicClient } from 'providers';
+import { TimeLockAbi } from 'abi/defi-wrapper/TimeLock.js';
 
 // Common constants
 export const DEFAULT_SALT = zeroHash;
 export const DEFAULT_PREDECESSOR = zeroHash;
+
+// Common argument and option definitions
+export const TIMELOCK_ARGUMENT = [
+  '[timelock]',
+  'timelock contract address',
+  stringToAddress,
+] as const;
+
+export const OPERATION_ID_ARGUMENT = [
+  '[operationId]',
+  'operation ID (bytes32 hash)',
+  stringToHash,
+] as const;
+
+export const ROLE_ARGUMENT = [
+  '[role]',
+  'role (bytes32 hex or role name like DEFAULT_ADMIN_ROLE)',
+] as const;
+export const ACCOUNT_GRANT_ARGUMENT = [
+  '[account]',
+  'account address to grant role to',
+  stringToAddress,
+] as const;
+
+export const ACCOUNT_REVOKE_ARGUMENT = [
+  '[account]',
+  'account address to revoke role from',
+  stringToAddress,
+] as const;
+
+export const SALT_OPTION = [
+  '-s, --salt <salt>',
+  'salt for operation (bytes32 hex, default: 0x0)',
+  stringToHash,
+  DEFAULT_SALT,
+] as const;
+
+// Helper function to get timelock from argument or prompt user
+export const getPromptTimelock = async (
+  argAddress: Address | undefined,
+): Promise<GetContractReturnType<typeof TimeLockAbi, WalletClient>> => {
+  if (argAddress) return getTimeLockContract(argAddress);
+
+  const timelockPrompt = await addressPrompt(
+    'Enter timelock contract address',
+    'timelock',
+  );
+  return getTimeLockContract(timelockPrompt.timelock as Address);
+};
+
+export const promptRole = async (
+  roleInput: string | undefined,
+  // hard to match correct type here
+  contract: unknown,
+) => {
+  if (!roleInput) {
+    const rolePrompt = await textPrompt(
+      'Enter role (bytes32 hex or role name like DEFAULT_ADMIN_ROLE)',
+      'role',
+    );
+    roleInput = rolePrompt.role as string;
+  }
+
+  const role = await resolveRole(
+    roleInput,
+    contract as GetContractReturnType<Abi, PublicClient>,
+  );
+  return role;
+};
+
+export const promptAccount = async (
+  accountInput: string | undefined,
+  message: string,
+) => {
+  let account: Address;
+  if (!accountInput) {
+    const accountPrompt = await addressPrompt(message, 'account');
+    account = accountPrompt.account as Address;
+  } else {
+    account = stringToAddress(accountInput);
+  }
+  return account;
+};
+
+export const promptOperationId = async (
+  operationIdInput: string | undefined,
+) => {
+  let operationId: Hex;
+  if (!operationIdInput) {
+    const operationIdPrompt = await textPrompt(
+      'Enter operation ID (bytes32 hash)',
+      'operationId',
+    );
+    operationIdInput = operationIdPrompt.operationId as string;
+  }
+
+  // Validate and convert to hex - if already hex, use as is
+  if (isHash(operationIdInput)) {
+    operationId = operationIdInput;
+  } else {
+    operationId = stringToHash(operationIdInput);
+  }
+  return operationId;
+};
 
 // Helper function to process salt option
 export const processSalt = (saltOption?: string): Hex => {
@@ -20,12 +139,10 @@ export const processSalt = (saltOption?: string): Hex => {
 // Helper function to resolve role
 export const resolveRole = async (
   roleInput: string,
-  contractAddress: Address,
-  getContract: (address: Address) => Promise<any>,
+  contract: GetContractReturnType<Abi, PublicClient>,
 ): Promise<Hex> => {
   if (isHash(roleInput)) return roleInput;
 
-  const contract = await getContract(contractAddress);
   try {
     const role = (await callReadMethodSilent({
       contract,
@@ -39,6 +156,11 @@ export const resolveRole = async (
       `Failed to resolve role "${roleInput}". Please provide a valid role name (e.g., DEFAULT_ADMIN_ROLE) or bytes32 hex.`,
     );
   }
+};
+
+export const waitTimeTo = (timestamp: bigint) => {
+  const now = BigInt(Math.floor(Date.now() / 1000));
+  return timestamp > now ? timestamp - now : 0n;
 };
 
 // Helper function for propose operations
@@ -101,20 +223,21 @@ export const executeOperation = async (
   salt: Hex,
   functionName: string,
   confirmationMessage: string,
+  value = 0n,
+  predecessor: Hex = DEFAULT_PREDECESSOR,
 ): Promise<void> => {
   const timelockContract = await getTimeLockContract(timelock);
-  const predecessor = DEFAULT_PREDECESSOR;
 
   const operationId = await callReadMethodSilent({
     contract: timelockContract,
     methodName: 'hashOperation',
-    payload: [[target, 0n, data, predecessor, salt]],
+    payload: [[target, value, data, predecessor, salt]],
   });
 
   logInfo('Calculated operation details:');
   logInfo(`  Operation ID: ${operationId}`);
   logInfo(`  Target: ${target}`);
-  logInfo(`  Value: 0`);
+  logInfo(`  Value: ${formatEther(value)} ETH`);
   logInfo(`  Payload: ${data}`);
   logInfo(`  Predecessor: ${predecessor}`);
   logInfo(`  Salt: ${salt}`);
@@ -140,10 +263,7 @@ export const executeOperation = async (
       methodName: 'getTimestamp',
       payload: [[operationId]],
     });
-    const publicClient = await getPublicClient();
-    const currentBlock = await publicClient.getBlock({ blockTag: 'latest' });
-    const now = currentBlock.timestamp;
-    const waitTime = timestamp > now ? timestamp - now : 0n;
+    const waitTime = waitTimeTo(timestamp);
     logInfo(
       `⏳ Operation is waiting. Will be ready at timestamp ${timestamp} (in ${waitTime} seconds)`,
     );
@@ -161,7 +281,8 @@ export const executeOperation = async (
   await callWriteMethodWithReceipt({
     contract: timelockContract,
     methodName: 'execute',
-    payload: [target, 0n, data, predecessor, salt],
+    payload: [target, value, data, predecessor, salt],
+    value: value,
   });
 
   logInfo(`✅ Operation executed successfully!`);

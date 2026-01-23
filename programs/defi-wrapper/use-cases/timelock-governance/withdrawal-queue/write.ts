@@ -2,20 +2,45 @@ import { Option } from 'commander';
 import {
   proposeOperation,
   executeOperation,
-  resolveRole,
   processSalt,
+  TIMELOCK_ARGUMENT,
+  getPromptTimelock,
+  SALT_OPTION,
+  ROLE_ARGUMENT,
+  ACCOUNT_GRANT_ARGUMENT,
+  ACCOUNT_REVOKE_ARGUMENT,
+  promptRole,
+  promptAccount,
 } from 'features/defi-wrapper/index.js';
 import {
   logInfo,
   getCommandsJson,
   stringToAddress,
   addressPrompt,
-  textPrompt,
 } from 'utils';
 import { withdrawalQueueTimelockGovernance } from './main.js';
 import { Address, encodeFunctionData } from 'viem';
 import { getWithdrawalQueueContract } from 'contracts/defi-wrapper/index.js';
 import { WithdrawalQueueAbi } from 'abi/defi-wrapper/index.js';
+
+// Common helpers
+
+const WITHDRAWAL_QUEUE_ARGUMENT = [
+  '[withdrawalQueue]',
+  'withdrawal queue contract address',
+  stringToAddress,
+] as const;
+
+const promptWithdrawalQueue = async (withdrawalQueueAddress?: Address) => {
+  if (!withdrawalQueueAddress) {
+    const withdrawalQueuePrompt = await addressPrompt(
+      'Enter withdrawal queue contract address',
+      'withdrawalQueue',
+    );
+    withdrawalQueueAddress = withdrawalQueuePrompt.withdrawalQueue as Address;
+  }
+  return getWithdrawalQueueContract(withdrawalQueueAddress);
+};
 
 const withdrawalQueueWrite = withdrawalQueueTimelockGovernance
   .command('write')
@@ -32,18 +57,11 @@ withdrawalQueueWrite.on('option:-cmd2json', function () {
 withdrawalQueueWrite
   .command('propose-grant-role')
   .description('propose granting a role on WithdrawalQueue via Timelock')
-  .argument('[timelock]', 'timelock contract address', stringToAddress)
-  .argument(
-    '[withdrawalQueue]',
-    'withdrawal queue contract address',
-    stringToAddress,
-  )
-  .argument(
-    '[role]',
-    'role (bytes32 hex or role name like DEFAULT_ADMIN_ROLE, FINALIZE_ROLE)',
-  )
-  .argument('[account]', 'account address to grant role to')
-  .option('-s, --salt <salt>', 'salt for operation (bytes32 hex, default: 0x0)')
+  .argument(...TIMELOCK_ARGUMENT)
+  .argument(...WITHDRAWAL_QUEUE_ARGUMENT)
+  .argument(...ROLE_ARGUMENT)
+  .argument(...ACCOUNT_GRANT_ARGUMENT)
+  .option(...SALT_OPTION)
   .action(
     async (
       timelock?: Address,
@@ -52,49 +70,19 @@ withdrawalQueueWrite
       accountInput?: string,
       options?: { salt?: string },
     ) => {
-      if (!timelock) {
-        const timelockPrompt = await addressPrompt(
-          'Enter timelock contract address',
-          'timelock',
-        );
-        timelock = timelockPrompt.timelock as Address;
-      }
-
-      if (!withdrawalQueueAddress) {
-        const withdrawalQueuePrompt = await addressPrompt(
-          'Enter withdrawal queue contract address',
-          'withdrawalQueue',
-        );
-        withdrawalQueueAddress =
-          withdrawalQueuePrompt.withdrawalQueue as Address;
-      }
-
-      if (!roleInput) {
-        const rolePrompt = await textPrompt(
-          'Enter role (bytes32 hex or role name like DEFAULT_ADMIN_ROLE, FINALIZE_ROLE)',
-          'role',
-        );
-        roleInput = rolePrompt.role as string;
-      }
-
-      const role = await resolveRole(
-        roleInput,
+      const timelockContract = await getPromptTimelock(timelock);
+      const withdrawalQueueContract = await promptWithdrawalQueue(
         withdrawalQueueAddress,
-        getWithdrawalQueueContract,
       );
+
+      const role = await promptRole(roleInput, withdrawalQueueContract);
 
       const finalSalt = processSalt(options?.salt);
 
-      let account: Address;
-      if (!accountInput) {
-        const accountPrompt = await addressPrompt(
-          'Enter account address to grant role to',
-          'account',
-        );
-        account = accountPrompt.account as Address;
-      } else {
-        account = stringToAddress(accountInput);
-      }
+      const account = await promptAccount(
+        accountInput,
+        'Enter account address to grant role to',
+      );
 
       const data = encodeFunctionData({
         abi: WithdrawalQueueAbi,
@@ -103,12 +91,12 @@ withdrawalQueueWrite
       });
 
       await proposeOperation(
-        timelock,
-        withdrawalQueueAddress,
+        timelockContract.address,
+        withdrawalQueueContract.address,
         data,
         finalSalt,
         `grantRole(${role}, ${account})`,
-        `Are you sure you want to propose granting role ${role} to ${account} on withdrawal queue ${withdrawalQueueAddress}?`,
+        `Are you sure you want to propose granting role ${role} to ${account} on withdrawal queue ${withdrawalQueueContract.address}?`,
       );
     },
   );
@@ -117,18 +105,11 @@ withdrawalQueueWrite
 withdrawalQueueWrite
   .command('execute-grant-role')
   .description('execute granting a role on WithdrawalQueue via Timelock')
-  .argument('[timelock]', 'timelock contract address', stringToAddress)
-  .argument(
-    '[withdrawalQueue]',
-    'withdrawal queue contract address',
-    stringToAddress,
-  )
-  .argument(
-    '[role]',
-    'role (bytes32 hex or role name like DEFAULT_ADMIN_ROLE, FINALIZE_ROLE)',
-  )
-  .argument('[account]', 'account address to grant role to')
-  .option('-s, --salt <salt>', 'salt for operation (bytes32 hex, default: 0x0)')
+  .argument(...TIMELOCK_ARGUMENT)
+  .argument(...WITHDRAWAL_QUEUE_ARGUMENT)
+  .argument(...ROLE_ARGUMENT)
+  .argument(...ACCOUNT_GRANT_ARGUMENT)
+  .option(...SALT_OPTION)
   .action(
     async (
       timelock?: Address,
@@ -137,49 +118,19 @@ withdrawalQueueWrite
       accountInput?: string,
       options?: { salt?: string },
     ) => {
-      if (!timelock) {
-        const timelockPrompt = await addressPrompt(
-          'Enter timelock contract address',
-          'timelock',
-        );
-        timelock = timelockPrompt.timelock as Address;
-      }
-
-      if (!withdrawalQueueAddress) {
-        const withdrawalQueuePrompt = await addressPrompt(
-          'Enter withdrawal queue contract address',
-          'withdrawalQueue',
-        );
-        withdrawalQueueAddress =
-          withdrawalQueuePrompt.withdrawalQueue as Address;
-      }
-
-      if (!roleInput) {
-        const rolePrompt = await textPrompt(
-          'Enter role (bytes32 hex or role name like DEFAULT_ADMIN_ROLE, FINALIZE_ROLE)',
-          'role',
-        );
-        roleInput = rolePrompt.role as string;
-      }
-
-      const role = await resolveRole(
-        roleInput,
+      const timelockContract = await getPromptTimelock(timelock);
+      const withdrawalQueueContract = await promptWithdrawalQueue(
         withdrawalQueueAddress,
-        getWithdrawalQueueContract,
       );
+
+      const role = await promptRole(roleInput, withdrawalQueueContract);
 
       const finalSalt = processSalt(options?.salt);
 
-      let account: Address;
-      if (!accountInput) {
-        const accountPrompt = await addressPrompt(
-          'Enter account address to grant role to',
-          'account',
-        );
-        account = accountPrompt.account as Address;
-      } else {
-        account = stringToAddress(accountInput);
-      }
+      const account = await promptAccount(
+        accountInput,
+        'Enter account address to grant role to',
+      );
 
       const data = encodeFunctionData({
         abi: WithdrawalQueueAbi,
@@ -188,12 +139,12 @@ withdrawalQueueWrite
       });
 
       await executeOperation(
-        timelock,
-        withdrawalQueueAddress,
+        timelockContract.address,
+        withdrawalQueueContract.address,
         data,
         finalSalt,
         `grantRole(${role}, ${account})`,
-        `Are you sure you want to execute granting role ${role} to ${account} on withdrawal queue ${withdrawalQueueAddress}?`,
+        `Are you sure you want to execute granting role ${role} to ${account} on withdrawal queue ${withdrawalQueueContract.address}?`,
       );
     },
   );
@@ -202,18 +153,11 @@ withdrawalQueueWrite
 withdrawalQueueWrite
   .command('propose-revoke-role')
   .description('propose revoking a role on WithdrawalQueue via Timelock')
-  .argument('[timelock]', 'timelock contract address', stringToAddress)
-  .argument(
-    '[withdrawalQueue]',
-    'withdrawal queue contract address',
-    stringToAddress,
-  )
-  .argument(
-    '[role]',
-    'role (bytes32 hex or role name like DEFAULT_ADMIN_ROLE, FINALIZE_ROLE)',
-  )
-  .argument('[account]', 'account address to revoke role from')
-  .option('-s, --salt <salt>', 'salt for operation (bytes32 hex, default: 0x0)')
+  .argument(...TIMELOCK_ARGUMENT)
+  .argument(...WITHDRAWAL_QUEUE_ARGUMENT)
+  .argument(...ROLE_ARGUMENT)
+  .argument(...ACCOUNT_REVOKE_ARGUMENT)
+  .option(...SALT_OPTION)
   .action(
     async (
       timelock?: Address,
@@ -222,49 +166,19 @@ withdrawalQueueWrite
       accountInput?: string,
       options?: { salt?: string },
     ) => {
-      if (!timelock) {
-        const timelockPrompt = await addressPrompt(
-          'Enter timelock contract address',
-          'timelock',
-        );
-        timelock = timelockPrompt.timelock as Address;
-      }
-
-      if (!withdrawalQueueAddress) {
-        const withdrawalQueuePrompt = await addressPrompt(
-          'Enter withdrawal queue contract address',
-          'withdrawalQueue',
-        );
-        withdrawalQueueAddress =
-          withdrawalQueuePrompt.withdrawalQueue as Address;
-      }
-
-      if (!roleInput) {
-        const rolePrompt = await textPrompt(
-          'Enter role (bytes32 hex or role name like DEFAULT_ADMIN_ROLE, FINALIZE_ROLE)',
-          'role',
-        );
-        roleInput = rolePrompt.role as string;
-      }
-
-      const role = await resolveRole(
-        roleInput,
+      const timelockContract = await getPromptTimelock(timelock);
+      const withdrawalQueueContract = await promptWithdrawalQueue(
         withdrawalQueueAddress,
-        getWithdrawalQueueContract,
       );
+
+      const role = await promptRole(roleInput, withdrawalQueueContract);
 
       const finalSalt = processSalt(options?.salt);
 
-      let account: Address;
-      if (!accountInput) {
-        const accountPrompt = await addressPrompt(
-          'Enter account address to revoke role from',
-          'account',
-        );
-        account = accountPrompt.account as Address;
-      } else {
-        account = stringToAddress(accountInput);
-      }
+      const account = await promptAccount(
+        accountInput,
+        'Enter account address to revoke role from',
+      );
 
       const data = encodeFunctionData({
         abi: WithdrawalQueueAbi,
@@ -273,12 +187,12 @@ withdrawalQueueWrite
       });
 
       await proposeOperation(
-        timelock,
-        withdrawalQueueAddress,
+        timelockContract.address,
+        withdrawalQueueContract.address,
         data,
         finalSalt,
         `revokeRole(${role}, ${account})`,
-        `Are you sure you want to propose revoking role ${role} from ${account} on withdrawal queue ${withdrawalQueueAddress}?`,
+        `Are you sure you want to propose revoking role ${role} from ${account} on withdrawal queue ${withdrawalQueueContract.address}?`,
       );
     },
   );
@@ -287,18 +201,11 @@ withdrawalQueueWrite
 withdrawalQueueWrite
   .command('execute-revoke-role')
   .description('execute revoking a role on WithdrawalQueue via Timelock')
-  .argument('[timelock]', 'timelock contract address', stringToAddress)
-  .argument(
-    '[withdrawalQueue]',
-    'withdrawal queue contract address',
-    stringToAddress,
-  )
-  .argument(
-    '[role]',
-    'role (bytes32 hex or role name like DEFAULT_ADMIN_ROLE, FINALIZE_ROLE)',
-  )
-  .argument('[account]', 'account address to revoke role from')
-  .option('-s, --salt <salt>', 'salt for operation (bytes32 hex, default: 0x0)')
+  .argument(...TIMELOCK_ARGUMENT)
+  .argument(...WITHDRAWAL_QUEUE_ARGUMENT)
+  .argument(...ROLE_ARGUMENT)
+  .argument(...ACCOUNT_REVOKE_ARGUMENT)
+  .option(...SALT_OPTION)
   .action(
     async (
       timelock?: Address,
@@ -307,49 +214,19 @@ withdrawalQueueWrite
       accountInput?: string,
       options?: { salt?: string },
     ) => {
-      if (!timelock) {
-        const timelockPrompt = await addressPrompt(
-          'Enter timelock contract address',
-          'timelock',
-        );
-        timelock = timelockPrompt.timelock as Address;
-      }
-
-      if (!withdrawalQueueAddress) {
-        const withdrawalQueuePrompt = await addressPrompt(
-          'Enter withdrawal queue contract address',
-          'withdrawalQueue',
-        );
-        withdrawalQueueAddress =
-          withdrawalQueuePrompt.withdrawalQueue as Address;
-      }
-
-      if (!roleInput) {
-        const rolePrompt = await textPrompt(
-          'Enter role (bytes32 hex or role name like DEFAULT_ADMIN_ROLE, FINALIZE_ROLE)',
-          'role',
-        );
-        roleInput = rolePrompt.role as string;
-      }
-
-      const role = await resolveRole(
-        roleInput,
+      const timelockContract = await getPromptTimelock(timelock);
+      const withdrawalQueueContract = await promptWithdrawalQueue(
         withdrawalQueueAddress,
-        getWithdrawalQueueContract,
       );
+
+      const role = await promptRole(roleInput, withdrawalQueueContract);
 
       const finalSalt = processSalt(options?.salt);
 
-      let account: Address;
-      if (!accountInput) {
-        const accountPrompt = await addressPrompt(
-          'Enter account address to revoke role from',
-          'account',
-        );
-        account = accountPrompt.account as Address;
-      } else {
-        account = stringToAddress(accountInput);
-      }
+      const account = await promptAccount(
+        accountInput,
+        'Enter account address to revoke role from',
+      );
 
       const data = encodeFunctionData({
         abi: WithdrawalQueueAbi,
@@ -358,12 +235,12 @@ withdrawalQueueWrite
       });
 
       await executeOperation(
-        timelock,
-        withdrawalQueueAddress,
+        timelockContract.address,
+        withdrawalQueueContract.address,
         data,
         finalSalt,
         `revokeRole(${role}, ${account})`,
-        `Are you sure you want to execute revoking role ${role} from ${account} on withdrawal queue ${withdrawalQueueAddress}?`,
+        `Are you sure you want to execute revoking role ${role} from ${account} on withdrawal queue ${withdrawalQueueContract.address}?`,
       );
     },
   );

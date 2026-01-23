@@ -10,10 +10,17 @@ import {
   textPrompt,
 } from 'utils';
 import { common } from './main.js';
-import { Address, Hex, stringToHex, isHex } from 'viem';
-import { getTimeLockContract } from 'contracts/defi-wrapper/index.js';
-import { getPublicClient } from 'providers';
-import { processSalt } from 'features/defi-wrapper/index.js';
+import { Address, Hex, stringToHex, isHex, Hash } from 'viem';
+import {
+  DEFAULT_PREDECESSOR,
+  executeOperation,
+  getPromptTimelock,
+  OPERATION_ID_ARGUMENT,
+  processSalt,
+  promptOperationId,
+  SALT_OPTION,
+  TIMELOCK_ARGUMENT,
+} from 'features/defi-wrapper/index.js';
 
 const commonWrite = common
   .command('write')
@@ -29,7 +36,7 @@ commonWrite.on('option:-cmd2json', function () {
 commonWrite
   .command('execute')
   .description('execute a scheduled timelock operation')
-  .argument('[timelock]', 'timelock contract address', stringToAddress)
+  .argument(...TIMELOCK_ARGUMENT)
   .argument('[target]', 'target contract address', stringToAddress)
   .argument('[value]', 'value to send (in ETH, default: 0)', (v) =>
     v ? BigInt(v) : 0n,
@@ -39,7 +46,7 @@ commonWrite
     '-p, --predecessor <predecessor>',
     'predecessor operation ID (bytes32 hex, default: 0x0)',
   )
-  .option('-s, --salt <salt>', 'salt for operation (bytes32 hex, default: 0x0)')
+  .option(...SALT_OPTION)
   .action(
     async (
       timelock?: Address,
@@ -49,13 +56,7 @@ commonWrite
       options?: { predecessor?: string; salt?: string },
     ) => {
       // Interactive prompts for missing parameters
-      if (!timelock) {
-        const timelockPrompt = await addressPrompt(
-          'Enter timelock contract address',
-          'timelock',
-        );
-        timelock = timelockPrompt.timelock as Address;
-      }
+      const timelockContract = await getPromptTimelock(timelock);
 
       if (!target) {
         const targetPrompt = await addressPrompt(
@@ -87,100 +88,32 @@ commonWrite
         ? isHex(options.predecessor)
           ? options.predecessor
           : stringToHex(options.predecessor)
-        : ('0x0000000000000000000000000000000000000000000000000000000000000000' as Hex);
+        : DEFAULT_PREDECESSOR;
 
       const salt = processSalt(options?.salt);
 
-      const timelockContract = await getTimeLockContract(timelock);
-
-      // Calculate operation ID to check state
-      const operationId = await callReadMethodSilent({
-        contract: timelockContract,
-        methodName: 'hashOperation',
-        payload: [[target, finalValue, payload, predecessor, salt]],
-      });
-      // Check operation state
-      const state = await callReadMethodSilent({
-        contract: timelockContract,
-        methodName: 'getOperationState',
-        payload: [[operationId]],
-      });
-      // OperationState: Unset=0, Waiting=1, Ready=2, Done=3
-      if (state === 0) {
-        logInfo('❌ Operation not found (Unset)');
-        return;
-      }
-      if (state === 3) {
-        logInfo('✅ Operation already executed (Done)');
-        return;
-      }
-      if (state === 1) {
-        const timestamp = await callReadMethodSilent({
-          contract: timelockContract,
-          methodName: 'getTimestamp',
-          payload: [[operationId]],
-        });
-        const publicClient = await getPublicClient();
-        const currentBlock = await publicClient.getBlock({
-          blockTag: 'latest',
-        });
-        const now = currentBlock.timestamp;
-        const waitTime = timestamp > now ? timestamp - now : 0n;
-        logInfo(
-          `⏳ Operation is waiting. Will be ready at timestamp ${timestamp} (in ${waitTime} seconds)`,
-        );
-        return;
-      }
-
-      const confirmationMessage = `Are you sure you want to execute this operation?
-Operation ID: ${operationId}
-Target: ${target}
-Value: ${finalValue} ETH
-Payload: ${payload}`;
-
-      const confirm = await confirmOperation(confirmationMessage);
-      if (!confirm) return;
-
-      await callWriteMethodWithReceipt({
-        contract: timelockContract,
-        methodName: 'execute',
-        payload: [target, finalValue, payload, predecessor, salt],
-        value: finalValue,
-      });
+      await executeOperation(
+        timelockContract.address,
+        target,
+        payload,
+        salt,
+        'Unknown execute operation',
+        `Are you sure you want to execute this operation on target ${target}?`,
+        finalValue,
+        predecessor,
+      );
     },
   );
 
 commonWrite
   .command('cancel')
   .description('cancel a scheduled timelock operation')
-  .argument('[timelock]', 'timelock contract address', stringToAddress)
-  .argument('[operationId]', 'operation ID (bytes32 hash)')
-  .action(async (timelock?: Address, operationIdInput?: string) => {
+  .argument(...TIMELOCK_ARGUMENT)
+  .argument(...OPERATION_ID_ARGUMENT)
+  .action(async (timelock?: Address, operationIdInput?: Hash) => {
     // Interactive prompts for missing parameters
-    if (!timelock) {
-      const timelockPrompt = await addressPrompt(
-        'Enter timelock contract address',
-        'timelock',
-      );
-      timelock = timelockPrompt.timelock as Address;
-    }
-
-    let operationId: Hex;
-    if (!operationIdInput) {
-      const operationIdPrompt = await textPrompt(
-        'Enter operation ID (bytes32 hash)',
-        'operationId',
-      );
-      operationIdInput = operationIdPrompt.operationId as string;
-    }
-
-    // Validate and convert to hex - if already hex, use as is
-    if (isHex(operationIdInput)) {
-      operationId = operationIdInput;
-    } else {
-      operationId = stringToHex(operationIdInput);
-    }
-    const timelockContract = await getTimeLockContract(timelock);
+    const timelockContract = await getPromptTimelock(timelock);
+    const operationId = await promptOperationId(operationIdInput);
 
     // Check operation state
     const state = await callReadMethodSilent({

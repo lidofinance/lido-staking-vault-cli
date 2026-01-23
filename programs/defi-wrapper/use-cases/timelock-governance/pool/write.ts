@@ -1,27 +1,77 @@
 import { Option } from 'commander';
 import {
-  DEFAULT_PREDECESSOR,
+  ACCOUNT_GRANT_ARGUMENT,
+  ACCOUNT_REVOKE_ARGUMENT,
+  executeOperation,
+  getPromptTimelock,
   processSalt,
-  resolveRole,
+  promptAccount,
+  promptRole,
+  proposeOperation,
+  ROLE_ARGUMENT,
+  SALT_OPTION,
+  TIMELOCK_ARGUMENT,
 } from 'features/defi-wrapper/index.js';
 import {
   logInfo,
   getCommandsJson,
   stringToAddress,
-  callWriteMethodWithReceipt,
-  confirmOperation,
-  callReadMethodSilent,
   addressPrompt,
   textPrompt,
 } from 'utils';
 import { pool } from './main.js';
 import { Address, encodeFunctionData } from 'viem';
-import {
-  getTimeLockContract,
-  getStvPoolContract,
-} from 'contracts/defi-wrapper/index.js';
+import { getStvStethPoolContract } from 'contracts/defi-wrapper/index.js';
 import { StvPoolAbi, StvStETHPoolAbi } from 'abi/defi-wrapper/index.js';
-import { getPublicClient } from 'providers';
+
+// Common helpers
+
+const POOL_ARGUMENT = [
+  '[pool]',
+  'pool contract address',
+  stringToAddress,
+] as const;
+
+const MAX_SOCIALIZABLE_PORTION_BP_ARGUMENT = [
+  '[maxSocializablePortionBP]',
+  'max socializable portion in basis points (uint16)',
+  (v: string) => (v ? Number(v) : undefined),
+] as const;
+
+const promptPool = async (poolAddress?: Address) => {
+  if (!poolAddress) {
+    const poolPrompt = await addressPrompt(
+      'Enter pool contract address',
+      'pool',
+    );
+    poolAddress = poolPrompt.pool as Address;
+  }
+  return getStvStethPoolContract(poolAddress);
+};
+
+const promptMaxSocializablePortionBP = async (
+  maxSocializablePortionBPInput?: number,
+): Promise<number> => {
+  let maxSocializablePortionBP: number;
+  if (maxSocializablePortionBPInput === undefined) {
+    const bpPrompt = await textPrompt(
+      'Enter max socializable portion in basis points (uint16, e.g., 100 = 1%)',
+      'maxSocializablePortionBP',
+    );
+    maxSocializablePortionBP = Number(bpPrompt.maxSocializablePortionBP);
+  } else {
+    maxSocializablePortionBP = maxSocializablePortionBPInput;
+  }
+
+  if (maxSocializablePortionBP < 0 || maxSocializablePortionBP > 65535) {
+    throw new Error(
+      'maxSocializablePortionBP must be between 0 and 65535 (uint16)',
+    );
+  }
+  return maxSocializablePortionBP;
+};
+
+// Command definitions
 
 const poolWrite = pool
   .command('write')
@@ -37,11 +87,11 @@ poolWrite.on('option:-cmd2json', function () {
 poolWrite
   .command('propose-grant-role')
   .description('propose granting a role on Pool via Timelock')
-  .argument('[timelock]', 'timelock contract address', stringToAddress)
-  .argument('[pool]', 'pool contract address', stringToAddress)
-  .argument('[role]', 'role (bytes32 hex or role name like DEFAULT_ADMIN_ROLE)')
-  .argument('[account]', 'account address to grant role to')
-  .option('-s, --salt <salt>', 'salt for operation (bytes32 hex, default: 0x0)')
+  .argument(...TIMELOCK_ARGUMENT)
+  .argument(...POOL_ARGUMENT)
+  .argument(...ROLE_ARGUMENT)
+  .argument(...ACCOUNT_GRANT_ARGUMENT)
+  .option(...SALT_OPTION)
   .action(
     async (
       timelock?: Address,
@@ -51,58 +101,18 @@ poolWrite
       options?: { salt?: string },
     ) => {
       // Interactive prompts for missing parameters
-      if (!timelock) {
-        const timelockPrompt = await addressPrompt(
-          'Enter timelock contract address',
-          'timelock',
-        );
-        timelock = timelockPrompt.timelock as Address;
-      }
+      const timelockContract = await getPromptTimelock(timelock);
 
-      if (!poolAddress) {
-        const poolPrompt = await addressPrompt(
-          'Enter pool contract address',
-          'pool',
-        );
-        poolAddress = poolPrompt.pool as Address;
-      }
+      const poolContract = await promptPool(poolAddress);
 
-      // Resolve role
-      if (!roleInput) {
-        const rolePrompt = await textPrompt(
-          'Enter role (bytes32 hex or role name like DEFAULT_ADMIN_ROLE)',
-          'role',
-        );
-        roleInput = rolePrompt.role as string;
-      }
-
-      const role = await resolveRole(
-        roleInput,
-        poolAddress,
-        getStvPoolContract,
-      );
+      const role = await promptRole(roleInput, poolContract);
 
       const finalSalt = processSalt(options?.salt);
 
-      let account: Address;
-      if (!accountInput) {
-        const accountPrompt = await addressPrompt(
-          'Enter account address to grant role to',
-          'account',
-        );
-        account = accountPrompt.account as Address;
-      } else {
-        account = stringToAddress(accountInput);
-      }
-
-      const timelockContract = await getTimeLockContract(timelock);
-
-      // Get min delay
-      const minDelay = await callReadMethodSilent({
-        contract: timelockContract,
-        methodName: 'getMinDelay',
-        payload: [],
-      });
+      const account = await promptAccount(
+        accountInput,
+        'Enter account address to grant role to',
+      );
 
       // Encode grantRole call
       const data = encodeFunctionData({
@@ -111,49 +121,25 @@ poolWrite
         args: [role, account],
       });
 
-      const predecessor = DEFAULT_PREDECESSOR;
-
-      // Calculate operation ID
-      const operationId = await callReadMethodSilent({
-        contract: timelockContract,
-        methodName: 'hashOperation',
-        payload: [[poolAddress, 0n, data, predecessor, finalSalt]],
-      });
-      logInfo('Proposing operation:');
-      logInfo(`  Operation ID: ${operationId}`);
-      logInfo(`  Target: ${poolAddress}`);
-      logInfo(`  Value: 0`);
-      logInfo(`  Payload: ${data}`);
-      logInfo(`  Predecessor: ${predecessor}`);
-      logInfo(`  Salt: ${finalSalt}`);
-      logInfo(`  Function: grantRole(${role}, ${account})`);
-      logInfo(`  Min delay: ${minDelay} seconds`);
-
-      const confirmationMessage = `Are you sure you want to propose granting role ${role} to ${account} on pool ${poolAddress}?`;
-
-      const confirm = await confirmOperation(confirmationMessage);
-      if (!confirm) return;
-
-      await callWriteMethodWithReceipt({
-        contract: timelockContract,
-        methodName: 'schedule',
-        payload: [poolAddress, 0n, data, predecessor, finalSalt, minDelay],
-      });
-
-      logInfo(`✅ Operation proposed successfully!`);
-      logInfo(`   Operation ID: ${operationId}`);
-      logInfo(`   Execute after: ${minDelay} seconds`);
+      await proposeOperation(
+        timelockContract.address,
+        poolContract.address,
+        data,
+        finalSalt,
+        'grantRole',
+        `Are you sure you want to propose granting role ${role} to ${account} on pool ${poolContract.address}?`,
+      );
     },
   );
 
 poolWrite
   .command('execute-grant-role')
   .description('execute granting a role on Pool via Timelock')
-  .argument('[timelock]', 'timelock contract address', stringToAddress)
-  .argument('[pool]', 'pool contract address', stringToAddress)
-  .argument('[role]', 'role (bytes32 hex or role name like DEFAULT_ADMIN_ROLE)')
-  .argument('[account]', 'account address to grant role to')
-  .option('-s, --salt <salt>', 'salt for operation (bytes32 hex, default: 0x0)')
+  .argument(...TIMELOCK_ARGUMENT)
+  .argument(...POOL_ARGUMENT)
+  .argument(...ROLE_ARGUMENT)
+  .argument(...ACCOUNT_GRANT_ARGUMENT)
+  .option(...SALT_OPTION)
   .action(
     async (
       timelock?: Address,
@@ -163,51 +149,18 @@ poolWrite
       options?: { salt?: string },
     ) => {
       // Interactive prompts for missing parameters
-      if (!timelock) {
-        const timelockPrompt = await addressPrompt(
-          'Enter timelock contract address',
-          'timelock',
-        );
-        timelock = timelockPrompt.timelock as Address;
-      }
+      const timelockContract = await getPromptTimelock(timelock);
 
-      if (!poolAddress) {
-        const poolPrompt = await addressPrompt(
-          'Enter pool contract address',
-          'pool',
-        );
-        poolAddress = poolPrompt.pool as Address;
-      }
+      const poolContract = await promptPool(poolAddress);
 
-      // Resolve role
-      if (!roleInput) {
-        const rolePrompt = await textPrompt(
-          'Enter role (bytes32 hex or role name like DEFAULT_ADMIN_ROLE)',
-          'role',
-        );
-        roleInput = rolePrompt.role as string;
-      }
-
-      const role = await resolveRole(
-        roleInput,
-        poolAddress,
-        getStvPoolContract,
-      );
+      const role = await promptRole(roleInput, poolContract);
 
       const finalSalt = processSalt(options?.salt);
 
-      let account: Address;
-      if (!accountInput) {
-        const accountPrompt = await addressPrompt(
-          'Enter account address to grant role to',
-          'account',
-        );
-        account = accountPrompt.account as Address;
-      } else {
-        account = stringToAddress(accountInput);
-      }
-
-      const timelockContract = await getTimeLockContract(timelock);
+      const account = await promptAccount(
+        accountInput,
+        'Enter account address to grant role to',
+      );
 
       // Encode grantRole call (same as in propose)
       const data = encodeFunctionData({
@@ -216,89 +169,25 @@ poolWrite
         args: [role, account],
       });
 
-      const predecessor = DEFAULT_PREDECESSOR;
-
-      // Calculate operation ID (must match the one from schedule)
-      const operationId = await callReadMethodSilent({
-        contract: timelockContract,
-        methodName: 'hashOperation',
-        payload: [[poolAddress, 0n, data, predecessor, finalSalt]],
-      });
-
-      logInfo('Calculated operation details:');
-      logInfo(`  Operation ID: ${operationId}`);
-      logInfo(`  Target: ${poolAddress}`);
-      logInfo(`  Value: 0`);
-      logInfo(`  Payload: ${data}`);
-      logInfo(`  Predecessor: ${predecessor}`);
-      logInfo(`  Salt: ${finalSalt}`);
-
-      // Check operation state
-      const state = await callReadMethodSilent({
-        contract: timelockContract,
-        methodName: 'getOperationState',
-        payload: [[operationId]],
-      });
-      // OperationState: Unset=0, Waiting=1, Ready=2, Done=3
-      if (state === 0) {
-        logInfo('❌ Operation not found (Unset)');
-        logInfo(`   Operation ID: ${operationId}`);
-        logInfo(
-          `   Make sure you used the same parameters (pool, role, account, salt) as in propose-grant-role`,
-        );
-        return;
-      }
-      if (state === 3) {
-        logInfo('✅ Operation already executed (Done)');
-        return;
-      }
-      if (state === 1) {
-        const timestamp = await callReadMethodSilent({
-          contract: timelockContract,
-          methodName: 'getTimestamp',
-          payload: [[operationId]],
-        });
-        const publicClient = await getPublicClient();
-        const currentBlock = await publicClient.getBlock({
-          blockTag: 'latest',
-        });
-        const now = currentBlock.timestamp;
-        const waitTime = timestamp > now ? timestamp - now : 0n;
-        logInfo(
-          `⏳ Operation is waiting. Will be ready at timestamp ${timestamp} (in ${waitTime} seconds)`,
-        );
-        return;
-      }
-
-      logInfo('Executing operation:');
-      logInfo(`  Operation ID: ${operationId}`);
-      logInfo(`  Target: ${poolAddress}`);
-      logInfo(`  Function: grantRole(${role}, ${account})`);
-
-      const confirmationMessage = `Are you sure you want to execute granting role ${role} to ${account} on pool ${poolAddress}?`;
-
-      const confirm = await confirmOperation(confirmationMessage);
-      if (!confirm) return;
-
-      await callWriteMethodWithReceipt({
-        contract: timelockContract,
-        methodName: 'execute',
-        payload: [poolAddress, 0n, data, predecessor, finalSalt],
-      });
-
-      logInfo(`✅ Operation executed successfully!`);
-      logInfo(`   Operation ID: ${operationId}`);
+      await executeOperation(
+        timelockContract.address,
+        poolContract.address,
+        data,
+        finalSalt,
+        'grantRole',
+        `Are you sure you want to execute granting role ${role} to ${account} on pool ${poolContract.address}?`,
+      );
     },
   );
 
 poolWrite
   .command('propose-revoke-role')
   .description('propose revoking a role on Pool via Timelock')
-  .argument('[timelock]', 'timelock contract address', stringToAddress)
-  .argument('[pool]', 'pool contract address', stringToAddress)
-  .argument('[role]', 'role (bytes32 hex or role name like DEFAULT_ADMIN_ROLE)')
-  .argument('[account]', 'account address to revoke role from')
-  .option('-s, --salt <salt>', 'salt for operation (bytes32 hex, default: 0x0)')
+  .argument(...TIMELOCK_ARGUMENT)
+  .argument(...POOL_ARGUMENT)
+  .argument(...ROLE_ARGUMENT)
+  .argument(...ACCOUNT_REVOKE_ARGUMENT)
+  .option(...SALT_OPTION)
   .action(
     async (
       timelock?: Address,
@@ -308,58 +197,18 @@ poolWrite
       options?: { salt?: string },
     ) => {
       // Interactive prompts for missing parameters
-      if (!timelock) {
-        const timelockPrompt = await addressPrompt(
-          'Enter timelock contract address',
-          'timelock',
-        );
-        timelock = timelockPrompt.timelock as Address;
-      }
+      const timelockContract = await getPromptTimelock(timelock);
 
-      if (!poolAddress) {
-        const poolPrompt = await addressPrompt(
-          'Enter pool contract address',
-          'pool',
-        );
-        poolAddress = poolPrompt.pool as Address;
-      }
+      const poolContract = await promptPool(poolAddress);
 
-      // Resolve role
-      if (!roleInput) {
-        const rolePrompt = await textPrompt(
-          'Enter role (bytes32 hex or role name like DEFAULT_ADMIN_ROLE)',
-          'role',
-        );
-        roleInput = rolePrompt.role as string;
-      }
-
-      const role = await resolveRole(
-        roleInput,
-        poolAddress,
-        getStvPoolContract,
-      );
+      const role = await promptRole(roleInput, poolContract);
 
       const finalSalt = processSalt(options?.salt);
 
-      let account: Address;
-      if (!accountInput) {
-        const accountPrompt = await addressPrompt(
-          'Enter account address to revoke role from',
-          'account',
-        );
-        account = accountPrompt.account as Address;
-      } else {
-        account = stringToAddress(accountInput);
-      }
-
-      const timelockContract = await getTimeLockContract(timelock);
-
-      // Get min delay
-      const minDelay = await callReadMethodSilent({
-        contract: timelockContract,
-        methodName: 'getMinDelay',
-        payload: [],
-      });
+      const account = await promptAccount(
+        accountInput,
+        'Enter account address to revoke role from',
+      );
 
       // Encode revokeRole call
       const data = encodeFunctionData({
@@ -368,49 +217,25 @@ poolWrite
         args: [role, account],
       });
 
-      const predecessor = DEFAULT_PREDECESSOR;
-
-      // Calculate operation ID
-      const operationId = await callReadMethodSilent({
-        contract: timelockContract,
-        methodName: 'hashOperation',
-        payload: [[poolAddress, 0n, data, predecessor, finalSalt]],
-      });
-      logInfo('Proposing operation:');
-      logInfo(`  Operation ID: ${operationId}`);
-      logInfo(`  Target: ${poolAddress}`);
-      logInfo(`  Value: 0`);
-      logInfo(`  Payload: ${data}`);
-      logInfo(`  Predecessor: ${predecessor}`);
-      logInfo(`  Salt: ${finalSalt}`);
-      logInfo(`  Function: revokeRole(${role}, ${account})`);
-      logInfo(`  Min delay: ${minDelay} seconds`);
-
-      const confirmationMessage = `Are you sure you want to propose revoking role ${role} from ${account} on pool ${poolAddress}?`;
-
-      const confirm = await confirmOperation(confirmationMessage);
-      if (!confirm) return;
-
-      await callWriteMethodWithReceipt({
-        contract: timelockContract,
-        methodName: 'schedule',
-        payload: [poolAddress, 0n, data, predecessor, finalSalt, minDelay],
-      });
-
-      logInfo(`✅ Operation proposed successfully!`);
-      logInfo(`   Operation ID: ${operationId}`);
-      logInfo(`   Execute after: ${minDelay} seconds`);
+      await proposeOperation(
+        timelockContract.address,
+        poolContract.address,
+        data,
+        finalSalt,
+        'revokeRole',
+        `Are you sure you want to propose revoking role ${role} from ${account} on pool ${poolContract.address}?`,
+      );
     },
   );
 
 poolWrite
   .command('execute-revoke-role')
   .description('execute revoking a role on Pool via Timelock')
-  .argument('[timelock]', 'timelock contract address', stringToAddress)
-  .argument('[pool]', 'pool contract address', stringToAddress)
-  .argument('[role]', 'role (bytes32 hex or role name like DEFAULT_ADMIN_ROLE)')
-  .argument('[account]', 'account address to revoke role from')
-  .option('-s, --salt <salt>', 'salt for operation (bytes32 hex, default: 0x0)')
+  .argument(...TIMELOCK_ARGUMENT)
+  .argument(...POOL_ARGUMENT)
+  .argument(...ROLE_ARGUMENT)
+  .argument(...ACCOUNT_REVOKE_ARGUMENT)
+  .option(...SALT_OPTION)
   .action(
     async (
       timelock?: Address,
@@ -420,131 +245,34 @@ poolWrite
       options?: { salt?: string },
     ) => {
       // Interactive prompts for missing parameters
-      if (!timelock) {
-        const timelockPrompt = await addressPrompt(
-          'Enter timelock contract address',
-          'timelock',
-        );
-        timelock = timelockPrompt.timelock as Address;
-      }
+      const timelockContract = await getPromptTimelock(timelock);
 
-      if (!poolAddress) {
-        const poolPrompt = await addressPrompt(
-          'Enter pool contract address',
-          'pool',
-        );
-        poolAddress = poolPrompt.pool as Address;
-      }
+      const poolContract = await promptPool(poolAddress);
 
-      // Resolve role
-      if (!roleInput) {
-        const rolePrompt = await textPrompt(
-          'Enter role (bytes32 hex or role name like DEFAULT_ADMIN_ROLE)',
-          'role',
-        );
-        roleInput = rolePrompt.role as string;
-      }
-
-      const role = await resolveRole(
-        roleInput,
-        poolAddress,
-        getStvPoolContract,
-      );
+      const role = await promptRole(roleInput, poolContract);
 
       const finalSalt = processSalt(options?.salt);
 
-      let account: Address;
-      if (!accountInput) {
-        const accountPrompt = await addressPrompt(
-          'Enter account address to revoke role from',
-          'account',
-        );
-        account = accountPrompt.account as Address;
-      } else {
-        account = stringToAddress(accountInput);
-      }
+      const account = await promptAccount(
+        accountInput,
+        'Enter account address to revoke role from',
+      );
 
-      const timelockContract = await getTimeLockContract(timelock);
-
-      // Encode revokeRole call (same as in propose)
+      // Encode revokeRole call
       const data = encodeFunctionData({
         abi: StvPoolAbi,
         functionName: 'revokeRole',
         args: [role, account],
       });
 
-      const predecessor = DEFAULT_PREDECESSOR;
-
-      // Calculate operation ID (must match the one from schedule)
-      const operationId = await callReadMethodSilent({
-        contract: timelockContract,
-        methodName: 'hashOperation',
-        payload: [[poolAddress, 0n, data, predecessor, finalSalt]],
-      });
-      logInfo('Calculated operation details:');
-      logInfo(`  Operation ID: ${operationId}`);
-      logInfo(`  Target: ${poolAddress}`);
-      logInfo(`  Value: 0`);
-      logInfo(`  Payload: ${data}`);
-      logInfo(`  Predecessor: ${predecessor}`);
-      logInfo(`  Salt: ${finalSalt}`);
-
-      // Check operation state
-      const state = await callReadMethodSilent({
-        contract: timelockContract,
-        methodName: 'getOperationState',
-        payload: [[operationId]],
-      });
-
-      // OperationState: Unset=0, Waiting=1, Ready=2, Done=3
-      if (state === 0) {
-        logInfo('❌ Operation not found (Unset)');
-        logInfo(`   Operation ID: ${operationId}`);
-        logInfo(
-          `   Make sure you used the same parameters (pool, role, account, salt) as in propose-revoke-role`,
-        );
-        return;
-      }
-      if (state === 3) {
-        logInfo('✅ Operation already executed (Done)');
-        return;
-      }
-      if (state === 1) {
-        const timestamp = await callReadMethodSilent({
-          contract: timelockContract,
-          methodName: 'getTimestamp',
-          payload: [[operationId]],
-        });
-        const publicClient = await getPublicClient();
-        const currentBlock = await publicClient.getBlock({
-          blockTag: 'latest',
-        });
-        const now = currentBlock.timestamp;
-        const waitTime = timestamp > now ? timestamp - now : 0n;
-        logInfo(
-          `⏳ Operation is waiting. Will be ready at timestamp ${timestamp} (in ${waitTime} seconds)`,
-        );
-        return;
-      }
-
-      logInfo('Executing operation:');
-      logInfo(`  Operation ID: ${operationId}`);
-      logInfo(`  Target: ${poolAddress}`);
-      logInfo(`  Function: revokeRole(${role}, ${account})`);
-
-      const confirmationMessage = `Are you sure you want to execute revoking role ${role} from ${account} on pool ${poolAddress}?`;
-
-      const confirm = await confirmOperation(confirmationMessage);
-      if (!confirm) return;
-
-      await callWriteMethodWithReceipt({
-        contract: timelockContract,
-        methodName: 'execute',
-        payload: [poolAddress, 0n, data, predecessor, finalSalt],
-      });
-
-      logInfo(`✅ Operation executed successfully!`);
-      logInfo(`   Operation ID: ${operationId}`);
+      await executeOperation(
+        timelockContract.address,
+        poolContract.address,
+        data,
+        finalSalt,
+        'revokeRole',
+        `Are you sure you want to execute revoking role ${role} from ${account} on pool ${poolContract.address}?`,
+      );
     },
   );
 
@@ -553,14 +281,10 @@ poolWrite
   .description(
     'propose setting maxLossSocializationBP on StvStETHPool via Timelock',
   )
-  .argument('[timelock]', 'timelock contract address', stringToAddress)
-  .argument('[pool]', 'pool contract address (StvStETHPool)', stringToAddress)
-  .argument(
-    '[maxSocializablePortionBP]',
-    'max socializable portion in basis points (uint16)',
-    (v) => (v ? Number(v) : undefined),
-  )
-  .option('-s, --salt <salt>', 'salt for operation (bytes32 hex, default: 0x0)')
+  .argument(...TIMELOCK_ARGUMENT)
+  .argument(...POOL_ARGUMENT)
+  .argument(...MAX_SOCIALIZABLE_PORTION_BP_ARGUMENT)
+  .option(...SALT_OPTION)
   .action(
     async (
       timelock?: Address,
@@ -569,49 +293,15 @@ poolWrite
       options?: { salt?: string },
     ) => {
       // Interactive prompts for missing parameters
-      if (!timelock) {
-        const timelockPrompt = await addressPrompt(
-          'Enter timelock contract address',
-          'timelock',
-        );
-        timelock = timelockPrompt.timelock as Address;
-      }
+      const timelockContract = await getPromptTimelock(timelock);
 
-      if (!poolAddress) {
-        const poolPrompt = await addressPrompt(
-          'Enter pool contract address',
-          'pool',
-        );
-        poolAddress = poolPrompt.pool as Address;
-      }
+      const poolContract = await promptPool(poolAddress);
 
-      let maxSocializablePortionBP: number;
-      if (maxSocializablePortionBPInput === undefined) {
-        const bpPrompt = await textPrompt(
-          'Enter max socializable portion in basis points (uint16, e.g., 100 = 1%)',
-          'maxSocializablePortionBP',
-        );
-        maxSocializablePortionBP = Number(bpPrompt.maxSocializablePortionBP);
-      } else {
-        maxSocializablePortionBP = maxSocializablePortionBPInput;
-      }
-
-      if (maxSocializablePortionBP < 0 || maxSocializablePortionBP > 65535) {
-        throw new Error(
-          'maxSocializablePortionBP must be between 0 and 65535 (uint16)',
-        );
-      }
+      const maxSocializablePortionBP = await promptMaxSocializablePortionBP(
+        maxSocializablePortionBPInput,
+      );
 
       const finalSalt = processSalt(options?.salt);
-
-      const timelockContract = await getTimeLockContract(timelock);
-
-      // Get min delay
-      const minDelay = await callReadMethodSilent({
-        contract: timelockContract,
-        methodName: 'getMinDelay',
-        payload: [],
-      });
 
       // Encode setMaxLossSocializationBP call
       const data = encodeFunctionData({
@@ -620,40 +310,14 @@ poolWrite
         args: [maxSocializablePortionBP],
       });
 
-      const predecessor = DEFAULT_PREDECESSOR;
-
-      // Calculate operation ID
-      const operationId = await callReadMethodSilent({
-        contract: timelockContract,
-        methodName: 'hashOperation',
-        payload: [[poolAddress, 0n, data, predecessor, finalSalt]],
-      });
-      logInfo('Proposing operation:');
-      logInfo(`  Operation ID: ${operationId}`);
-      logInfo(`  Target: ${poolAddress}`);
-      logInfo(`  Value: 0`);
-      logInfo(`  Payload: ${data}`);
-      logInfo(`  Predecessor: ${predecessor}`);
-      logInfo(`  Salt: ${finalSalt}`);
-      logInfo(
-        `  Function: setMaxLossSocializationBP(${maxSocializablePortionBP})`,
+      await proposeOperation(
+        timelockContract.address,
+        poolContract.address,
+        data,
+        finalSalt,
+        `setMaxLossSocializationBP(${maxSocializablePortionBP})`,
+        `Are you sure you want to propose setting maxLossSocializationBP to ${maxSocializablePortionBP} BP on pool ${poolContract.address}?`,
       );
-      logInfo(`  Min delay: ${minDelay} seconds`);
-
-      const confirmationMessage = `Are you sure you want to propose setting maxLossSocializationBP to ${maxSocializablePortionBP} BP on pool ${poolAddress}?`;
-
-      const confirm = await confirmOperation(confirmationMessage);
-      if (!confirm) return;
-
-      await callWriteMethodWithReceipt({
-        contract: timelockContract,
-        methodName: 'schedule',
-        payload: [poolAddress, 0n, data, predecessor, finalSalt, minDelay],
-      });
-
-      logInfo(`✅ Operation proposed successfully!`);
-      logInfo(`   Operation ID: ${operationId}`);
-      logInfo(`   Execute after: ${minDelay} seconds`);
     },
   );
 
@@ -662,14 +326,10 @@ poolWrite
   .description(
     'execute setting maxLossSocializationBP on StvStETHPool via Timelock',
   )
-  .argument('[timelock]', 'timelock contract address', stringToAddress)
-  .argument('[pool]', 'pool contract address (StvStETHPool)', stringToAddress)
-  .argument(
-    '[maxSocializablePortionBP]',
-    'max socializable portion in basis points (uint16)',
-    (v) => (v ? Number(v) : undefined),
-  )
-  .option('-s, --salt <salt>', 'salt for operation (bytes32 hex, default: 0x0)')
+  .argument(...TIMELOCK_ARGUMENT)
+  .argument(...POOL_ARGUMENT)
+  .argument(...MAX_SOCIALIZABLE_PORTION_BP_ARGUMENT)
+  .option(...SALT_OPTION)
   .action(
     async (
       timelock?: Address,
@@ -678,42 +338,15 @@ poolWrite
       options?: { salt?: string },
     ) => {
       // Interactive prompts for missing parameters
-      if (!timelock) {
-        const timelockPrompt = await addressPrompt(
-          'Enter timelock contract address',
-          'timelock',
-        );
-        timelock = timelockPrompt.timelock as Address;
-      }
+      const timelockContract = await getPromptTimelock(timelock);
 
-      if (!poolAddress) {
-        const poolPrompt = await addressPrompt(
-          'Enter pool contract address',
-          'pool',
-        );
-        poolAddress = poolPrompt.pool as Address;
-      }
+      const poolContract = await promptPool(poolAddress);
 
-      let maxSocializablePortionBP: number;
-      if (maxSocializablePortionBPInput === undefined) {
-        const bpPrompt = await textPrompt(
-          'Enter max socializable portion in basis points (uint16, e.g., 100 = 1%)',
-          'maxSocializablePortionBP',
-        );
-        maxSocializablePortionBP = Number(bpPrompt.maxSocializablePortionBP);
-      } else {
-        maxSocializablePortionBP = maxSocializablePortionBPInput;
-      }
-
-      if (maxSocializablePortionBP < 0 || maxSocializablePortionBP > 65535) {
-        throw new Error(
-          'maxSocializablePortionBP must be between 0 and 65535 (uint16)',
-        );
-      }
+      const maxSocializablePortionBP = await promptMaxSocializablePortionBP(
+        maxSocializablePortionBPInput,
+      );
 
       const finalSalt = processSalt(options?.salt);
-
-      const timelockContract = await getTimeLockContract(timelock);
 
       // Encode setMaxLossSocializationBP call (same as in propose)
       const data = encodeFunctionData({
@@ -722,80 +355,13 @@ poolWrite
         args: [maxSocializablePortionBP],
       });
 
-      const predecessor = DEFAULT_PREDECESSOR;
-
-      // Calculate operation ID (must match the one from schedule)
-      const operationId = await callReadMethodSilent({
-        contract: timelockContract,
-        methodName: 'hashOperation',
-        payload: [[poolAddress, 0n, data, predecessor, finalSalt]],
-      });
-
-      logInfo('Calculated operation details:');
-      logInfo(`  Operation ID: ${operationId}`);
-      logInfo(`  Target: ${poolAddress}`);
-      logInfo(`  Value: 0`);
-      logInfo(`  Payload: ${data}`);
-      logInfo(`  Predecessor: ${predecessor}`);
-      logInfo(`  Salt: ${finalSalt}`);
-
-      // Check operation state
-      const state = await callReadMethodSilent({
-        contract: timelockContract,
-        methodName: 'getOperationState',
-        payload: [[operationId]],
-      });
-
-      // OperationState: Unset=0, Waiting=1, Ready=2, Done=3
-      if (state === 0) {
-        logInfo('❌ Operation not found (Unset)');
-        logInfo(`   Operation ID: ${operationId}`);
-        logInfo(
-          `   Make sure you used the same parameters (pool, maxSocializablePortionBP, salt) as in propose-set-max-loss-socialization-bp`,
-        );
-        return;
-      }
-      if (state === 3) {
-        logInfo('✅ Operation already executed (Done)');
-        return;
-      }
-      if (state === 1) {
-        const timestamp = await callReadMethodSilent({
-          contract: timelockContract,
-          methodName: 'getTimestamp',
-          payload: [[operationId]],
-        });
-        const publicClient = await getPublicClient();
-        const currentBlock = await publicClient.getBlock({
-          blockTag: 'latest',
-        });
-        const now = currentBlock.timestamp;
-        const waitTime = timestamp > now ? timestamp - now : 0n;
-        logInfo(
-          `⏳ Operation is waiting. Will be ready at timestamp ${timestamp} (in ${waitTime} seconds)`,
-        );
-        return;
-      }
-
-      logInfo('Executing operation:');
-      logInfo(`  Operation ID: ${operationId}`);
-      logInfo(`  Target: ${poolAddress}`);
-      logInfo(
-        `  Function: setMaxLossSocializationBP(${maxSocializablePortionBP})`,
+      await proposeOperation(
+        timelockContract.address,
+        poolContract.address,
+        data,
+        finalSalt,
+        `setMaxLossSocializationBP(${maxSocializablePortionBP})`,
+        `Are you sure you want to execute setting maxLossSocializationBP to ${maxSocializablePortionBP} BP on pool ${poolContract.address}?`,
       );
-
-      const confirmationMessage = `Are you sure you want to execute setting maxLossSocializationBP to ${maxSocializablePortionBP} BP on pool ${poolAddress}?`;
-
-      const confirm = await confirmOperation(confirmationMessage);
-      if (!confirm) return;
-
-      await callWriteMethodWithReceipt({
-        contract: timelockContract,
-        methodName: 'execute',
-        payload: [poolAddress, 0n, data, predecessor, finalSalt],
-      });
-
-      logInfo(`✅ Operation executed successfully!`);
-      logInfo(`   Operation ID: ${operationId}`);
     },
   );

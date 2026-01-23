@@ -2,8 +2,15 @@ import { Option } from 'commander';
 import {
   proposeOperation,
   executeOperation,
-  resolveRole,
   processSalt,
+  TIMELOCK_ARGUMENT,
+  getPromptTimelock,
+  ACCOUNT_GRANT_ARGUMENT,
+  SALT_OPTION,
+  ROLE_ARGUMENT,
+  ACCOUNT_REVOKE_ARGUMENT,
+  promptRole,
+  promptAccount,
 } from 'features/defi-wrapper/index.js';
 import {
   logInfo,
@@ -16,6 +23,27 @@ import { dashboardTimelockGovernance } from './main.js';
 import { Address, encodeFunctionData } from 'viem';
 import { getDashboardContract } from 'contracts/index.js';
 import { DashboardAbi } from 'abi/index.js';
+
+// local helpers
+const DASHBOARD_ARGUMENT = [
+  '[dashboard]',
+  'dashboard contract address',
+  stringToAddress,
+] as const;
+
+const promptDashboard = async (dashboardAddress: Address | undefined) => {
+  if (!dashboardAddress) {
+    const dashboardPrompt = await addressPrompt(
+      'Enter dashboard contract address',
+      'dashboard',
+    );
+    dashboardAddress = dashboardPrompt.dashboard as Address;
+  }
+
+  return getDashboardContract(dashboardAddress);
+};
+
+// command definitions
 
 const dashboardWrite = dashboardTimelockGovernance
   .command('write')
@@ -32,11 +60,11 @@ dashboardWrite.on('option:-cmd2json', function () {
 dashboardWrite
   .command('propose-grant-role')
   .description('propose granting a role on Dashboard via Timelock')
-  .argument('[timelock]', 'timelock contract address', stringToAddress)
-  .argument('[dashboard]', 'dashboard contract address', stringToAddress)
-  .argument('[role]', 'role (bytes32 hex or role name like DEFAULT_ADMIN_ROLE)')
-  .argument('[account]', 'account address to grant role to')
-  .option('-s, --salt <salt>', 'salt for operation (bytes32 hex, default: 0x0)')
+  .argument(...TIMELOCK_ARGUMENT)
+  .argument(...DASHBOARD_ARGUMENT)
+  .argument(...ROLE_ARGUMENT)
+  .argument(...ACCOUNT_GRANT_ARGUMENT)
+  .option(...SALT_OPTION)
   .action(
     async (
       timelock?: Address,
@@ -45,47 +73,15 @@ dashboardWrite
       accountInput?: string,
       options?: { salt?: string },
     ) => {
-      if (!timelock) {
-        const timelockPrompt = await addressPrompt(
-          'Enter timelock contract address',
-          'timelock',
-        );
-        timelock = timelockPrompt.timelock as Address;
-      }
-
-      if (!dashboardAddress) {
-        const dashboardPrompt = await addressPrompt(
-          'Enter dashboard contract address',
-          'dashboard',
-        );
-        dashboardAddress = dashboardPrompt.dashboard as Address;
-      }
-
-      if (!roleInput) {
-        const rolePrompt = await textPrompt(
-          'Enter role (bytes32 hex or role name like DEFAULT_ADMIN_ROLE)',
-          'role',
-        );
-        roleInput = rolePrompt.role as string;
-      }
-
-      const role = await resolveRole(
-        roleInput,
-        dashboardAddress,
-        getDashboardContract,
+      const timelockContract = await getPromptTimelock(timelock);
+      const dashboardContract = await promptDashboard(dashboardAddress);
+      const role = await promptRole(roleInput, dashboardContract);
+      const account = await promptAccount(
+        accountInput,
+        'Enter account address to grant role to',
       );
 
       const finalSalt = processSalt(options?.salt);
-      let account: Address;
-      if (!accountInput) {
-        const accountPrompt = await addressPrompt(
-          'Enter account address to grant role to',
-          'account',
-        );
-        account = accountPrompt.account as Address;
-      } else {
-        account = stringToAddress(accountInput);
-      }
 
       const data = encodeFunctionData({
         abi: DashboardAbi,
@@ -94,12 +90,12 @@ dashboardWrite
       });
 
       await proposeOperation(
-        timelock,
-        dashboardAddress,
+        timelockContract.address,
+        dashboardContract.address,
         data,
         finalSalt,
         `grantRole(${role}, ${account})`,
-        `Are you sure you want to propose granting role ${role} to ${account} on dashboard ${dashboardAddress}?`,
+        `Are you sure you want to propose granting role ${role} to ${account} on dashboard ${dashboardContract.address}?`,
       );
     },
   );
@@ -108,11 +104,11 @@ dashboardWrite
 dashboardWrite
   .command('execute-grant-role')
   .description('execute granting a role on Dashboard via Timelock')
-  .argument('[timelock]', 'timelock contract address', stringToAddress)
-  .argument('[dashboard]', 'dashboard contract address', stringToAddress)
-  .argument('[role]', 'role (bytes32 hex or role name like DEFAULT_ADMIN_ROLE)')
-  .argument('[account]', 'account address to grant role to')
-  .option('-s, --salt <salt>', 'salt for operation (bytes32 hex, default: 0x0)')
+  .argument(...TIMELOCK_ARGUMENT)
+  .argument(...DASHBOARD_ARGUMENT)
+  .argument(...ROLE_ARGUMENT)
+  .argument(...ACCOUNT_GRANT_ARGUMENT)
+  .option(...SALT_OPTION)
   .action(
     async (
       timelock?: Address,
@@ -121,47 +117,15 @@ dashboardWrite
       accountInput?: string,
       options?: { salt?: string },
     ) => {
-      if (!timelock) {
-        const timelockPrompt = await addressPrompt(
-          'Enter timelock contract address',
-          'timelock',
-        );
-        timelock = timelockPrompt.timelock as Address;
-      }
-
-      if (!dashboardAddress) {
-        const dashboardPrompt = await addressPrompt(
-          'Enter dashboard contract address',
-          'dashboard',
-        );
-        dashboardAddress = dashboardPrompt.dashboard as Address;
-      }
-
-      if (!roleInput) {
-        const rolePrompt = await textPrompt(
-          'Enter role (bytes32 hex or role name like DEFAULT_ADMIN_ROLE)',
-          'role',
-        );
-        roleInput = rolePrompt.role as string;
-      }
-
-      const role = await resolveRole(
-        roleInput,
-        dashboardAddress,
-        getDashboardContract,
-      );
+      const timelockContract = await getPromptTimelock(timelock);
+      const dashboardContract = await promptDashboard(dashboardAddress);
+      const role = await promptRole(roleInput, dashboardContract);
 
       const finalSalt = processSalt(options?.salt);
-      let account: Address;
-      if (!accountInput) {
-        const accountPrompt = await addressPrompt(
-          'Enter account address to grant role to',
-          'account',
-        );
-        account = accountPrompt.account as Address;
-      } else {
-        account = stringToAddress(accountInput);
-      }
+      const account = await promptAccount(
+        accountInput,
+        'Enter account address to grant role to',
+      );
 
       const data = encodeFunctionData({
         abi: DashboardAbi,
@@ -170,12 +134,12 @@ dashboardWrite
       });
 
       await executeOperation(
-        timelock,
-        dashboardAddress,
+        timelockContract.address,
+        dashboardContract.address,
         data,
         finalSalt,
         `grantRole(${role}, ${account})`,
-        `Are you sure you want to execute granting role ${role} to ${account} on dashboard ${dashboardAddress}?`,
+        `Are you sure you want to execute granting role ${role} to ${account} on dashboard ${dashboardContract.address}?`,
       );
     },
   );
@@ -184,11 +148,11 @@ dashboardWrite
 dashboardWrite
   .command('propose-revoke-role')
   .description('propose revoking a role on Dashboard via Timelock')
-  .argument('[timelock]', 'timelock contract address', stringToAddress)
-  .argument('[dashboard]', 'dashboard contract address', stringToAddress)
-  .argument('[role]', 'role (bytes32 hex or role name like DEFAULT_ADMIN_ROLE)')
-  .argument('[account]', 'account address to revoke role from')
-  .option('-s, --salt <salt>', 'salt for operation (bytes32 hex, default: 0x0)')
+  .argument(...TIMELOCK_ARGUMENT)
+  .argument(...DASHBOARD_ARGUMENT)
+  .argument(...ROLE_ARGUMENT)
+  .argument(...ACCOUNT_REVOKE_ARGUMENT)
+  .option(...SALT_OPTION)
   .action(
     async (
       timelock?: Address,
@@ -197,47 +161,16 @@ dashboardWrite
       accountInput?: string,
       options?: { salt?: string },
     ) => {
-      if (!timelock) {
-        const timelockPrompt = await addressPrompt(
-          'Enter timelock contract address',
-          'timelock',
-        );
-        timelock = timelockPrompt.timelock as Address;
-      }
+      const timelockContract = await getPromptTimelock(timelock);
+      const dashboardContract = await promptDashboard(dashboardAddress);
 
-      if (!dashboardAddress) {
-        const dashboardPrompt = await addressPrompt(
-          'Enter dashboard contract address',
-          'dashboard',
-        );
-        dashboardAddress = dashboardPrompt.dashboard as Address;
-      }
-
-      if (!roleInput) {
-        const rolePrompt = await textPrompt(
-          'Enter role (bytes32 hex or role name like DEFAULT_ADMIN_ROLE)',
-          'role',
-        );
-        roleInput = rolePrompt.role as string;
-      }
-
-      const role = await resolveRole(
-        roleInput,
-        dashboardAddress,
-        getDashboardContract,
-      );
+      const role = await promptRole(roleInput, dashboardContract);
 
       const finalSalt = processSalt(options?.salt);
-      let account: Address;
-      if (!accountInput) {
-        const accountPrompt = await addressPrompt(
-          'Enter account address to revoke role from',
-          'account',
-        );
-        account = accountPrompt.account as Address;
-      } else {
-        account = stringToAddress(accountInput);
-      }
+      const account = await promptAccount(
+        accountInput,
+        'Enter account address to revoke role from',
+      );
 
       const data = encodeFunctionData({
         abi: DashboardAbi,
@@ -246,12 +179,12 @@ dashboardWrite
       });
 
       await proposeOperation(
-        timelock,
-        dashboardAddress,
+        timelockContract.address,
+        dashboardContract.address,
         data,
         finalSalt,
         `revokeRole(${role}, ${account})`,
-        `Are you sure you want to propose revoking role ${role} from ${account} on dashboard ${dashboardAddress}?`,
+        `Are you sure you want to propose revoking role ${role} from ${account} on dashboard ${dashboardContract.address}?`,
       );
     },
   );
@@ -260,11 +193,11 @@ dashboardWrite
 dashboardWrite
   .command('execute-revoke-role')
   .description('execute revoking a role on Dashboard via Timelock')
-  .argument('[timelock]', 'timelock contract address', stringToAddress)
-  .argument('[dashboard]', 'dashboard contract address', stringToAddress)
-  .argument('[role]', 'role (bytes32 hex or role name like DEFAULT_ADMIN_ROLE)')
-  .argument('[account]', 'account address to revoke role from')
-  .option('-s, --salt <salt>', 'salt for operation (bytes32 hex, default: 0x0)')
+  .argument(...TIMELOCK_ARGUMENT)
+  .argument(...DASHBOARD_ARGUMENT)
+  .argument(...ROLE_ARGUMENT)
+  .argument(...ACCOUNT_REVOKE_ARGUMENT)
+  .option(...SALT_OPTION)
   .action(
     async (
       timelock?: Address,
@@ -273,48 +206,14 @@ dashboardWrite
       accountInput?: string,
       options?: { salt?: string },
     ) => {
-      if (!timelock) {
-        const timelockPrompt = await addressPrompt(
-          'Enter timelock contract address',
-          'timelock',
-        );
-        timelock = timelockPrompt.timelock as Address;
-      }
-
-      if (!dashboardAddress) {
-        const dashboardPrompt = await addressPrompt(
-          'Enter dashboard contract address',
-          'dashboard',
-        );
-        dashboardAddress = dashboardPrompt.dashboard as Address;
-      }
-
-      if (!roleInput) {
-        const rolePrompt = await textPrompt(
-          'Enter role (bytes32 hex or role name like DEFAULT_ADMIN_ROLE)',
-          'role',
-        );
-        roleInput = rolePrompt.role as string;
-      }
-
-      const role = await resolveRole(
-        roleInput,
-        dashboardAddress,
-        getDashboardContract,
-      );
-
+      const timelockContract = await getPromptTimelock(timelock);
+      const dashboardContract = await promptDashboard(dashboardAddress);
+      const role = await promptRole(roleInput, dashboardContract);
       const finalSalt = processSalt(options?.salt);
-
-      let account: Address;
-      if (!accountInput) {
-        const accountPrompt = await addressPrompt(
-          'Enter account address to revoke role from',
-          'account',
-        );
-        account = accountPrompt.account as Address;
-      } else {
-        account = stringToAddress(accountInput);
-      }
+      const account = await promptAccount(
+        accountInput,
+        'Enter account address to revoke role from',
+      );
 
       const data = encodeFunctionData({
         abi: DashboardAbi,
@@ -323,12 +222,12 @@ dashboardWrite
       });
 
       await executeOperation(
-        timelock,
-        dashboardAddress,
+        timelockContract.address,
+        dashboardContract.address,
         data,
         finalSalt,
         `revokeRole(${role}, ${account})`,
-        `Are you sure you want to execute revoking role ${role} from ${account} on dashboard ${dashboardAddress}?`,
+        `Are you sure you want to execute revoking role ${role} from ${account} on dashboard ${dashboardContract.address}?`,
       );
     },
   );
@@ -337,11 +236,11 @@ dashboardWrite
 dashboardWrite
   .command('propose-change-tier')
   .description('propose changing tier on Dashboard via Timelock')
-  .argument('[timelock]', 'timelock contract address', stringToAddress)
-  .argument('[dashboard]', 'dashboard contract address', stringToAddress)
+  .argument(...TIMELOCK_ARGUMENT)
+  .argument(...DASHBOARD_ARGUMENT)
   .argument('[tierId]', 'tier ID (uint256)')
   .argument('[shareLimit]', 'share limit (uint256)')
-  .option('-s, --salt <salt>', 'salt for operation (bytes32 hex, default: 0x0)')
+  .option(...SALT_OPTION)
   .action(
     async (
       timelock?: Address,
@@ -350,21 +249,9 @@ dashboardWrite
       shareLimitInput?: string,
       options?: { salt?: string },
     ) => {
-      if (!timelock) {
-        const timelockPrompt = await addressPrompt(
-          'Enter timelock contract address',
-          'timelock',
-        );
-        timelock = timelockPrompt.timelock as Address;
-      }
+      const timelockContract = await getPromptTimelock(timelock);
 
-      if (!dashboardAddress) {
-        const dashboardPrompt = await addressPrompt(
-          'Enter dashboard contract address',
-          'dashboard',
-        );
-        dashboardAddress = dashboardPrompt.dashboard as Address;
-      }
+      const dashboardContract = await promptDashboard(dashboardAddress);
 
       if (!tierIdInput) {
         const tierIdPrompt = await textPrompt(
@@ -394,12 +281,12 @@ dashboardWrite
       });
 
       await proposeOperation(
-        timelock,
-        dashboardAddress,
+        timelockContract.address,
+        dashboardContract.address,
         data,
         finalSalt,
         `changeTier(${tierId}, ${shareLimit})`,
-        `Are you sure you want to propose changing tier ${tierId} with share limit ${shareLimit} on dashboard ${dashboardAddress}?`,
+        `Are you sure you want to propose changing tier ${tierId} with share limit ${shareLimit} on dashboard ${dashboardContract.address}?`,
       );
     },
   );
@@ -408,11 +295,11 @@ dashboardWrite
 dashboardWrite
   .command('execute-change-tier')
   .description('execute changing tier on Dashboard via Timelock')
-  .argument('[timelock]', 'timelock contract address', stringToAddress)
-  .argument('[dashboard]', 'dashboard contract address', stringToAddress)
+  .argument(...TIMELOCK_ARGUMENT)
+  .argument(...DASHBOARD_ARGUMENT)
   .argument('[tierId]', 'tier ID (uint256)')
   .argument('[shareLimit]', 'share limit (uint256)')
-  .option('-s, --salt <salt>', 'salt for operation (bytes32 hex, default: 0x0)')
+  .option(...SALT_OPTION)
   .action(
     async (
       timelock?: Address,
@@ -421,21 +308,9 @@ dashboardWrite
       shareLimitInput?: string,
       options?: { salt?: string },
     ) => {
-      if (!timelock) {
-        const timelockPrompt = await addressPrompt(
-          'Enter timelock contract address',
-          'timelock',
-        );
-        timelock = timelockPrompt.timelock as Address;
-      }
+      const timelockContract = await getPromptTimelock(timelock);
 
-      if (!dashboardAddress) {
-        const dashboardPrompt = await addressPrompt(
-          'Enter dashboard contract address',
-          'dashboard',
-        );
-        dashboardAddress = dashboardPrompt.dashboard as Address;
-      }
+      const dashboardContract = await promptDashboard(dashboardAddress);
 
       if (!tierIdInput) {
         const tierIdPrompt = await textPrompt(
@@ -465,12 +340,12 @@ dashboardWrite
       });
 
       await executeOperation(
-        timelock,
-        dashboardAddress,
+        timelockContract.address,
+        dashboardContract.address,
         data,
         finalSalt,
         `changeTier(${tierId}, ${shareLimit})`,
-        `Are you sure you want to execute changing tier ${tierId} with share limit ${shareLimit} on dashboard ${dashboardAddress}?`,
+        `Are you sure you want to execute changing tier ${tierId} with share limit ${shareLimit} on dashboard ${dashboardContract.address}?`,
       );
     },
   );
@@ -479,30 +354,18 @@ dashboardWrite
 dashboardWrite
   .command('propose-sync-tier')
   .description('propose syncing tier on Dashboard via Timelock')
-  .argument('[timelock]', 'timelock contract address', stringToAddress)
-  .argument('[dashboard]', 'dashboard contract address', stringToAddress)
-  .option('-s, --salt <salt>', 'salt for operation (bytes32 hex, default: 0x0)')
+  .argument(...TIMELOCK_ARGUMENT)
+  .argument(...DASHBOARD_ARGUMENT)
+  .option(...SALT_OPTION)
   .action(
     async (
       timelock?: Address,
       dashboardAddress?: Address,
       options?: { salt?: string },
     ) => {
-      if (!timelock) {
-        const timelockPrompt = await addressPrompt(
-          'Enter timelock contract address',
-          'timelock',
-        );
-        timelock = timelockPrompt.timelock as Address;
-      }
+      const timelockContract = await getPromptTimelock(timelock);
 
-      if (!dashboardAddress) {
-        const dashboardPrompt = await addressPrompt(
-          'Enter dashboard contract address',
-          'dashboard',
-        );
-        dashboardAddress = dashboardPrompt.dashboard as Address;
-      }
+      const dashboardContract = await promptDashboard(dashboardAddress);
 
       const finalSalt = processSalt(options?.salt);
 
@@ -513,12 +376,12 @@ dashboardWrite
       });
 
       await proposeOperation(
-        timelock,
-        dashboardAddress,
+        timelockContract.address,
+        dashboardContract.address,
         data,
         finalSalt,
         'syncTier()',
-        `Are you sure you want to propose syncing tier on dashboard ${dashboardAddress}?`,
+        `Are you sure you want to propose syncing tier on dashboard ${dashboardContract.address}?`,
       );
     },
   );
@@ -527,30 +390,18 @@ dashboardWrite
 dashboardWrite
   .command('execute-sync-tier')
   .description('execute syncing tier on Dashboard via Timelock')
-  .argument('[timelock]', 'timelock contract address', stringToAddress)
-  .argument('[dashboard]', 'dashboard contract address', stringToAddress)
-  .option('-s, --salt <salt>', 'salt for operation (bytes32 hex, default: 0x0)')
+  .argument(...TIMELOCK_ARGUMENT)
+  .argument(...DASHBOARD_ARGUMENT)
+  .option(...SALT_OPTION)
   .action(
     async (
       timelock?: Address,
       dashboardAddress?: Address,
       options?: { salt?: string },
     ) => {
-      if (!timelock) {
-        const timelockPrompt = await addressPrompt(
-          'Enter timelock contract address',
-          'timelock',
-        );
-        timelock = timelockPrompt.timelock as Address;
-      }
+      const timelockContract = await getPromptTimelock(timelock);
 
-      if (!dashboardAddress) {
-        const dashboardPrompt = await addressPrompt(
-          'Enter dashboard contract address',
-          'dashboard',
-        );
-        dashboardAddress = dashboardPrompt.dashboard as Address;
-      }
+      const dashboardContract = await promptDashboard(dashboardAddress);
 
       const finalSalt = processSalt(options?.salt);
 
@@ -561,12 +412,12 @@ dashboardWrite
       });
 
       await executeOperation(
-        timelock,
-        dashboardAddress,
+        timelockContract.address,
+        dashboardContract.address,
         data,
         finalSalt,
         'syncTier()',
-        `Are you sure you want to execute syncing tier on dashboard ${dashboardAddress}?`,
+        `Are you sure you want to execute syncing tier on dashboard ${dashboardContract.address}?`,
       );
     },
   );
@@ -575,10 +426,10 @@ dashboardWrite
 dashboardWrite
   .command('propose-update-share-limit')
   .description('propose updating share limit on Dashboard via Timelock')
-  .argument('[timelock]', 'timelock contract address', stringToAddress)
-  .argument('[dashboard]', 'dashboard contract address', stringToAddress)
+  .argument(...TIMELOCK_ARGUMENT)
+  .argument(...DASHBOARD_ARGUMENT)
   .argument('[shareLimit]', 'share limit (uint256)')
-  .option('-s, --salt <salt>', 'salt for operation (bytes32 hex, default: 0x0)')
+  .option(...SALT_OPTION)
   .action(
     async (
       timelock?: Address,
@@ -586,21 +437,8 @@ dashboardWrite
       shareLimitInput?: string,
       options?: { salt?: string },
     ) => {
-      if (!timelock) {
-        const timelockPrompt = await addressPrompt(
-          'Enter timelock contract address',
-          'timelock',
-        );
-        timelock = timelockPrompt.timelock as Address;
-      }
-
-      if (!dashboardAddress) {
-        const dashboardPrompt = await addressPrompt(
-          'Enter dashboard contract address',
-          'dashboard',
-        );
-        dashboardAddress = dashboardPrompt.dashboard as Address;
-      }
+      const timelockContract = await getPromptTimelock(timelock);
+      const dashboardContract = await promptDashboard(dashboardAddress);
 
       if (!shareLimitInput) {
         const shareLimitPrompt = await textPrompt(
@@ -621,12 +459,12 @@ dashboardWrite
       });
 
       await proposeOperation(
-        timelock,
-        dashboardAddress,
+        timelockContract.address,
+        dashboardContract.address,
         data,
         finalSalt,
         `updateShareLimit(${shareLimit})`,
-        `Are you sure you want to propose updating share limit to ${shareLimit} on dashboard ${dashboardAddress}?`,
+        `Are you sure you want to propose updating share limit to ${shareLimit} on dashboard ${dashboardContract.address}?`,
       );
     },
   );
@@ -635,10 +473,10 @@ dashboardWrite
 dashboardWrite
   .command('execute-update-share-limit')
   .description('execute updating share limit on Dashboard via Timelock')
-  .argument('[timelock]', 'timelock contract address', stringToAddress)
-  .argument('[dashboard]', 'dashboard contract address', stringToAddress)
+  .argument(...TIMELOCK_ARGUMENT)
+  .argument(...DASHBOARD_ARGUMENT)
   .argument('[shareLimit]', 'share limit (uint256)')
-  .option('-s, --salt <salt>', 'salt for operation (bytes32 hex, default: 0x0)')
+  .option(...SALT_OPTION)
   .action(
     async (
       timelock?: Address,
@@ -646,22 +484,9 @@ dashboardWrite
       shareLimitInput?: string,
       options?: { salt?: string },
     ) => {
-      if (!timelock) {
-        const timelockPrompt = await addressPrompt(
-          'Enter timelock contract address',
-          'timelock',
-        );
-        timelock = timelockPrompt.timelock as Address;
-      }
+      const timelockContract = await getPromptTimelock(timelock);
 
-      if (!dashboardAddress) {
-        const dashboardPrompt = await addressPrompt(
-          'Enter dashboard contract address',
-          'dashboard',
-        );
-        dashboardAddress = dashboardPrompt.dashboard as Address;
-      }
-
+      const dashboardContract = await promptDashboard(dashboardAddress);
       if (!shareLimitInput) {
         const shareLimitPrompt = await textPrompt(
           'Enter share limit (uint256)',
@@ -681,12 +506,12 @@ dashboardWrite
       });
 
       await executeOperation(
-        timelock,
-        dashboardAddress,
+        timelockContract.address,
+        dashboardContract.address,
         data,
         finalSalt,
         `updateShareLimit(${shareLimit})`,
-        `Are you sure you want to execute updating share limit to ${shareLimit} on dashboard ${dashboardAddress}?`,
+        `Are you sure you want to execute updating share limit to ${shareLimit} on dashboard ${dashboardContract.address}?`,
       );
     },
   );
@@ -697,13 +522,13 @@ dashboardWrite
   .description(
     'propose setting PDG policy on Dashboard via Timelock (0=STRICT, 1=ALLOW_PROVE, 2=ALLOW_DEPOSIT_AND_PROVE)',
   )
-  .argument('[timelock]', 'timelock contract address', stringToAddress)
-  .argument('[dashboard]', 'dashboard contract address', stringToAddress)
+  .argument(...TIMELOCK_ARGUMENT)
+  .argument(...DASHBOARD_ARGUMENT)
   .argument(
     '[policy]',
     'PDG policy (uint8: 0=STRICT, 1=ALLOW_PROVE, 2=ALLOW_DEPOSIT_AND_PROVE)',
   )
-  .option('-s, --salt <salt>', 'salt for operation (bytes32 hex, default: 0x0)')
+  .option(...SALT_OPTION)
   .action(
     async (
       timelock?: Address,
@@ -711,21 +536,9 @@ dashboardWrite
       policyInput?: string,
       options?: { salt?: string },
     ) => {
-      if (!timelock) {
-        const timelockPrompt = await addressPrompt(
-          'Enter timelock contract address',
-          'timelock',
-        );
-        timelock = timelockPrompt.timelock as Address;
-      }
+      const timelockContract = await getPromptTimelock(timelock);
 
-      if (!dashboardAddress) {
-        const dashboardPrompt = await addressPrompt(
-          'Enter dashboard contract address',
-          'dashboard',
-        );
-        dashboardAddress = dashboardPrompt.dashboard as Address;
-      }
+      const dashboardContract = await promptDashboard(dashboardAddress);
 
       if (!policyInput) {
         const policyPrompt = await textPrompt(
@@ -750,12 +563,12 @@ dashboardWrite
 
       const policyNames = ['STRICT', 'ALLOW_PROVE', 'ALLOW_DEPOSIT_AND_PROVE'];
       await proposeOperation(
-        timelock,
-        dashboardAddress,
+        timelockContract.address,
+        dashboardContract.address,
         data,
         finalSalt,
         `setPDGPolicy(${policy})`,
-        `Are you sure you want to propose setting PDG policy to ${policy} (${policyNames[policy]}) on dashboard ${dashboardAddress}?`,
+        `Are you sure you want to propose setting PDG policy to ${policy} (${policyNames[policy]}) on dashboard ${dashboardContract.address}?`,
       );
     },
   );
@@ -764,13 +577,13 @@ dashboardWrite
 dashboardWrite
   .command('execute-set-pdg-policy')
   .description('execute setting PDG policy on Dashboard via Timelock')
-  .argument('[timelock]', 'timelock contract address', stringToAddress)
-  .argument('[dashboard]', 'dashboard contract address', stringToAddress)
+  .argument(...TIMELOCK_ARGUMENT)
+  .argument(...DASHBOARD_ARGUMENT)
   .argument(
     '[policy]',
     'PDG policy (uint8: 0=STRICT, 1=ALLOW_PROVE, 2=ALLOW_DEPOSIT_AND_PROVE)',
   )
-  .option('-s, --salt <salt>', 'salt for operation (bytes32 hex, default: 0x0)')
+  .option(...SALT_OPTION)
   .action(
     async (
       timelock?: Address,
@@ -778,21 +591,9 @@ dashboardWrite
       policyInput?: string,
       options?: { salt?: string },
     ) => {
-      if (!timelock) {
-        const timelockPrompt = await addressPrompt(
-          'Enter timelock contract address',
-          'timelock',
-        );
-        timelock = timelockPrompt.timelock as Address;
-      }
+      const timelockContract = await getPromptTimelock(timelock);
 
-      if (!dashboardAddress) {
-        const dashboardPrompt = await addressPrompt(
-          'Enter dashboard contract address',
-          'dashboard',
-        );
-        dashboardAddress = dashboardPrompt.dashboard as Address;
-      }
+      const dashboardContract = await promptDashboard(dashboardAddress);
 
       if (!policyInput) {
         const policyPrompt = await textPrompt(
@@ -817,12 +618,12 @@ dashboardWrite
 
       const policyNames = ['STRICT', 'ALLOW_PROVE', 'ALLOW_DEPOSIT_AND_PROVE'];
       await executeOperation(
-        timelock,
-        dashboardAddress,
+        timelockContract.address,
+        dashboardContract.address,
         data,
         finalSalt,
         `setPDGPolicy(${policy})`,
-        `Are you sure you want to execute setting PDG policy to ${policy} (${policyNames[policy]}) on dashboard ${dashboardAddress}?`,
+        `Are you sure you want to execute setting PDG policy to ${policy} (${policyNames[policy]}) on dashboard ${dashboardContract.address}?`,
       );
     },
   );
@@ -831,10 +632,10 @@ dashboardWrite
 dashboardWrite
   .command('propose-transfer-vault-ownership')
   .description('propose transferring vault ownership on Dashboard via Timelock')
-  .argument('[timelock]', 'timelock contract address', stringToAddress)
-  .argument('[dashboard]', 'dashboard contract address', stringToAddress)
+  .argument(...TIMELOCK_ARGUMENT)
+  .argument(...DASHBOARD_ARGUMENT)
   .argument('[newOwner]', 'new owner address')
-  .option('-s, --salt <salt>', 'salt for operation (bytes32 hex, default: 0x0)')
+  .option(...SALT_OPTION)
   .action(
     async (
       timelock?: Address,
@@ -842,21 +643,9 @@ dashboardWrite
       newOwnerInput?: string,
       options?: { salt?: string },
     ) => {
-      if (!timelock) {
-        const timelockPrompt = await addressPrompt(
-          'Enter timelock contract address',
-          'timelock',
-        );
-        timelock = timelockPrompt.timelock as Address;
-      }
+      const timelockContract = await getPromptTimelock(timelock);
 
-      if (!dashboardAddress) {
-        const dashboardPrompt = await addressPrompt(
-          'Enter dashboard contract address',
-          'dashboard',
-        );
-        dashboardAddress = dashboardPrompt.dashboard as Address;
-      }
+      const dashboardContract = await promptDashboard(dashboardAddress);
 
       if (!newOwnerInput) {
         const newOwnerPrompt = await addressPrompt(
@@ -880,12 +669,12 @@ dashboardWrite
         '⚠️  WARNING: transferVaultOwnership requires confirmation through confirmingRoles()',
       );
       await proposeOperation(
-        timelock,
-        dashboardAddress,
+        timelockContract.address,
+        dashboardContract.address,
         data,
         finalSalt,
         `transferVaultOwnership(${newOwner})`,
-        `Are you sure you want to propose transferring vault ownership to ${newOwner} on dashboard ${dashboardAddress}?`,
+        `Are you sure you want to propose transferring vault ownership to ${newOwner} on dashboard ${dashboardContract.address}?`,
       );
     },
   );
@@ -894,10 +683,10 @@ dashboardWrite
 dashboardWrite
   .command('execute-transfer-vault-ownership')
   .description('execute transferring vault ownership on Dashboard via Timelock')
-  .argument('[timelock]', 'timelock contract address', stringToAddress)
-  .argument('[dashboard]', 'dashboard contract address', stringToAddress)
+  .argument(...TIMELOCK_ARGUMENT)
+  .argument(...DASHBOARD_ARGUMENT)
   .argument('[newOwner]', 'new owner address')
-  .option('-s, --salt <salt>', 'salt for operation (bytes32 hex, default: 0x0)')
+  .option(...SALT_OPTION)
   .action(
     async (
       timelock?: Address,
@@ -905,21 +694,9 @@ dashboardWrite
       newOwnerInput?: string,
       options?: { salt?: string },
     ) => {
-      if (!timelock) {
-        const timelockPrompt = await addressPrompt(
-          'Enter timelock contract address',
-          'timelock',
-        );
-        timelock = timelockPrompt.timelock as Address;
-      }
+      const timelockContract = await getPromptTimelock(timelock);
 
-      if (!dashboardAddress) {
-        const dashboardPrompt = await addressPrompt(
-          'Enter dashboard contract address',
-          'dashboard',
-        );
-        dashboardAddress = dashboardPrompt.dashboard as Address;
-      }
+      const dashboardContract = await promptDashboard(dashboardAddress);
 
       if (!newOwnerInput) {
         const newOwnerPrompt = await addressPrompt(
@@ -943,12 +720,12 @@ dashboardWrite
         '⚠️  WARNING: transferVaultOwnership requires confirmation through confirmingRoles()',
       );
       await executeOperation(
-        timelock,
-        dashboardAddress,
+        timelockContract.address,
+        dashboardContract.address,
         data,
         finalSalt,
         `transferVaultOwnership(${newOwner})`,
-        `Are you sure you want to execute transferring vault ownership to ${newOwner} on dashboard ${dashboardAddress}?`,
+        `Are you sure you want to execute transferring vault ownership to ${newOwner} on dashboard ${dashboardContract.address}?`,
       );
     },
   );

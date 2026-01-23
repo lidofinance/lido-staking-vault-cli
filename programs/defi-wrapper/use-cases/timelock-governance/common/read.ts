@@ -6,16 +6,20 @@ import {
   callReadMethodSilent,
   logResult,
   addressPrompt,
-  textPrompt,
   logError,
   stringToBigInt,
 } from 'utils';
 import { common } from './main.js';
-import { Address, Hex, stringToHex, isHex, decodeFunctionData } from 'viem';
+import { Address, decodeFunctionData, Hash } from 'viem';
+import { getStvPoolContract } from 'contracts/defi-wrapper/index.js';
 import {
-  getStvPoolContract,
-  getTimeLockContract,
-} from 'contracts/defi-wrapper/index.js';
+  getPromptTimelock,
+  OPERATION_ID_ARGUMENT,
+  promptOperationId,
+  TIMELOCK_ARGUMENT,
+  waitTimeTo,
+} from 'features/defi-wrapper/timelock.js';
+
 import { getPublicClient } from 'providers';
 
 import { DashboardAbi } from 'abi';
@@ -37,16 +41,6 @@ const mixAbi = [
   ...DistributorAbi,
 ];
 
-const getTimelock = async (argAddress: Address | undefined) => {
-  if (argAddress) return getTimeLockContract(argAddress);
-
-  const timelockPrompt = await addressPrompt(
-    'Enter timelock contract address',
-    'timelock',
-  );
-  return getTimeLockContract(timelockPrompt.timelock as Address);
-};
-
 const commonRead = common
   .command('read')
   .alias('r')
@@ -61,7 +55,7 @@ commonRead.on('option:-cmd2json', function () {
 commonRead
   .command('get-timelock-address')
   .description(
-    'get address of timelock governances contracts based on pool address',
+    'get address of timelock governance contract based on pool address',
   )
   .argument('[pool]', 'pool contract address', stringToAddress)
   .action(async (pool?: Address) => {
@@ -106,7 +100,7 @@ commonRead
 commonRead
   .command('get-last-operations')
   .description('get last timelock operations')
-  .argument('[timelock]', 'timelock contract address', stringToAddress)
+  .argument(...TIMELOCK_ARGUMENT)
   .option(
     '-n, --number <number>',
     'number of blocks to look back',
@@ -119,7 +113,7 @@ commonRead
       options: { number: bigint },
     ) => {
       const client = await getPublicClient();
-      const timelock = await getTimelock(timelockAddress);
+      const timelock = await getPromptTimelock(timelockAddress);
       const currentBlock = await client.getBlock({ blockTag: 'latest' });
 
       const toBlock = currentBlock.number;
@@ -129,7 +123,7 @@ commonRead
       const events = await timelock.getEvents.CallScheduled(undefined, {
         toBlock,
         fromBlock,
-        strict: true,
+        strict: true as const,
       } as const);
 
       logInfo(
@@ -156,8 +150,7 @@ commonRead
             payload: [[id]],
           });
 
-          const now = currentBlock.timestamp;
-          waitTime = timestamp > now ? timestamp - now : 0n;
+          waitTime = waitTimeTo(timestamp);
         }
 
         const stateNames = ['Unset', 'Waiting', 'Ready', 'Done'];
@@ -206,34 +199,13 @@ commonRead
 commonRead
   .command('get-operation-state')
   .description('get the state of a timelock operation')
-  .argument('[timelock]', 'timelock contract address', stringToAddress)
-  .argument('[operationId]', 'operation ID (bytes32 hash)')
-  .action(async (timelock?: Address, operationIdInput?: string) => {
-    if (!timelock) {
-      const timelockPrompt = await addressPrompt(
-        'Enter timelock contract address',
-        'timelock',
-      );
-      timelock = timelockPrompt.timelock as Address;
-    }
+  .argument(...TIMELOCK_ARGUMENT)
+  .argument(...OPERATION_ID_ARGUMENT)
+  .action(async (timelock?: Address, operationIdInput?: Hash) => {
+    const timelockContract = await getPromptTimelock(timelock);
 
-    let operationId: Hex;
-    if (!operationIdInput) {
-      const operationIdPrompt = await textPrompt(
-        'Enter operation ID (bytes32 hash)',
-        'operationId',
-      );
-      operationIdInput = operationIdPrompt.operationId as string;
-    }
+    const operationId = await promptOperationId(operationIdInput);
 
-    // Validate and convert to hex
-    if (!isHex(operationIdInput)) {
-      operationId = stringToHex(operationIdInput);
-    } else {
-      operationId = operationIdInput;
-    }
-
-    const timelockContract = await getTimeLockContract(timelock);
     const state = await callReadMethodSilent({
       contract: timelockContract,
       methodName: 'getOperationState',
@@ -257,10 +229,8 @@ commonRead
         methodName: 'getTimestamp',
         payload: [[operationId]],
       });
-      const publicClient = await getPublicClient();
-      const currentBlock = await publicClient.getBlock({ blockTag: 'latest' });
-      const now = currentBlock.timestamp;
-      const waitTime = timestamp > now ? timestamp - now : 0n;
+
+      const waitTime = waitTimeTo(timestamp);
       logInfo(
         `Will be ready at timestamp ${timestamp} (in ${waitTime} seconds)`,
       );
@@ -270,44 +240,19 @@ commonRead
 commonRead
   .command('get-timestamp')
   .description('get the timestamp when an operation will be ready')
-  .argument('[timelock]', 'timelock contract address', stringToAddress)
-  .argument('[operationId]', 'operation ID (bytes32 hash)')
-  .action(async (timelock?: Address, operationIdInput?: string) => {
-    if (!timelock) {
-      const timelockPrompt = await addressPrompt(
-        'Enter timelock contract address',
-        'timelock',
-      );
-      timelock = timelockPrompt.timelock as Address;
-    }
+  .argument(...TIMELOCK_ARGUMENT)
+  .argument(...OPERATION_ID_ARGUMENT)
+  .action(async (timelock?: Address, operationIdInput?: Hash) => {
+    const timelockContract = await getPromptTimelock(timelock);
 
-    let operationId: Hex;
-    if (!operationIdInput) {
-      const operationIdPrompt = await textPrompt(
-        'Enter operation ID (bytes32 hash)',
-        'operationId',
-      );
-      operationIdInput = operationIdPrompt.operationId as string;
-    }
-
-    // Validate and convert to hex - if already hex, use as is
-    if (isHex(operationIdInput)) {
-      operationId = operationIdInput;
-    } else {
-      operationId = stringToHex(operationIdInput);
-    }
-
-    const timelockContract = await getTimeLockContract(timelock);
+    const operationId = await promptOperationId(operationIdInput);
     const timestamp = await callReadMethodSilent({
       contract: timelockContract,
       methodName: 'getTimestamp',
       payload: [[operationId]],
     });
 
-    const publicClient = await getPublicClient();
-    const currentBlock = await publicClient.getBlock({ blockTag: 'latest' });
-    const now = currentBlock.timestamp;
-    const waitTime = timestamp > now ? timestamp - now : 0n;
+    const waitTime = waitTimeTo(timestamp);
     const readyDate = new Date(Number(timestamp) * 1000).toLocaleString();
 
     logResult({
@@ -323,17 +268,10 @@ commonRead
 commonRead
   .command('get-min-delay')
   .description('get the minimum delay for timelock operations')
-  .argument('[timelock]', 'timelock contract address', stringToAddress)
+  .argument(...TIMELOCK_ARGUMENT)
   .action(async (timelock?: Address) => {
-    if (!timelock) {
-      const timelockPrompt = await addressPrompt(
-        'Enter timelock contract address',
-        'timelock',
-      );
-      timelock = timelockPrompt.timelock as Address;
-    }
+    const timelockContract = await getPromptTimelock(timelock);
 
-    const timelockContract = await getTimeLockContract(timelock);
     const minDelay = await callReadMethodSilent({
       contract: timelockContract,
       methodName: 'getMinDelay',
@@ -352,33 +290,13 @@ commonRead
 commonRead
   .command('is-operation')
   .description('check if an operation is registered')
-  .argument('[timelock]', 'timelock contract address', stringToAddress)
-  .argument('[operationId]', 'operation ID (bytes32 hash)')
-  .action(async (timelock?: Address, operationIdInput?: string) => {
-    if (!timelock) {
-      const timelockPrompt = await addressPrompt(
-        'Enter timelock contract address',
-        'timelock',
-      );
-      timelock = timelockPrompt.timelock as Address;
-    }
+  .argument(...TIMELOCK_ARGUMENT)
+  .argument(...OPERATION_ID_ARGUMENT)
+  .action(async (timelock?: Address, operationIdInput?: Hash) => {
+    const timelockContract = await getPromptTimelock(timelock);
 
-    let operationId: Hex;
-    if (!operationIdInput) {
-      const operationIdPrompt = await textPrompt(
-        'Enter operation ID (bytes32 hash)',
-        'operationId',
-      );
-      operationIdInput = operationIdPrompt.operationId as string;
-    }
+    const operationId = await promptOperationId(operationIdInput);
 
-    if (isHex(operationIdInput)) {
-      operationId = operationIdInput;
-    } else {
-      operationId = stringToHex(operationIdInput);
-    }
-
-    const timelockContract = await getTimeLockContract(timelock);
     const isOp = await callReadMethodSilent({
       contract: timelockContract,
       methodName: 'isOperation',
@@ -396,33 +314,12 @@ commonRead
 commonRead
   .command('is-operation-pending')
   .description('check if an operation is pending (waiting or ready)')
-  .argument('[timelock]', 'timelock contract address', stringToAddress)
-  .argument('[operationId]', 'operation ID (bytes32 hash)')
-  .action(async (timelock?: Address, operationIdInput?: string) => {
-    if (!timelock) {
-      const timelockPrompt = await addressPrompt(
-        'Enter timelock contract address',
-        'timelock',
-      );
-      timelock = timelockPrompt.timelock as Address;
-    }
+  .argument(...TIMELOCK_ARGUMENT)
+  .argument(...OPERATION_ID_ARGUMENT)
+  .action(async (timelock?: Address, operationIdInput?: Hash) => {
+    const timelockContract = await getPromptTimelock(timelock);
 
-    let operationId: Hex;
-    if (!operationIdInput) {
-      const operationIdPrompt = await textPrompt(
-        'Enter operation ID (bytes32 hash)',
-        'operationId',
-      );
-      operationIdInput = operationIdPrompt.operationId as string;
-    }
-
-    if (isHex(operationIdInput)) {
-      operationId = operationIdInput;
-    } else {
-      operationId = stringToHex(operationIdInput);
-    }
-
-    const timelockContract = await getTimeLockContract(timelock);
+    const operationId = await promptOperationId(operationIdInput);
     const isPending = await callReadMethodSilent({
       contract: timelockContract,
       methodName: 'isOperationPending',
@@ -440,33 +337,13 @@ commonRead
 commonRead
   .command('is-operation-ready')
   .description('check if an operation is ready for execution')
-  .argument('[timelock]', 'timelock contract address', stringToAddress)
-  .argument('[operationId]', 'operation ID (bytes32 hash)')
-  .action(async (timelock?: Address, operationIdInput?: string) => {
-    if (!timelock) {
-      const timelockPrompt = await addressPrompt(
-        'Enter timelock contract address',
-        'timelock',
-      );
-      timelock = timelockPrompt.timelock as Address;
-    }
+  .argument(...TIMELOCK_ARGUMENT)
+  .argument(...OPERATION_ID_ARGUMENT)
+  .action(async (timelock?: Address, operationIdInput?: Hash) => {
+    const timelockContract = await getPromptTimelock(timelock);
 
-    let operationId: Hex;
-    if (!operationIdInput) {
-      const operationIdPrompt = await textPrompt(
-        'Enter operation ID (bytes32 hash)',
-        'operationId',
-      );
-      operationIdInput = operationIdPrompt.operationId as string;
-    }
+    const operationId = await promptOperationId(operationIdInput);
 
-    if (isHex(operationIdInput)) {
-      operationId = operationIdInput;
-    } else {
-      operationId = stringToHex(operationIdInput);
-    }
-
-    const timelockContract = await getTimeLockContract(timelock);
     const isReady = await callReadMethodSilent({
       contract: timelockContract,
       methodName: 'isOperationReady',
@@ -484,33 +361,13 @@ commonRead
 commonRead
   .command('is-operation-done')
   .description('check if an operation is done (executed)')
-  .argument('[timelock]', 'timelock contract address', stringToAddress)
-  .argument('[operationId]', 'operation ID (bytes32 hash)')
-  .action(async (timelock?: Address, operationIdInput?: string) => {
-    if (!timelock) {
-      const timelockPrompt = await addressPrompt(
-        'Enter timelock contract address',
-        'timelock',
-      );
-      timelock = timelockPrompt.timelock as Address;
-    }
+  .argument(...TIMELOCK_ARGUMENT)
+  .argument(...OPERATION_ID_ARGUMENT)
+  .action(async (timelock?: Address, operationIdInput?: Hash) => {
+    const timelockContract = await getPromptTimelock(timelock);
 
-    let operationId: Hex;
-    if (!operationIdInput) {
-      const operationIdPrompt = await textPrompt(
-        'Enter operation ID (bytes32 hash)',
-        'operationId',
-      );
-      operationIdInput = operationIdPrompt.operationId as string;
-    }
+    const operationId = await promptOperationId(operationIdInput);
 
-    if (isHex(operationIdInput)) {
-      operationId = operationIdInput;
-    } else {
-      operationId = stringToHex(operationIdInput);
-    }
-
-    const timelockContract = await getTimeLockContract(timelock);
     const isDone = await callReadMethodSilent({
       contract: timelockContract,
       methodName: 'isOperationDone',
@@ -528,33 +385,13 @@ commonRead
 commonRead
   .command('get-operation-info')
   .description('get comprehensive information about an operation')
-  .argument('[timelock]', 'timelock contract address', stringToAddress)
-  .argument('[operationId]', 'operation ID (bytes32 hash)')
-  .action(async (timelock?: Address, operationIdInput?: string) => {
-    if (!timelock) {
-      const timelockPrompt = await addressPrompt(
-        'Enter timelock contract address',
-        'timelock',
-      );
-      timelock = timelockPrompt.timelock as Address;
-    }
+  .argument(...TIMELOCK_ARGUMENT)
+  .argument(...OPERATION_ID_ARGUMENT)
+  .action(async (timelock?: Address, operationIdInput?: Hash) => {
+    const timelockContract = await getPromptTimelock(timelock);
 
-    let operationId: Hex;
-    if (!operationIdInput) {
-      const operationIdPrompt = await textPrompt(
-        'Enter operation ID (bytes32 hash)',
-        'operationId',
-      );
-      operationIdInput = operationIdPrompt.operationId as string;
-    }
+    const operationId = await promptOperationId(operationIdInput);
 
-    if (isHex(operationIdInput)) {
-      operationId = operationIdInput;
-    } else {
-      operationId = stringToHex(operationIdInput);
-    }
-
-    const timelockContract = await getTimeLockContract(timelock);
     const publicClient = await getPublicClient();
     const currentBlock = await publicClient.getBlock({ blockTag: 'latest' });
     const now = currentBlock.timestamp;
