@@ -4,7 +4,7 @@ import {
   confirmOperation,
   callReadMethodSilent,
 } from 'utils';
-import { Address, Hex, stringToHex, zeroHash } from 'viem';
+import { Address, Hex, stringToHex, zeroHash, isHash } from 'viem';
 import { getTimeLockContract } from 'contracts/defi-wrapper/index.js';
 import { getPublicClient } from 'providers';
 
@@ -23,23 +23,21 @@ export const resolveRole = async (
   contractAddress: Address,
   getContract: (address: Address) => Promise<any>,
 ): Promise<Hex> => {
-  if (!roleInput.startsWith('0x')) {
-    const contract = await getContract(contractAddress);
-    try {
-      const role = (await callReadMethodSilent({
-        contract,
-        methodName: roleInput as any,
-        payload: [],
-      })) as Hex;
-      logInfo(`Resolved role "${roleInput}" to ${role}`);
-      return role;
-    } catch {
-      throw new Error(
-        `Failed to resolve role "${roleInput}". Please provide a valid role name (e.g., DEFAULT_ADMIN_ROLE) or bytes32 hex.`,
-      );
-    }
-  } else {
-    return roleInput as Hex;
+  if (isHash(roleInput)) return roleInput;
+
+  const contract = await getContract(contractAddress);
+  try {
+    const role = (await callReadMethodSilent({
+      contract,
+      methodName: roleInput as any,
+      payload: [],
+    })) as Hex;
+    logInfo(`Resolved role "${roleInput}" to ${role}`);
+    return role;
+  } catch {
+    throw new Error(
+      `Failed to resolve role "${roleInput}". Please provide a valid role name (e.g., DEFAULT_ADMIN_ROLE) or bytes32 hex.`,
+    );
   }
 };
 
