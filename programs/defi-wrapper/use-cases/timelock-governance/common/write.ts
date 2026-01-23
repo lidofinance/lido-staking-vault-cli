@@ -8,6 +8,7 @@ import {
   callReadMethodSilent,
   addressPrompt,
   textPrompt,
+  stringToBigInt,
 } from 'utils';
 import { common } from './main.js';
 import { Address, Hex, stringToHex, isHex, Hash } from 'viem';
@@ -38,8 +39,11 @@ commonWrite
   .description('execute a scheduled timelock operation')
   .argument(...TIMELOCK_ARGUMENT)
   .argument('[target]', 'target contract address', stringToAddress)
-  .argument('[value]', 'value to send (in ETH, default: 0)', (v) =>
-    v ? BigInt(v) : 0n,
+  .argument(
+    '[value]',
+    'ETH value to send (in wei, default: 0)',
+    stringToBigInt,
+    0n,
   )
   .argument('[payload]', 'call data payload (hex)')
   .option(

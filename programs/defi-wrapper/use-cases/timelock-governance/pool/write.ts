@@ -20,7 +20,7 @@ import {
   textPrompt,
 } from 'utils';
 import { pool } from './main.js';
-import { Address, encodeFunctionData } from 'viem';
+import { Address, encodeFunctionData, maxUint16 } from 'viem';
 import { getStvStethPoolContract } from 'contracts/defi-wrapper/index.js';
 import { StvPoolAbi, StvStETHPoolAbi } from 'abi/defi-wrapper/index.js';
 
@@ -63,9 +63,9 @@ const promptMaxSocializablePortionBP = async (
     maxSocializablePortionBP = maxSocializablePortionBPInput;
   }
 
-  if (maxSocializablePortionBP < 0 || maxSocializablePortionBP > 65535) {
+  if (maxSocializablePortionBP < 0 || maxSocializablePortionBP > maxUint16) {
     throw new Error(
-      'maxSocializablePortionBP must be between 0 and 65535 (uint16)',
+      `maxSocializablePortionBP must be between 0 and ${maxUint16} (uint16)`,
     );
   }
   return maxSocializablePortionBP;
