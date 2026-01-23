@@ -22,6 +22,7 @@ import {
   type BaseFactoryOptions,
   finalizePoolCreation,
   prepareCreationConfigrationText,
+  simulatePoolCreation,
 } from 'features';
 
 import { factory } from './main.js';
@@ -82,6 +83,18 @@ const applyCommonOptions = (command: Command): Command => {
       '-ec, --emergencyCommittee <emergencyCommittee>',
       'emergency committee address',
       stringToAddress,
+    )
+    .option(
+      '--skip-simulation <skipSimulation>',
+      'skip simulation step',
+      stringToBoolean,
+      false,
+    )
+    .option(
+      '--simulation-only <simulationOnly>',
+      'only perform simulation step',
+      stringToBoolean,
+      false,
     );
 };
 
@@ -168,15 +181,28 @@ applyCommonOptions(
       const confirm = await confirmOperation(confirmationMessage);
       if (!confirm) return;
 
+      const methodName = 'createPoolGGVStart' as const;
+      const payload = [
+        vaultConfig,
+        timelockConfig,
+        commonPoolConfig,
+        BigInt(reserveRatioGapBPValue),
+      ] as const;
+
+      if (!baseOptions.skipSimulation)
+        await simulatePoolCreation(
+          contract,
+          methodName,
+          payload,
+          baseOptions.simulationOnly,
+        );
+
+      if (baseOptions.simulationOnly) return;
+
       const result = await callWriteMethodWithReceipt({
         contract,
-        methodName: 'createPoolGGVStart',
-        payload: [
-          vaultConfig,
-          timelockConfig,
-          commonPoolConfig,
-          BigInt(reserveRatioGapBPValue),
-        ],
+        methodName,
+        payload: [...payload],
       });
 
       if (!result.receipt || !result.tx) {
@@ -233,16 +259,29 @@ applyCommonOptions(
       const confirm = await confirmOperation(confirmationMessage);
       if (!confirm) return;
 
+      const methodName = 'createPoolStvStart' as const;
+      const payload = [
+        vaultConfig,
+        timelockConfig,
+        commonPoolConfig,
+        allowListEnabledValue,
+        allowListManagerValue,
+      ] as const;
+
+      if (!baseOptions.skipSimulation)
+        await simulatePoolCreation(
+          contract,
+          methodName,
+          payload,
+          baseOptions.simulationOnly,
+        );
+
+      if (baseOptions.simulationOnly) return;
+
       const result = await callWriteMethodWithReceipt({
         contract,
-        methodName: 'createPoolStvStart',
-        payload: [
-          vaultConfig,
-          timelockConfig,
-          commonPoolConfig,
-          allowListEnabledValue,
-          allowListManagerValue,
-        ],
+        methodName,
+        payload: [...payload],
       });
 
       if (!result.receipt || !result.tx) {
@@ -316,17 +355,30 @@ applyCommonOptions(
       const confirm = await confirmOperation(confirmationMessage);
       if (!confirm) return;
 
+      const methodName = 'createPoolStvStETHStart' as const;
+      const payload = [
+        vaultConfig,
+        timelockConfig,
+        commonPoolConfig,
+        allowListEnabledValue,
+        allowListManagerValue,
+        BigInt(reserveRatioGapBPValue),
+      ] as const;
+
+      if (!baseOptions.skipSimulation)
+        await simulatePoolCreation(
+          contract,
+          methodName,
+          payload,
+          baseOptions.simulationOnly,
+        );
+
+      if (baseOptions.simulationOnly) return;
+
       const result = await callWriteMethodWithReceipt({
         contract,
-        methodName: 'createPoolStvStETHStart',
-        payload: [
-          vaultConfig,
-          timelockConfig,
-          commonPoolConfig,
-          allowListEnabledValue,
-          allowListManagerValue,
-          BigInt(reserveRatioGapBPValue),
-        ],
+        methodName,
+        payload: [...payload],
       });
 
       if (!result.receipt || !result.tx) {
@@ -402,22 +454,35 @@ applyCommonOptions(
       const confirm = await confirmOperation(confirmationMessage);
       if (!confirm) return;
 
+      const methodName = 'createPoolStart' as const;
+      const payload = [
+        vaultConfig,
+        timelockConfig,
+        commonPoolConfig,
+        {
+          allowListEnabled: allowListEnabledValue,
+          allowListManager: allowListManagerValue,
+          reserveRatioGapBP: BigInt(reserveRatioGapBPValue),
+          mintingEnabled: true,
+        },
+        strategyFactory ?? zeroAddress,
+        strategyFactoryDeployBytes ?? '0x',
+      ] as const;
+
+      if (!baseOptions.skipSimulation)
+        await simulatePoolCreation(
+          contract,
+          methodName,
+          payload,
+          baseOptions.simulationOnly,
+        );
+
+      if (baseOptions.simulationOnly) return;
+
       const result = await callWriteMethodWithReceipt({
         contract,
-        methodName: 'createPoolStart',
-        payload: [
-          vaultConfig,
-          timelockConfig,
-          commonPoolConfig,
-          {
-            allowListEnabled: allowListEnabledValue,
-            allowListManager: allowListManagerValue,
-            reserveRatioGapBP: BigInt(reserveRatioGapBPValue),
-            mintingEnabled: true,
-          },
-          strategyFactory ?? zeroAddress,
-          strategyFactoryDeployBytes ?? '0x',
-        ],
+        methodName,
+        payload: [...payload],
       });
 
       if (!result.receipt || !result.tx) {

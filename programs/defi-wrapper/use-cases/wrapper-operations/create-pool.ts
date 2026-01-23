@@ -379,5 +379,5 @@ defiWrapperOperationsCreatePool
       getFinalizePoolEventData(finalizeReceipt, finalizeTxHash),
     ]);
 
-    await logFinalizePoolEventData(firstStepEventData, finalizeEventData);
+    logFinalizePoolEventData(firstStepEventData, finalizeEventData);
   });

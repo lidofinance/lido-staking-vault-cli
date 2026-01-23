@@ -6,6 +6,7 @@ import {
   fromHex,
   isAddressEqual,
   zeroAddress,
+  encodeFunctionData,
 } from 'viem';
 
 import { getFactoryContract } from 'contracts/defi-wrapper/index.js';
@@ -27,6 +28,7 @@ import {
   logError,
   callWriteMethodWithReceipt,
 } from 'utils';
+import { getAccount, getPublicClient } from 'providers/wallet.js';
 
 export type VaultConfig = {
   nodeOperator: Address; // Address of the node operator managing the vault
@@ -60,6 +62,8 @@ export type BaseFactoryOptions = {
   minWithdrawalDelayTime?: number;
   name?: string;
   symbol?: string;
+  skipSimulation?: boolean;
+  simulationOnly?: boolean;
 };
 
 // сommon filaliztion step between two pools
@@ -112,14 +116,15 @@ export const finalizePoolCreation = async (
     finalizeResult.tx,
   );
 
-  await logFinalizePoolEventData(creationEventData, finalizeEventData);
+  logFinalizePoolEventData(creationEventData, finalizeEventData);
 };
 
 export const getCreatePoolEventData = async (
   receipt: TransactionReceipt,
   tx: Hex,
+  forceParse = false,
 ) => {
-  if (program.opts().populateTx) {
+  if (program.opts().populateTx && !forceParse) {
     return { tx };
   }
 
@@ -227,8 +232,9 @@ export const logCreatePoolEventData = async (
 export const getFinalizePoolEventData = async (
   receipt: TransactionReceipt,
   tx: Hex,
+  forceParse = false,
 ) => {
-  if (program.opts().populateTx) {
+  if (program.opts().populateTx && !forceParse) {
     return { tx };
   }
 
@@ -259,7 +265,7 @@ export const getFinalizePoolEventData = async (
   };
 };
 
-export const logFinalizePoolEventData = async (
+export const logFinalizePoolEventData = (
   createEventData: Awaited<ReturnType<typeof getCreatePoolEventData>>,
   finalizeEventData: Awaited<ReturnType<typeof getFinalizePoolEventData>>,
 ) => {
@@ -312,7 +318,16 @@ export const promtBaseVaultConfiguration = async ({
   minWithdrawalDelayTime,
   name,
   symbol,
+  simulationOnly,
+  skipSimulation,
 }: BaseFactoryOptions) => {
+  // validate incompatible options
+  if (skipSimulation && simulationOnly) {
+    throw new Error(
+      'Cannot use both --skip-simulation and --simulation-only options together',
+    );
+  }
+
   const nodeOperatorAddress = await getAddress(nodeOperator, 'Node Operator');
   const nodeOperatorManagerAddress = await getAddress(
     nodeOperatorManager,
@@ -363,4 +378,133 @@ export const promtBaseVaultConfiguration = async ({
     timelockConfig,
     commonPoolConfig,
   };
+};
+
+const logAndThrowEthSimulateV1Error = (error: unknown) => {
+  logError(
+    'Could not simulate pool creation. Use `--skip-simulation true` to skip it.',
+  );
+  logInfo(
+    'Some RPC providers do not support eth_simulateV1. Consider switching to another RPC provider.',
+  );
+  throw error;
+};
+
+export const simulatePoolCreation = async (
+  contract: Awaited<ReturnType<typeof getFactoryContract>>,
+  creationMethodName:
+    | 'createPoolStart'
+    | 'createPoolGGVStart'
+    | 'createPoolStvStETHStart'
+    | 'createPoolStvStart',
+  creationPayload: readonly unknown[],
+  logSimulation = false,
+) => {
+  const publicClient = await getPublicClient();
+  const account = await getAccount();
+  const CONNECT_DEPOSIT = await (
+    await getVaultHubContract()
+  ).read.CONNECT_DEPOSIT();
+
+  const creationCalls = await publicClient
+    .simulateCalls({
+      account: account.address,
+      calls: [
+        {
+          to: contract.address,
+          data: encodeFunctionData({
+            abi: FactoryAbi,
+            functionName: creationMethodName,
+            args: creationPayload as any,
+          }),
+        },
+      ],
+    })
+    .catch(logAndThrowEthSimulateV1Error);
+
+  const creationTx = creationCalls.results[0];
+
+  // check for step 1 simulation success
+  if (creationTx.status !== 'success') {
+    logError('Pool creation simulation failed');
+    throw creationTx.error;
+  }
+
+  const creationEventData = await getCreatePoolEventData(
+    {
+      logs: creationTx.logs,
+      blockNumber: 0n,
+      transactionHash: zeroAddress,
+    } as unknown as TransactionReceipt,
+    zeroAddress,
+    true,
+  );
+
+  if (
+    !creationEventData.strategyFactory ||
+    !creationEventData.vaultConfig ||
+    !creationEventData.timelockConfig ||
+    !creationEventData.commonPoolConfig ||
+    !creationEventData.auxiliaryConfig ||
+    !creationEventData.strategyDeployBytes ||
+    !creationEventData.intermediate
+  ) {
+    throw new Error('Failed to parse strategy factory from simulation');
+  }
+  const fullCalls = await publicClient
+    .simulateCalls({
+      account: account.address,
+      calls: [
+        {
+          to: contract.address,
+          data: encodeFunctionData({
+            abi: FactoryAbi,
+            functionName: creationMethodName,
+            args: creationPayload as any,
+          }),
+        },
+        {
+          to: contract.address,
+          value: CONNECT_DEPOSIT,
+          data: encodeFunctionData({
+            abi: FactoryAbi,
+            functionName: 'createPoolFinish',
+            args: [
+              creationEventData.vaultConfig,
+              creationEventData.timelockConfig,
+              creationEventData.commonPoolConfig,
+              creationEventData.auxiliaryConfig,
+              creationEventData.strategyFactory,
+              creationEventData.strategyDeployBytes,
+              creationEventData.intermediate,
+            ],
+          }),
+        },
+      ],
+    })
+    .catch(logAndThrowEthSimulateV1Error);
+
+  if (fullCalls.results[1].status !== 'success') {
+    logError('Pool finalization simulation failed');
+    throw fullCalls.results[1].error;
+  }
+
+  logInfo('Pool creation simulation succeeded');
+
+  if (logSimulation) {
+    const finalizeEventData = await getFinalizePoolEventData(
+      {
+        logs: fullCalls.results[1].logs,
+        blockNumber: 0n,
+        transactionHash: zeroAddress,
+      } as unknown as TransactionReceipt,
+      zeroAddress,
+      true,
+    );
+    logInfo('Results of the simulated pool creation:');
+    logFinalizePoolEventData(creationEventData, finalizeEventData);
+    logInfo(
+      '⚠️⚠️⚠️ This is a simulation only. No real contracts were created. Real contract addresses might not match the simulation ⚠️⚠️⚠️',
+    );
+  }
 };
