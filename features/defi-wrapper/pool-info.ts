@@ -6,9 +6,9 @@ import {
 import { callReadMethodSilent } from 'utils';
 import { reportFreshWarning } from 'features';
 
-const STV_POOL_NAME = 'StvPool';
-const STV_STETH_POOL_NAME = 'StvStETHPool';
-const STV_STRATEGY_POOL_NAME = 'StvStrategyPool';
+export const STV_POOL_NAME = 'StvPool';
+export const STV_STETH_POOL_NAME = 'StvStETHPool';
+export const STV_STRATEGY_POOL_NAME = 'StvStrategyPool';
 
 const getStvPoolInfo = async (address: Address) => {
   const contract = await getStvPoolContract(address);

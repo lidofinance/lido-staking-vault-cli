@@ -8,6 +8,7 @@ import {
   logResult,
   formatBP,
   callReadMethodSilent,
+  stringArrayToAddressArray,
 } from 'utils';
 import { getPoolInfo } from 'features/defi-wrapper/index.js';
 import { checkIsReportFresh } from 'features';
@@ -19,6 +20,7 @@ import {
 import { wrapperOperations } from './main.js';
 import { getDashboardContract, getStethContract } from 'contracts';
 import { bigIntMin } from 'utils/bigInt.js';
+import { getPublicClient } from 'providers';
 
 const wrapperOperationsRead = wrapperOperations
   .command('read')
@@ -118,6 +120,67 @@ wrapperOperationsRead
   });
 
 wrapperOperationsRead
+  .command('allow-list')
+  .description('get full or partial allow list data')
+  .argument('<address>', 'wrapper address', stringToAddress)
+  .argument(
+    '[addresses...]',
+    'list of addresses to check, leave empty to get full allow list',
+    stringArrayToAddressArray,
+    [],
+  )
+  .action(async (poolAddress, addresses: Address[]) => {
+    const pool = await getStvPoolContract(poolAddress);
+    const publicClient = await getPublicClient();
+    const isAllowListEnabled = await callReadMethodSilent({
+      contract: pool,
+      methodName: 'ALLOW_LIST_ENABLED',
+      payload: [],
+    });
+    if (!isAllowListEnabled) {
+      logInfo('Allow List is disabled for this pool');
+      return;
+    }
+
+    const allowListSize = await callReadMethodSilent({
+      contract: pool,
+      methodName: 'getAllowListSize',
+      payload: [],
+    });
+    logInfo(`Allow List contains ${allowListSize} addresses:`);
+
+    if (addresses.length === 0) {
+      const fullAllowList = await callReadMethodSilent({
+        contract: pool,
+        methodName: 'getAllowListAddresses',
+        payload: [],
+      });
+
+      logTable({ data: fullAllowList.map((addr) => [addr]) });
+    } else {
+      const result = await publicClient.multicall({
+        contracts: addresses.map(
+          (address) =>
+            ({
+              address: pool.address,
+              abi: pool.abi,
+              functionName: 'isAllowListed',
+              args: [address],
+            }) as const,
+        ),
+        allowFailure: false,
+      });
+
+      logTable({
+        data: result.map((isAllowed, index) => [
+          addresses[index],
+          isAllowed ? '✅ Allowed' : '❌ Not Allowed',
+        ]),
+      });
+    }
+  });
+
+wrapperOperationsRead
   .command('report-fresh')
   .description('check if report is fresh')
   .argument('<address>', 'wrapper address', stringToAddress)
@@ -144,7 +207,7 @@ const finalizationBlocker = (amount: bigint) => {
 wrapperOperationsRead
   .command('withdrawal-status')
   .description('get status of withdrawal queue')
-  .argument('<address>', 'wrapper address', stringToAddress)
+  .argument('<address>', 'wrapper address', stringArrayToAddressArray)
   .action(async (address: Address) => {
     const pool = await getStvPoolContract(address);
     const withdrawalQueueAddress = await callReadMethodSilent({

@@ -8,13 +8,26 @@ import {
   confirmOperation,
   submitReport,
   callWriteMethodWithReceipt,
+  logError,
+  logTable,
+  callWriteMethodWithReceiptBatchCalls,
+  stringArrayToAddressArray,
 } from 'utils';
 import { wrapperOperations } from './main.js';
 import { getWithdrawalQueueContract } from 'contracts/defi-wrapper/withdrawal-queue.js';
-import { formatEther, zeroAddress, type Address } from 'viem';
+import {
+  encodeFunctionData,
+  formatEther,
+  fromHex,
+  parseEventLogs,
+  zeroAddress,
+  type Address,
+} from 'viem';
 import { getDashboardContract, getVaultHubContract } from 'contracts';
 import { getStvPoolContract } from 'contracts/defi-wrapper/stv-pool.js';
 import { bigIntMin } from 'utils/bigInt.js';
+import { getStvStethPoolContract } from 'contracts/defi-wrapper/stv-steth-pool.js';
+import { STV_STETH_POOL_NAME, STV_STRATEGY_POOL_NAME } from 'features';
 export const wrapperOperationsWrite = wrapperOperations
   .command('write')
   .aliases(['w'])
@@ -191,3 +204,147 @@ wrapperOperationsWrite
       });
     },
   );
+
+wrapperOperationsWrite
+  .command('sync-vault-params')
+  .description('sync vault params between vault & pool')
+  .argument('<poolAddress>', 'pool address', stringToAddress)
+  .action(async (address: Address) => {
+    const pool = await getStvStethPoolContract(address);
+
+    const poolType = await callReadMethod({
+      contract: pool,
+      methodName: 'poolType',
+      payload: [],
+    });
+
+    const poolTypeName = fromHex(poolType, 'string').replace(/\W/g, '');
+
+    const isStvStethPool =
+      poolTypeName === STV_STETH_POOL_NAME ||
+      poolTypeName === STV_STRATEGY_POOL_NAME;
+
+    if (!isStvStethPool) {
+      logError(
+        `The pool at address ${address} is not an StvStEth or StvStrategy pool. This operation is only applicable to StvStEth and StvStrategy pools.`,
+      );
+      return;
+    }
+
+    const { receipt } = await callWriteMethodWithReceipt({
+      contract: pool,
+      methodName: 'syncVaultParameters',
+      payload: [],
+    });
+
+    if (receipt?.logs) {
+      const logs = parseEventLogs({
+        abi: pool.abi,
+        logs: receipt.logs,
+        strict: true,
+      });
+
+      const hadEffect = logs.find(
+        (log) => log.eventName === 'VaultParametersUpdated',
+      );
+
+      if (!hadEffect) {
+        logInfo(
+          '⚠️⚠️⚠️ Vault parameters are already in sync. No changes were made during your tx. ⚠️⚠️⚠️',
+        );
+        return;
+      }
+    }
+  });
+
+wrapperOperationsWrite
+  .command('allow-list-add')
+  .description('add addresses(divided by spaces) to allow list ')
+  .argument('<poolAddress>', 'pool address', stringToAddress)
+  .argument(
+    '<addressToAdd...>',
+    '1 or more addresses to add to allow list divided by spaces',
+    stringArrayToAddressArray,
+    [],
+  )
+  .action(async (address: Address, addressToAdd: Address[]) => {
+    const pool = await getStvPoolContract(address);
+    const isAllowListEnabled = await callReadMethod({
+      contract: pool,
+      methodName: 'ALLOW_LIST_ENABLED',
+      payload: [],
+    });
+
+    if (!isAllowListEnabled) {
+      logError('Pool is not configured for using allow list.');
+      return;
+    }
+
+    logTable({
+      data: addressToAdd.map((addr) => [addr]),
+      params: { head: ['Addresses to be added to allow list:'] },
+    });
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to add  ${addressToAdd.length} addresses to the allow list of the pool at address: ${address}?`,
+    );
+    if (!confirm) return;
+
+    await callWriteMethodWithReceiptBatchCalls({
+      calls: addressToAdd.map((addr) => ({
+        to: pool.address,
+        data: encodeFunctionData({
+          abi: pool.abi,
+          functionName: 'addToAllowList',
+          args: [addr],
+        }),
+        value: 0n,
+      })),
+    });
+  });
+
+wrapperOperationsWrite
+  .command('allow-list-remove')
+  .description('remove addresses(divided by spaces) from allow list ')
+  .argument('<poolAddress>', 'pool address', stringToAddress)
+  .argument(
+    '[addressesToRemove...]',
+    '1 or more addresses to remove divided by spaces',
+    stringArrayToAddressArray,
+    [],
+  )
+  .action(async (address: Address, addressesToRemove: Address[]) => {
+    const pool = await getStvPoolContract(address);
+    const isAllowListEnabled = await callReadMethod({
+      contract: pool,
+      methodName: 'ALLOW_LIST_ENABLED',
+      payload: [],
+    });
+
+    if (!isAllowListEnabled) {
+      logError('Pool is not configured for using allow list.');
+      return;
+    }
+
+    logTable({
+      data: addressesToRemove.map((addr) => [addr]),
+      params: { head: ['Addresses to be removed from allow list:'] },
+    });
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to remove ${addressesToRemove.length} addresses from the allow list of the pool at address: ${address}?`,
+    );
+    if (!confirm) return;
+
+    await callWriteMethodWithReceiptBatchCalls({
+      calls: addressesToRemove.map((addr) => ({
+        to: pool.address,
+        data: encodeFunctionData({
+          abi: pool.abi,
+          functionName: 'removeFromAllowList',
+          args: [addr],
+        }),
+        value: 0n,
+      })),
+    });
+  });
