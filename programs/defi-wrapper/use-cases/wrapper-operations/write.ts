@@ -64,14 +64,14 @@ wrapperOperationsWrite
     });
 
     if (gasCostCoverage > maxGasCostCoverage) {
-      logInfo(
+      logError(
         `Provided gas cost coverage of ${formatEther(gasCostCoverage)} ETH (${gasCostCoverage} wei) exceeds the maximum allowed value of ${formatEther(maxGasCostCoverage)} ETH (${maxGasCostCoverage} wei) for the withdrawal queue at address: ${address}. Please provide a valid value.`,
       );
       return;
     }
 
     if (currentGasCostCoverage === gasCostCoverage) {
-      logInfo(
+      logError(
         `Finalization gas cost coverage is already set to ${formatEther(gasCostCoverage)} ETH (${gasCostCoverage} wei) for the withdrawal queue at address: ${address}. No changes needed.`,
       );
       return;
