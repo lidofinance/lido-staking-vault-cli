@@ -196,6 +196,13 @@ export const stringToAddress = (value: string): Address => {
   return value;
 };
 
+export const stringArrayToAddressArray = (
+  value: string,
+  previous: Address[],
+) => {
+  return previous.concat([stringToAddress(value)]);
+};
+
 export const stringToHash = (value: string): Hex => {
   if (!isHex(value)) {
     program.error('Hash value must be a valid hash', { exitCode: 1 });
