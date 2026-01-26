@@ -1,4 +1,4 @@
-import { Address, formatEther, formatUnits } from 'viem';
+import { Address, formatEther, formatUnits, zeroAddress } from 'viem';
 import { Option } from 'commander';
 import {
   logInfo,
@@ -9,6 +9,7 @@ import {
   formatBP,
   callReadMethodSilent,
   stringArrayToAddressArray,
+  logError,
 } from 'utils';
 import { getPoolInfo } from 'features/defi-wrapper/index.js';
 import { checkIsReportFresh } from 'features';
@@ -200,8 +201,8 @@ wrapperOperationsRead
     });
   });
 
-const finalizationBlocker = (amount: bigint) => {
-  return amount <= 0n ? '❌' : '✅';
+const finalizationBlocker = (value: bigint | boolean | number) => {
+  return ' ' + (!value ? '❌' : '✅');
 };
 
 wrapperOperationsRead
@@ -209,134 +210,276 @@ wrapperOperationsRead
   .description('get status of withdrawal queue')
   .argument('<address>', 'wrapper address', stringToAddress)
   .action(async (address: Address) => {
-    const pool = await getStvPoolContract(address);
-    const withdrawalQueueAddress = await callReadMethodSilent({
-      contract: pool,
-      methodName: 'WITHDRAWAL_QUEUE',
-      payload: [],
-    });
+    const logData: [string, any][] = [];
 
-    const vaultAddress = await callReadMethodSilent({
-      contract: pool,
-      methodName: 'VAULT',
-      payload: [],
-    });
+    try {
+      const pool = await getStvPoolContract(address);
+      const withdrawalQueueAddress = await callReadMethodSilent({
+        contract: pool,
+        methodName: 'WITHDRAWAL_QUEUE',
+        payload: [],
+      });
 
-    const dashboardAddress = await callReadMethodSilent({
-      contract: pool,
-      methodName: 'DASHBOARD',
-      payload: [],
-    });
+      const vaultAddress = await callReadMethodSilent({
+        contract: pool,
+        methodName: 'VAULT',
+        payload: [],
+      });
 
-    const dashboard = await getDashboardContract(dashboardAddress);
-    const withdrawalQueue = await getWithdrawalQueueContract(
-      withdrawalQueueAddress,
-    );
+      const dashboardAddress = await callReadMethodSilent({
+        contract: pool,
+        methodName: 'DASHBOARD',
+        payload: [],
+      });
 
-    const { isFresh: isReportFresh } = await checkIsReportFresh({
-      vault: vaultAddress,
-    });
+      const dashboard = await getDashboardContract(dashboardAddress);
+      const withdrawalQueue = await getWithdrawalQueueContract(
+        withdrawalQueueAddress,
+      );
 
-    const logData: [string, any][] = [
-      ['Pool Address', address],
-      ['Withdrawal Queue Address', withdrawalQueueAddress],
-      ['Vault Address', vaultAddress],
-      [
+      logData.push(
+        ['Pool Address', address],
+        ['Withdrawal Queue Address', withdrawalQueueAddress],
+        ['Vault Address', vaultAddress],
+      );
+
+      const { isFresh: isReportFresh } = await checkIsReportFresh({
+        vault: vaultAddress,
+      });
+
+      logData.push([
         'Is Report Fresh',
-        isReportFresh ? '✅ Yes' : '❌ No( 🚨 Some data might be stale)',
-      ],
-    ];
+        (isReportFresh ? 'Yes' : 'No( 🚨 Some data might be stale)') +
+          finalizationBlocker(isReportFresh),
+      ]);
 
-    const withdrawableEther = await callReadMethodSilent({
-      contract: dashboard,
-      methodName: 'withdrawableValue',
-      payload: [],
-    });
+      const MIN_WITHDRAWAL_DELAY_TIME_IN_SECONDS = await callReadMethodSilent({
+        contract: withdrawalQueue,
+        methodName: 'MIN_WITHDRAWAL_DELAY_TIME_IN_SECONDS',
+        payload: [],
+      });
 
-    const lastRequestId = await callReadMethodSilent({
-      contract: withdrawalQueue,
-      methodName: 'getLastRequestId',
-      payload: [],
-    });
+      const MAX_WITHDRAWAL_ASSETS = await callReadMethodSilent({
+        contract: withdrawalQueue,
+        methodName: 'MAX_WITHDRAWAL_ASSETS',
+        payload: [],
+      });
 
-    const lastFinalizedRequestId = await callReadMethodSilent({
-      contract: withdrawalQueue,
-      methodName: 'getLastRequestId',
-      payload: [],
-    });
+      const MIN_WITHDRAWAL_VALUE = await callReadMethodSilent({
+        contract: withdrawalQueue,
+        methodName: 'MIN_WITHDRAWAL_VALUE',
+        payload: [],
+      });
 
-    const requestsToFinalize = await callReadMethodSilent({
-      contract: withdrawalQueue,
-      methodName: 'unfinalizedRequestsNumber',
-      payload: [],
-    });
+      const finalizationGasCoverage = await callReadMethodSilent({
+        contract: withdrawalQueue,
+        methodName: 'getFinalizationGasCostCoverage',
+        payload: [],
+      });
 
-    const unfinalizedStv = await callReadMethodSilent({
-      contract: withdrawalQueue,
-      methodName: 'unfinalizedStv',
-      payload: [],
-    });
+      logData.push(
+        ['Max Withdrawal Assets', formatEther(MAX_WITHDRAWAL_ASSETS) + ' ETH'],
+        ['Min Withdrawal Value', formatEther(MIN_WITHDRAWAL_VALUE) + ' ETH'],
+        [
+          'Finalization Gas Cost Coverage ',
+          formatEther(finalizationGasCoverage) + ' ETH',
+        ],
+        [
+          'Min Withdrawal Delay ',
+          MIN_WITHDRAWAL_DELAY_TIME_IN_SECONDS + ' seconds',
+        ],
+      );
 
-    const stvDecimals = await callReadMethodSilent({
-      contract: pool,
-      methodName: 'decimals',
-      payload: [],
-    });
+      const FINALIZE_FEATURE = await callReadMethodSilent({
+        contract: withdrawalQueue,
+        methodName: 'FINALIZE_FEATURE',
+        payload: [],
+      });
 
-    const unfinalizedStethShares = await callReadMethodSilent({
-      contract: withdrawalQueue,
-      methodName: 'unfinalizedStethShares',
-      payload: [],
-    });
+      const isFinalizationPaused = await callReadMethodSilent({
+        contract: withdrawalQueue,
+        methodName: 'isFeaturePaused',
+        payload: [[FINALIZE_FEATURE]],
+      });
 
-    const unfinalizedSteth = await callReadMethodSilent({
-      contract: await getStethContract(),
-      methodName: 'getPooledEthBySharesRoundUp',
-      payload: [[unfinalizedStethShares]],
-    });
+      logData.push([
+        'Is Finalization Paused',
+        (isFinalizationPaused ? 'Yes' : 'No') +
+          finalizationBlocker(!isFinalizationPaused),
+      ]);
 
-    const unfinalizedAssets = await callReadMethodSilent({
-      contract: withdrawalQueue,
-      methodName: 'unfinalizedAssets',
-      payload: [],
-    });
+      const FINALIZER_ROLE = await callReadMethodSilent({
+        contract: withdrawalQueue,
+        methodName: 'FINALIZE_ROLE',
+        payload: [],
+      });
 
-    const ethForFinalization = bigIntMin(withdrawableEther, unfinalizedAssets);
+      const finalizers = await callReadMethodSilent({
+        contract: withdrawalQueue,
+        methodName: 'getRoleMembers',
+        payload: [[FINALIZER_ROLE]],
+      });
 
-    const ethToWithdrawFromCL = unfinalizedAssets - ethForFinalization;
+      logData.push([
+        'Number of Finalizers',
+        finalizers.length + finalizationBlocker(finalizers.length),
+      ]);
 
-    const canFinalize =
-      isReportFresh && requestsToFinalize > 0n && ethForFinalization > 0n;
+      finalizers.forEach((address: Address, index: number) => {
+        logData.push([`Finalizer ${index + 1}`, address]);
+      });
 
-    logData.push(
-      ['Last Finalized Request ID', lastFinalizedRequestId],
-      ['Last Request ID', lastRequestId],
-      [
-        'Requests to Finalize',
-        requestsToFinalize + finalizationBlocker(requestsToFinalize),
-      ],
-      ['Unfinalized STV', formatUnits(unfinalizedStv, stvDecimals)],
-      ['Unfinalized Steth Shares', formatEther(unfinalizedStethShares)],
-      ['Unfinalized Steth', formatEther(unfinalizedSteth)],
-      [
-        'Unfinalized ETH',
-        formatEther(unfinalizedAssets) + finalizationBlocker(unfinalizedAssets),
-      ],
-      [
+      const withdrawableEther = await callReadMethodSilent({
+        contract: dashboard,
+        methodName: 'withdrawableValue',
+        payload: [],
+      });
+
+      logData.push([
         'Buffered ETH',
         formatEther(withdrawableEther) + finalizationBlocker(withdrawableEther),
-      ],
-      [
+      ]);
+
+      const lastRequestId = await callReadMethodSilent({
+        contract: withdrawalQueue,
+        methodName: 'getLastRequestId',
+        payload: [],
+      });
+
+      logData.push(['Last Request ID', lastRequestId]);
+
+      const lastFinalizedRequestId = await callReadMethodSilent({
+        contract: withdrawalQueue,
+        methodName: 'getLastFinalizedRequestId',
+        payload: [],
+      });
+
+      logData.push(['Last Finalized Request ID', lastFinalizedRequestId]);
+
+      const requestsToFinalize = await callReadMethodSilent({
+        contract: withdrawalQueue,
+        methodName: 'unfinalizedRequestsNumber',
+        payload: [],
+      });
+
+      logData.push([
+        'Requests to Finalize',
+        requestsToFinalize + finalizationBlocker(requestsToFinalize),
+      ]);
+
+      const unfinalizedStv = await callReadMethodSilent({
+        contract: withdrawalQueue,
+        methodName: 'unfinalizedStv',
+        payload: [],
+      });
+
+      const stvDecimals = await callReadMethodSilent({
+        contract: pool,
+        methodName: 'decimals',
+        payload: [],
+      });
+
+      logData.push([
+        'Unfinalized STV',
+        formatUnits(unfinalizedStv, stvDecimals),
+      ]);
+
+      const unfinalizedStethShares = await callReadMethodSilent({
+        contract: withdrawalQueue,
+        methodName: 'unfinalizedStethShares',
+        payload: [],
+      });
+
+      logData.push([
+        'Unfinalized Steth Shares',
+        formatEther(unfinalizedStethShares),
+      ]);
+
+      const unfinalizedSteth = await callReadMethodSilent({
+        contract: await getStethContract(),
+        methodName: 'getPooledEthBySharesRoundUp',
+        payload: [[unfinalizedStethShares]],
+      });
+
+      logData.push(['Unfinalized Steth', formatEther(unfinalizedSteth)]);
+
+      const unfinalizedAssets = await callReadMethodSilent({
+        contract: withdrawalQueue,
+        methodName: 'unfinalizedAssets',
+        payload: [],
+      });
+
+      logData.push([
+        'Unfinalized ETH',
+        formatEther(unfinalizedAssets) + finalizationBlocker(unfinalizedAssets),
+      ]);
+
+      const ethForFinalization = bigIntMin(
+        withdrawableEther,
+        unfinalizedAssets,
+      );
+
+      logData.push([
         'ETH Available for Finalization',
         formatEther(ethForFinalization) +
           finalizationBlocker(ethForFinalization),
-      ],
-      ['ETH to Withdraw from CL', formatEther(ethToWithdrawFromCL)],
-      [
+      ]);
+
+      const ethToWithdrawFromCL = unfinalizedAssets - ethForFinalization;
+
+      logData.push([
+        'ETH to Withdraw from CL',
+        formatEther(ethToWithdrawFromCL),
+      ]);
+
+      let canFinalize =
+        !isFinalizationPaused &&
+        finalizers.length > 0 &&
+        isReportFresh &&
+        requestsToFinalize > 0n &&
+        ethForFinalization > 0n;
+
+      if (canFinalize) {
+        try {
+          const { result: requestFinalized } =
+            await withdrawalQueue.simulate.finalize(
+              [requestsToFinalize, zeroAddress],
+              {
+                account: finalizers[0],
+              },
+            );
+
+          logData.push([
+            'Finalization Simulation',
+            `requests finalized ${requestFinalized}/${requestsToFinalize} ${finalizationBlocker(requestFinalized)}`,
+          ]);
+        } catch (error) {
+          canFinalize = false;
+          logInfo(
+            'Finalization simulation failed, finalization will not be possible',
+            error,
+          );
+          logInfo(`Possible reasons for finalization failure: 
+              - all requests were made too recently (withdrawal delay not passed)
+              - all requests were made after the last report (next report needed)   
+            `);
+          logData.push([
+            'Finalization Simulation',
+            `🚨 Simulation failed ${finalizationBlocker(canFinalize)}`,
+          ]);
+        }
+      }
+
+      logData.push([
         'Can Finalize Now',
         canFinalize ? '✅ Yes' : '❌ No (🚨 Check above parameters)',
-      ],
-    );
+      ]);
+    } catch (error) {
+      logError(
+        'Error fetching withdrawal status, displaying available data',
+        error,
+      );
+    }
 
     logResult({ data: logData });
   });
