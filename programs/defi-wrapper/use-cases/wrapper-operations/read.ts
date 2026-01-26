@@ -207,7 +207,7 @@ const finalizationBlocker = (amount: bigint) => {
 wrapperOperationsRead
   .command('withdrawal-status')
   .description('get status of withdrawal queue')
-  .argument('<address>', 'wrapper address', stringArrayToAddressArray)
+  .argument('<address>', 'wrapper address', stringToAddress)
   .action(async (address: Address) => {
     const pool = await getStvPoolContract(address);
     const withdrawalQueueAddress = await callReadMethodSilent({
