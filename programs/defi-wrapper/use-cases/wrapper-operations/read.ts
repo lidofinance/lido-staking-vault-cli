@@ -77,13 +77,33 @@ wrapperOperationsRead
         ['Total Nominal Assets', formatEther(poolInfo.totalNominalAssets)],
         ['Total Assets', formatEther(poolInfo.totalAssets)],
         ['Total Supply', formatUnits(poolInfo.totalSupply, poolInfo.decimals)],
-        ['Total Liability Shares', formatEther(poolInfo.totalLiabilityShares)],
+        typeof poolInfo.totalMintingCapacityShares === 'bigint'
+          ? [
+              'Total Minting Capacity Steth Shares',
+              formatEther(poolInfo.totalMintingCapacityShares),
+            ]
+          : undefined,
+        typeof poolInfo.remainingMintingCapacityShares === 'bigint'
+          ? [
+              'Remaining Minting Capacity Steth Shares',
+              formatEther(poolInfo.remainingMintingCapacityShares),
+            ]
+          : undefined,
         typeof poolInfo.totalMintedStethShares === 'bigint'
           ? [
               'Total Minted Steth Shares',
               formatEther(poolInfo.totalMintedStethShares),
             ]
           : undefined,
+        typeof poolInfo.liabilityShares === 'bigint'
+          ? ['Total Liability Shares', formatEther(poolInfo.liabilityShares)]
+          : undefined,
+
+        [
+          'Total Liability in stETH',
+          // already formatted
+          poolInfo.totalLiabilitySteth,
+        ],
         typeof poolInfo.totalExceedingMintedStethShares === 'bigint'
           ? [
               'Total Exceeding Minted Steth Shares',
@@ -96,6 +116,13 @@ wrapperOperationsRead
               formatEther(poolInfo.totalExceedingMintedSteth),
             ]
           : undefined,
+        ['Vault Healthy', poolInfo.isHealthy],
+        ['Health Rate', `${poolInfo.healthRatio}%`],
+        ['Unfinalized ETH', formatEther(poolInfo.unfinalizedAssets)],
+        [
+          'Available ETH for CL Deposit',
+          formatEther(poolInfo.availableAssetsForCLDeposit),
+        ],
         [
           'Total Unassigned Liability Shares',
           formatEther(poolInfo.totalUnassignedLiabilityShares),
@@ -113,6 +140,14 @@ wrapperOperationsRead
         ['ALLOW_LIST_ENABLED', poolInfo.ALLOW_LIST_ENABLED],
         ['Allow List Size', poolInfo.allowListSize],
         ['DEPOSITS_FEATURE (ID)', poolInfo.DEPOSITS_FEATURE],
+        poolInfo.isInSync !== undefined
+          ? [
+              'Requires Vault Params Sync',
+              poolInfo.isInSync
+                ? '✅ No'
+                : '❌ Yes (🚨 run "sync-vault-params" command)',
+            ]
+          : undefined,
         poolInfo.MINTING_FEATURE
           ? ['MINTING_FEATURE (ID)', poolInfo.MINTING_FEATURE]
           : undefined,
@@ -142,6 +177,28 @@ wrapperOperationsRead
       logInfo('Allow List is disabled for this pool');
       return;
     }
+
+    const allowListManagerRole = await callReadMethodSilent({
+      contract: pool,
+      methodName: 'ALLOW_LIST_MANAGER_ROLE',
+      payload: [],
+    });
+
+    const allowListManagers = await callReadMethodSilent({
+      contract: pool,
+      methodName: 'getRoleMembers',
+      payload: [[allowListManagerRole]],
+    });
+
+    logTable({
+      params: {
+        head: ['List of holders of ALLOW_LIST_MANAGER_ROLE'],
+      },
+      data: allowListManagers.map((addr, index) => [
+        `Allow List Manager ${index + 1}`,
+        addr,
+      ]),
+    });
 
     const allowListSize = await callReadMethodSilent({
       contract: pool,

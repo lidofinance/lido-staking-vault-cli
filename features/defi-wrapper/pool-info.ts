@@ -2,9 +2,12 @@ import { Address, fromHex } from 'viem';
 import {
   getStvStethPoolContract,
   getStvPoolContract,
+  getWithdrawalQueueContract,
 } from 'contracts/defi-wrapper/index.js';
-import { callReadMethodSilent } from 'utils';
-import { reportFreshWarning } from 'features';
+import { callReadMethodSilent, fetchAndCalculateVaultHealth } from 'utils';
+import { reportFreshWarning, vaultMintLimit } from 'features';
+import { getDashboardContract, getStakingVaultContract } from 'contracts';
+import { bigIntMax } from 'utils/bigInt.js';
 
 export const STV_POOL_NAME = 'StvPool';
 export const STV_STETH_POOL_NAME = 'StvStETHPool';
@@ -51,13 +54,28 @@ const getStvPoolInfo = async (address: Address) => {
     contract.read.getAllowListSize(),
   ]);
 
-  const isDepositsPaused = await callReadMethodSilent({
-    contract,
-    methodName: 'isFeaturePaused',
-    payload: [[DEPOSITS_FEATURE]],
-  });
+  const wqContract = await getWithdrawalQueueContract(WithdrawalQueue);
+  const vaultContract = await getStakingVaultContract(vault);
+
+  const [isDepositsPaused, unfinalizedAssets, availableVaultBalance] =
+    await Promise.all([
+      contract.read.isFeaturePaused([DEPOSITS_FEATURE]),
+      wqContract.read.unfinalizedAssets(),
+      vaultContract.read.availableBalance(),
+    ]);
+
+  const availableAssetsForCLDeposit = bigIntMax(
+    availableVaultBalance - unfinalizedAssets,
+    0n,
+  );
 
   const isReportFresh = await reportFreshWarning(vault);
+
+  const {
+    healthRatio,
+    isHealthy,
+    liabilitySharesInSteth: totalLiabilitySteth,
+  } = await fetchAndCalculateVaultHealth(await getDashboardContract(Dashboard));
 
   return {
     vault,
@@ -71,15 +89,65 @@ const getStvPoolInfo = async (address: Address) => {
     totalAssets,
     totalSupply,
     totalLiabilityShares,
+    totalLiabilitySteth,
+    healthRatio,
+    isHealthy,
     totalUnassignedLiabilityShares,
     totalUnassignedLiabilitySteth,
+    unfinalizedAssets,
+    availableVaultBalance,
     decimals,
     isDepositsPaused,
     ALLOW_LIST_ENABLED,
     DEPOSITS_FEATURE,
     allowListSize,
     isReportFresh,
+    availableAssetsForCLDeposit,
   };
+};
+
+export const areVaultParamsInSync = async (poolAddress: Address) => {
+  const pool = await getStvStethPoolContract(poolAddress);
+
+  const poolType = await pool.read.poolType();
+
+  const dashboardAddress = await pool.read.DASHBOARD();
+
+  const dashboard = await getDashboardContract(dashboardAddress);
+
+  const poolTypeName = fromHex(poolType, 'string').replace(/\W/g, '');
+
+  const isStvStethPool =
+    poolTypeName === STV_STETH_POOL_NAME ||
+    poolTypeName === STV_STRATEGY_POOL_NAME;
+
+  if (!isStvStethPool) {
+    throw new Error(
+      `The pool at address ${poolAddress} is not an StvStEth or StvStrategy pool. This operation is only applicable to StvStEth and StvStrategy pools.`,
+    );
+  }
+
+  const [
+    {
+      reserveRatioBP: vaultReserveRatioBP,
+      forcedRebalanceThresholdBP: vaultForcedRebalanceThresholdBP,
+    },
+    poolForcedRebalanceThresholdBP,
+    poolReserveRatioBP,
+    RESERVE_RATIO_GAP_BP,
+  ] = await Promise.all([
+    dashboard.read.vaultConnection(),
+    pool.read.poolForcedRebalanceThresholdBP(),
+    pool.read.poolReserveRatioBP(),
+    pool.read.RESERVE_RATIO_GAP_BP(),
+  ]);
+
+  const isInSync =
+    poolReserveRatioBP == BigInt(vaultReserveRatioBP) + RESERVE_RATIO_GAP_BP &&
+    poolForcedRebalanceThresholdBP ==
+      BigInt(vaultForcedRebalanceThresholdBP) + RESERVE_RATIO_GAP_BP;
+
+  return isInSync;
 };
 
 const getStvStethPoolInfo = async (address: Address) => {
@@ -87,6 +155,7 @@ const getStvStethPoolInfo = async (address: Address) => {
 
   const [
     WSTETH,
+    DASHBOARD,
     RESERVE_RATIO_GAP_BP,
     totalMintedStethShares,
     poolReserveRatioBP,
@@ -97,6 +166,7 @@ const getStvStethPoolInfo = async (address: Address) => {
     MINTING_FEATURE,
   ] = await Promise.all([
     contract.read.WSTETH(),
+    contract.read.DASHBOARD(),
     contract.read.RESERVE_RATIO_GAP_BP(),
     contract.read.totalMintedStethShares(),
     contract.read.poolReserveRatioBP(),
@@ -113,17 +183,30 @@ const getStvStethPoolInfo = async (address: Address) => {
     payload: [[MINTING_FEATURE]],
   });
 
+  const {
+    liabilityShares,
+    remainingMintingCapacityShares,
+    totalMintingCapacityShares,
+  } = await vaultMintLimit(await getDashboardContract(DASHBOARD));
+
+  const isInSync = await areVaultParamsInSync(address);
+
   return {
     WSTETH,
+    DASHBOARD,
     RESERVE_RATIO_GAP_BP,
     totalMintedStethShares,
     poolReserveRatioBP,
     poolForcedRebalanceThresholdBP,
     totalExceedingMintedStethShares,
     totalExceedingMintedSteth,
+    liabilityShares,
+    remainingMintingCapacityShares,
+    totalMintingCapacityShares,
     maxLossSocializationBP,
     isMintingPaused,
     MINTING_FEATURE,
+    isInSync,
   };
 };
 
