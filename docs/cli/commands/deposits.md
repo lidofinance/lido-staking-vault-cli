@@ -247,7 +247,7 @@ Deposits ether to proven validators from staking vault.
 [
   {
     "pubkey": "validator_public_key_hex",
-    "amount": "amount_in_wei"
+    "amount": "amount_in_gwei"
   }
 ]
 ```
