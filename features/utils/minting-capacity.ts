@@ -1,20 +1,17 @@
 import { formatEther } from 'viem';
 
 import { DashboardContract } from 'contracts';
-import { callReadMethodSilent, logError } from 'utils';
+import { logError } from 'utils';
+import { vaultMintLimit } from 'features/mint-burn/mint-limit.js';
 
 export const checkMintingCapacity = async (
   contract: DashboardContract,
   amountOfShares: bigint,
 ) => {
-  const remainingMintingCapacityShares = await callReadMethodSilent({
-    contract: contract,
-    methodName: 'remainingMintingCapacityShares',
-    payload: [[0n]],
-  });
+  const { remainingMintingCapacityShares } = await vaultMintLimit(contract);
   if (remainingMintingCapacityShares < amountOfShares) {
     logError(
-      `Cannot mint more shares than the vault can mint. Mintable: ${formatEther(remainingMintingCapacityShares)}`,
+      `Cannot mint more shares than the vault can mint. Mintable: ${formatEther(remainingMintingCapacityShares)} shares`,
     );
     return false;
   }

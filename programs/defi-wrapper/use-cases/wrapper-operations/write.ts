@@ -18,7 +18,6 @@ import { getWithdrawalQueueContract } from 'contracts/defi-wrapper/withdrawal-qu
 import {
   encodeFunctionData,
   formatEther,
-  fromHex,
   parseEventLogs,
   zeroAddress,
   type Address,
@@ -27,7 +26,8 @@ import { getDashboardContract, getVaultHubContract } from 'contracts';
 import { getStvPoolContract } from 'contracts/defi-wrapper/stv-pool.js';
 import { bigIntMin } from 'utils/bigInt.js';
 import { getStvStethPoolContract } from 'contracts/defi-wrapper/stv-steth-pool.js';
-import { STV_STETH_POOL_NAME, STV_STRATEGY_POOL_NAME } from 'features';
+import { areVaultParamsInSync } from 'features';
+
 export const wrapperOperationsWrite = wrapperOperations
   .command('write')
   .aliases(['w'])
@@ -210,26 +210,16 @@ wrapperOperationsWrite
   .description('sync vault params between vault & pool')
   .argument('<poolAddress>', 'pool address', stringToAddress)
   .action(async (address: Address) => {
-    const pool = await getStvStethPoolContract(address);
+    const isInSync = await areVaultParamsInSync(address);
 
-    const poolType = await callReadMethod({
-      contract: pool,
-      methodName: 'poolType',
-      payload: [],
-    });
-
-    const poolTypeName = fromHex(poolType, 'string').replace(/\W/g, '');
-
-    const isStvStethPool =
-      poolTypeName === STV_STETH_POOL_NAME ||
-      poolTypeName === STV_STRATEGY_POOL_NAME;
-
-    if (!isStvStethPool) {
+    if (isInSync) {
       logError(
-        `The pool at address ${address} is not an StvStEth or StvStrategy pool. This operation is only applicable to StvStEth and StvStrategy pools.`,
+        '⚠️⚠️⚠️ Vault parameters are already in sync. No changes needed. ⚠️⚠️⚠️',
       );
       return;
     }
+
+    const pool = await getStvStethPoolContract(address);
 
     const { receipt } = await callWriteMethodWithReceipt({
       contract: pool,
@@ -308,7 +298,7 @@ wrapperOperationsWrite
   .description('remove addresses(divided by spaces) from allow list ')
   .argument('<poolAddress>', 'pool address', stringToAddress)
   .argument(
-    '[addressesToRemove...]',
+    '<addressesToRemove...>',
     '1 or more addresses to remove divided by spaces',
     stringArrayToAddressArray,
     [],
