@@ -9,6 +9,7 @@
 /deployed.json
 /coverage/*
 
+
 # dependencies
 /node_modules
 /.pnp
@@ -20,6 +21,7 @@ tsconfig.tsbuildinfo
 # production
 /build
 /dist
+distribution-*.json
 
 #ide
 .vscode

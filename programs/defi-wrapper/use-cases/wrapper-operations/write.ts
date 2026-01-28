@@ -39,6 +39,10 @@ wrapperOperationsWrite.on('option:-cmd2json', function () {
   process.exit();
 });
 
+//
+// Finalization Operations
+//
+
 wrapperOperationsWrite
   .command('set-finalization-gas-cost-coverage')
   .description('set finalization gas cost coverage')
@@ -204,6 +208,10 @@ wrapperOperationsWrite
       });
     },
   );
+
+///
+/// Allow List Operations
+///
 
 wrapperOperationsWrite
   .command('sync-vault-params')
