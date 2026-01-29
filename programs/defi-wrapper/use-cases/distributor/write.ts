@@ -4,7 +4,6 @@ import {
   formatUnits,
   getContract,
   Hash,
-  isAddress,
   isAddressEqual,
   parseUnits,
 } from 'viem';
@@ -20,6 +19,7 @@ import {
   calculateIPFSAddCID,
   stringToHash,
   stringToBigInt,
+  stringArrayToTokenPairs,
 } from 'utils';
 import {
   getDistributorContract,
@@ -91,41 +91,6 @@ distributorWrite
     });
   });
 
-const stringArrayToTokenPairs = (
-  value: string,
-  prev:
-    | { result: { address: Address; amount: string }[]; isAmount: boolean }
-    | undefined = undefined,
-): { result: { address: Address; amount: string }[]; isAmount: boolean } => {
-  if (!prev) prev = { result: [], isAmount: false };
-
-  if (!prev.isAmount) {
-    if (!isAddress(value, { strict: false })) {
-      throw new Error(`Invalid token address: ${value}`);
-    }
-    prev.result.push({ address: value.toLowerCase() as Address, amount: '' });
-    prev.isAmount = true;
-  } else {
-    const numberAmount = Number(value);
-    const prevEntry = prev.result[prev.result.length - 1];
-    if (
-      !prevEntry ||
-      isNaN(numberAmount) ||
-      isAddress(value) ||
-      numberAmount <= 0 ||
-      !value
-    ) {
-      throw new Error(
-        `Invalid amount: ${value} for token ${prev.result[prev.result.length - 1]?.address}`,
-      );
-    }
-    prevEntry.amount = value;
-    prev.isAmount = false;
-  }
-
-  return prev;
-};
-
 distributorWrite
   .command('set-merkle-root')
   .argument('<pool address>', 'pool contract address', stringToAddress)
@@ -146,6 +111,19 @@ distributorWrite
       payload: [merkleRoot, cid],
     });
   });
+
+type DistributeOptions = {
+  blacklist: Address[];
+  outputPath?: string;
+  skipTransfer: boolean;
+  pinningUrl?: string;
+  skipSetRoot: boolean;
+  skipWrite: boolean;
+  fromBlock?: bigint;
+  toBlock?: bigint;
+  ipfsGateway?: string;
+  maxBatchSize: bigint;
+};
 
 distributorWrite
   .command('distribute')
@@ -169,6 +147,12 @@ distributorWrite
     undefined,
   )
   .option('--to-block [block]', 'to block number', stringToBigInt, undefined)
+  .option(
+    '--max-batch-size [size]',
+    'maximum batch size for fetching events',
+    stringToBigInt,
+    50_000n,
+  )
   .option('--output-path [path]', 'path to save distribution data')
   .option('--skip-write', 'skip writing distribution data to file', false)
   .option('--skip-transfer', 'skip transferring tokens to distributor', false)
@@ -196,17 +180,8 @@ distributorWrite
         fromBlock,
         toBlock,
         ipfsGateway,
-      }: {
-        blacklist: Address[];
-        outputPath?: string;
-        skipTransfer: boolean;
-        pinningUrl?: string;
-        skipSetRoot: boolean;
-        skipWrite: boolean;
-        fromBlock?: bigint;
-        toBlock?: bigint;
-        ipfsGateway?: string;
-      },
+        maxBatchSize,
+      }: DistributeOptions,
     ) => {
       const publicClient = await getPublicClient();
       const tokens = await Promise.all(
@@ -245,6 +220,7 @@ distributorWrite
         toBlock,
         fromBlock,
         ipfsGateway,
+        maxBatchSize,
         tokens: tokens.map((t) => ({
           address: t.contract.address,
           amount: t.amount,

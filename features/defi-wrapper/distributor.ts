@@ -5,7 +5,15 @@ import {
   StvPoolContract,
 } from 'contracts/defi-wrapper/stv-pool.js';
 import { getPublicClient } from 'providers';
-import { fetchIPFS } from 'utils';
+import {
+  CachedEvents,
+  fetchIPFS,
+  getIndexedEventsFromCache,
+  logError,
+  logInfo,
+  V3_START_BLOCKS,
+} from 'utils';
+import { bigIntMax } from 'utils/bigInt.js';
 import { Address, zeroAddress, zeroHash } from 'viem';
 
 type GenerateDistributionParams = {
@@ -18,18 +26,7 @@ type GenerateDistributionParams = {
   ipfsGateway?: string;
   toBlock?: bigint;
   fromBlock?: bigint;
-};
-
-export type MerkleDistributionResult = {
-  format: 'standard-v1';
-  leafEncoding: ['address', 'address', 'uint256'];
-  tree: string[];
-  values: {
-    treeIndex: bigint;
-    value: [string, string, string];
-  }[];
-  prevTreeCid: string;
-  blockNumber: number;
+  maxBatchSize?: bigint;
 };
 
 const treeFromData = (data: any) => {
@@ -46,12 +43,118 @@ const treeFromValues = (values: [Address, Address, bigint][]) => {
   return StandardMerkleTree.of(values, ['address', 'address', 'uint256']);
 };
 
+const fetchEventsForBlocks = async ({
+  blocks,
+  poolAddress,
+  batchSize = 30000n,
+}: {
+  blocks: bigint[];
+  poolAddress: Address;
+  batchSize?: bigint;
+}): Promise<Map<bigint, CachedEvents>> => {
+  const poolContract = await getStvPoolContract(poolAddress);
+  const eventsMap = new Map<bigint, CachedEvents>();
+
+  // Initialize empty events for each block
+  for (const block of blocks) {
+    eventsMap.set(block, {
+      transfer: [],
+      minted: [],
+      burned: [],
+    });
+  }
+
+  if (blocks.length === 0) return eventsMap;
+
+  // Split blocks into batches based on block range
+  const batches: bigint[][] = [];
+  let currentBatch: bigint[] = [];
+  let batchStartBlock: bigint = blocks[0] as bigint;
+
+  for (const block of blocks) {
+    // If block is within batch size range from start, add to current batch
+    if (block - batchStartBlock < batchSize) {
+      currentBatch.push(block);
+    } else {
+      // Start new batch
+      batches.push(currentBatch);
+      currentBatch = [block];
+      batchStartBlock = block;
+    }
+  }
+  if (currentBatch.length > 0) {
+    batches.push(currentBatch);
+  }
+
+  logInfo(
+    `Fetching events for ${blocks.length} blocks in ${batches.length} batch(es) (max ${batchSize} blocks per batch)...`,
+  );
+
+  // Fetch each batch
+  for (let i = 0; i < batches.length; i++) {
+    const batch = batches[i];
+    if (!batch || batch.length === 0) continue;
+
+    const blocksSet = new Set(batch);
+    const minBlock = batch[0] as bigint;
+    const maxBlock = batch[batch.length - 1] as bigint;
+
+    logInfo(
+      `Batch ${i + 1}/${batches.length}: fetching blocks ${minBlock} to ${maxBlock} (${batch.length} blocks)...`,
+    );
+
+    try {
+      const transferLogs = await poolContract.getEvents.Transfer(undefined, {
+        fromBlock: minBlock,
+        toBlock: maxBlock,
+      });
+
+      logInfo(`Found ${transferLogs.length} Transfer events`);
+
+      // Group Transfer events by block
+      for (const log of transferLogs) {
+        const blockNumber = log.blockNumber;
+
+        if (blockNumber && blocksSet.has(blockNumber) && log.args) {
+          const blockEvents = eventsMap.get(blockNumber);
+
+          if (blockEvents) {
+            const args = log.args as {
+              from: Address;
+              to: Address;
+              value: bigint;
+            };
+
+            if (args.from && args.to && args.value !== undefined) {
+              blockEvents.transfer.push({
+                blockNumber: blockNumber.toString(),
+                from: args.from,
+                to: args.to,
+                value: args.value.toString(),
+              });
+            }
+          }
+        }
+      }
+    } catch (error) {
+      logError(error, `Error fetching events for batch ${i + 1}: ${error}`);
+      throw new Error(`Failed to fetch events for batch ${i + 1}: ${error}`);
+    }
+  }
+
+  logInfo(`Processed events for ${eventsMap.size} blocks`);
+
+  return eventsMap;
+};
+
 const getUserShares = async (
   poolContract: StvPoolContract,
   blackListSet: Set<Address>,
   fromBlock: bigint,
   toBlock: bigint,
+  batchSize?: bigint,
 ) => {
+  const publicClient = await getPublicClient();
   const userSharesMap: Map<
     Address,
     { accumulatedShare: bigint; balance: bigint; lastBlock: bigint }
@@ -59,20 +162,39 @@ const getUserShares = async (
 
   const blockBeforeFrom = fromBlock > 0n ? fromBlock - 1n : 0n;
 
-  const eventsBefore = await poolContract.getEvents.Transfer(undefined, {
-    fromBlock: 'earliest',
-    toBlock: blockBeforeFrom,
-    strict: true,
-  });
+  const earliestBlock = V3_START_BLOCKS[publicClient.chain.id];
+  if (!earliestBlock) {
+    throw new Error(
+      `V3 start block not defined for chain id ${publicClient.chain.id}`,
+    );
+  }
+
+  const fetchEvents = async (from: bigint, to: bigint) => {
+    const events = await getIndexedEventsFromCache({
+      poolAddress: poolContract.address,
+      cacheSuffix: '_ONLY_TRANSFER',
+      startBlock: from,
+      endBlock: to,
+      fetchEventsForBlocks: (blocks: bigint[]) =>
+        fetchEventsForBlocks({
+          blocks,
+          poolAddress: poolContract.address,
+          batchSize,
+        }),
+    });
+    return events.transfer.map((e) => ({
+      to: e.to.toLowerCase() as Address,
+      from: e.from.toLowerCase() as Address,
+      value: BigInt(e.value),
+      blockNumber: BigInt(e.blockNumber),
+    }));
+  };
+
+  const eventsBefore = await fetchEvents(earliestBlock, blockBeforeFrom);
 
   // accumulate balances before fromBlock as well as whole user base
   // parsing ALL events from contract creation  is the only way to get full and correct user list
-  for (const event of eventsBefore) {
-    const args = event.args as Required<typeof event.args>;
-    const to = args.to.toLowerCase() as Address;
-    const from = args.from.toLowerCase() as Address;
-    const value = args.value;
-
+  for (const { to, from, value } of eventsBefore) {
     const old = userSharesMap.get(to);
     if (!blackListSet.has(to)) {
       userSharesMap.set(to, {
@@ -90,21 +212,11 @@ const getUserShares = async (
     }
   }
 
-  const events = await poolContract.getEvents.Transfer(undefined, {
-    fromBlock,
-    toBlock,
-    strict: true,
-  });
+  const events = await fetchEvents(fromBlock, toBlock);
 
   // accumulate balances and shares between fromBlock and toBlock
   // each user's share is balance * number of blocks held since last change
-  for (const event of events) {
-    const args = event.args as Required<typeof event.args>;
-    const to = args.to.toLowerCase() as Address;
-    const from = args.from.toLowerCase() as Address;
-    const value = args.value;
-    const currentBlock = event.blockNumber;
-
+  for (const { to, from, value, blockNumber: currentBlock } of events) {
     if (!blackListSet.has(to)) {
       const lastValue = userSharesMap.get(to);
       const lastBalance = lastValue?.balance ?? 0n;
@@ -160,6 +272,7 @@ export const generateDistribution = async ({
   toBlock,
   fromBlock,
   ipfsGateway,
+  maxBatchSize,
 }: GenerateDistributionParams) => {
   // Contracts
   const publicClient = await getPublicClient();
@@ -179,8 +292,16 @@ export const generateDistribution = async ({
     zeroAddress,
   ].forEach((address) => blackListSet.add(address.toLowerCase() as Address));
 
-  const fromBlockNumber =
+  // allow user to provider their own block or rely on last processed block from distributor(can be zero for first time)
+  let fromBlockNumber =
     fromBlock ?? (await distributor.read.lastProcessedBlock());
+
+  // this ensures we never go before V3 start block
+  fromBlockNumber = bigIntMax(
+    fromBlockNumber,
+    V3_START_BLOCKS[publicClient.chain.id] ?? 0n,
+  );
+
   const currentBlock = await publicClient.getBlock({
     blockNumber: toBlock,
     blockTag: toBlock ? 'latest' : undefined,
@@ -235,6 +356,7 @@ export const generateDistribution = async ({
     blackListSet,
     fromBlockNumber + 1n,
     BigInt(currentBlock.number),
+    maxBatchSize,
   );
 
   const newMerkleValues: [Address, Address, bigint][] = [];
