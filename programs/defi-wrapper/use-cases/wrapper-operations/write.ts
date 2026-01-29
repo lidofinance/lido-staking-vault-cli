@@ -12,6 +12,8 @@ import {
   logTable,
   callWriteMethodWithReceiptBatchCalls,
   stringArrayToAddressArray,
+  callReadMethodSilent,
+  stringToNumber,
 } from 'utils';
 import { wrapperOperations } from './main.js';
 import { getWithdrawalQueueContract } from 'contracts/defi-wrapper/withdrawal-queue.js';
@@ -19,14 +21,20 @@ import {
   encodeFunctionData,
   formatEther,
   parseEventLogs,
+  WatchContractEventOnLogsParameter,
   zeroAddress,
   type Address,
 } from 'viem';
-import { getDashboardContract, getVaultHubContract } from 'contracts';
+import {
+  getDashboardContract,
+  getLazyOracleContract,
+  getVaultHubContract,
+} from 'contracts';
 import { getStvPoolContract } from 'contracts/defi-wrapper/stv-pool.js';
 import { bigIntMin } from 'utils/bigInt.js';
 import { getStvStethPoolContract } from 'contracts/defi-wrapper/stv-steth-pool.js';
-import { areVaultParamsInSync } from 'features';
+import { areVaultParamsInSync, tryFetchPost } from 'features';
+import { LazyOracleAbi } from 'abi';
 
 export const wrapperOperationsWrite = wrapperOperations
   .command('write')
@@ -346,3 +354,309 @@ wrapperOperationsWrite
       })),
     });
   });
+
+wrapperOperationsWrite
+  .command('auto-report')
+  .description(
+    `watches for new reports, automatically submits report and finalizes withdrawals. Will run indefinitely.
+      For finalization make sure private key has FINALIZE_ROLE in the withdrawal queue.
+      ⚠️⚠️⚠️ For production use consider running with a process manager ⚠️⚠️⚠️`,
+  )
+  .argument('<poolAddress>', 'pool address', stringToAddress)
+  .option('--skip-report', 'skip report submission step', false)
+  .option('--skip-finalize', 'skip finalize withdrawals step', false)
+  .option(
+    '--callback-url <callbackUrl>',
+    'callback url to notify when report is submitted and withdrawals are finalized via POST request',
+  )
+  .option(
+    '--gas-coverage-recipient <gasCoverageRecipient>',
+    'address to receive gas coverage(if any), defaults to tx sender',
+    stringToAddress,
+    zeroAddress,
+  )
+  .option(
+    '--max-requests <maxRequestCount>',
+    'maximum number of requests to finalize',
+    stringToBigInt,
+    1000n,
+  )
+  .option(
+    '--polling-interval <pollingInterval>',
+    'polling interval in ms for checking new reports, default: 5 * 60_000 (5 minutes)',
+    stringToNumber,
+    5 * 60_000,
+  )
+  .action(
+    async (
+      address: Address,
+      {
+        skipReport,
+        skipFinalize,
+        maxRequests,
+        gasCoverageRecipient,
+        pollingInterval,
+        callbackUrl,
+      }: {
+        skipReport: boolean;
+        skipFinalize: boolean;
+        maxRequests: bigint;
+        pollingInterval: number;
+        gasCoverageRecipient: Address;
+        callbackUrl?: string;
+      },
+    ) => {
+      if (skipReport && !skipFinalize) {
+        logError(
+          'Cannot skip report submission when finalizing withdrawals. Report must be fresh before finalization.',
+        );
+        return;
+      }
+
+      const pool = await getStvPoolContract(address);
+      const vaultAddress = await callReadMethod({
+        contract: pool,
+        methodName: 'VAULT',
+        payload: [],
+      });
+      const withdrawalQueueAddress = await callReadMethod({
+        contract: pool,
+        methodName: 'WITHDRAWAL_QUEUE',
+        payload: [],
+      });
+      const lazyOracle = await getLazyOracleContract();
+      const vaultHub = await getVaultHubContract();
+
+      const withdrawalQueue = await getWithdrawalQueueContract(
+        withdrawalQueueAddress,
+      );
+
+      const FINALIZER_ROLE = await callReadMethod({
+        contract: withdrawalQueue,
+        methodName: 'FINALIZE_ROLE',
+        payload: [],
+      });
+
+      const finalizers = await callReadMethod({
+        contract: withdrawalQueue,
+        methodName: 'getRoleMembers',
+        payload: [[FINALIZER_ROLE]],
+      });
+
+      const finalizer = finalizers[0];
+      if (!finalizer) {
+        logError(
+          'No FINALIZE_ROLE holders found for the withdrawal queue. Cannot proceed with auto-reporting.',
+        );
+        return;
+      }
+
+      const onNewReport = async (
+        events: WatchContractEventOnLogsParameter<
+          typeof LazyOracleAbi,
+          'VaultsReportDataUpdated',
+          true
+        >,
+      ) => {
+        const event = events[0];
+        if (event) {
+          logInfo('New report is available');
+          logTable({
+            data: [
+              ['Data CID', event.args.cid],
+              ['Merkle Root', event.args.root],
+              ['Ref slot', event.args.refSlot],
+              ['Timestamp', event.args.timestamp],
+            ],
+          });
+        }
+
+        const isConnected = await callReadMethod({
+          contract: vaultHub,
+          methodName: 'isVaultConnected',
+          payload: [[vaultAddress]],
+        });
+
+        const isReportFresh = await callReadMethodSilent({
+          contract: vaultHub,
+          methodName: 'isReportFresh',
+          payload: [[vaultAddress]],
+        });
+
+        if (!isConnected) {
+          logError(
+            `Vault ${vaultAddress} is not connected to VaultHub. Cannot proceed with report submission.`,
+          );
+        }
+
+        if (isReportFresh) {
+          logInfo('Report is already fresh. No submission needed.');
+        }
+
+        if (!skipReport && isConnected && !isReportFresh) {
+          const { isFresh } = await submitReport({
+            vault: vaultAddress,
+            skipConfirmation: true,
+          });
+          logInfo(`Report submission completed. isFresh: ${isFresh}`);
+        } else {
+          logInfo('Report submission step skipped.');
+        }
+
+        let canFinalize = false;
+        let requestsToFinalize = 0n;
+        let requestsFinalized = 0n;
+        let assetsFinalized = 0n;
+
+        const unfinalizedRequestsNumber = await callReadMethod({
+          contract: withdrawalQueue,
+          methodName: 'unfinalizedRequestsNumber',
+          payload: [],
+        });
+        const unfinalizedAssets = await callReadMethod({
+          contract: withdrawalQueue,
+          methodName: 'unfinalizedAssets',
+          payload: [],
+        });
+        const lastFinalizedRequestId = await callReadMethod({
+          contract: withdrawalQueue,
+          methodName: 'getLastFinalizedRequestId',
+          payload: [],
+        });
+
+        try {
+          if (unfinalizedRequestsNumber > 0n) {
+            const { result: requestFinalized } =
+              await withdrawalQueue.simulate.finalize(
+                [maxRequests, zeroAddress],
+                {
+                  account: finalizers[0],
+                },
+              );
+
+            logInfo(
+              `Finalization Simulation:
+                requests finalized ${requestsToFinalize}/${unfinalizedRequestsNumber}`,
+            );
+
+            requestsToFinalize = requestFinalized;
+
+            // this is a sanity check, should not happen in contract
+            if (requestFinalized <= 0n)
+              throw new Error('No requests finalized in simulation');
+          } else {
+            logInfo('No pending withdrawals to finalize.');
+          }
+        } catch (error) {
+          canFinalize = false;
+          logInfo('Finalization simulation failed', error);
+        }
+
+        if (!skipFinalize) {
+          if (canFinalize) {
+            logInfo('Proceeding to finalize withdrawals...');
+            await callWriteMethodWithReceipt({
+              contract: withdrawalQueue,
+              methodName: 'finalize',
+              payload: [maxRequests, gasCoverageRecipient],
+            });
+            requestsFinalized = await callReadMethod({
+              contract: withdrawalQueue,
+              methodName: 'getLastFinalizedRequestId',
+              payload: [],
+            });
+            assetsFinalized = await callReadMethod({
+              contract: withdrawalQueue,
+              methodName: 'unfinalizedAssets',
+              payload: [],
+            });
+
+            assetsFinalized = unfinalizedAssets - assetsFinalized;
+            requestsFinalized -= lastFinalizedRequestId;
+          } else {
+            logInfo(
+              'Finalization step skipped due to lack of pending withdrawals or simulation failure.',
+            );
+          }
+        } else {
+          logInfo('Finalization step skipped.');
+        }
+
+        logTable({
+          data: [
+            ['Pool Address', address],
+            ['Vault Address', vaultAddress],
+            ['Is Connected', isConnected],
+            ['Was Report Fresh', isReportFresh],
+            ['Report Submitted', !skipReport && isConnected && !isReportFresh],
+            ['Can Finalize', canFinalize],
+            ['Finalization Requested', !skipFinalize && canFinalize],
+            ['Total Unfinalized Requests', unfinalizedRequestsNumber],
+            [
+              'Total Unfinalized Assets',
+              formatEther(unfinalizedAssets) + ' ETH',
+            ],
+            ['Requests Finalized', requestsFinalized],
+            ['Assets Finalized', formatEther(assetsFinalized) + ' ETH'],
+          ],
+        });
+
+        if (callbackUrl) {
+          const { error } = await tryFetchPost(callbackUrl, {
+            poolAddress: address,
+            vaultAddress: vaultAddress,
+            isConnected: isConnected,
+            wasReportFresh: isReportFresh,
+            reportSubmitted: !skipReport && isConnected && !isReportFresh,
+            canFinalize,
+            finalizationRequested: !skipFinalize && canFinalize,
+            totalUnfinalizedRequests: unfinalizedRequestsNumber,
+            totalUnfinalizedAssets: unfinalizedAssets,
+            requestsFinalized: requestsFinalized,
+            assetsFinalized: assetsFinalized,
+          });
+          if (error) {
+            logError(`Failed to send callback to ${callbackUrl}: ${error}`);
+          }
+        }
+      };
+
+      // dry run to submit report & finalize withdrawals immediately if possible
+      logInfo(
+        'Performing initial dry-run in case report is already available...',
+      );
+      await onNewReport([]);
+
+      logInfo('Starting watching for reports...');
+      lazyOracle.watchEvent.VaultsReportDataUpdated(
+        {},
+        {
+          onLogs: () => void onNewReport,
+          batch: false,
+          poll: true,
+          strict: true,
+          pollingInterval,
+          onError: (error) => {
+            logError(
+              `Error while watching VaultsReportDataUpdated events: ${error}`,
+            );
+            if (callbackUrl) {
+              void tryFetchPost(callbackUrl, {
+                error: `Error while watching VaultsReportDataUpdated events: ${error}`,
+              }).then(({ error }) => {
+                if (error) {
+                  logError(
+                    `Failed to send error callback to ${callbackUrl}: ${error}`,
+                  );
+                }
+              });
+            }
+
+            process.exit(1);
+          },
+        },
+      );
+      // empty await to keep the process alive
+      await new Promise(() => {});
+    },
+  );

@@ -16,11 +16,13 @@ type SubmitReportArgs = {
   vault: Address;
   gateway?: string;
   populateTx?: boolean;
+  skipConfirmation?: boolean;
 };
 
 export const submitReport = async ({
   vault,
   gateway,
+  skipConfirmation,
   populateTx = false,
 }: SubmitReportArgs): Promise<{
   isFresh: boolean;
@@ -60,14 +62,16 @@ export const submitReport = async ({
     cacheUse,
   );
 
-  const confirm = await confirmOperation(
-    `Are you sure you want to submit report for vault ${vault}?
+  const confirm = skipConfirmation
+    ? true
+    : await confirmOperation(
+        `Are you sure you want to submit report for vault ${vault}?
         Total value wei: ${proof.data.totalValueWei}
         Fee: ${proof.data.fee}
         Liability shares: ${proof.data.liabilityShares}
         Slashing reserve: ${proof.data.slashingReserve}
         `,
-  );
+      );
   if (!confirm) {
     logCancel('Report not submitted');
     return { isFresh: false, data: undefined };
