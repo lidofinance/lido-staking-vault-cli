@@ -590,7 +590,7 @@ wrapperOperationsWrite
               methodName: 'finalize',
               payload: [maxRequests, gasCoverageRecipient],
             });
-            finalizationTxHash = txResult.txHash ?? null;
+            finalizationTxHash = txResult.tx ?? null;
             requestsFinalized = await callReadMethod({
               contract: withdrawalQueue,
               methodName: 'getLastFinalizedRequestId',
