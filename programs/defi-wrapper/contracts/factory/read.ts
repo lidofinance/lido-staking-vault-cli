@@ -35,7 +35,6 @@ factoryRead
 
     const [
       dummyImplementation,
-      ggvStrategyFactory,
       stvPoolFactory,
       stvStethPoolFactory,
       timelockFactory,
@@ -50,11 +49,7 @@ factoryRead
         methodName: 'DUMMY_IMPLEMENTATION',
         payload: [],
       }),
-      callReadMethodSilent({
-        contract,
-        methodName: 'GGV_STRATEGY_FACTORY',
-        payload: [],
-      }),
+
       callReadMethodSilent({
         contract,
         methodName: 'STV_POOL_FACTORY',
@@ -93,7 +88,6 @@ factoryRead
     logResult({
       data: [
         ['dummyImplementation', dummyImplementation],
-        ['ggvStrategyFactory', ggvStrategyFactory],
         ['stvPoolFactory', stvPoolFactory],
         ['stvStethPoolFactory', stvStethPoolFactory],
         ['timelockFactory', timelockFactory],

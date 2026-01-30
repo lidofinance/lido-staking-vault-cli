@@ -1078,6 +1078,34 @@ dashboardWrite
   });
 
 dashboardWrite
+  .command('add-fee-exemption')
+  .description(
+    'Adds a fee exemption to exclude this value from node operator fee base. The exemption works by increasing the settled growth, effectively treating the exempted amount as if fees were already paid on it.',
+  )
+  .argument('<address>', 'dashboard address', stringToAddress)
+  .argument('<amount>', 'fee exemption amount to add (in ETH)', etherToWei)
+  .action(async (address: Address, amount: bigint) => {
+    const contract = await getDashboardContract(address);
+    const settledGrowth = await callReadMethodSilent({
+      contract,
+      methodName: 'settledGrowth',
+      payload: [],
+    });
+
+    const confirm = await confirmOperation(
+      `Are you sure you want to add a fee exemption of ${formatEther(amount)} ETH?
+      Current settled growth: ${formatEther(settledGrowth)} ETH`,
+    );
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'addFeeExemption',
+      payload: [amount],
+    });
+  });
+
+dashboardWrite
   .command('disburse-node-operator-fee')
   .description(
     'transfers the node-operator`s accrued fee (if any) to nodeOperatorFeeRecipient',
