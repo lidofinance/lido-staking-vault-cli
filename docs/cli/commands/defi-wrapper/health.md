@@ -4,10 +4,6 @@ sidebar_position: 2
 
 # Health Monitoring
 
-:::warning WIP - HOODI Testnet Only
-This feature is currently **Work In Progress** and available only on **HOODI testnet**. Commands and behavior may change. Do not use in production environments.
-:::
-
 ## Command
 
 ```bash
