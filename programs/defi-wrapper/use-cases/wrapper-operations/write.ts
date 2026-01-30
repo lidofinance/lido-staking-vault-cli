@@ -654,45 +654,67 @@ wrapperOperationsWrite
             logError(`Failed to send callback to ${callbackUrl}: ${error}`);
           }
         }
+
+        logInfo('Continuing to next event');
       };
 
       // dry run to submit report & finalize withdrawals immediately if possible
       logInfo(
         'Performing initial dry-run in case report is already available...',
       );
-      await onNewReport([]);
+
+      const runAwaitableWatch = () =>
+        new Promise<Error>((resolve) => {
+          try {
+            lazyOracle.watchEvent.VaultsReportDataUpdated(
+              {},
+              {
+                onLogs: () => void onNewReport,
+                batch: false,
+
+                poll: true,
+                strict: true,
+                pollingInterval,
+                onError: (error) => {
+                  resolve(error);
+                },
+              },
+            );
+          } catch (error) {
+            resolve(error as Error);
+          }
+        });
 
       logInfo('Starting watching for reports...');
-      lazyOracle.watchEvent.VaultsReportDataUpdated(
-        {},
-        {
-          onLogs: () => void onNewReport,
-          batch: false,
 
-          poll: true,
-          strict: true,
-          pollingInterval,
-          onError: (error) => {
+      let lastRetryTimestamp = 0;
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
+        // if dry-run fails, we will exit because this indicates an unrecoverable error
+        await onNewReport([]);
+        const watchesError = await runAwaitableWatch();
+
+        logError(
+          `Error while watching VaultsReportDataUpdated events: ${watchesError}`,
+        );
+        if (callbackUrl) {
+          const { error: callbackError } = await tryFetchPost(callbackUrl, {
+            error: `Error while watching VaultsReportDataUpdated events: ${watchesError}`,
+          });
+          if (callbackError) {
             logError(
-              `Error while watching VaultsReportDataUpdated events: ${error}`,
+              `Failed to send error callback to ${callbackUrl}: ${callbackError}`,
             );
-            if (callbackUrl) {
-              void tryFetchPost(callbackUrl, {
-                error: `Error while watching VaultsReportDataUpdated events: ${error}`,
-              }).then(({ error }) => {
-                if (error) {
-                  logError(
-                    `Failed to send error callback to ${callbackUrl}: ${error}`,
-                  );
-                }
-              });
-            }
+          }
+        }
+        logInfo('Restarting watch and running dry-run...');
 
-            process.exit(1);
-          },
-        },
-      );
-      // empty await to keep the process alive
-      await new Promise(() => {});
+        // prevent tight loop in case of persistent errors
+        if (Date.now() - lastRetryTimestamp < pollingInterval * 2) {
+          break;
+        } else {
+          lastRetryTimestamp = Date.now();
+        }
+      }
     },
   );
