@@ -394,7 +394,6 @@ export const simulatePoolCreation = async (
   contract: Awaited<ReturnType<typeof getFactoryContract>>,
   creationMethodName:
     | 'createPoolStart'
-    | 'createPoolGGVStart'
     | 'createPoolStvStETHStart'
     | 'createPoolStvStart',
   creationPayload: readonly unknown[],
