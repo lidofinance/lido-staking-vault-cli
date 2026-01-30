@@ -167,6 +167,7 @@ wrapperOperationsWrite
 
       const dashboard = await getDashboardContract(dashboardAddress);
       const vaultHub = await getVaultHubContract();
+      const lazyOracle = await getLazyOracleContract();
 
       const vaultAddress = await callReadMethod({
         contract: dashboard,
@@ -175,12 +176,32 @@ wrapperOperationsWrite
         withSpinner: true,
       });
 
-      const isReportFresh = await callReadMethod({
+      const isReportFreshnessCheck = await callReadMethod({
         contract: vaultHub,
         methodName: 'isReportFresh',
         payload: [[vaultAddress]],
         withSpinner: true,
       });
+
+      const { timestamp: latestVaultAppliedReportTimestamp } =
+        await callReadMethod({
+          contract: vaultHub,
+          methodName: 'latestReport',
+          payload: [[vaultAddress]],
+          withSpinner: true,
+        });
+
+      const latestReportTimestamp = await callReadMethod({
+        contract: lazyOracle,
+        methodName: 'latestReportTimestamp',
+        payload: [],
+        withSpinner: true,
+      });
+
+      const isReportFresh =
+        isReportFreshnessCheck &&
+        // this accounts for freshness > oracle reporting interval
+        latestReportTimestamp <= latestVaultAppliedReportTimestamp;
 
       if (!isReportFresh) {
         logInfo(
@@ -383,9 +404,9 @@ wrapperOperationsWrite
   )
   .option(
     '--polling-interval <pollingInterval>',
-    'polling interval in ms for checking new reports, default: 5 * 60_000 (5 minutes)',
+    'polling interval in ms for checking new reports, default: 60_000 (1 minute)',
     stringToNumber,
-    5 * 60_000,
+    60_000,
   )
   .action(
     async (
@@ -411,6 +432,12 @@ wrapperOperationsWrite
           'Cannot skip report submission when finalizing withdrawals. Report must be fresh before finalization.',
         );
         return;
+      }
+
+      if (pollingInterval >= 5 * 60_000) {
+        logInfo(
+          'Polling interval is greater than or equal to 5 minutes. Due to limits in eth_newFilter filters may be dropped by the node. Consider using shorter polling interval.',
+        );
       }
 
       const pool = await getStvPoolContract(address);
@@ -460,13 +487,15 @@ wrapperOperationsWrite
       ) => {
         const event = events[0];
         if (event) {
-          logInfo('New report is available');
           logTable({
+            params: { head: ['New report is available'] },
             data: [
               ['Data CID', event.args.cid],
               ['Merkle Root', event.args.root],
               ['Ref slot', event.args.refSlot],
               ['Timestamp', event.args.timestamp],
+              ['Block Number', event.blockNumber],
+              ['Transaction Hash', event.transactionHash],
             ],
           });
         }
@@ -493,20 +522,22 @@ wrapperOperationsWrite
           logInfo('Report is already fresh. No submission needed.');
         }
 
+        let reportTxHash: string | null = null;
         if (!skipReport && isConnected && !isReportFresh) {
-          const { isFresh } = await submitReport({
+          const { isFresh, tx } = await submitReport({
             vault: vaultAddress,
             skipConfirmation: true,
           });
+          reportTxHash = tx ?? null;
           logInfo(`Report submission completed. isFresh: ${isFresh}`);
         } else {
           logInfo('Report submission step skipped.');
         }
 
         let canFinalize = false;
-        let requestsToFinalize = 0n;
         let requestsFinalized = 0n;
         let assetsFinalized = 0n;
+        let finalizationTxHash: string | null = null;
 
         const unfinalizedRequestsNumber = await callReadMethod({
           contract: withdrawalQueue,
@@ -524,8 +555,8 @@ wrapperOperationsWrite
           payload: [],
         });
 
-        try {
-          if (unfinalizedRequestsNumber > 0n) {
+        if (unfinalizedRequestsNumber > 0n) {
+          try {
             const { result: requestFinalized } =
               await withdrawalQueue.simulate.finalize(
                 [maxRequests, zeroAddress],
@@ -536,30 +567,30 @@ wrapperOperationsWrite
 
             logInfo(
               `Finalization Simulation:
-                requests finalized ${requestsToFinalize}/${unfinalizedRequestsNumber}`,
+                requests finalized ${requestFinalized}/${unfinalizedRequestsNumber}`,
             );
-
-            requestsToFinalize = requestFinalized;
 
             // this is a sanity check, should not happen in contract
             if (requestFinalized <= 0n)
               throw new Error('No requests finalized in simulation');
-          } else {
-            logInfo('No pending withdrawals to finalize.');
+            canFinalize = true;
+          } catch (error) {
+            canFinalize = false;
+            logInfo('Finalization simulation failed', error);
           }
-        } catch (error) {
-          canFinalize = false;
-          logInfo('Finalization simulation failed', error);
+        } else {
+          logInfo('No pending withdrawals to finalize.');
         }
 
         if (!skipFinalize) {
           if (canFinalize) {
             logInfo('Proceeding to finalize withdrawals...');
-            await callWriteMethodWithReceipt({
+            const txResult = await callWriteMethodWithReceipt({
               contract: withdrawalQueue,
               methodName: 'finalize',
               payload: [maxRequests, gasCoverageRecipient],
             });
+            finalizationTxHash = txResult.txHash ?? null;
             requestsFinalized = await callReadMethod({
               contract: withdrawalQueue,
               methodName: 'getLastFinalizedRequestId',
@@ -589,6 +620,7 @@ wrapperOperationsWrite
             ['Is Connected', isConnected],
             ['Was Report Fresh', isReportFresh],
             ['Report Submitted', !skipReport && isConnected && !isReportFresh],
+            ['Report Tx Hash', reportTxHash ?? 'N/A'],
             ['Can Finalize', canFinalize],
             ['Finalization Requested', !skipFinalize && canFinalize],
             ['Total Unfinalized Requests', unfinalizedRequestsNumber],
@@ -596,6 +628,7 @@ wrapperOperationsWrite
               'Total Unfinalized Assets',
               formatEther(unfinalizedAssets) + ' ETH',
             ],
+            ['Finalization Tx Hash', finalizationTxHash ?? 'N/A'],
             ['Requests Finalized', requestsFinalized],
             ['Assets Finalized', formatEther(assetsFinalized) + ' ETH'],
           ],
@@ -608,12 +641,14 @@ wrapperOperationsWrite
             isConnected: isConnected,
             wasReportFresh: isReportFresh,
             reportSubmitted: !skipReport && isConnected && !isReportFresh,
+            reportTxHash,
             canFinalize,
             finalizationRequested: !skipFinalize && canFinalize,
+            finalizationTxHash,
             totalUnfinalizedRequests: unfinalizedRequestsNumber,
             totalUnfinalizedAssets: unfinalizedAssets,
-            requestsFinalized: requestsFinalized,
-            assetsFinalized: assetsFinalized,
+            requestsFinalized,
+            assetsFinalized,
           });
           if (error) {
             logError(`Failed to send callback to ${callbackUrl}: ${error}`);
@@ -633,6 +668,7 @@ wrapperOperationsWrite
         {
           onLogs: () => void onNewReport,
           batch: false,
+
           poll: true,
           strict: true,
           pollingInterval,
