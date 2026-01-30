@@ -1,4 +1,4 @@
-import { Address } from 'viem';
+import { Address, TransactionReceipt } from 'viem';
 import { program } from 'command';
 
 import { getLazyOracleContract, getVaultHubContract } from 'contracts';
@@ -16,14 +16,18 @@ type SubmitReportArgs = {
   vault: Address;
   gateway?: string;
   populateTx?: boolean;
+  skipConfirmation?: boolean;
 };
 
 export const submitReport = async ({
   vault,
   gateway,
+  skipConfirmation,
   populateTx = false,
 }: SubmitReportArgs): Promise<{
   isFresh: boolean;
+  receipt?: TransactionReceipt;
+  tx?: Address;
   data?: PopulatedTx;
 }> => {
   const lazyOracleContract = await getLazyOracleContract();
@@ -47,7 +51,9 @@ export const submitReport = async ({
 
   if (isReportFresh) {
     logCancel('Report is fresh. You dont need to submit it again');
-    return { isFresh: true, data: undefined };
+    return {
+      isFresh: true,
+    };
   }
 
   const { cacheUse } = program.opts();
@@ -60,17 +66,21 @@ export const submitReport = async ({
     cacheUse,
   );
 
-  const confirm = await confirmOperation(
-    `Are you sure you want to submit report for vault ${vault}?
+  const confirm = skipConfirmation
+    ? true
+    : await confirmOperation(
+        `Are you sure you want to submit report for vault ${vault}?
         Total value wei: ${proof.data.totalValueWei}
         Fee: ${proof.data.fee}
         Liability shares: ${proof.data.liabilityShares}
         Slashing reserve: ${proof.data.slashingReserve}
         `,
-  );
+      );
   if (!confirm) {
     logCancel('Report not submitted');
-    return { isFresh: false, data: undefined };
+    return {
+      isFresh: false,
+    };
   }
 
   const reportCall = await callWriteMethodWithReceipt({
@@ -88,5 +98,5 @@ export const submitReport = async ({
     populateTx,
   });
 
-  return { isFresh: true, data: reportCall.data };
+  return { isFresh: true, ...reportCall };
 };
