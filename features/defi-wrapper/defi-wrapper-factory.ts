@@ -53,7 +53,7 @@ export type CommonPoolConfig = {
 export type BaseFactoryOptions = {
   nodeOperator?: Address;
   nodeOperatorManager?: Address;
-  nodeOperatorFeeRate?: number;
+  nodeOperatorFeeRateBP?: number;
   confirmExpiry?: number;
   minDelaySeconds?: number;
   emergencyCommittee?: Address;
@@ -309,7 +309,7 @@ export const logFinalizePoolEventData = (
 export const promtBaseVaultConfiguration = async ({
   nodeOperator,
   nodeOperatorManager,
-  nodeOperatorFeeRate,
+  nodeOperatorFeeRateBP,
   confirmExpiry,
   minDelaySeconds,
   proposer,
@@ -334,8 +334,9 @@ export const promtBaseVaultConfiguration = async ({
     'Node Operator Manager',
   );
 
-  const nodeOperatorFeeRateValue =
-    await getNodeOperatorFeeRate(nodeOperatorFeeRate);
+  const nodeOperatorFeeRateValue = await getNodeOperatorFeeRate(
+    nodeOperatorFeeRateBP,
+  );
   const confirmExpiryValue = await getConfirmExpiry({
     confirmExpiry,
   });

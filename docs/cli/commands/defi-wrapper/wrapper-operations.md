@@ -1,5 +1,5 @@
 ---
-sidebar_position: 1
+sidebar_position: 3
 ---
 
 # Wrapper Operations
@@ -20,7 +20,7 @@ yarn start dw uc wo -h
 
 ## Overview
 
-Wrapper Operations commands manage DeFi wrapper pools including creation, configuration, and monitoring. These commands handle the deployment and management of various pool type (STV, STV-stETH, STV-Strategy) that wrap Staking Vaults to provide additional DeFi functionality.
+Wrapper Operations commands allow management and monitoring of DeFi wrapper pools. These commands handle the day-to-day operations like withdrawal finalization and more edge case operations like governance and position management of various pool type (STV, STV-stETH, STV-Strategy) that wrap Staking Vaults to provide additional DeFi functionality.
 
 ## API
 

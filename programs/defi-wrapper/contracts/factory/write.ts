@@ -56,7 +56,7 @@ const applyCommonOptions = (command: Command): Command => {
       'node operator manager address',
     )
     .option(
-      '-nof, --nodeOperatorFeeRate <nodeOperatorFeeRate>',
+      '-nof, --nodeOperatorFeeRateBP <nodeOperatorFeeRateBP>',
       'Node operator fee rate in basis points, for e.g. 100 == 1%',
       stringToNumber,
     )
