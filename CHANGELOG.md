@@ -4,9 +4,41 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-#### CLI Enhancements
+#### DeFi Wrapper & Governance
 
-- DeFi Wrapper commands for creation and management of Stv and StvSteth pool
+- Timelock governance use-cases (common/dashboard/pool/proxy/withdrawal-queue) with propose/execute flows and operation inspection
+- Distributor use-case for Merkle-based rewards distribution (state, add-token, set merkle root, generate/upload distributions)
+- Wrapper Operations enhancements: allow-list read/add/remove, auto-reporting, withdrawal queue status, and richer pool info output
+
+#### Dashboard & PDG
+
+- Fee exemption command in Dashboard CLI to exclude value from node operator fee base
+- Node syncing status checks during PDG flows; updated PredepositGuarantee ABI
+
+#### Contracts & ABIs
+
+- Added TimeLock and OssifiableProxy ABIs
+- Updated DeFi Wrapper Factory and stETH ABIs
+
+#### Utilities & Testing
+
+- RPC rate-limiting utility with tests for batch processing
+
+### Changed
+
+- Streamlined DeFi wrapper pool creation by removing legacy `create-pool`/ggv use-case in wrapper operations
+- Migrated wrapper testnet configs and removed deprecated Hoodi/Sepolia vault lists
+- Adjusted timelock minimum delay validation
+
+### Fixed
+
+- Improved withdrawal queue status output and claim guidance; added error logging in wrapper operations
+- Parameter/validation fixes across DeFi Wrapper flows and reporting utilities
+
+### Documentation
+
+- Added DeFi Wrapper docs for creating wrappers, distributor, timelock governance, and wrapper operations
+- Updated deposit docs (gwei units), configuration links, and testnet references
 
 ## 1.4.0
 
