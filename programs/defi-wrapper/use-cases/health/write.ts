@@ -40,8 +40,16 @@ healthWrite
 
       // Check if position is unhealthy
       const [isHealthy, stvBalance] = await Promise.all([
-        callReadMethodSilent(poolContract, 'isHealthyOf', [account]),
-        callReadMethodSilent(poolContract, 'balanceOf', [account]),
+        callReadMethodSilent({
+          contract: poolContract,
+          methodName: 'isHealthyOf',
+          payload: [[account]],
+        }),
+        callReadMethodSilent({
+          contract: poolContract,
+          methodName: 'balanceOf',
+          payload: [[account]],
+        }),
       ]);
 
       if (isHealthy) {
@@ -59,15 +67,17 @@ healthWrite
       // Preview rebalance
       logInfo('Fetching rebalance preview...\n');
       const [stethShares, stvToBurn, isUndercollateralized] =
-        await callReadMethodSilent(poolContract, 'previewForceRebalance', [
-          account,
-        ]);
+        await callReadMethodSilent({
+          contract: poolContract,
+          methodName: 'previewForceRebalance',
+          payload: [[account]],
+        });
 
-      const stethInEth = await callReadMethodSilent(
-        stethContract,
-        'getPooledEthBySharesRoundUp',
-        [stethShares],
-      );
+      const stethInEth = await callReadMethodSilent({
+        contract: stethContract,
+        methodName: 'getPooledEthBySharesRoundUp',
+        payload: [[stethShares]],
+      });
 
       // Display preview
       logInfo('═'.repeat(70));
@@ -181,15 +191,17 @@ healthWrite
       logInfo('Checking position health and permissions...\n');
 
       // Check LOSS_SOCIALIZER_ROLE
-      const LOSS_SOCIALIZER_ROLE = await callReadMethodSilent(
-        poolContract,
-        'LOSS_SOCIALIZER_ROLE',
-      );
+      const LOSS_SOCIALIZER_ROLE = await callReadMethodSilent({
+        contract: poolContract,
+        methodName: 'LOSS_SOCIALIZER_ROLE',
+        payload: [],
+      });
 
-      const hasRole = await callReadMethodSilent(poolContract, 'hasRole', [
-        LOSS_SOCIALIZER_ROLE,
-        currentAccount.address,
-      ]);
+      const hasRole = await callReadMethodSilent({
+        contract: poolContract,
+        methodName: 'hasRole',
+        payload: [[LOSS_SOCIALIZER_ROLE, currentAccount.address]],
+      });
 
       if (!hasRole) {
         logInfo(
@@ -201,8 +213,16 @@ healthWrite
 
       // Check if position is unhealthy
       const [isHealthy, stvBalance] = await Promise.all([
-        callReadMethodSilent(poolContract, 'isHealthyOf', [account]),
-        callReadMethodSilent(poolContract, 'balanceOf', [account]),
+        callReadMethodSilent({
+          contract: poolContract,
+          methodName: 'isHealthyOf',
+          payload: [[account]],
+        }),
+        callReadMethodSilent({
+          contract: poolContract,
+          methodName: 'balanceOf',
+          payload: [[account]],
+        }),
       ]);
 
       if (isHealthy) {
@@ -220,25 +240,37 @@ healthWrite
       // Preview rebalance
       logInfo('Fetching rebalance preview...\n');
       const [stethShares, stvToBurn, isUndercollateralized] =
-        await callReadMethodSilent(poolContract, 'previewForceRebalance', [
-          account,
-        ]);
+        await callReadMethodSilent({
+          contract: poolContract,
+          methodName: 'previewForceRebalance',
+          payload: [[account]],
+        });
 
       const [stethInEth, maxLossSocializationBP, totalSupply] =
         await Promise.all([
-          callReadMethodSilent(stethContract, 'getPooledEthBySharesRoundUp', [
-            stethShares,
-          ]),
-          callReadMethodSilent(poolContract, 'maxLossSocializationBP'),
-          callReadMethodSilent(poolContract, 'totalSupply'),
+          callReadMethodSilent({
+            contract: stethContract,
+            methodName: 'getPooledEthBySharesRoundUp',
+            payload: [[stethShares]],
+          }),
+          callReadMethodSilent({
+            contract: poolContract,
+            methodName: 'maxLossSocializationBP',
+            payload: [],
+          }),
+          callReadMethodSilent({
+            contract: poolContract,
+            methodName: 'totalSupply',
+            payload: [],
+          }),
         ]);
 
       // Calculate estimated loss
-      const stvValueInEth = await callReadMethodSilent(
-        poolContract,
-        'previewRedeem',
-        [stvToBurn],
-      );
+      const stvValueInEth = await callReadMethodSilent({
+        contract: poolContract,
+        methodName: 'previewRedeem',
+        payload: [[stvToBurn]],
+      });
       const estimatedLoss =
         stethInEth > stvValueInEth ? stethInEth - stvValueInEth : 0n;
       const lossPercentage =

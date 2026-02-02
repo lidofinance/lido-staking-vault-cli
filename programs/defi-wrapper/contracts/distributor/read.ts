@@ -35,11 +35,23 @@ distributorRead
 
     const [DEFAULT_ADMIN_ROLE, MANAGER_ROLE, cid, root, lastProcessedBlock] =
       await Promise.all([
-        callReadMethodSilent(contract, 'DEFAULT_ADMIN_ROLE'),
-        callReadMethodSilent(contract, 'MANAGER_ROLE'),
-        callReadMethodSilent(contract, 'cid'),
-        callReadMethodSilent(contract, 'root'),
-        callReadMethodSilent(contract, 'lastProcessedBlock'),
+        callReadMethodSilent({
+          contract,
+          methodName: 'DEFAULT_ADMIN_ROLE',
+          payload: [],
+        }),
+        callReadMethodSilent({
+          contract,
+          methodName: 'MANAGER_ROLE',
+          payload: [],
+        }),
+        callReadMethodSilent({ contract, methodName: 'cid', payload: [] }),
+        callReadMethodSilent({ contract, methodName: 'root', payload: [] }),
+        callReadMethodSilent({
+          contract,
+          methodName: 'lastProcessedBlock',
+          payload: [],
+        }),
       ]);
 
     logResult({

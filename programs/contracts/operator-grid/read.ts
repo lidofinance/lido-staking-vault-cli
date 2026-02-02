@@ -48,11 +48,11 @@ operatorGridRead
   .action(async (vault: Address) => {
     const operatorGridContract = await getOperatorGridContract();
 
-    const result = await callReadMethodSilent(
-      operatorGridContract,
-      'vaultTierInfo',
-      [vault],
-    );
+    const result = await callReadMethodSilent({
+      contract: operatorGridContract,
+      methodName: 'vaultTierInfo',
+      payload: [[vault]],
+    });
 
     logResult({
       data: [

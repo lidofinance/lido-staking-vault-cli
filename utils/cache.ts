@@ -3,6 +3,7 @@ import path from 'path';
 
 import { calculateShareRate, calculateRebaseReward } from 'utils';
 import { logInfo } from './logging/index.js';
+import { Address } from 'viem';
 
 // Types for cached events
 export type CachedTransferEvent = {
@@ -235,12 +236,12 @@ export const cache = {
   },
 
   async getIndexedEventsByBlock(
-    poolAddress: string,
+    cacheKey: string,
     blockNumber: bigint,
   ): Promise<CachedEvents | null> {
     try {
       const data = JSON.parse(
-        await fs.readFile(getIndexedEventsCacheFile(poolAddress), 'utf-8'),
+        await fs.readFile(getIndexedEventsCacheFile(cacheKey), 'utf-8'),
       );
       const key = blockNumber.toString();
       if (data[key] !== undefined) return data[key];
@@ -251,11 +252,11 @@ export const cache = {
   },
 
   async getAllIndexedEvents(
-    poolAddress: string,
+    cacheKey: string,
   ): Promise<Record<string, CachedEvents>> {
     try {
       const data = JSON.parse(
-        await fs.readFile(getIndexedEventsCacheFile(poolAddress), 'utf-8'),
+        await fs.readFile(getIndexedEventsCacheFile(cacheKey), 'utf-8'),
       );
       return data;
     } catch {
@@ -265,13 +266,13 @@ export const cache = {
   },
 
   async setIndexedEventsForBlocks(
-    poolAddress: string,
+    cacheKey: string,
     eventsMap: Map<bigint, CachedEvents>,
   ) {
     let data: Record<string, CachedEvents> = {};
     try {
       data = JSON.parse(
-        await fs.readFile(getIndexedEventsCacheFile(poolAddress), 'utf-8'),
+        await fs.readFile(getIndexedEventsCacheFile(cacheKey), 'utf-8'),
       );
     } catch {
       /* ignore */
@@ -282,11 +283,11 @@ export const cache = {
       data[blockNumber.toString()] = events;
     }
 
-    await fs.mkdir(path.dirname(getIndexedEventsCacheFile(poolAddress)), {
+    await fs.mkdir(path.dirname(getIndexedEventsCacheFile(cacheKey)), {
       recursive: true,
     });
     await fs.writeFile(
-      getIndexedEventsCacheFile(poolAddress),
+      getIndexedEventsCacheFile(cacheKey),
       JSON.stringify(data),
       'utf-8',
     );
@@ -343,7 +344,8 @@ export const getRebaseRewardFromCache = async (
 };
 
 type GetIndexedEventsFromCacheArgs = {
-  poolAddress: string;
+  poolAddress: Address;
+  cacheSuffix?: string;
   startBlock: bigint;
   endBlock: bigint;
   fetchEventsForBlocks: (
@@ -354,7 +356,15 @@ type GetIndexedEventsFromCacheArgs = {
 export const getIndexedEventsFromCache = async (
   args: GetIndexedEventsFromCacheArgs,
 ): Promise<CachedEvents> => {
-  const { poolAddress, startBlock, endBlock, fetchEventsForBlocks } = args;
+  const {
+    poolAddress,
+    cacheSuffix,
+    startBlock,
+    endBlock,
+    fetchEventsForBlocks,
+  } = args;
+
+  const CACHE_KEY = poolAddress + (cacheSuffix ? `-${cacheSuffix}` : '');
 
   const allEvents: CachedEvents = {
     transfer: [],
@@ -366,7 +376,7 @@ export const getIndexedEventsFromCache = async (
   const totalBlocks = Number(endBlock - startBlock + 1n);
 
   // Read cache file once
-  const cachedData = await cache.getAllIndexedEvents(poolAddress);
+  const cachedData = await cache.getAllIndexedEvents(CACHE_KEY);
   const cachedBlocksCount = Object.keys(cachedData).length;
 
   logInfo(
@@ -385,6 +395,8 @@ export const getIndexedEventsFromCache = async (
       allEvents.burned.push(...cached.burned);
     } else {
       // Block is not cached, need to fetch
+      // TODO: rework to range[] instead of single blocks
+      // for mainnet and earliest-latest range this can produce >20m length bigint[]
       blocksToFetch.push(block);
     }
   }
@@ -406,7 +418,7 @@ export const getIndexedEventsFromCache = async (
     }
 
     // Save all new blocks to cache
-    await cache.setIndexedEventsForBlocks(poolAddress, newEventsMap);
+    await cache.setIndexedEventsForBlocks(CACHE_KEY, newEventsMap);
   }
 
   return allEvents;

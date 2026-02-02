@@ -51,19 +51,28 @@ defiWrapperTools
       const publicClient = await getTestClient();
       const contract = await getStvStethPoolContract(address);
 
-      const forcedRebalanceThresholdBP = await callReadMethodSilent(
+      const poolForcedRebalanceThresholdBP = await callReadMethodSilent({
         contract,
-        'forcedRebalanceThresholdBP',
-      );
+        methodName: 'poolForcedRebalanceThresholdBP',
+        payload: [],
+      });
 
       logInfo('\n=== Wrapper Configuration ===');
       logInfo(
-        `Force rebalance threshold: ${forcedRebalanceThresholdBP} BP (${Number(forcedRebalanceThresholdBP) / 100}%)`,
+        `Pool forced rebalance threshold: ${poolForcedRebalanceThresholdBP} BP (${Number(poolForcedRebalanceThresholdBP) / 100}%)`,
       );
 
       const [vault, vaultHub] = await Promise.all([
-        callReadMethodSilent(contract, 'VAULT'),
-        callReadMethodSilent(contract, 'VAULT_HUB'),
+        callReadMethodSilent({
+          contract,
+          methodName: 'VAULT',
+          payload: [],
+        }),
+        callReadMethodSilent({
+          contract,
+          methodName: 'VAULT_HUB',
+          payload: [],
+        }),
       ]);
 
       const vaultSlot = keccak256(
@@ -76,8 +85,16 @@ defiWrapperTools
       logInfo('\n=== User Position BEFORE ===');
 
       const [totalAssetsBefore, userForceRebalanceBefore] = await Promise.all([
-        callReadMethodSilent(contract, 'totalAssets'),
-        callReadMethodSilent(contract, 'previewForceRebalance', [user]),
+        callReadMethodSilent({
+          contract,
+          methodName: 'totalAssets',
+          payload: [],
+        }),
+        callReadMethodSilent({
+          contract,
+          methodName: 'previewForceRebalance',
+          payload: [[user]],
+        }),
       ]);
 
       const [
@@ -128,11 +145,21 @@ defiWrapperTools
 
       const [totalAssetsAfter, userForceRebalanceAfter, previewRedeemResult] =
         await Promise.all([
-          callReadMethodSilent(contract, 'totalAssets'),
-          callReadMethodSilent(contract, 'previewForceRebalance', [user]),
-          callReadMethodSilent(contract, 'previewRedeem', [
-            parseUnits('1', 27),
-          ]),
+          callReadMethodSilent({
+            contract,
+            methodName: 'totalAssets',
+            payload: [],
+          }),
+          callReadMethodSilent({
+            contract,
+            methodName: 'previewForceRebalance',
+            payload: [[user]],
+          }),
+          callReadMethodSilent({
+            contract,
+            methodName: 'previewRedeem',
+            payload: [[parseUnits('1', 27)]],
+          }),
         ]);
 
       const [stethShares, stvAmount, isUndercollateralizedAfter] =

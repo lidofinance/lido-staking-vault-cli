@@ -532,15 +532,16 @@ export const grantLossSocializerRole = async (
   currentAccount: Address,
 ) => {
   const poolContract = await getStvStethPoolContract(address);
-  const LOSS_SOCIALIZER_ROLE = await callReadMethodSilent(
-    poolContract,
-    'LOSS_SOCIALIZER_ROLE',
-  );
-  const roleMembers = await callReadMethodSilent(
-    poolContract,
-    'getRoleMembers',
-    [LOSS_SOCIALIZER_ROLE],
-  );
+  const LOSS_SOCIALIZER_ROLE = await callReadMethodSilent({
+    contract: poolContract,
+    methodName: 'LOSS_SOCIALIZER_ROLE',
+    payload: [],
+  });
+  const roleMembers = await callReadMethodSilent({
+    contract: poolContract,
+    methodName: 'getRoleMembers',
+    payload: [[LOSS_SOCIALIZER_ROLE]],
+  });
   if (!roleMembers.includes(currentAccount)) {
     logInfo(
       `Address ${currentAccount} does not have the LOSS_SOCIALIZER_ROLE role`,

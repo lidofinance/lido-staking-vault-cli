@@ -8,6 +8,7 @@ import {
   confirmOperation,
   stringToBigInt,
   stringToBigIntArray,
+  callReadMethod,
 } from 'utils';
 
 import { withdrawalQueue } from './main.js';
@@ -218,10 +219,26 @@ withdrawalQueueWrite
     const confirm = await confirmOperation(confirmationMessage);
     if (!confirm) return;
 
+    logInfo('Fetching auxiliary data for the provided request IDs...');
+
+    const lastCheckpointIndex = await callReadMethod({
+      contract,
+      methodName: 'getLastCheckpointIndex',
+      payload: [],
+      withSpinner: true,
+    });
+
+    const hints = await callReadMethod({
+      contract,
+      methodName: 'findCheckpointHint',
+      payload: [[requestId, BigInt(1), lastCheckpointIndex]],
+      withSpinner: true,
+    });
+
     await callWriteMethodWithReceipt({
       contract,
-      methodName: 'claimWithdrawal',
-      payload: [recipient, requestId],
+      methodName: 'claimWithdrawalBatch',
+      payload: [recipient, [requestId], [hints]],
     });
   });
 
@@ -247,22 +264,36 @@ withdrawalQueueWrite
     stringToAddress,
   )
   .action(
-    async (
-      address: Address,
-      requestIds: bigint[],
-      hints: bigint[],
-      recipient: Address,
-    ) => {
+    async (address: Address, requestIds: bigint[], recipient: Address) => {
       const contract = await getWithdrawalQueueContract(address);
 
-      const confirmationMessage = `Are you sure you want to claim requests ${requestIds.join(', ')} and send the claimed ether to ${recipient} for the withdrawal queue ${address}?`;
+      const sortedRequestIds = [...requestIds].sort((a, b) => (a < b ? -1 : 1));
+
+      const confirmationMessage = `Are you sure you want to claim requests ${sortedRequestIds.join(', ')} and send the claimed ether to ${recipient} for the withdrawal queue ${address}?`;
       const confirm = await confirmOperation(confirmationMessage);
+
       if (!confirm) return;
+
+      logInfo('Fetching auxiliary data for the provided request IDs...');
+
+      const lastCheckpointIndex = await callReadMethod({
+        contract,
+        methodName: 'getLastCheckpointIndex',
+        payload: [],
+        withSpinner: true,
+      });
+
+      const hints = await callReadMethod({
+        contract,
+        methodName: 'findCheckpointHintBatch',
+        payload: [[sortedRequestIds, BigInt(1), lastCheckpointIndex]],
+        withSpinner: true,
+      });
 
       await callWriteMethodWithReceipt({
         contract,
         methodName: 'claimWithdrawalBatch',
-        payload: [recipient, requestIds, hints],
+        payload: [recipient, sortedRequestIds, hints],
       });
     },
   );

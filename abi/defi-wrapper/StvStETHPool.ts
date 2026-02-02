@@ -638,19 +638,6 @@ export const StvStETHPoolAbi = [
   },
   {
     type: 'function',
-    name: 'forcedRebalanceThresholdBP',
-    inputs: [],
-    outputs: [
-      {
-        name: 'threshold',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
     name: 'getAllowListAddresses',
     inputs: [],
     outputs: [
@@ -984,6 +971,32 @@ export const StvStETHPoolAbi = [
   },
   {
     type: 'function',
+    name: 'poolForcedRebalanceThresholdBP',
+    inputs: [],
+    outputs: [
+      {
+        name: 'threshold',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'poolReserveRatioBP',
+    inputs: [],
+    outputs: [
+      {
+        name: 'reserveRatio',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
     name: 'poolType',
     inputs: [],
     outputs: [
@@ -1083,6 +1096,25 @@ export const StvStETHPoolAbi = [
   },
   {
     type: 'function',
+    name: 'rebalanceExceedingMintedStethShares',
+    inputs: [
+      {
+        name: '_stethShares',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+    ],
+    outputs: [
+      {
+        name: 'stvBurned',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+    ],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
     name: 'rebalanceMintedStethSharesForWithdrawalQueue',
     inputs: [
       {
@@ -1179,19 +1211,6 @@ export const StvStETHPoolAbi = [
     ],
     outputs: [],
     stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    name: 'reserveRatioBP',
-    inputs: [],
-    outputs: [
-      {
-        name: 'reserveRatio',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-    ],
-    stateMutability: 'view',
   },
   {
     type: 'function',
@@ -2058,22 +2077,6 @@ export const StvStETHPoolAbi = [
   },
   {
     type: 'error',
-    name: 'ArraysLengthMismatch',
-    inputs: [
-      {
-        name: 'firstArrayLength',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: 'secondArrayLength',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-    ],
-  },
-  {
-    type: 'error',
     name: 'CannotRebalanceWithdrawalQueue',
     inputs: [],
   },
@@ -2198,6 +2201,11 @@ export const StvStETHPoolAbi = [
   {
     type: 'error',
     name: 'InsufficientBalance',
+    inputs: [],
+  },
+  {
+    type: 'error',
+    name: 'InsufficientExceedingShares',
     inputs: [],
   },
   {

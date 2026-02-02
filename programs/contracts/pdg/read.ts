@@ -63,11 +63,11 @@ pdgRead
   .argument('<vault>', 'vault address')
   .action(async (vault: Address) => {
     const contract = await getPredepositGuaranteeContract();
-    const pendingActivations = await callReadMethodSilent(
+    const pendingActivations = await callReadMethodSilent({
       contract,
-      'pendingActivations',
-      [vault],
-    );
+      methodName: 'pendingActivations',
+      payload: [[vault]],
+    });
 
     logResult({
       data: [['Pending Activations', pendingActivations]],

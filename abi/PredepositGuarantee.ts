@@ -48,6 +48,33 @@ export const PredepositGuaranteeErrorsAbi = [
     type: 'error',
   },
   {
+    inputs: [
+      {
+        internalType: 'enum BLS12_381.Component',
+        name: 'component',
+        type: 'uint8',
+      },
+    ],
+    name: 'InvalidCompressedComponent',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'enum BLS12_381.Component',
+        name: 'component',
+        type: 'uint8',
+      },
+    ],
+    name: 'InvalidCompressedComponentSignBit',
+    type: 'error',
+  },
+  {
+    inputs: [],
+    name: 'InvalidDepositAmount',
+    type: 'error',
+  },
+  {
     inputs: [],
     name: 'InvalidDepositYLength',
     type: 'error',
@@ -65,6 +92,11 @@ export const PredepositGuaranteeErrorsAbi = [
   {
     inputs: [],
     name: 'InvalidSignature',
+    type: 'error',
+  },
+  {
+    inputs: [],
+    name: 'InvalidSignatureLength',
     type: 'error',
   },
   {

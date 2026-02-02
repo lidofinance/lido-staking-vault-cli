@@ -349,14 +349,16 @@ vaultOperationsWrite
 
     await checkIsReportFreshThrowError({ vault: vaultAddress });
 
-    const nodeOperatorFeeRecipient = await callReadMethodSilent(
+    const nodeOperatorFeeRecipient = await callReadMethodSilent({
       contract,
-      'feeRecipient',
-    );
-    const nodeOperatorAccruedFee = await callReadMethodSilent(
+      methodName: 'feeRecipient',
+      payload: [],
+    });
+    const nodeOperatorAccruedFee = await callReadMethodSilent({
       contract,
-      'accruedFee',
-    );
+      methodName: 'accruedFee',
+      payload: [],
+    });
 
     if (nodeOperatorAccruedFee === 0n) {
       logError('The node operator has no accrued fee');
@@ -441,15 +443,17 @@ vaultOperationsWrite
         });
       const operatorGridContract = await getOperatorGridContract();
 
-      const vaultNodeOperator = await callReadMethodSilent(
-        vaultContract,
-        'nodeOperator',
-      );
-      const tierInfo = await callReadMethodSilent(
-        operatorGridContract,
-        'tier',
-        [tierId],
-      );
+      const vaultNodeOperator = await callReadMethodSilent({
+        contract: vaultContract,
+        methodName: 'nodeOperator',
+        payload: [],
+      });
+
+      const tierInfo = await callReadMethodSilent({
+        contract: operatorGridContract,
+        methodName: 'tier',
+        payload: [[tierId]],
+      });
       const tierShareLimit = tierInfo.shareLimit;
       let currentShareLimit = tierShareLimit;
 
@@ -507,11 +511,12 @@ vaultOperationsWrite
           vault,
         });
       const operatorGridContract = await getOperatorGridContract();
-      const tierInfo = await callReadMethodSilent(
-        operatorGridContract,
-        'tier',
-        [tierId],
-      );
+      const tierInfo = await callReadMethodSilent({
+        contract: operatorGridContract,
+        methodName: 'tier',
+        payload: [[tierId]],
+      });
+
       const tierShareLimit = tierInfo.shareLimit;
 
       let currentShareLimit = tierShareLimit;
@@ -709,10 +714,11 @@ vaultOperationsWrite
         vault: vaultAddress,
       });
 
-      const currentSettledGrowth = await callReadMethodSilent(
+      const currentSettledGrowth = await callReadMethodSilent({
         contract,
-        'settledGrowth',
-      );
+        methodName: 'settledGrowth',
+        payload: [],
+      });
 
       const confirm = await confirmOperation(
         `Are you sure you want to change the tier of the vault ${vaultAddress} to ${tier} and connect to VaultHub?

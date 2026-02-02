@@ -1,4 +1,4 @@
-import { Abi, decodeErrorResult, Hex, SimulateCallsReturnType } from 'viem';
+import { Abi, decodeErrorResult, isHex, SimulateCallsReturnType } from 'viem';
 import { DashboardAbi } from 'abi';
 import { printError } from 'utils';
 
@@ -18,11 +18,11 @@ export const simulateCallsErrorHandler = (
 
     if (data) {
       // Check if data is already decoded (object) or needs decoding (hex string)
-      if (typeof data === 'string' && data.startsWith('0x')) {
+      if (typeof data === 'string' && isHex(data)) {
         // data is a hex string, decode it
         const { errorName, args } = decodeErrorResult({
           abi: abi ?? DashboardAbi,
-          data: data as Hex,
+          data: data,
         });
 
         const errorArgs = args?.map((a) => a?.toString() ?? '') ?? [];

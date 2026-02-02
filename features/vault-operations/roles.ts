@@ -39,7 +39,13 @@ const getKeccakByRoleName = async (
   roleName: RoleName[],
 ) => {
   const roleKeccak = await Promise.all(
-    roleName.map((name) => callReadMethodSilent(contract, name)),
+    roleName.map((name) =>
+      callReadMethodSilent({
+        contract: contract,
+        methodName: name,
+        payload: [],
+      }),
+    ),
   );
 
   return Object.fromEntries(
@@ -56,7 +62,11 @@ export const logRolesOperations = async (
     contract,
     roleAssignment.map((role) => role.role),
   );
-  const vault = await callReadMethodSilent(contract, 'stakingVault');
+  const vault = await callReadMethodSilent({
+    contract: contract,
+    methodName: 'stakingVault',
+    payload: [],
+  });
 
   const addressesWithRoles = roleAssignment.map((role, index) => ({
     address: role.account,

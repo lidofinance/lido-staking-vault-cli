@@ -79,6 +79,41 @@ export const stringToNumberArray = (value: string) => {
   return value.split(',').map(Number);
 };
 
+export const stringArrayToTokenPairs = (
+  value: string,
+  prev:
+    | { result: { address: Address; amount: string }[]; isAmount: boolean }
+    | undefined = undefined,
+): { result: { address: Address; amount: string }[]; isAmount: boolean } => {
+  if (!prev) prev = { result: [], isAmount: false };
+
+  if (!prev.isAmount) {
+    if (!isAddress(value, { strict: false })) {
+      throw new Error(`Invalid token address: ${value}`);
+    }
+    prev.result.push({ address: value.toLowerCase() as Address, amount: '' });
+    prev.isAmount = true;
+  } else {
+    const numberAmount = Number(value);
+    const prevEntry = prev.result[prev.result.length - 1];
+    if (
+      !prevEntry ||
+      isNaN(numberAmount) ||
+      isAddress(value) ||
+      numberAmount <= 0 ||
+      !value
+    ) {
+      throw new Error(
+        `Invalid amount: ${value} for token ${prev.result[prev.result.length - 1]?.address}`,
+      );
+    }
+    prevEntry.amount = value;
+    prev.isAmount = false;
+  }
+
+  return prev;
+};
+
 export const etherToWei = (value: string) => {
   return parseEther(value, 'wei');
 };
@@ -194,6 +229,13 @@ export const stringToAddress = (value: string): Address => {
     program.error('Address value must be a valid address', { exitCode: 1 });
   }
   return value;
+};
+
+export const stringArrayToAddressArray = (
+  value: string,
+  previous: Address[],
+) => {
+  return previous.concat([stringToAddress(value)]);
 };
 
 export const stringToHash = (value: string): Hex => {

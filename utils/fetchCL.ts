@@ -56,6 +56,16 @@ type FinalityCheckpoints = {
   };
 };
 
+export type NodeSyncingStatus = {
+  data: {
+    head_slot: string;
+    sync_distance: string;
+    is_syncing: boolean;
+    is_optimistic: boolean;
+    el_offline: boolean;
+  };
+};
+
 const isFinalityCheckpoints = (
   obj: FinalityCheckpoints,
 ): obj is FinalityCheckpoints => {
@@ -156,6 +166,7 @@ const endpoints = {
   state: (stateId: StateId): string => `eth/v2/debug/beacon/states/${stateId}`,
   validatorsInfo: (validatorsPubkeys: string): string =>
     `eth/v1/beacon/states/head/validators${validatorsPubkeys}`,
+  nodeSyncing: 'eth/v1/node/syncing',
 };
 
 export const finalityCheckpoints = async (
@@ -331,6 +342,39 @@ export const fetchValidatorsInfo = async (
     printError(
       error,
       `Error fetching validator info. Used URL: ${url}, validatorPubkeys: ${validatorPubkeys}. Please check if the CL_URL environment variable is correct or try to use another CL.`,
+    );
+    throw error;
+  }
+};
+
+export const fetchNodeSyncingStatus = async (
+  clURL?: string,
+): Promise<NodeSyncingStatus> => {
+  const url = clURL || getConfig().CL_URL;
+
+  if (!url) {
+    throw new Error(
+      'CL_URL is not set. CL_URL is required for checking node syncing status',
+    );
+  }
+
+  try {
+    const syncingResp = await fetch(
+      `${url.endsWith('/') ? url : url + '/'}${endpoints.nodeSyncing}`,
+    );
+
+    if (!syncingResp.ok) {
+      throw new Error(
+        `HTTP ${syncingResp.status} ${syncingResp.statusText}. URL: ${url}\n`,
+      );
+    }
+
+    const body: NodeSyncingStatus = await syncingResp.json();
+    return body;
+  } catch (error) {
+    printError(
+      error,
+      `Error fetching node syncing status. Used URL: ${url}. Please check if the CL_URL environment variable is correct or try to use another CL.`,
     );
     throw error;
   }

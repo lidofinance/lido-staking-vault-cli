@@ -28,6 +28,8 @@ import {
   stringToNumberArray,
   parseValidatorTopUpArray,
   etherToWeiArray,
+  fetchNodeSyncingStatus,
+  fetchBeaconHeader,
 } from 'utils';
 import { Deposit, ValidatorTopUp } from 'types';
 
@@ -72,19 +74,34 @@ pdgWrite
     ) => {
       const pdgContract = await getPredepositGuaranteeContract();
 
+      const nodeStatus = await fetchNodeSyncingStatus();
+      const beaconHeaderJson = await fetchBeaconHeader('finalized');
+
+      logInfo('Node syncing status');
+      logTable({
+        data: [
+          ['Is syncing', nodeStatus.data.is_syncing],
+          ['Sync distance', nodeStatus.data.sync_distance],
+          ['Head slot', nodeStatus.data.head_slot],
+          ['Finalized slot', beaconHeaderJson.data.header.message.slot],
+        ],
+      });
+
       const isPaused = await checkPdgIsPaused(pdgContract);
       if (isPaused) return;
 
       if (options.blsCheck) {
-        const PREDEPOSIT_AMOUNT = await callReadMethod(
-          pdgContract,
-          'PREDEPOSIT_AMOUNT',
-        );
+        const PREDEPOSIT_AMOUNT = await callReadMethod({
+          contract: pdgContract,
+          methodName: 'PREDEPOSIT_AMOUNT',
+          payload: [],
+        });
         const vaultContract = await getStakingVaultContract(vault);
-        const withdrawalCredentials = await callReadMethod(
-          vaultContract,
-          'withdrawalCredentials',
-        );
+        const withdrawalCredentials = await callReadMethod({
+          contract: vaultContract,
+          methodName: 'withdrawalCredentials',
+          payload: [],
+        });
 
         for (const deposit of deposits) {
           const isBLSValid = await isValidBLSDeposit(
@@ -148,6 +165,18 @@ pdgWrite
     const validatorIndex = await confirmMakeProof(index);
     if (!validatorIndex) return;
 
+    const nodeStatus = await fetchNodeSyncingStatus();
+    const beaconHeaderJson = await fetchBeaconHeader('finalized');
+
+    logInfo('Node syncing status');
+    logTable({
+      data: [
+        ['Is syncing', nodeStatus.data.is_syncing],
+        ['Sync distance', nodeStatus.data.sync_distance],
+        ['Head slot', nodeStatus.data.head_slot],
+        ['Finalized slot', beaconHeaderJson.data.header.message.slot],
+      ],
+    });
     const hideSpinner = showSpinner({
       type: 'bouncingBar',
       message: 'Making proof...',

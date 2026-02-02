@@ -33,10 +33,11 @@ reportRead
   .description('get the latest report data')
   .action(async () => {
     const lazyOracleContract = await getLazyOracleContract();
-    const [timestamp, refSlot, root, cid] = await callReadMethodSilent(
-      lazyOracleContract,
-      'latestReportData',
-    );
+    const [timestamp, refSlot, root, cid] = await callReadMethodSilent({
+      contract: lazyOracleContract,
+      methodName: 'latestReportData',
+      payload: [],
+    });
 
     logTable({
       data: [
@@ -64,7 +65,11 @@ reportRead
       _vaultsDataRefSlot,
       _vaultsDataTreeRoot,
       vaultsDataReportCid,
-    ] = await callReadMethodSilent(lazyOracleContract, 'latestReportData');
+    ] = await callReadMethodSilent({
+      contract: lazyOracleContract,
+      methodName: 'latestReportData',
+      payload: [],
+    });
 
     const { cacheUse } = program.opts();
     const report = await getVaultReport(
@@ -101,7 +106,11 @@ reportRead
       _vaultsDataRefSlot,
       _vaultsDataTreeRoot,
       vaultsDataReportCid,
-    ] = await callReadMethodSilent(lazyOracleContract, 'latestReportData');
+    ] = await callReadMethodSilent({
+      contract: lazyOracleContract,
+      methodName: 'latestReportData',
+      payload: [],
+    });
 
     const { cacheUse } = program.opts();
     const proof = await getReportProofByVault(
@@ -132,7 +141,11 @@ reportRead
       _vaultsDataRefSlot,
       _vaultsDataTreeRoot,
       vaultsDataReportCid,
-    ] = await callReadMethodSilent(lazyOracleContract, 'latestReportData');
+    ] = await callReadMethodSilent({
+      contract: lazyOracleContract,
+      methodName: 'latestReportData',
+      payload: [],
+    });
 
     const { cacheUse } = program.opts();
     const allVaultsReports = await getAllVaultsReports(
@@ -162,7 +175,11 @@ reportRead
       _vaultsDataRefSlot,
       _vaultsDataTreeRoot,
       vaultsDataReportCid,
-    ] = await callReadMethodSilent(lazyOracleContract, 'latestReportData');
+    ] = await callReadMethodSilent({
+      contract: lazyOracleContract,
+      methodName: 'latestReportData',
+      payload: [],
+    });
 
     logInfo({
       vaultsDataTreeRoot: _vaultsDataTreeRoot,

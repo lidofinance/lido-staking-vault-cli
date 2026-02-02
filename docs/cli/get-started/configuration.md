@@ -95,9 +95,8 @@ WALLET_CONNECT_PROJECT_ID=ee928c025792b10a6daa97d85328c433
 
 - JSON file containing deployed contract addresses
 - Available configurations:
+  - `deployed-mainnet-vaults.json`: Mainnet
   - `deployed-hoodi-vaults.json`: Hoodi testnet
-  - `deployed-hoodi-vaults-testnet-2.json`: Hoodi v2 testnet
-  - `deployed-hoodi-vaults-testnet.json`: Hoodi v1 testnet
   - Custom deployment files for other networks
 
 ### Wallet Configuration

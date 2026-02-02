@@ -31,7 +31,11 @@ export const fetchRewardsChartsData = async ({
   cacheUse = true,
 }: FetchRewardsChartsDataArgs) => {
   const dashboardContract = await getDashboardContract(dashboard);
-  const vault = await callReadMethodSilent(dashboardContract, 'stakingVault');
+  const vault = await callReadMethodSilent({
+    contract: dashboardContract,
+    methodName: 'stakingVault',
+    payload: [],
+  });
   const history = await getVaultReportHistory(
     {
       vault,

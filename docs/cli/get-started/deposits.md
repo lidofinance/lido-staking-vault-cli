@@ -267,7 +267,7 @@ yarn start deposits w top-up-existing-validators '<topUps>'
 ```bash
 yarn start deposits w top-up-existing-validators '[{
   "pubkey": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
-  "amount": "31000000000",
+  "amount": "31000000000" // amount is in gwei
 }]' -v 0x1234567890123456789012345678901234567890
 ```
 
@@ -413,7 +413,7 @@ yarn start deposits w top-up-existing-validators '<topUps>'
 ```bash
 yarn start deposits w top-up-existing-validators '[{
   "pubkey": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
-  "amount": "31000000000",
+  "amount": "31000000000" // amount is in gwei
 }]' -v 0x1234567890123456789012345678901234567890
 ```
 

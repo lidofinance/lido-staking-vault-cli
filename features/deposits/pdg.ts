@@ -9,7 +9,11 @@ export const checkPdgIsPaused = async (
   const chain = await getChain();
   const isMainnet = chain.id === mainnet.id;
 
-  const isPaused = await callReadMethodSilent(pdgContract, 'isPaused');
+  const isPaused = await callReadMethodSilent({
+    contract: pdgContract,
+    methodName: 'isPaused',
+    payload: [],
+  });
 
   if (isPaused) {
     const message = isMainnet
