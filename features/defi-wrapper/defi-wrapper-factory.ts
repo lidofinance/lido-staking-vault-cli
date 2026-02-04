@@ -11,7 +11,6 @@ import {
 
 import { getFactoryContract } from 'contracts/defi-wrapper/index.js';
 import { FactoryAbi } from 'abi/defi-wrapper/Factory.js';
-import { program } from 'command';
 import { getVaultHubContract } from 'contracts';
 import {
   getAddress,
@@ -64,6 +63,7 @@ export type BaseFactoryOptions = {
   symbol?: string;
   skipSimulation?: boolean;
   simulationOnly?: boolean;
+  skipFinalization?: boolean;
 };
 
 // сommon filaliztion step between two pools
@@ -122,12 +122,7 @@ export const finalizePoolCreation = async (
 export const getCreatePoolEventData = async (
   receipt: TransactionReceipt,
   tx: Hex,
-  forceParse = false,
 ) => {
-  if (program.opts().populateTx && !forceParse) {
-    return { tx };
-  }
-
   const events = parseEventLogs({
     abi: FactoryAbi,
     logs: receipt.logs,
@@ -232,12 +227,7 @@ export const logCreatePoolEventData = async (
 export const getFinalizePoolEventData = async (
   receipt: TransactionReceipt,
   tx: Hex,
-  forceParse = false,
 ) => {
-  if (program.opts().populateTx && !forceParse) {
-    return { tx };
-  }
-
   const events = parseEventLogs({
     abi: FactoryAbi,
     logs: receipt.logs,
@@ -437,7 +427,6 @@ export const simulatePoolCreation = async (
       transactionHash: zeroAddress,
     } as unknown as TransactionReceipt,
     zeroAddress,
-    true,
   );
 
   if (
@@ -499,7 +488,6 @@ export const simulatePoolCreation = async (
         transactionHash: zeroAddress,
       } as unknown as TransactionReceipt,
       zeroAddress,
-      true,
     );
     logInfo('Results of the simulated pool creation:');
     logFinalizePoolEventData(creationEventData, finalizeEventData);
