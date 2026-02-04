@@ -20,6 +20,7 @@ import { getTransactionReceipt } from 'viem/actions';
 import {
   getCreatePoolEventData,
   getFinalizePoolEventData,
+  logCreatePoolEventData,
   logFinalizePoolEventData,
 } from 'features';
 
@@ -120,28 +121,36 @@ factoryRead
     stringToHash,
   )
   .argument(
-    '<finalizeTxHash>',
+    '[finalizeTxHash]',
     'transaction hash of the final step of the pool creation',
     stringToHash,
   )
-  .action(async (txHash: Hex, finalizeTxHash: Hex) => {
+  .action(async (txHash: Hex, finalizeTxHash?: Hex) => {
     const publicClient = await getPublicClient();
 
     const [firstStepReceipt, finalizeReceipt] = await Promise.all([
       getTransactionReceipt(publicClient, {
         hash: txHash,
       }),
-      getTransactionReceipt(publicClient, {
-        hash: finalizeTxHash,
-      }),
+      finalizeTxHash
+        ? getTransactionReceipt(publicClient, {
+            hash: finalizeTxHash,
+          })
+        : undefined,
     ]);
 
     const [firstStepEventData, finalizeEventData] = await Promise.all([
       getCreatePoolEventData(firstStepReceipt, txHash),
-      getFinalizePoolEventData(finalizeReceipt, finalizeTxHash),
+      finalizeReceipt && finalizeTxHash
+        ? getFinalizePoolEventData(finalizeReceipt, finalizeTxHash)
+        : undefined,
     ]);
 
-    logFinalizePoolEventData(firstStepEventData, finalizeEventData);
+    if (finalizeEventData && finalizeTxHash) {
+      logFinalizePoolEventData(firstStepEventData, finalizeEventData);
+    } else {
+      logCreatePoolEventData(firstStepEventData);
+    }
   });
 
 generateReadCommands(

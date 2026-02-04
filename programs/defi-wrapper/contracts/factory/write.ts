@@ -229,7 +229,7 @@ applyCommonOptions(
 
       const eventData = await getCreatePoolEventData(result.receipt, result.tx);
 
-      await logCreatePoolEventData(eventData);
+      logCreatePoolEventData(eventData);
 
       if (baseOptions.skipFinalization) {
         logInfo('Skipping pool creation finalization as per user request');
@@ -321,7 +321,7 @@ applyCommonOptions(
 
       const eventData = await getCreatePoolEventData(result.receipt, result.tx);
 
-      await logCreatePoolEventData(eventData);
+      logCreatePoolEventData(eventData);
 
       if (baseOptions.skipFinalization) {
         logInfo('Skipping pool creation finalization as per user request');
@@ -432,7 +432,7 @@ applyCommonOptions(
 
       const eventData = await getCreatePoolEventData(result.receipt, result.tx);
 
-      await logCreatePoolEventData(eventData);
+      logCreatePoolEventData(eventData);
 
       if (baseOptions.skipFinalization) {
         logInfo('Skipping pool creation finalization as per user request');
@@ -466,7 +466,7 @@ factoryWrite
 
     const eventData = await getCreatePoolEventData(receipt, txHash);
 
-    await logCreatePoolEventData(eventData);
+    logCreatePoolEventData(eventData);
 
     await finalizePoolCreation(contract, eventData);
   });
