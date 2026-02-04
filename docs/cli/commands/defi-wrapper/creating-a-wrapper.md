@@ -13,11 +13,12 @@ There are three main commands to initiate the deployment of a new wrapper, each 
 - `create-pool-stv`: Deploys a standard STV (Staking Vault) pool.
 - `create-pool-stv-steth`: Deploys an STV-stETH pool, which includes minting capabilities.
 - `create-pool-custom`: Deploys a pool with a custom configuration, allowing for greater flexibility.
+- `create-pool-finalize`: Finalizes unfinished deployment of the pool
 
 The deployment process is handled automatically by the CLI, which executes two transactions sequentially:
 
 1.  **Initiation**: The first transaction starts the deployment on-chain.
-2.  **Finalization**: The second transaction finalizes the configuration and connects all the components of the wrapper.
+2.  **Finalization**: The second transaction finalizes the configuration and connects all the components of the wrapper. If this step is skipped due, process can be manually continued with `create-pool-finalize`
 
 The CLI orchestrates this process. However, if the second transaction is not automatically sent (for example, due to a network issue or if the first transaction is sent via a multisig that needs time for confirmation), you may need to finalize it manually. The output from the initial command will provide the necessary data and instructions to do so.
 
@@ -47,6 +48,7 @@ All `create-pool-*` commands share a comprehensive set of common options that al
 | `--emergencyCommittee`     | `<address>`      | The address of the emergency committee, which can pause critical operations. |
 | `--skip-simulation`        | `true` / `false` | If `true`, skips the transaction simulation step before sending.             |
 | `--simulation-only`        | `true` / `false` | If `true`, only performs the simulation without sending the transaction.     |
+| `--skip-finalization`      | `true` / `false` | If `true`, only performs first step of creation                              |
 
 ---
 
@@ -104,3 +106,14 @@ yarn start dw c f w create-pool-custom <factory-address> [options]
 | `--mintingEnabled` | `true` / `false` | Enables or disables minting capabilities for the pool. |
 | `--strategyFactory` | `<address>` | The address of a custom strategy factory to use for the pool. |
 | `--strategyFactoryDeployBytes` | `<hex>` | The deployment bytecode for the custom strategy factory. |
+
+### `create-pool-finalize`
+
+This command allows to manually finalize partial deployment of a pool.
+To retrieve finalization results after transaction execution use `yarn start dw c f r log-creating-pool-data <firstStepTxHash> <finalizationTxHash>`
+
+**Command:**
+
+```bash
+yarn start dw c f w create-pool-finalize <factory-address> <creationTxHash> [options]
+```

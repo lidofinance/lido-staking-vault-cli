@@ -28,6 +28,7 @@ yarn start defi-wrapper contracts factory -h
 | Command                                                                                                                                                                                              | Description                                                                      |
 | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
 | info \<address>                                                                                                                                                                                      | get factory base info                                                            |
+| log-creating-pool-data \<creationTxHash> \<finalizationTxHash>                                                                                                                                       | log results of creation and finalization(if provided) transactions               |
 | DEFAULT_ADMIN_ROLE \<address>                                                                                                                                                                        | Calls the read-only function "DEFAULT_ADMIN_ROLE" on the contract.               |
 | DEPLOY_FINISHED \<address>                                                                                                                                                                           | Calls the read-only function "DEPLOY_FINISHED" on the contract.                  |
 | DEPLOY_START_FINISH_SPAN_SECONDS \<address>                                                                                                                                                          | Calls the read-only function "DEPLOY_START_FINISH_SPAN_SECONDS" on the contract. |
@@ -53,9 +54,10 @@ yarn start defi-wrapper contracts factory -h
 
 ### Write
 
-| Command                          | Description                                                   |
-| -------------------------------- | ------------------------------------------------------------- |
-| create-pool-ggv \<address>       | initiates deployment of a GGV strategy pool                   |
-| create-pool-stv \<address>       | initiates deployment of a STV staking pool                    |
-| create-pool-stv-steth \<address> | initiates deployment of a STV-STETH pool with minting enabled |
-| create-pool-custom \<address>    | initiates deployment of a custom pool                         |
+| Command                                          | Description                                                   |
+| ------------------------------------------------ | ------------------------------------------------------------- |
+| create-pool-ggv \<factoryAddress>                | initiates deployment of a GGV strategy pool                   |
+| create-pool-stv \<factoryAddress>                | initiates deployment of a STV staking pool                    |
+| create-pool-stv-steth \<factoryAddress>          | initiates deployment of a STV-STETH pool with minting enabled |
+| create-pool-custom \<factoryAddress>             | initiates deployment of a custom pool                         |
+| create-pool-finalize \<factoryAddress> \<TxHash> | finalizes deployment of a pool                                |

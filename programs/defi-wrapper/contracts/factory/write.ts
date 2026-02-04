@@ -1,9 +1,9 @@
 import { Address, Hex, zeroAddress } from 'viem';
+import { getTransactionReceipt } from 'viem/actions';
 import { Command, Option } from 'commander';
 
 import {
   logInfo,
-  logError,
   getCommandsJson,
   stringToAddress,
   callWriteMethodWithReceipt,
@@ -26,6 +26,7 @@ import {
 } from 'features';
 
 import { factory } from './main.js';
+import { getPublicClient } from 'providers';
 
 type MintableOptions = {
   reserveRatioGapBP?: number;
@@ -45,7 +46,7 @@ type CustomPoolOptions = {
 // CONSTANTS & HELPERS
 
 const FIRST_STEP_MESSAGE =
-  'Transaction has been sent. Use "dw use-cases wrapper-operations write create-pool-finalize" command to finalize the pool creation after the transaction is signed and executed';
+  'Transaction has been sent. Use "dw contracts factory write create-pool-finalize" command to finalize the pool creation after the transaction is signed and executed';
 
 // adds common options for all wrapper creation commands
 const applyCommonOptions = (command: Command): Command => {
@@ -93,6 +94,12 @@ const applyCommonOptions = (command: Command): Command => {
     .option(
       '--simulation-only <simulationOnly>',
       'only perform simulation step',
+      stringToBoolean,
+      false,
+    )
+    .option(
+      '--skip-finalization <skipFinalization>',
+      'skip finalization step',
       stringToBoolean,
       false,
     );
@@ -222,15 +229,10 @@ applyCommonOptions(
 
       const eventData = await getCreatePoolEventData(result.receipt, result.tx);
 
-      await logCreatePoolEventData(eventData);
+      logCreatePoolEventData(eventData);
 
-      if (
-        !eventData.auxiliaryConfig ||
-        !eventData.strategyFactory ||
-        !eventData.strategyDeployBytes ||
-        !eventData.intermediate
-      ) {
-        logError('Missing required data for pool creation finalize');
+      if (baseOptions.skipFinalization) {
+        logInfo('Skipping pool creation finalization as per user request');
         return;
       }
 
@@ -319,7 +321,14 @@ applyCommonOptions(
 
       const eventData = await getCreatePoolEventData(result.receipt, result.tx);
 
-      await logCreatePoolEventData(eventData);
+      logCreatePoolEventData(eventData);
+
+      if (baseOptions.skipFinalization) {
+        logInfo('Skipping pool creation finalization as per user request');
+        return;
+      }
+
+      logInfo('Pool Creation Finalize');
 
       await finalizePoolCreation(contract, eventData);
     },
@@ -423,8 +432,41 @@ applyCommonOptions(
 
       const eventData = await getCreatePoolEventData(result.receipt, result.tx);
 
-      await logCreatePoolEventData(eventData);
+      logCreatePoolEventData(eventData);
+
+      if (baseOptions.skipFinalization) {
+        logInfo('Skipping pool creation finalization as per user request');
+        return;
+      }
+
+      logInfo('Pool Creation Finalize');
 
       await finalizePoolCreation(contract, eventData);
     },
   );
+
+factoryWrite
+  .command('create-pool-finalize')
+  .description(
+    'finalizes the deployment of a pool. Used if the pool creation was not finalized in the first step (Multisig case).',
+  )
+  .argument('<address>', 'factory address', stringToAddress)
+  .argument(
+    '<TxHash>',
+    'transaction hash of the first step of the pool creation',
+    stringToHash,
+  )
+  .action(async (address: Address, txHash: Hex) => {
+    const contract = await getFactoryContract(address);
+    const publicClient = await getPublicClient();
+
+    const receipt = await getTransactionReceipt(publicClient, {
+      hash: txHash,
+    });
+
+    const eventData = await getCreatePoolEventData(receipt, txHash);
+
+    logCreatePoolEventData(eventData);
+
+    await finalizePoolCreation(contract, eventData);
+  });
