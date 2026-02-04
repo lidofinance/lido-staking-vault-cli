@@ -106,7 +106,7 @@ export const finalizePoolCreation = async (
 
   if (!finalizeResult.receipt || !finalizeResult.tx) {
     logInfo(
-      'Transaction has been sent. Use "log-finalizing-pool-data" command to get the Pool data after the transaction is signed and executed',
+      'Transaction has been sent. Use "dw c f r log-creating-pool-data" command to get the Pool data after the transaction is signed and executed',
     );
     return;
   }
@@ -158,7 +158,7 @@ export const getCreatePoolEventData = async (
   };
 };
 
-export const logCreatePoolEventData = async (
+export const logCreatePoolEventData = (
   eventData: Awaited<ReturnType<typeof getCreatePoolEventData>>,
 ) => {
   logInfo('Pool Creation Started');

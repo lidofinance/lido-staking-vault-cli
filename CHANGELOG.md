@@ -1,5 +1,13 @@
 All notable changes to this project will be documented in this file.
 
+## 1.6.0
+
+### Added
+
+#### DeFi Wrapper
+
+- manual pool creation finalization and logging after creation tx is executed
+
 ## 1.5.0
 
 ### Added

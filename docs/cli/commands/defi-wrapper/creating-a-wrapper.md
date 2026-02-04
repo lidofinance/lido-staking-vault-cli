@@ -110,11 +110,7 @@ yarn start dw c f w create-pool-custom <factory-address> [options]
 ### `create-pool-finalize`
 
 This command allows to manually finalize partial deployment of a pool.
-To retrieve finalization results if transaction execution was postponed use
-
-```bash
-yarn start dw c f w log-creating-pool-data <firstStepTxHash> <finalizationTxHash>`
-```
+To retrieve finalization results after transaction execution use `yarn start dw c f r log-creating-pool-data <firstStepTxHash> <finalizationTxHash>`
 
 **Command:**
 
