@@ -1,5 +1,13 @@
 All notable changes to this project will be documented in this file.
 
+## 1.6.1
+
+### Fixed
+
+#### DeFi Wrapper
+
+- fixed incorrect parsing of `--salt` option for all timelock operations
+
 ## 1.6.0
 
 ### Added
