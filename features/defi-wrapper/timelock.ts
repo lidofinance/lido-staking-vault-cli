@@ -7,11 +7,11 @@ import {
   addressPrompt,
   stringToHash,
   textPrompt,
+  stringToHex,
 } from 'utils';
 import {
   Address,
   Hex,
-  stringToHex,
   zeroHash,
   isHash,
   GetContractReturnType,
