@@ -83,6 +83,10 @@ export const createPDGProof = async (
       clURL,
     );
 
+    if (headerByParentJson?.data?.length <= 0) {
+      throw new Error('Child block (N+1) missing (Missed slot or API lag)');
+    }
+
     headerByParentSlot = headerByParentJson.data[0].header.message.slot;
   } catch (error) {
     logError(
