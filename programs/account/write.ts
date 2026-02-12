@@ -1,7 +1,7 @@
-import { Address, formatEther } from 'viem';
+import { Address, formatEther, Hex } from 'viem';
 import { mainnet } from 'viem/chains';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
-import { Option } from 'commander';
+import { Option, program } from 'commander';
 import { Keystore } from 'ox';
 
 import { getStethContract, getWstethContract } from 'contracts';
@@ -13,6 +13,10 @@ import {
   stringToAddress,
   confirmOperation,
   etherToWei,
+  stringToHex,
+  stringToBigInt,
+  callWCWriteMethodWithReceipt,
+  callWriteMethod,
 } from 'utils';
 
 import { account } from './main.js';
@@ -112,3 +116,49 @@ accountWrite
       payload: [address, amount],
     });
   });
+
+accountWrite
+  .command('send-tx')
+  .description('sends populated transaction')
+  .option(
+    '-t, --to [toAddress]',
+    'Address to send transaction to',
+    stringToAddress,
+  )
+  .option(
+    '-d, --data [data]',
+    'Data to use for transaction, default no data',
+    stringToHex,
+    '0x',
+  )
+  .option(
+    '-v, --value [valueWei]',
+    'ETH value in wei to send with transaction',
+    stringToBigInt,
+    0n,
+  )
+  .action(
+    async ({ to, data, value }: { to: Address; data: Hex; value: bigint }) => {
+      if (program.opts().walletConnect) {
+        await callWCWriteMethodWithReceipt({
+          calls: [
+            {
+              data,
+              to,
+              value,
+            },
+          ],
+          withSpinner: true,
+        });
+
+        return;
+      }
+
+      await callWriteMethod({
+        contract: { address: to, abi: [] } as any,
+        methodName: data,
+        value,
+        payload: [],
+      });
+    },
+  );

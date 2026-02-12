@@ -156,6 +156,25 @@ const isValidatorsInfoArray = (obj: ValidatorsInfo): obj is ValidatorsInfo => {
   );
 };
 
+const validateResponse = (response: Response) => {
+  if (!response.ok) {
+    throw new Error(
+      `HTTP error ${response.status}-${response.statusText}, URL(${response.url})`,
+    );
+  }
+};
+
+const getCLApiUrl = (clURL?: string): string => {
+  const url = clURL || getConfig().CL_URL;
+
+  if (!url) {
+    throw new Error(
+      'CL_URL is not set. CL_URL is required for fetching beacon header by parent root',
+    );
+  }
+  return url;
+};
+
 const endpoints = {
   finalityCheckpoints: 'eth/v1/beacon/states/head/finality_checkpoints',
   genesis: 'eth/v1/beacon/genesis',
@@ -172,21 +191,14 @@ const endpoints = {
 export const finalityCheckpoints = async (
   clURL?: string,
 ): Promise<FinalityCheckpoints> => {
-  const url = clURL || getConfig().CL_URL;
-  if (!url) {
-    throw new Error('CL_URL is not set. CL_URL is required for fetching epoch');
-  }
+  const url = getCLApiUrl(clURL);
 
   try {
     const epochResp = await fetch(
       `${url.endsWith('/') ? url : url + '/'}${endpoints.finalityCheckpoints}`,
     );
 
-    if (!epochResp.ok) {
-      throw new Error(
-        `HTTP ${epochResp.status} ${epochResp.statusText}. URL: ${url}\n`,
-      );
-    }
+    validateResponse(epochResp);
 
     const body: FinalityCheckpoints = await epochResp.json();
     if (!isFinalityCheckpoints(body)) {
@@ -206,24 +218,20 @@ export const finalityCheckpoints = async (
 };
 
 export const fetchBeaconHeader = async (stateId: StateId, clURL?: string) => {
-  const url = clURL || getConfig().CL_URL;
-
-  if (!url) {
-    throw new Error(
-      'CL_URL is not set. CL_URL is required for fetching beacon header',
-    );
-  }
+  const url = getCLApiUrl(clURL);
 
   try {
     const beaconHeaderResp = await fetch(
       `${url.endsWith('/') ? url : url + '/'}${endpoints.beaconHeader(stateId)}`,
     );
 
-    return beaconHeaderResp.json();
+    validateResponse(beaconHeaderResp);
+
+    return await beaconHeaderResp.json();
   } catch (error) {
     printError(
       error,
-      `Error fetching beacon header. Used URL: ${url}, stateId: ${stateId}. Please check if the CL_URL environment variable is correct or try to use another CL.`,
+      `Error fetching beacon header. Used URL: ${url}, stateId: ${stateId}. Please check if the CL_URL environment variable is correct or try to use another CL. ${error}`,
     );
     throw error;
   }
@@ -236,13 +244,7 @@ export const fetchBeaconState = async (
   stateBodyBytes: ArrayBuffer;
   forkName: keyof typeof SupportedFork;
 }> => {
-  const url = clURL || getConfig().CL_URL;
-
-  if (!url) {
-    throw new Error(
-      'CL_URL is not set. CL_URL is required for fetching beacon state',
-    );
-  }
+  const url = getCLApiUrl(clURL);
 
   try {
     const beaconStateResp = await fetch(
@@ -251,6 +253,8 @@ export const fetchBeaconState = async (
         headers: { accept: 'application/octet-stream' },
       },
     );
+
+    validateResponse(beaconStateResp);
 
     const { headers } = beaconStateResp;
     const forkName = headers.get(
@@ -283,20 +287,16 @@ export const fetchBeaconHeaderByParentRoot = async (
   parentRoot: RootHex,
   clURL?: string,
 ) => {
-  const url = clURL || getConfig().CL_URL;
-
-  if (!url) {
-    throw new Error(
-      'CL_URL is not set. CL_URL is required for fetching beacon header by parent root',
-    );
-  }
+  const url = getCLApiUrl(clURL);
 
   try {
     const beaconHeaderResp = await fetch(
       `${url.endsWith('/') ? url : url + '/'}${endpoints.beaconHeadersByParentRoot(parentRoot)}`,
     );
 
-    return beaconHeaderResp.json();
+    validateResponse(beaconHeaderResp);
+
+    return await beaconHeaderResp.json();
   } catch (error) {
     printError(
       error,
@@ -311,24 +311,14 @@ export const fetchValidatorsInfo = async (
   validatorPubkeys: Hex[],
   clURL?: string,
 ): Promise<ValidatorsInfo> => {
-  const url = clURL || getConfig().CL_URL;
-
-  if (!url) {
-    throw new Error(
-      'CL_URL is not set. CL_URL is required for fetching validator info',
-    );
-  }
+  const url = getCLApiUrl(clURL);
 
   try {
     const validatorsInfoResp = await fetch(
       `${url.endsWith('/') ? url : url + '/'}${endpoints.validatorsInfo('?id=' + validatorPubkeys.join(','))}`,
     );
 
-    if (!validatorsInfoResp.ok) {
-      throw new Error(
-        `HTTP ${validatorsInfoResp.status} ${validatorsInfoResp.statusText}. URL: ${url}\n`,
-      );
-    }
+    validateResponse(validatorsInfoResp);
 
     const body: ValidatorsInfo = await validatorsInfoResp.json();
     if (!isValidatorsInfoArray(body)) {
@@ -350,24 +340,14 @@ export const fetchValidatorsInfo = async (
 export const fetchNodeSyncingStatus = async (
   clURL?: string,
 ): Promise<NodeSyncingStatus> => {
-  const url = clURL || getConfig().CL_URL;
-
-  if (!url) {
-    throw new Error(
-      'CL_URL is not set. CL_URL is required for checking node syncing status',
-    );
-  }
+  const url = getCLApiUrl(clURL);
 
   try {
     const syncingResp = await fetch(
       `${url.endsWith('/') ? url : url + '/'}${endpoints.nodeSyncing}`,
     );
 
-    if (!syncingResp.ok) {
-      throw new Error(
-        `HTTP ${syncingResp.status} ${syncingResp.statusText}. URL: ${url}\n`,
-      );
-    }
+    validateResponse(syncingResp);
 
     const body: NodeSyncingStatus = await syncingResp.json();
     return body;
