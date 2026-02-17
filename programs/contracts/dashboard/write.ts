@@ -207,7 +207,8 @@ dashboardWrite
       amounts: bigint[],
       recipient: Address,
     ) => {
-      const mergedPubkeys: Hex = pubkeys.join('') as Hex;
+      const mergedPubkeys: Hex = ('0x' +
+        pubkeys.map((pubkey) => pubkey.replace(/^0x/, '')).join('')) as Hex;
 
       const contract = await getDashboardContract(address);
       const vault = await callReadMethod({
