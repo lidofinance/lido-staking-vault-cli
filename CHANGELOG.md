@@ -1,16 +1,17 @@
 All notable changes to this project will be documented in this file.
 
-## 1.6.1
+## 1.6.0
 
 ### Fixed
 
-#### DeFi Wrapper
-
-- fixed incorrect parsing of `--salt` option for all timelock operations
-
-## 1.6.0
+- [Dashboard,VaultHub] fixed `trigger-validator-withdrawal` command for multiple pubkeys
+- [DeFi Wrapper] fixed incorrect parsing of `--salt` option for all timelock operations
 
 ### Added
+
+#### General
+
+- added `account write send-tx` command for manually sending transactions with connected wallet accounts
 
 #### DeFi Wrapper
 

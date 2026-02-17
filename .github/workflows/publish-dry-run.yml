@@ -4,7 +4,7 @@ on:
   workflow_call:
     secrets:
       NPM_TOKEN:
-        description: "NPM token"
+        description: 'NPM token'
         required: true
 
 permissions:
@@ -27,13 +27,16 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: 20
-          cache: "yarn"
+          cache: 'yarn'
 
       - name: Install dependencies
         run: yarn --immutable
 
       - name: Build
         run: yarn build
+
+      - name: Verify the integrity of provenance attestations and registry signatures for installed dependencies
+        run: yarn audit
 
       - name: Dry run Publish
         run: |
