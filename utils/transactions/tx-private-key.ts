@@ -1,8 +1,10 @@
 import {
   Address,
+  Hex,
   SimulateContractReturnType,
   TransactionReceipt,
   encodeFunctionData,
+  isHex,
 } from 'viem';
 import { waitForTransactionReceipt } from 'viem/actions';
 import { program } from 'command';
@@ -62,14 +64,29 @@ export const callSimulateWriteMethod = async <
       : () => {};
 
   try {
+    const account = await getAccount();
+    const chain = await getChain();
+    if (isHex(methodName)) {
+      const publicClient = await getPublicClient();
+      const rawSimulationResult = await publicClient.simulateCalls({
+        calls: [
+          {
+            to: contract.address,
+            value,
+            data: methodName,
+          },
+        ],
+        account,
+      });
+      return rawSimulationResult as any;
+    }
     const method = contract.simulate[methodName];
     const result = await method?.(payload, {
-      account: await getAccount(),
-      chain: await getChain(),
+      account,
+      chain,
       value,
       authorizationList,
     });
-    hideSpinner();
 
     return result;
   } catch (err) {
@@ -79,6 +96,8 @@ export const callSimulateWriteMethod = async <
       printError(err, `Error when simulating write method "${methodName}"`);
 
     throw err;
+  } finally {
+    hideSpinner();
   }
 };
 
@@ -87,7 +106,7 @@ export const callWriteMethod = async <
   M extends keyof T['write'] & string,
 >(
   args: WriteTxArgs<T, M>,
-): Promise<Address> => {
+): Promise<Hex> => {
   const {
     contract,
     methodName,
@@ -125,13 +144,27 @@ export const callWriteMethod = async <
         })
       : () => {};
   try {
-    const method = contract.write[methodName];
-    const tx = await method?.(payload, {
-      account: await getAccount(),
-      chain: await getChain(),
-      value,
-      authorizationList,
-    });
+    let tx: Hex;
+    // support raw tx data with placeholder contract obj
+    if (isHex(methodName)) {
+      const writeClient = await getWalletWithAccount();
+      tx = await writeClient.sendTransaction({
+        account: await getAccount(),
+        chain: await getChain(),
+        to: contract.address,
+        data: methodName,
+        value: value,
+      });
+    } else {
+      const method = contract.write[methodName];
+      tx = await method?.(payload, {
+        account: await getAccount(),
+        chain: await getChain(),
+        value,
+        authorizationList,
+      });
+    }
+
     hideSpinner();
 
     !silent &&

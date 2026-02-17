@@ -4,6 +4,7 @@ import {
   fetchBeaconHeader,
   fetchBeaconState,
   fetchBeaconHeaderByParentRoot,
+  logError,
 } from 'utils';
 
 import {
@@ -75,11 +76,31 @@ export const createPDGProof = async (
 
   const proofHex: Hex[] = proofConcat.map((w) => toHex(w));
 
-  const headerByParentJson = await fetchBeaconHeaderByParentRoot(
-    beaconHeaderRoot,
-    clURL,
-  );
-  const headerByParentSlot = headerByParentJson.data[0].header.message.slot;
+  let headerByParentSlot;
+
+  try {
+    const headerByParentJson = await fetchBeaconHeaderByParentRoot(
+      beaconHeaderRoot,
+      clURL,
+    );
+
+    if (headerByParentJson?.data?.length <= 0) {
+      throw new Error('Child block (N+1) missing (Missed slot or API lag)');
+    }
+
+    headerByParentSlot = headerByParentJson.data[0].header.message.slot;
+  } catch (error) {
+    logError(
+      'Error fetching beacon header by parent root. Calculating child block timestamp manually...',
+    );
+    // We made a fallback so that the child block is not found (API returns empty), the code
+    // calculates the expected timestamp based on the protocol rule (Genesis Time + Slot * 12s). This
+    // should mean the PDG proof submission succeeds even if the network tip is unstable or the API
+    // is lagging.
+    // Child block (N+1) missing (Missed slot or API lag): Fallback to calculation manually.
+    headerByParentSlot = Number(beaconHeader.slot) + 1;
+  }
+
   const headerByParentTimestamp = slotToTimestamp(
     headerByParentSlot,
     validatorStateView.genesisTime,

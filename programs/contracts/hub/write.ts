@@ -383,7 +383,8 @@ VaultHubWrite.command('trigger-validator-withdrawals')
       amounts: bigint[],
       recipient: Address,
     ) => {
-      const mergedPubkeys: Hex = pubkeys.join('') as Hex;
+      const mergedPubkeys: Hex = ('0x' +
+        pubkeys.map((pubkey) => pubkey.replace(/^0x/, '')).join('')) as Hex;
       const contract = await getVaultHubContract();
 
       const confirmationMessage = `Are you sure you want to trigger the withdrawal of the validators 
