@@ -382,6 +382,12 @@ predepositGuaranteeHelpers
     if (!validatorPubkey) return;
 
     const validatorsInfo = await fetchValidatorsInfo([validatorPubkey]);
+
+    if (validatorsInfo.data.length <= 0) {
+      logError(`❌ No validator info found for Pubkey ${validatorPubkey}`);
+      return;
+    }
+
     const validatorInfo = validatorsInfo.data[0];
     logTable({
       data: [
