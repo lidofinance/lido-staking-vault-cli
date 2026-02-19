@@ -70,6 +70,10 @@ export const createConsole = (
   };
 };
 
+export const TEST_RESET_JSON_LOG_FLAG = () => {
+  IS_PREV_JSON_LOG = false;
+};
+
 const createTable = (headMessage?: HeadMessage) => (args: CreateTableArgs) => {
   const { data, params, csvPath } = args;
   if (headMessage)
