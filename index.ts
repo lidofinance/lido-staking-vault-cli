@@ -56,8 +56,12 @@ program.addHelpText('afterAll', () => {
 
 // Add interrupt handling to the CLI
 const runCLI = withInterruptHandling(async () => {
+  // programm.opts is not init yet
+  const isJson = process.argv.includes('--json');
   const chain = await getChain();
-  if (program.opts().json) {
+  if (isJson) {
+    console.info('[');
+  } else {
     logInfo(`${'-'.repeat(100)}`);
     logInfo(`Using chain: Name: ${chain.name}, Chain ID: ${chain.id}`);
     logInfo(`${'-'.repeat(100)}`);
@@ -72,7 +76,9 @@ runCLI()
     process.exit(1);
   })
   .finally(async () => {
-    if (!program.opts().json) {
+    if (program.opts().json) {
+      console.info(']');
+    } else {
       const chain = await getChain();
       if (chain.id === mainnet.id) {
         showMainnetWarning();
