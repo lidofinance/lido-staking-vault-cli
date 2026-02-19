@@ -15,13 +15,14 @@ import {
   zeroHash,
   isHash,
   GetContractReturnType,
-  WalletClient,
   PublicClient,
   Abi,
   formatEther,
 } from 'viem';
-import { getTimeLockContract } from 'contracts/defi-wrapper/index.js';
-import { TimeLockAbi } from 'abi/defi-wrapper/TimeLock.js';
+import {
+  getTimeLockContract,
+  TimeLockContract,
+} from 'contracts/defi-wrapper/index.js';
 
 // Common constants
 export const DEFAULT_SALT = zeroHash;
@@ -66,7 +67,7 @@ export const SALT_OPTION = [
 // Helper function to get timelock from argument or prompt user
 export const getPromptTimelock = async (
   argAddress: Address | undefined,
-): Promise<GetContractReturnType<typeof TimeLockAbi, WalletClient>> => {
+): Promise<TimeLockContract> => {
   if (argAddress) return getTimeLockContract(argAddress);
 
   const timelockPrompt = await addressPrompt(

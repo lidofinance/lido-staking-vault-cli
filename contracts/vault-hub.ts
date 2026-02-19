@@ -1,28 +1,21 @@
-import {
-  getContract,
-  createPublicClient,
-  http,
-  GetContractReturnType,
-  WalletClient,
-} from 'viem';
+import { getContract, GetContractReturnType } from 'viem';
 import { VaultHubAbi } from 'abi/index.js';
-import { getChain, getElUrl } from 'configs';
 import { getLocatorContract } from 'contracts';
+import { getPublicClient, RegisteredPublicClient } from 'providers/index.js';
 
-export const getVaultHubContract = async (): Promise<
-  GetContractReturnType<typeof VaultHubAbi, WalletClient>
-> => {
-  const elUrl = getElUrl();
-  const chain = await getChain();
+export type VaultHubContract = GetContractReturnType<
+  typeof VaultHubAbi,
+  RegisteredPublicClient
+>;
+
+export const getVaultHubContract = async (): Promise<VaultHubContract> => {
+  const publicClient = await getPublicClient();
   const locator = await getLocatorContract();
   const address = await locator.read.vaultHub();
 
   return getContract({
     address,
     abi: VaultHubAbi,
-    client: createPublicClient({
-      chain,
-      transport: http(elUrl),
-    }),
+    client: publicClient,
   });
 };

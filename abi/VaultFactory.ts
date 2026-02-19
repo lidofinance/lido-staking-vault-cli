@@ -2,6 +2,7 @@ import { OperatorGridErrorsAbi } from './OperatorGrid.js';
 import { VaultHubErrorsAbi } from './VaultHub.js';
 import { DashboardErrorsAbi } from './Dashboard.js';
 import { StakingVaultErrorsAbi } from './StakingVault.js';
+import type { Abi } from 'viem';
 
 export const VaultFactoryAbi = [
   ...VaultHubErrorsAbi,
@@ -307,4 +308,4 @@ export const VaultFactoryAbi = [
     stateMutability: 'view',
     type: 'function',
   },
-] as const;
+] as const satisfies Abi;

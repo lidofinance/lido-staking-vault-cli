@@ -1,3 +1,4 @@
+import type { Abi } from 'viem';
 import { StakingVaultErrorsAbi } from './StakingVault.js';
 
 export const VaultHubErrorsAbi = [
@@ -2623,4 +2624,4 @@ export const VaultHubAbi = [
     stateMutability: 'payable',
     type: 'receive',
   },
-] as const;
+] as const satisfies Abi;

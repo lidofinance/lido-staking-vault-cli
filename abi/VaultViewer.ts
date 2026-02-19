@@ -1,3 +1,5 @@
+import type { Abi } from 'viem';
+
 export const VaultViewerAbi = [
   {
     inputs: [
@@ -765,4 +767,4 @@ export const VaultViewerAbi = [
     stateMutability: 'view',
     type: 'function',
   },
-] as const;
+] as const satisfies Abi;

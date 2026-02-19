@@ -1,3 +1,4 @@
+import type { Abi } from 'viem';
 import { AccessControlConfirmableErrorsAbi } from './AccessControlConfirmable.js';
 
 export const StakingVaultErrorsAbi = [
@@ -217,7 +218,7 @@ export const StakingVaultErrorsAbi = [
     name: 'ZeroArgument',
     type: 'error',
   },
-] as const;
+] as const satisfies Abi;
 
 export const StakingVaultAbi = [
   ...StakingVaultErrorsAbi,
@@ -951,4 +952,4 @@ export const StakingVaultAbi = [
     stateMutability: 'payable',
     type: 'receive',
   },
-] as const;
+] as const satisfies Abi;

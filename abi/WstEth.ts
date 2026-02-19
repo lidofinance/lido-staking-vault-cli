@@ -1,3 +1,5 @@
+import type { Abi } from 'viem';
+
 export const WstEthAbi = [
   {
     inputs: [
@@ -474,4 +476,4 @@ export const WstEthAbi = [
     stateMutability: 'payable',
     type: 'receive',
   },
-] as const;
+] as const satisfies Abi;

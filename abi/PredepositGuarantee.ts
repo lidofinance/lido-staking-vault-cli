@@ -1,3 +1,4 @@
+import { Abi } from 'viem';
 import { StakingVaultErrorsAbi } from './StakingVault.js';
 
 export const PredepositGuaranteeErrorsAbi = [
@@ -384,7 +385,7 @@ export const PredepositGuaranteeErrorsAbi = [
     name: 'ZeroPauseDuration',
     type: 'error',
   },
-] as const;
+] as const satisfies Abi;
 
 export const PredepositGuaranteeAbi = [
   ...PredepositGuaranteeErrorsAbi,
@@ -2037,4 +2038,4 @@ export const PredepositGuaranteeAbi = [
     stateMutability: 'nonpayable',
     type: 'function',
   },
-] as const;
+] as const satisfies Abi;

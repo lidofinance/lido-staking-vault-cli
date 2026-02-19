@@ -1,24 +1,20 @@
-import {
-  getContract,
-  createPublicClient,
-  http,
-  GetContractReturnType,
-  PublicClient,
-} from 'viem';
+import { getContract, GetContractReturnType } from 'viem';
 import { VaultFactoryAbi } from 'abi/index.js';
-import { getDeployedAddress, getElUrl, getChain } from 'configs';
+import { getDeployedAddress } from 'configs';
+import { getPublicClient, RegisteredPublicClient } from 'providers/index.js';
 
-export const getVaultFactoryContract = async (): Promise<
-  GetContractReturnType<typeof VaultFactoryAbi, PublicClient>
-> => {
-  const chain = await getChain();
+export type VaultFactoryContract = GetContractReturnType<
+  typeof VaultFactoryAbi,
+  RegisteredPublicClient
+>;
 
-  return getContract({
-    address: getDeployedAddress('stakingVaultFactory'),
-    abi: VaultFactoryAbi,
-    client: createPublicClient({
-      chain,
-      transport: http(getElUrl()),
-    }),
-  });
-};
+export const getVaultFactoryContract =
+  async (): Promise<VaultFactoryContract> => {
+    const publicClient = await getPublicClient();
+
+    return getContract({
+      address: getDeployedAddress('stakingVaultFactory'),
+      abi: VaultFactoryAbi,
+      client: publicClient,
+    });
+  };
