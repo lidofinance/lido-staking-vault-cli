@@ -8,6 +8,7 @@ import {
   logBold,
   logCancel,
   logResultSimple,
+  TEST_RESET_JSON_LOG_FLAG,
 } from '../../utils/logging/console.js';
 import { program } from '../../command/index.js';
 
@@ -65,46 +66,64 @@ describe('createConsole', () => {
 
   describe('JSON mode', () => {
     beforeEach(() => {
+      TEST_RESET_JSON_LOG_FLAG();
       vi.spyOn(program, 'opts').mockReturnValue({ json: true });
     });
 
     test('outputs JSON format for info type', () => {
+      const TEST_DATA = 'test data';
+
       const log = createConsole('LOG', 'info');
-      log('test data');
+      log(TEST_DATA);
 
       const calls = vi.mocked(console.info).mock.calls;
-      const jsonOutput = calls.find((call) => call[0] === '<JSON>');
-      expect(jsonOutput).toBeDefined();
+      const jsonOutput = JSON.parse(calls[0]?.[0] ?? '{}');
+
+      expect(jsonOutput).toEqual({
+        result: [TEST_DATA],
+      });
     });
 
     test('outputs JSON format for table type', () => {
       const tableLog = createConsole('Result', 'table');
-      tableLog({ key: 'value' });
+      const TEST_DATA = { key: 'value' };
+      tableLog(TEST_DATA);
 
       const calls = vi.mocked(console.info).mock.calls;
-      const jsonOutput = calls.find((call) => call[0] === '<JSON>');
-      expect(jsonOutput).toBeDefined();
+
+      const jsonOutput = JSON.parse(calls[0]?.[0] ?? '{}');
+
+      expect(jsonOutput).toEqual([TEST_DATA]);
       expect(console.table).not.toHaveBeenCalled();
     });
 
     test('outputs JSON format for bold type', () => {
       const boldLog = createConsole('Bold', 'bold');
-      boldLog('important');
+      const TEST_DATA = 'important';
+      boldLog(TEST_DATA);
 
       const calls = vi.mocked(console.info).mock.calls;
-      const jsonOutput = calls.find((call) => call[0] === '<JSON>');
+      const jsonOutput = JSON.parse(calls[0]?.[0] ?? '{}');
+
+      expect(jsonOutput).toEqual({
+        result: [TEST_DATA],
+      });
       expect(jsonOutput).toBeDefined();
     });
 
     test('serializes bigint values in JSON mode', () => {
       const log = createConsole('LOG');
       const bigIntValue = 1234567890123456789012345678901234567890n;
-      log({ value: bigIntValue });
+      const TEST_DATA = { value: bigIntValue };
+      log(TEST_DATA);
 
       const calls = vi.mocked(console.info).mock.calls;
-      // Check that bigint was converted to string in JSON output
-      const allCalls = calls.flat().join('');
-      expect(allCalls).toContain(bigIntValue.toString());
+      const jsonOutput = JSON.parse(calls[0]?.[0] ?? '{}');
+
+      expect(jsonOutput).toEqual({
+        result: [{ value: bigIntValue.toString() }],
+      });
+      expect(jsonOutput).toBeDefined();
     });
   });
 
@@ -168,7 +187,14 @@ describe('logResult and logTable', () => {
     logResult({ data });
 
     const calls = vi.mocked(console.info).mock.calls;
-    const jsonOutput = calls.find((call) => call[0] === '<JSON>');
+    const payload = calls[calls.length - 1]?.[0];
+
+    const jsonOutput = JSON.parse(payload);
+
+    expect(jsonOutput).toEqual({
+      result: data,
+    });
+
     expect(jsonOutput).toBeDefined();
   });
 

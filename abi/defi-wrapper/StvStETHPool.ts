@@ -1,3 +1,5 @@
+import type { Abi } from 'viem';
+
 export const StvStETHPoolAbi = [
   {
     type: 'constructor',
@@ -2320,4 +2322,4 @@ export const StvStETHPoolAbi = [
     name: 'ZeroDeposit',
     inputs: [],
   },
-] as const;
+] as const satisfies Abi;

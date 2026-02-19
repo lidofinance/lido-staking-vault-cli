@@ -1,15 +1,10 @@
-import {
-  getContract,
-  Address,
-  GetContractReturnType,
-  WalletClient,
-} from 'viem';
+import { getContract, Address, GetContractReturnType } from 'viem';
 import { DashboardAbi } from 'abi';
-import { getPublicClient } from 'providers';
+import { getPublicClient, RegisteredPublicClient } from 'providers';
 
 export const getDashboardContract = async (
   address: Address,
-): Promise<GetContractReturnType<typeof DashboardAbi, WalletClient>> => {
+): Promise<DashboardContract> => {
   const publicClient = await getPublicClient();
 
   return getContract({
@@ -20,5 +15,5 @@ export const getDashboardContract = async (
 };
 
 export type DashboardContract = Awaited<
-  ReturnType<typeof getDashboardContract>
+  GetContractReturnType<typeof DashboardAbi, RegisteredPublicClient>
 >;

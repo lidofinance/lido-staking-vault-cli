@@ -1,15 +1,10 @@
-import {
-  getContract,
-  Address,
-  GetContractReturnType,
-  WalletClient,
-} from 'viem';
+import { getContract, Address, GetContractReturnType } from 'viem';
 import { StvStETHPoolAbi } from 'abi/defi-wrapper/index.js';
-import { getPublicClient } from 'providers';
+import { getPublicClient, RegisteredPublicClient } from 'providers';
 
 export const getStvStethPoolContract = async (
   address: Address,
-): Promise<GetContractReturnType<typeof StvStETHPoolAbi, WalletClient>> => {
+): Promise<StvStethPoolContract> => {
   const publicClient = await getPublicClient();
 
   return getContract({
@@ -19,4 +14,7 @@ export const getStvStethPoolContract = async (
   });
 };
 
-export type StvStethPoolContract = ReturnType<typeof getStvStethPoolContract>;
+export type StvStethPoolContract = GetContractReturnType<
+  typeof StvStETHPoolAbi,
+  RegisteredPublicClient
+>;

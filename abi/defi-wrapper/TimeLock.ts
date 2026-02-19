@@ -1,3 +1,5 @@
+import type { Abi } from 'viem';
+
 export const TimeLockAbi = [
   {
     inputs: [
@@ -995,4 +997,4 @@ export const TimeLockAbi = [
     stateMutability: 'payable',
     type: 'receive',
   },
-] as const;
+] as const satisfies Abi;

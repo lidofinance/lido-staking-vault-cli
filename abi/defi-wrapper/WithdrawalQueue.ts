@@ -1,3 +1,5 @@
+import type { Abi } from 'viem';
+
 export const WithdrawalQueueAbi = [
   {
     type: 'constructor',
@@ -1643,4 +1645,4 @@ export const WithdrawalQueueAbi = [
     name: 'ZeroAddress',
     inputs: [],
   },
-] as const;
+] as const satisfies Abi;

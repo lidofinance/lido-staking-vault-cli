@@ -9,7 +9,7 @@ import {
   encodeFunctionData,
 } from 'viem';
 
-import { getFactoryContract } from 'contracts/defi-wrapper/index.js';
+import { FactoryContract } from 'contracts/defi-wrapper/index.js';
 import { FactoryAbi } from 'abi/defi-wrapper/Factory.js';
 import { getVaultHubContract } from 'contracts';
 import {
@@ -68,7 +68,7 @@ export type BaseFactoryOptions = {
 
 // сommon filaliztion step between two pools
 export const finalizePoolCreation = async (
-  contract: Awaited<ReturnType<typeof getFactoryContract>>,
+  contract: FactoryContract,
   creationEventData: Awaited<ReturnType<typeof getCreatePoolEventData>>,
 ) => {
   if (
@@ -382,7 +382,7 @@ const logAndThrowEthSimulateV1Error = (error: unknown) => {
 };
 
 export const simulatePoolCreation = async (
-  contract: Awaited<ReturnType<typeof getFactoryContract>>,
+  contract: FactoryContract,
   creationMethodName:
     | 'createPoolStart'
     | 'createPoolStvStETHStart'

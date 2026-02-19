@@ -1,3 +1,5 @@
+import type { Abi } from 'viem';
+
 export const AccessControlConfirmableErrorsAbi = [
   {
     inputs: [],
@@ -35,7 +37,7 @@ export const AccessControlConfirmableErrorsAbi = [
     name: 'ZeroConfirmingRoles',
     type: 'error',
   },
-] as const;
+] as const satisfies Abi;
 
 export const AccessControlConfirmableAbi = [
   {
@@ -429,4 +431,4 @@ export const AccessControlConfirmableAbi = [
     stateMutability: 'view',
     type: 'function',
   },
-] as const;
+] as const satisfies Abi;

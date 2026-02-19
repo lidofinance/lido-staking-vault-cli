@@ -45,6 +45,7 @@ const showMainnetWarning = () => {
 
 program.addHelpText('afterAll', () => {
   const chain = process.env.CHAIN_ID;
+  if (program.opts().json) return '';
   if (chain === String(mainnet.id)) {
     showMainnetWarning();
   } else {
@@ -55,10 +56,16 @@ program.addHelpText('afterAll', () => {
 
 // Add interrupt handling to the CLI
 const runCLI = withInterruptHandling(async () => {
+  // programm.opts is not init yet
+  const isJson = process.argv.includes('--json');
   const chain = await getChain();
-  logInfo(`${'-'.repeat(100)}`);
-  logInfo(`Using chain: Name: ${chain.name}, Chain ID: ${chain.id}`);
-  logInfo(`${'-'.repeat(100)}`);
+  if (isJson) {
+    console.info('[');
+  } else {
+    logInfo(`${'-'.repeat(100)}`);
+    logInfo(`Using chain: Name: ${chain.name}, Chain ID: ${chain.id}`);
+    logInfo(`${'-'.repeat(100)}`);
+  }
   await program.parseAsync(process.argv);
 });
 
@@ -69,12 +76,15 @@ runCLI()
     process.exit(1);
   })
   .finally(async () => {
-    const chain = await getChain();
-
-    if (chain.id === mainnet.id) {
-      showMainnetWarning();
+    if (program.opts().json) {
+      console.info(']');
     } else {
-      showTestnetWarning();
+      const chain = await getChain();
+      if (chain.id === mainnet.id) {
+        showMainnetWarning();
+      } else {
+        showTestnetWarning();
+      }
     }
 
     await disconnectWalletConnect();

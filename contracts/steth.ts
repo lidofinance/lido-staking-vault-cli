@@ -1,30 +1,21 @@
-import {
-  getContract,
-  createPublicClient,
-  http,
-  GetContractReturnType,
-  WalletClient,
-} from 'viem';
+import { getContract, GetContractReturnType } from 'viem';
 import { StEthAbi } from 'abi/index.js';
-import { getChain, getElUrl } from 'configs';
 import { getLocatorContract } from 'contracts';
+import { getPublicClient, RegisteredPublicClient } from 'providers/index.js';
 
-export const getStethContract = async (): Promise<
-  GetContractReturnType<typeof StEthAbi, WalletClient>
-> => {
+export const getStethContract = async (): Promise<StethContract> => {
   const locator = await getLocatorContract();
-  const elUrl = getElUrl();
-  const chain = await getChain();
+  const publicClient = await getPublicClient();
   const address = await locator.read.lido();
 
   return getContract({
     address,
     abi: StEthAbi,
-    client: createPublicClient({
-      chain,
-      transport: http(elUrl),
-    }),
+    client: publicClient,
   });
 };
 
-export type StethContract = Awaited<ReturnType<typeof getStethContract>>;
+export type StethContract = GetContractReturnType<
+  typeof StEthAbi,
+  RegisteredPublicClient
+>;

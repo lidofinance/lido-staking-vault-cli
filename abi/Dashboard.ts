@@ -2,6 +2,7 @@ import { StakingVaultErrorsAbi } from './StakingVault.js';
 import { OperatorGridErrorsAbi } from './OperatorGrid.js';
 import { VaultHubErrorsAbi } from './VaultHub.js';
 import { PredepositGuaranteeErrorsAbi } from './PredepositGuarantee.js';
+import type { Abi } from 'viem';
 
 export const DashboardErrorsAbi = [
   {
@@ -210,7 +211,7 @@ export const DashboardErrorsAbi = [
     name: 'ZeroConfirmingRoles',
     type: 'error',
   },
-] as const;
+] as const satisfies Abi;
 
 export const DashboardAbi = [
   ...DashboardErrorsAbi,
@@ -2125,4 +2126,4 @@ export const DashboardAbi = [
     stateMutability: 'payable',
     type: 'receive',
   },
-] as const;
+] as const satisfies Abi;

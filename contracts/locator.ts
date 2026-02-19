@@ -1,26 +1,20 @@
-import {
-  getContract,
-  createPublicClient,
-  http,
-  GetContractReturnType,
-  PublicClient,
-} from 'viem';
+import { getContract, GetContractReturnType } from 'viem';
 import { LidoLocatorAbi } from 'abi';
-import { getChain, getLocatorAddress, getElUrl } from 'configs';
+import { getLocatorAddress } from 'configs';
+import { getPublicClient, RegisteredPublicClient } from 'providers/index.js';
 
-export const getLocatorContract = async (): Promise<
-  GetContractReturnType<typeof LidoLocatorAbi, PublicClient>
-> => {
-  const elUrl = getElUrl();
-  const chain = await getChain();
+export type LocatorContract = GetContractReturnType<
+  typeof LidoLocatorAbi,
+  RegisteredPublicClient
+>;
+
+export const getLocatorContract = async (): Promise<LocatorContract> => {
+  const publicClient = await getPublicClient();
   const address = getLocatorAddress();
 
   return getContract({
     address,
     abi: LidoLocatorAbi,
-    client: createPublicClient({
-      chain,
-      transport: http(elUrl),
-    }),
+    client: publicClient,
   });
 };

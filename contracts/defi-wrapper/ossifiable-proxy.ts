@@ -1,15 +1,10 @@
-import {
-  getContract,
-  Address,
-  GetContractReturnType,
-  WalletClient,
-} from 'viem';
+import { getContract, Address, GetContractReturnType } from 'viem';
 import { OssifiableProxyAbi } from 'abi/defi-wrapper/index.js';
-import { getPublicClient } from 'providers';
+import { getPublicClient, RegisteredPublicClient } from 'providers';
 
 export const getOssifiableProxyContract = async (
   address: Address,
-): Promise<GetContractReturnType<typeof OssifiableProxyAbi, WalletClient>> => {
+): Promise<OssifiableProxyContract> => {
   const publicClient = await getPublicClient();
 
   return getContract({
@@ -19,6 +14,7 @@ export const getOssifiableProxyContract = async (
   });
 };
 
-export type OssifiableProxyContract = Awaited<
-  ReturnType<typeof getOssifiableProxyContract>
+export type OssifiableProxyContract = GetContractReturnType<
+  typeof OssifiableProxyAbi,
+  RegisteredPublicClient
 >;

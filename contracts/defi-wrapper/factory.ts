@@ -1,15 +1,10 @@
-import {
-  getContract,
-  Address,
-  GetContractReturnType,
-  WalletClient,
-} from 'viem';
+import { getContract, Address, GetContractReturnType } from 'viem';
 import { FactoryAbi } from 'abi/defi-wrapper/index.js';
-import { getPublicClient } from 'providers';
+import { getPublicClient, RegisteredPublicClient } from 'providers';
 
 export const getFactoryContract = async (
   address: Address,
-): Promise<GetContractReturnType<typeof FactoryAbi, WalletClient>> => {
+): Promise<FactoryContract> => {
   const publicClient = await getPublicClient();
 
   return getContract({
@@ -19,4 +14,7 @@ export const getFactoryContract = async (
   });
 };
 
-export type FactoryContract = ReturnType<typeof getFactoryContract>;
+export type FactoryContract = GetContractReturnType<
+  typeof FactoryAbi,
+  RegisteredPublicClient
+>;
