@@ -6,11 +6,14 @@ All notable changes to this project will be documented in this file.
 
 - [Dashboard,VaultHub] fixed `trigger-validator-withdrawal` command for multiple pubkeys
 - [DeFi Wrapper] fixed incorrect parsing of `--salt` option for all timelock operations
+- Edge case in pdg-helpers validator-info when validator is not yet present on CL
 
 ### Added
 
 #### General
 
+- JSON output now outputs only json array without additional log messages for better parsing in scripts
+- All common options are now available in `--help` for all commands for better discoverability
 - added `account write send-tx` command for manually sending transactions with connected wallet accounts
 
 #### DeFi Wrapper
