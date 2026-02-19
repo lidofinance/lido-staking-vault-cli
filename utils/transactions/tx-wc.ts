@@ -1,4 +1,9 @@
-import { encodeFunctionData, Hex, SimulateCallsReturnType, Abi } from 'viem';
+import {
+  encodeFunctionData,
+  type Hex,
+  type SimulateCallsReturnType,
+  type Abi,
+} from 'viem';
 import { waitForTransactionReceipt } from 'viem/actions';
 
 import { getPublicClient, getWalletConnectClient } from 'providers';

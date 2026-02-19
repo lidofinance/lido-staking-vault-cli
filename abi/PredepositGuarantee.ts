@@ -1,4 +1,4 @@
-import { Abi } from 'viem';
+import type { Abi } from 'viem';
 import { StakingVaultErrorsAbi } from './StakingVault.js';
 
 export const PredepositGuaranteeErrorsAbi = [
