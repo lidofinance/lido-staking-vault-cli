@@ -76,7 +76,7 @@ const runCLI = withInterruptHandling(async () => {
 
 runCLI()
   .catch(async (error) => {
-    await disconnectWalletConnect().catch();
+    await disconnectWalletConnect().catch(() => {});
     if (program.opts().json) {
       logJson({ error: error.message });
       closeJsonLogging();
