@@ -71,7 +71,8 @@ export const createConsole = (
         }
         return console.info(getColoredLog(headMessage, args));
       case 'json':
-        return console.info(bigIntStringify(args));
+        args.forEach((arg) => console.info(bigIntStringify(arg)));
+        return;
       default:
         if (program.opts().json) {
           return console.info(bigIntStringify({ result: args }));
