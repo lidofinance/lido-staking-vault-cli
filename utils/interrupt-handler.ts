@@ -1,6 +1,11 @@
 import process from 'process';
 
-import { logError, logInfo } from './logging/console.js';
+import {
+  closeJsonLogging,
+  logError,
+  logInfo,
+  logJson,
+} from './logging/console.js';
 import { disconnectWalletConnect } from './wallet-connect.js';
 
 type ActionHandler = (...args: any[]) => Promise<any>;
@@ -27,10 +32,17 @@ export const withInterruptHandling = (action: ActionHandler) => {
 
       return result;
     } catch (err) {
-      if (err instanceof Error) logError('Command failed:', err.message);
-      else logError('Command failed:', err);
+      await disconnectWalletConnect().catch(() => {});
+      // programm.opts is not init
+      const isJson = process.argv.includes('--json');
+      if (isJson) {
+        logJson({ error: err instanceof Error ? err.message : err });
+        closeJsonLogging();
+      } else {
+        if (err instanceof Error) logError('Command failed:', err.message);
+        else logError('Command failed:', err);
+      }
 
-      await disconnectWalletConnect();
       process.exit(1);
     } finally {
       process.off('SIGINT', sigintHandler);
