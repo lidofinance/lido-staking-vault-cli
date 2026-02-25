@@ -28,11 +28,24 @@ const bigIntStringify = <T>(value: T): string => {
   );
 };
 
+// Flag so that next log can add comma if previous log is JSON to create valid JSON array output
 let IS_PREV_JSON_LOG = false;
+
+export const openJsonLogging = () => {
+  console.info('[');
+};
+
+export const closeJsonLogging = () => {
+  console.info(']');
+};
+
+export const TEST_RESET_JSON_LOG_FLAG = () => {
+  IS_PREV_JSON_LOG = false;
+};
 
 export const createConsole = (
   headMessage: HeadMessage,
-  type: 'info' | 'error' | 'table' | 'bold' = 'info',
+  type: 'info' | 'error' | 'table' | 'bold' | 'json' = 'info',
 ) => {
   return <T, U>(...args: T[] | U[]) => {
     // print comma if previous log is JSON to separate logs
@@ -57,6 +70,9 @@ export const createConsole = (
           return console.info(bigIntStringify({ result: args }));
         }
         return console.info(getColoredLog(headMessage, args));
+      case 'json':
+        args.forEach((arg) => console.info(bigIntStringify(arg)));
+        return;
       default:
         if (program.opts().json) {
           return console.info(bigIntStringify({ result: args }));
@@ -70,13 +86,9 @@ export const createConsole = (
   };
 };
 
-export const TEST_RESET_JSON_LOG_FLAG = () => {
-  IS_PREV_JSON_LOG = false;
-};
-
 const createTable = (headMessage?: HeadMessage) => (args: CreateTableArgs) => {
   const { data, params, csvPath } = args;
-  if (headMessage)
+  if (headMessage && !program.opts().json)
     console.info(`\n${getColoredLog(headMessage, headMessage + ':')}`);
 
   if (!data) return;
@@ -112,3 +124,4 @@ export const logError = createConsole('Error', 'error');
 export const logBold = createConsole('Bold', 'bold');
 export const logCancel = createConsole('Cancel');
 export const logResultSimple = createConsole('Result', 'table');
+export const logJson = createConsole('Result', 'json');

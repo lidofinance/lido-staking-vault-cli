@@ -7,7 +7,12 @@ import { program } from './command/index.js';
 import { logError, logInfo } from './utils/logging/console.js';
 import { withInterruptHandling } from './utils/interrupt-handler.js';
 import './programs/index.js';
-import { disconnectWalletConnect } from './utils/index.js';
+import {
+  closeJsonLogging,
+  disconnectWalletConnect,
+  logJson,
+  openJsonLogging,
+} from './utils/index.js';
 
 export * from './utils/index.js';
 
@@ -60,7 +65,7 @@ const runCLI = withInterruptHandling(async () => {
   const isJson = process.argv.includes('--json');
   const chain = await getChain();
   if (isJson) {
-    console.info('[');
+    openJsonLogging();
   } else {
     logInfo(`${'-'.repeat(100)}`);
     logInfo(`Using chain: Name: ${chain.name}, Chain ID: ${chain.id}`);
@@ -71,13 +76,18 @@ const runCLI = withInterruptHandling(async () => {
 
 runCLI()
   .catch(async (error) => {
-    logError('CLI Error:', error.message);
-    await disconnectWalletConnect();
+    await disconnectWalletConnect().catch(() => {});
+    if (program.opts().json) {
+      logJson({ error: error.message });
+      closeJsonLogging();
+    } else {
+      logError('CLI Error:', error.message);
+    }
     process.exit(1);
   })
   .finally(async () => {
     if (program.opts().json) {
-      console.info(']');
+      closeJsonLogging();
     } else {
       const chain = await getChain();
       if (chain.id === mainnet.id) {
