@@ -31,7 +31,7 @@ import {
   checkIsReportFreshThrowError,
 } from 'features';
 import { getAccount } from 'providers';
-import { getOperatorGridContract } from 'contracts';
+import { getOperatorGridContract, getStethContract } from 'contracts';
 import { RoleAssignment } from 'types';
 
 import { vaultOperations } from './main.js';
@@ -425,17 +425,23 @@ vaultOperationsWrite
   .argument('<tierId>', 'tier id to change to', stringToBigInt)
   .option(
     '-r, --requestedShareLimit <string>',
-    'requested share limit (in shares)',
+    'requested share limit (in shares by default, or in stETH if --steth flag is provided)',
     etherToWei,
   )
   .option('-v, --vault <string>', 'vault address', stringToAddress)
+  .option(
+    '--steth',
+    'interpret requestedShareLimit as stETH value and convert to shares on-chain',
+    false,
+  )
   .action(
     async (
       tierId: bigint,
       {
         requestedShareLimit,
         vault,
-      }: { requestedShareLimit: bigint; vault: Address },
+        steth,
+      }: { requestedShareLimit: bigint; vault: Address; steth: boolean },
     ) => {
       const { vault: vaultAddress, vaultContract } =
         await chooseVaultAndGetDashboard({
@@ -458,12 +464,25 @@ vaultOperationsWrite
       let currentShareLimit = tierShareLimit;
 
       if (requestedShareLimit) {
+        let resolvedShareLimit = requestedShareLimit;
+        if (steth) {
+          const stethContract = await getStethContract();
+          resolvedShareLimit = await callReadMethodSilent({
+            contract: stethContract,
+            methodName: 'getSharesByPooledEth',
+            payload: [[requestedShareLimit]],
+          });
+          logInfo(
+            `Converting ${formatEther(requestedShareLimit)} stETH → ${formatEther(resolvedShareLimit)} shares`,
+          );
+        }
+
         const confirmShareLimit = await confirmOperation(
-          `Are you sure you want to request change share limit for vault ${vaultAddress} to ${formatEther(requestedShareLimit)} shares (requested tier share limit is ${formatEther(tierShareLimit)} shares)?`,
+          `Are you sure you want to request change share limit for vault ${vaultAddress} to ${formatEther(resolvedShareLimit)} shares (requested tier share limit is ${formatEther(tierShareLimit)} shares)?`,
         );
         if (!confirmShareLimit) return;
 
-        currentShareLimit = requestedShareLimit;
+        currentShareLimit = resolvedShareLimit;
       }
 
       const confirm = await confirmOperation(
@@ -494,17 +513,23 @@ vaultOperationsWrite
   .argument('<tierId>', 'tier id to change to', stringToBigInt)
   .option(
     '-r, --requestedShareLimit <string>',
-    'requested share limit (in shares)',
+    'requested share limit (in shares by default, or in stETH if --steth flag is provided)',
     etherToWei,
   )
   .option('-v, --vault <string>', 'vault address', stringToAddress)
+  .option(
+    '--steth',
+    'interpret requestedShareLimit as stETH value and convert to shares on-chain',
+    false,
+  )
   .action(
     async (
       tierId: bigint,
       {
         requestedShareLimit,
         vault,
-      }: { requestedShareLimit: bigint; vault: Address },
+        steth,
+      }: { requestedShareLimit: bigint; vault: Address; steth: boolean },
     ) => {
       const { contract, vault: vaultAddress } =
         await chooseVaultAndGetDashboard({
@@ -521,12 +546,25 @@ vaultOperationsWrite
 
       let currentShareLimit = tierShareLimit;
       if (requestedShareLimit) {
+        let resolvedShareLimit = requestedShareLimit;
+        if (steth) {
+          const stethContract = await getStethContract();
+          resolvedShareLimit = await callReadMethodSilent({
+            contract: stethContract,
+            methodName: 'getSharesByPooledEth',
+            payload: [[requestedShareLimit]],
+          });
+          logInfo(
+            `Converting ${formatEther(requestedShareLimit)} stETH → ${formatEther(resolvedShareLimit)} shares`,
+          );
+        }
+
         const confirmShareLimit = await confirmOperation(
-          `Are you sure you want to request change share limit for vault ${vaultAddress} to ${formatEther(requestedShareLimit)} shares (requested tier share limit is ${formatEther(tierShareLimit)} shares)?`,
+          `Are you sure you want to request change share limit for vault ${vaultAddress} to ${formatEther(resolvedShareLimit)} shares (requested tier share limit is ${formatEther(tierShareLimit)} shares)?`,
         );
         if (!confirmShareLimit) return;
 
-        currentShareLimit = requestedShareLimit;
+        currentShareLimit = resolvedShareLimit;
       }
 
       const confirm = await confirmOperation(

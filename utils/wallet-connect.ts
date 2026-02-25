@@ -32,6 +32,7 @@ const DEFAULT_CONNECTION_TIMEOUT = 180_000; // 180 seconds
 let cachedWalletConnectClient: {
   walletConnectClient: WalletClient;
   isGnosis: boolean;
+  supportsWalletSendCalls: boolean;
 } | null = null;
 let cachedSignClient: Awaited<ReturnType<typeof SignClient.init>> | null = null;
 // TODO: fix this type
@@ -68,7 +69,7 @@ export const createWalletConnectClient = async () => {
       return cachedWalletConnectClient;
     }
 
-    const { session, accounts, isGnosis } =
+    const { session, accounts, isGnosis, supportsWalletSendCalls } =
       await connectWalletConnectWithRetry();
     logInfo('Found accounts:', accounts.length);
 
@@ -106,7 +107,11 @@ export const createWalletConnectClient = async () => {
     });
 
     // Cache the wallet connect client and account
-    cachedWalletConnectClient = { walletConnectClient, isGnosis };
+    cachedWalletConnectClient = {
+      walletConnectClient,
+      isGnosis,
+      supportsWalletSendCalls,
+    };
 
     return cachedWalletConnectClient;
   } catch (error) {
@@ -155,7 +160,12 @@ export const connectWalletConnectWithRetry = async (
 
 const connectWalletConnectWithTimeout = async (
   timeout: number,
-): Promise<{ session: any; accounts: string[]; isGnosis: boolean }> => {
+): Promise<{
+  session: any;
+  accounts: string[];
+  isGnosis: boolean;
+  supportsWalletSendCalls: boolean;
+}> => {
   // eslint-disable-next-line no-async-promise-executor
   return new Promise(async (resolve, reject) => {
     const timeoutId = setTimeout(() => {
@@ -173,7 +183,12 @@ const connectWalletConnectWithTimeout = async (
   });
 };
 
-const connectWalletConnect = async () => {
+const connectWalletConnect = async (): Promise<{
+  session: any;
+  accounts: string[];
+  isGnosis: boolean;
+  supportsWalletSendCalls: boolean;
+}> => {
   const chain = await getChain();
   const { WALLET_CONNECT_PROJECT_ID } = getConfig();
 
@@ -237,6 +252,14 @@ const connectWalletConnect = async () => {
     logInfo('Using Gnosis Safe to send transactions...');
   }
 
+  const approvedMethods = session.namespaces.eip155?.methods || [];
+  const supportsWalletSendCalls = approvedMethods.includes('wallet_sendCalls');
+  if (!supportsWalletSendCalls) {
+    logInfo(
+      'Warning: wallet_sendCalls not approved by wallet, will use eth_sendTransaction fallback',
+    );
+  }
+
   // If no accounts are found, throw an error
   if (!accounts) {
     throw new Error('No accounts found. Check your wallet and try again.');
@@ -246,6 +269,7 @@ const connectWalletConnect = async () => {
     session,
     accounts,
     isGnosis,
+    supportsWalletSendCalls,
   };
 };
 
