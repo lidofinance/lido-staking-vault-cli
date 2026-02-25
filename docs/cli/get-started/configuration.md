@@ -77,17 +77,17 @@ WALLET_CONNECT_PROJECT_ID=ee928c025792b10a6daa97d85328c433
 - Common values:
   - `560048`: Hoodi Testnet
 
-**CL_URL** (Optional)
+**CL_URL** (Required for validator operations)
 
 - Consensus Layer (Beacon Chain) RPC endpoint
-- Required for validator proof generation and beacon chain queries
+- Required for validator proof generation, beacon chain queries, and deposit operations
 - Must support the Beacon API specification
 
-**EL_URL** (Optional)
+**EL_URL** (Required)
 
 - Execution Layer RPC endpoint
 - Must match the configured CHAIN_ID
-- Used for contract interactions and transaction broadcasting
+- Used for all contract interactions and transaction broadcasting
 
 ### Contract Configuration
 
