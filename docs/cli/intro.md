@@ -20,7 +20,7 @@ For changes between versions see [Changelog](./changelog.mdx)
 ## Prerequisites
 
 - **Node.js**: Ensure you have Node.js (v20 or later) installed.
-- **npm**: Node Package Manager is required to install dependencies.
+- **yarn**: Yarn package manager is required to install dependencies (`npm install -g yarn`).
 
 ## Installation
 
@@ -50,13 +50,14 @@ git checkout develop
 
 Before using the CLI, configure your environment variables. You can set them in a `.env` file in your project root.
 
-```.env
-CHAIN_ID=560048 // required
-CL_URL=url
-EL_URL=url
+```env
+# Network Configuration (Required)
+CHAIN_ID=560048
+CL_URL=https://your-consensus-layer-endpoint
+EL_URL=https://your-execution-layer-endpoint
 
-# Contract addresses
-DEPLOYED=deployed-hoodi-vaults.json // required
+# Contract Deployment Configuration (Required)
+DEPLOYED=deployed-hoodi-vaults.json
 
 # Wallet (choose one method)
 PRIVATE_KEY=0x
@@ -120,6 +121,8 @@ For additional information about available methods and functionality, refer to t
 
 ### Key Topics
 
+- [Quick Reference](./get-started/cheatsheet.md) - Most common commands at a glance
 - [Configuration Guide](./get-started/configuration.md) - Environment setup and wallet configuration
 - [WalletConnect Setup](./get-started/wallet-connect.md) - Secure transaction signing with external wallets
+- [Global Flags](./commands/global-flags.md) - `--json`, `--populate-tx`, `--yes`, `--csv` and more
 - [Commands Reference](/category/commands) - Complete CLI commands documentation

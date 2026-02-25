@@ -68,6 +68,7 @@ Creates new StakingVault and Dashboard contracts with specified configuration.
 
 - `create`: Creates vault and connects to VaultHub
 - `create-without-connecting`: Creates vault without VaultHub connection
+- `log-creating-vault-data` (alias: `log-data`): Retrieves vault creation data from a transaction hash
 
 #### create
 
@@ -896,14 +897,16 @@ yarn start vo w role-grant [options]
 [
   {
     "account": "0x1234...5678",
-    "role": "0x"
+    "role": "0x0000000000000000000000000000000000000000000000000000000000000000"
   },
   {
     "account": "0xabcd...ef00",
-    "role": "0x"
+    "role": "0x<32-byte-role-hash>"
   }
 ]
 ```
+
+The `role` field must be a 32-byte hex value (bytes32). Use `yarn start vo r roles` to see role hash values for your vault.
 
 **Examples:**
 
@@ -918,7 +921,7 @@ yarn start vo write role-grant --vault 0x1234...5678
 ```bash
 yarn start vo write role-grant \
   --vault 0x1234...5678 \
-  --roleAssignments '[{"account":"0xabc...","role":"0x"}]'
+  --roleAssignments '[{"account":"0xabc...","role":"0x0000000000000000000000000000000000000000000000000000000000000000"}]'
 ```
 
 **Process:**
@@ -963,14 +966,16 @@ yarn start vo w role-revoke [options]
 [
   {
     "account": "0x1234...5678",
-    "role": "0x"
+    "role": "0x0000000000000000000000000000000000000000000000000000000000000000"
   },
   {
     "account": "0xabcd...ef00",
-    "role": "0x"
+    "role": "0x<32-byte-role-hash>"
   }
 ]
 ```
+
+The `role` field must be a 32-byte hex value (bytes32). Use `yarn start vo r roles` to see role hash values for your vault.
 
 **Examples:**
 
@@ -985,7 +990,7 @@ yarn start vo write role-revoke --vault 0x1234...5678
 ```bash
 yarn start vo write role-revoke \
   --vault 0x1234...5678 \
-  --roleAssignments '[{"account":"0xabc...","role":"0x"}]'
+  --roleAssignments '[{"account":"0xabc...","role":"0x0000000000000000000000000000000000000000000000000000000000000000"}]'
 ```
 
 **Process:**

@@ -265,38 +265,16 @@ yarn start deposits w top-up-existing-validators '<topUps>'
 **Example:**
 
 ```bash
+# Note: amount is in gwei
 yarn start deposits w top-up-existing-validators '[{
-  "pubkey": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
-  "amount": "31000000000" // amount is in gwei
+  "pubkey": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+  "amount": "31000000000"
 }]' -v 0x1234567890123456789012345678901234567890
 ```
 
 ## Node Operator Balance Management
 
-### Top Up Node Operator Balance
-
-Add ETH to node operator balance for covering predeposit requirements:
-
-```bash
-yarn start deposits w top-up-no <amount>
-```
-
-**Arguments and Options:**
-
-| Argument/Option        | Description             | Format            |
-| ---------------------- | ----------------------- | ----------------- |
-| `<amount>`             | Amount in ETH to top up | Decimal (e.g., 1) |
-| `-v, --vault <string>` | Vault address           | 0x...             |
-
-**Example:**
-
-```bash
-# Top up with 2 ETH (enough for 2 predeposits)
-yarn start deposits w top-up-no 2 -v 0x1234567890123456789012345678901234567890
-
-# Interactive vault selection
-yarn start deposits w top-up-no 1
-```
+See [Top Up Node Operator Balance](#top-up-node-operator-balance) above for funding the node operator balance.
 
 ### Withdraw Node Operator Balance
 
@@ -411,9 +389,10 @@ yarn start deposits w top-up-existing-validators '<topUps>'
 **Example:**
 
 ```bash
+# Note: amount is in gwei
 yarn start deposits w top-up-existing-validators '[{
-  "pubkey": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
-  "amount": "31000000000" // amount is in gwei
+  "pubkey": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+  "amount": "31000000000"
 }]' -v 0x1234567890123456789012345678901234567890
 ```
 
