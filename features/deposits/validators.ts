@@ -29,9 +29,8 @@ export const checkValidatorInfo = async (validator: ValidatorInfo) => {
     isValid = false;
   }
 
-  logError(message);
-
   if (!isValid) {
+    logError(message);
     const confirm = await confirmOperation(
       `Do you want to skip this validator (pubkey: ${validator.pubkey})?`,
     );

@@ -231,7 +231,7 @@ export const fetchBeaconHeader = async (stateId: StateId, clURL?: string) => {
   } catch (error) {
     printError(
       error,
-      `Error fetching beacon header. Used URL: ${url}, stateId: ${stateId}. Please check if the CL_URL environment variable is correct or try to use another CL. ${error}`,
+      `Error fetching beacon header. Used URL: ${url}, stateId: ${stateId}. Please check if the CL_URL environment variable is correct or try to use another CL.`,
     );
     throw error;
   }
