@@ -93,7 +93,7 @@ WALLET_CONNECT_PROJECT_ID=ee928c025792b10a6daa97d85328c433
 
 - **Attempts**: Up to 3 connection attempts
 - **Timeout**: 180 seconds per attempt
-- **Batch Support**: Uses `wallet_sendCalls` (EIP-5792) when available, falls back to individual transactions
+- **Batch Support**: Detects `wallet_sendCalls` (EIP-5792) support from the session's approved methods. Uses `wallet_sendCalls` when available; otherwise falls back silently to individual `eth_sendTransaction` calls without noisy errors
 
 ## Using WalletConnect with Gnosis Safe (Recommended)
 
@@ -321,8 +321,8 @@ yarn start report w submit --wallet-connect
 **Problem: Batch fails with unsupported method**
 
 - Wallet may not support `wallet_sendCalls` (EIP-5792)
-- CLI will attempt legacy fallback
-- Some operations may require individual transactions
+- CLI detects support from the session's approved methods at connection time and logs a warning if `wallet_sendCalls` is not approved
+- CLI automatically uses individual `eth_sendTransaction` calls instead — no action required
 
 **Problem: Transaction simulation fails**
 
