@@ -6,6 +6,7 @@ import {
   type WalletClient,
   type Account,
   type Address,
+  type Chain,
 } from 'viem';
 
 import { getConfig, getChain } from 'configs';
@@ -221,6 +222,7 @@ const connectWalletConnect = async (): Promise<{
           'eth_chainId',
           'wallet_sendCalls',
           'wallet_getCallsStatus',
+          'wallet_getCapabilities',
         ],
         chains: [`eip155:${chain.id}`],
         events: ['chainChanged', 'accountsChanged'],
@@ -253,10 +255,28 @@ const connectWalletConnect = async (): Promise<{
   }
 
   const approvedMethods = session.namespaces.eip155?.methods || [];
-  const supportsWalletSendCalls = approvedMethods.includes('wallet_sendCalls');
+  const declaredSendCalls = approvedMethods.includes('wallet_sendCalls');
+
+  // Verify actual capability via EIP-5792 wallet_getCapabilities.
+  // Wallets like MetaMask declare wallet_sendCalls in the session but require
+  // EIP-7702 to be enabled by the user — wallet_getCapabilities returns the
+  // true runtime support per chain.
+  let supportsWalletSendCalls = false;
+  if (declaredSendCalls) {
+    logInfo('Checking wallet_getCapabilities...');
+    // EIP-5792: wallet_getCapabilities takes the account address as first param
+    const accountAddress = accounts?.[0]?.split(':')[2];
+
+    supportsWalletSendCalls = await checkWalletSendCallsSupport(
+      session,
+      chain,
+      accountAddress,
+    );
+  }
+
   if (!supportsWalletSendCalls) {
     logInfo(
-      'Warning: wallet_sendCalls not approved by wallet, will use eth_sendTransaction fallback',
+      'wallet_sendCalls not available, will use eth_sendTransaction fallback',
     );
   }
 
@@ -271,6 +291,51 @@ const connectWalletConnect = async (): Promise<{
     isGnosis,
     supportsWalletSendCalls,
   };
+};
+
+export const checkWalletSendCallsSupport = async (
+  session: any,
+  chain: Chain,
+  accountAddress?: string,
+) => {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const capabilities = await cachedSignClient!.request<
+      Record<
+        string,
+        {
+          atomic?: { status: string };
+          atomicBatch?: { supported: boolean };
+        }
+      >
+    >({
+      topic: session.topic,
+      chainId: `eip155:${chain.id}`,
+      request: {
+        method: 'wallet_getCapabilities',
+        params: [accountAddress],
+      },
+    });
+    const chainKey = `0x${chain.id.toString(16)}`;
+    const cap = capabilities?.[chainKey];
+    // EIP-5792 final spec uses atomic.status === 'supported'
+    // Some older wallet implementations use atomicBatch.supported === true
+    const supportsWalletSendCalls =
+      cap?.atomic?.status === 'supported' ||
+      cap?.atomicBatch?.supported === true;
+    logInfo(
+      `wallet_getCapabilities: atomic batch supported = ${supportsWalletSendCalls}`,
+    );
+
+    return supportsWalletSendCalls;
+  } catch {
+    // wallet_getCapabilities not supported or failed — fall back to individual txs
+    logInfo(
+      'wallet_getCapabilities unavailable — will use eth_sendTransaction fallback',
+    );
+
+    return false;
+  }
 };
 
 export const disconnectWalletConnect = async () => {
