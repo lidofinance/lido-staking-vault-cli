@@ -38,25 +38,25 @@ Vault Operations commands manage the core functionality of Lido Staking Vaults i
 
 ### Write
 
-| Command                                                                  | Description                                                                                                                                                                                   |
-| ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| fund \<ether>                                                            | fund vaults                                                                                                                                                                                   |
-| withdraw \<eth>                                                          | withdraws ether from the staking vault to a recipient                                                                                                                                         |
-| mint-shares (mint) \<amountOfShares>                                     | mints stETH tokens backed by the vault to a recipient                                                                                                                                         |
-| mint-wsteth \<amountOfWsteth>                                            | mints wstETH tokens backed by the vault to a recipient                                                                                                                                        |
-| mint-steth \<amountOfSteth>                                              | mints stETH tokens backed by the vault to a recipient                                                                                                                                         |
-| burn-shares (burn) \<amountOfShares>                                     | Burns stETH shares from the sender backed by the vault. Expects corresponding amount of stETH approved to this contract                                                                       |
-| burn-steth \<amountOfSteth>                                              | Burns stETH shares from the sender backed by the vault. Expects stETH amount approved to this contract.                                                                                       |
-| burn-wsteth \<amountOfWsteth>                                            | burn wstETH tokens from the sender backed by the vault                                                                                                                                        |
-| disburse-node-operator-fee                                               | transfers the node-operator`s accrued fee (if any) to nodeOperatorFeeRecipient                                                                                                                |
-| set-node-operator-fee-recipient (set-no-f-r)                             | sets the node operator fee recipient                                                                                                                                                          |
-| change-tier-by-no (ct-no) \<tierId> [--steth]                            | vault tier change by node operator with multi-role confirmation. For disconnected vaults this option is required. Use `--steth` to provide `--requestedShareLimit` in stETH instead of shares |
-| change-tier (ct) \<tierId> [--steth]                                     | vault tier change with multi-role confirmation. Use `--steth` to provide `--requestedShareLimit` in stETH instead of shares                                                                   |
-| sync-tier (st)                                                           | requests a sync of tier on the OperatorGrid                                                                                                                                                   |
-| connect-and-accept-tier (connect-and-accept) \<vault> \<tierId> \<limit> | changes the tier of the vault and connects to VaultHub                                                                                                                                        |
-| role-grant                                                               | mass-grants multiple roles to multiple accounts                                                                                                                                               |
-| role-revoke                                                              | mass-revokes multiple roles from multiple accounts                                                                                                                                            |
-| create-vault                                                             | creates a new StakingVault and Dashboard contracts                                                                                                                                            |
+| Command                                                                            | Description                                                                                                                                                                                   |
+| ---------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| fund \<ether>                                                                      | fund vaults                                                                                                                                                                                   |
+| withdraw \<eth>                                                                    | withdraws ether from the staking vault to a recipient                                                                                                                                         |
+| mint-shares (mint) \<amountOfShares>                                               | mints stETH tokens backed by the vault to a recipient                                                                                                                                         |
+| mint-wsteth \<amountOfWsteth>                                                      | mints wstETH tokens backed by the vault to a recipient                                                                                                                                        |
+| mint-steth \<amountOfSteth>                                                        | mints stETH tokens backed by the vault to a recipient                                                                                                                                         |
+| burn-shares (burn) \<amountOfShares>                                               | Burns stETH shares from the sender backed by the vault. Expects corresponding amount of stETH approved to this contract                                                                       |
+| burn-steth \<amountOfSteth>                                                        | Burns stETH shares from the sender backed by the vault. Expects stETH amount approved to this contract.                                                                                       |
+| burn-wsteth \<amountOfWsteth>                                                      | burn wstETH tokens from the sender backed by the vault                                                                                                                                        |
+| disburse-node-operator-fee                                                         | transfers the node-operator`s accrued fee (if any) to nodeOperatorFeeRecipient                                                                                                                |
+| set-node-operator-fee-recipient (set-no-f-r)                                       | sets the node operator fee recipient                                                                                                                                                          |
+| change-tier-by-no (ct-no) \<tierId> [--steth]                                      | vault tier change by node operator with multi-role confirmation. For disconnected vaults this option is required. Use `--steth` to provide `--requestedShareLimit` in stETH instead of shares |
+| change-tier (ct) \<tierId> [--steth]                                               | vault tier change with multi-role confirmation. Use `--steth` to provide `--requestedShareLimit` in stETH instead of shares                                                                   |
+| sync-tier (st)                                                                     | requests a sync of tier on the OperatorGrid                                                                                                                                                   |
+| connect-and-accept-tier (connect-and-accept) \<vault> \<tierId> \<limit> [--steth] | changes the tier of the vault and connects to VaultHub                                                                                                                                        |
+| role-grant                                                                         | mass-grants multiple roles to multiple accounts                                                                                                                                               |
+| role-revoke                                                                        | mass-revokes multiple roles from multiple accounts                                                                                                                                            |
+| create-vault                                                                       | creates a new StakingVault and Dashboard contracts                                                                                                                                            |
 
 ## Command Details
 
@@ -842,20 +842,22 @@ yarn start vo w connect-and-accept <vaultAddress> <tierId> <requestedShareLimit>
 
 - `<vaultAddress>`: Vault address (required)
 - `<tierId>`: Tier to change to (numeric value)
-- `<requestedShareLimit>`: Requested new share limit for the vault (in shares, e.g., 1000.0)
+- `<requestedShareLimit>`: Requested new share limit for the vault — in shares by default, or in stETH if `--steth` is provided
 
 **Options:**
 
 - `-f, --fund`: Fund the vault with 1 ETH without balance check (default: false)
+- `--steth`: Interpret `<requestedShareLimit>` as a stETH value; converts to shares on-chain via `getSharesByPooledEth` before submitting
 
 **Process:**
 
 1. Reads current `settledGrowth` from the dashboard
-2. Displays confirmation with target tier, vault address, share limit, settled growth, and funding details
-3. Handles funding:
+2. If `--steth` is provided, converts the stETH value to shares on-chain and logs the conversion
+3. Displays confirmation with target tier, vault address, share limit, settled growth, and funding details
+4. Handles funding:
    - If `--fund` flag is provided: Always funds with 1 ETH
    - If `--fund` flag is NOT provided (default): Checks vault's available balance and prompts for funding if insufficient
-4. Submits transaction to change tier and connect to VaultHub with optional funding
+5. Submits transaction to change tier and connect to VaultHub with optional funding
 
 **Requirements:**
 

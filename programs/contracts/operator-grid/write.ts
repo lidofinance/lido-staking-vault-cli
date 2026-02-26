@@ -3,7 +3,6 @@ import { Option } from 'commander';
 import {
   getDashboardContract,
   getOperatorGridContract,
-  getStethContract,
   getVaultHubContract,
 } from 'contracts';
 import {
@@ -17,6 +16,7 @@ import {
   callReadMethodSilent,
   stringToAddress,
 } from 'utils';
+import { resolveStethShareLimit } from 'features';
 
 import { operatorGrid } from './main.js';
 
@@ -56,18 +56,10 @@ operatorGridWrite
     ) => {
       const operatorGridContract = await getOperatorGridContract();
 
-      let shareLimit = requestedShareLimit;
-      if (steth) {
-        const stethContract = await getStethContract();
-        shareLimit = await callReadMethodSilent({
-          contract: stethContract,
-          methodName: 'getSharesByPooledEth',
-          payload: [[requestedShareLimit]],
-        });
-        logInfo(
-          `Converting ${formatEther(requestedShareLimit)} stETH → ${formatEther(shareLimit)} shares`,
-        );
-      }
+      const shareLimit = await resolveStethShareLimit(
+        requestedShareLimit,
+        steth,
+      );
 
       const confirm = await confirmOperation(
         `Are you sure you want to request change tier ${tierId} for vault ${vault} with requested share limit ${formatEther(shareLimit)} shares?`,
@@ -125,18 +117,10 @@ operatorGridWrite
     ) => {
       const operatorGridContract = await getOperatorGridContract();
 
-      let shareLimit = requestedShareLimit;
-      if (steth) {
-        const stethContract = await getStethContract();
-        shareLimit = await callReadMethodSilent({
-          contract: stethContract,
-          methodName: 'getSharesByPooledEth',
-          payload: [[requestedShareLimit]],
-        });
-        logInfo(
-          `Converting ${formatEther(requestedShareLimit)} stETH → ${formatEther(shareLimit)} shares`,
-        );
-      }
+      const shareLimit = await resolveStethShareLimit(
+        requestedShareLimit,
+        steth,
+      );
 
       const confirm = await confirmOperation(
         `Are you sure you want to update the share limit of the vault ${vault} to ${formatEther(shareLimit)} shares?`,

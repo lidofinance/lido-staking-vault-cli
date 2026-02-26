@@ -210,6 +210,8 @@ const sendIndividualTransactions = async (
     });
     lastTxHash = txHash;
 
+    logInfo(`Transaction submitted: ${txHash}`);
+
     if (!isGnosis) {
       await waitForTransactionReceipt(publicClient, {
         hash: txHash,

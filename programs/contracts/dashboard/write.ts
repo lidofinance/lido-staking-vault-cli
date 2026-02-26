@@ -6,7 +6,6 @@ import {
   getOperatorGridContract,
   getPredepositGuaranteeContract,
   getStakingVaultContract,
-  getStethContract,
 } from 'contracts';
 import {
   mintShares,
@@ -17,6 +16,7 @@ import {
   checkPdgIsPaused,
   callWriteMethodsWithReportFresh,
   checkValidatorInfo,
+  resolveStethShareLimit,
 } from 'features';
 import {
   callReadMethod,
@@ -1175,18 +1175,10 @@ dashboardWrite
         payload: [],
       });
 
-      let shareLimit = requestedShareLimit;
-      if (steth) {
-        const stethContract = await getStethContract();
-        shareLimit = await callReadMethodSilent({
-          contract: stethContract,
-          methodName: 'getSharesByPooledEth',
-          payload: [[requestedShareLimit]],
-        });
-        logInfo(
-          `Converting ${formatEther(requestedShareLimit)} stETH → ${formatEther(shareLimit)} shares`,
-        );
-      }
+      const shareLimit = await resolveStethShareLimit(
+        requestedShareLimit,
+        steth,
+      );
 
       const confirm = await confirmOperation(
         `Are you sure you want to change the current tier to tier ID ${tierId} for vault ${vault} with share limit ${formatEther(shareLimit)} shares?`,
@@ -1261,18 +1253,10 @@ dashboardWrite
         payload: [],
       });
 
-      let resolvedShareLimit = shareLimit;
-      if (steth) {
-        const stethContract = await getStethContract();
-        resolvedShareLimit = await callReadMethodSilent({
-          contract: stethContract,
-          methodName: 'getSharesByPooledEth',
-          payload: [[shareLimit]],
-        });
-        logInfo(
-          `Converting ${formatEther(shareLimit)} stETH → ${formatEther(resolvedShareLimit)} shares`,
-        );
-      }
+      const resolvedShareLimit = await resolveStethShareLimit(
+        shareLimit,
+        steth,
+      );
 
       const confirm = await confirmOperation(
         `Are you sure you want to request a change of share limit on the OperatorGrid for the vault ${vault} to ${formatEther(resolvedShareLimit)} shares?`,

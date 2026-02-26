@@ -29,9 +29,10 @@ import {
   callWriteMethodsWithReportFresh,
   checkVaultAvailableBalance,
   checkIsReportFreshThrowError,
+  resolveStethShareLimit,
 } from 'features';
 import { getAccount } from 'providers';
-import { getOperatorGridContract, getStethContract } from 'contracts';
+import { getOperatorGridContract } from 'contracts';
 import { RoleAssignment } from 'types';
 
 import { vaultOperations } from './main.js';
@@ -463,19 +464,11 @@ vaultOperationsWrite
       const tierShareLimit = tierInfo.shareLimit;
       let currentShareLimit = tierShareLimit;
 
-      if (requestedShareLimit) {
-        let resolvedShareLimit = requestedShareLimit;
-        if (steth) {
-          const stethContract = await getStethContract();
-          resolvedShareLimit = await callReadMethodSilent({
-            contract: stethContract,
-            methodName: 'getSharesByPooledEth',
-            payload: [[requestedShareLimit]],
-          });
-          logInfo(
-            `Converting ${formatEther(requestedShareLimit)} stETH → ${formatEther(resolvedShareLimit)} shares`,
-          );
-        }
+      if (requestedShareLimit != null) {
+        const resolvedShareLimit = await resolveStethShareLimit(
+          requestedShareLimit,
+          steth,
+        );
 
         const confirmShareLimit = await confirmOperation(
           `Are you sure you want to request change share limit for vault ${vaultAddress} to ${formatEther(resolvedShareLimit)} shares (requested tier share limit is ${formatEther(tierShareLimit)} shares)?`,
@@ -545,19 +538,11 @@ vaultOperationsWrite
       const tierShareLimit = tierInfo.shareLimit;
 
       let currentShareLimit = tierShareLimit;
-      if (requestedShareLimit) {
-        let resolvedShareLimit = requestedShareLimit;
-        if (steth) {
-          const stethContract = await getStethContract();
-          resolvedShareLimit = await callReadMethodSilent({
-            contract: stethContract,
-            methodName: 'getSharesByPooledEth',
-            payload: [[requestedShareLimit]],
-          });
-          logInfo(
-            `Converting ${formatEther(requestedShareLimit)} stETH → ${formatEther(resolvedShareLimit)} shares`,
-          );
-        }
+      if (requestedShareLimit != null) {
+        const resolvedShareLimit = await resolveStethShareLimit(
+          requestedShareLimit,
+          steth,
+        );
 
         const confirmShareLimit = await confirmOperation(
           `Are you sure you want to request change share limit for vault ${vaultAddress} to ${formatEther(resolvedShareLimit)} shares (requested tier share limit is ${formatEther(tierShareLimit)} shares)?`,
@@ -732,10 +717,15 @@ vaultOperationsWrite
   .argument('<tierId>', 'tier to change to', stringToBigInt)
   .argument(
     '<requestedShareLimit>',
-    'requested new share limit for the vault (in shares)',
+    'requested new share limit for the vault (in shares by default, or in stETH if --steth flag is provided)',
     etherToWei,
   )
   .option('-f, --fund', 'optional fund the vault with 1 ETH', false)
+  .option(
+    '--steth',
+    'interpret requestedShareLimit as stETH value and convert to shares on-chain',
+    false,
+  )
 
   .addHelpText(
     'after',
@@ -746,7 +736,7 @@ vaultOperationsWrite
       vaultAddress: Address,
       tier: bigint,
       requestedShareLimit: bigint,
-      { fund }: { fund: boolean },
+      { fund, steth }: { fund: boolean; steth: boolean },
     ) => {
       const { contract } = await chooseVaultAndGetDashboard({
         vault: vaultAddress,
@@ -758,9 +748,14 @@ vaultOperationsWrite
         payload: [],
       });
 
+      const resolvedShareLimit = await resolveStethShareLimit(
+        requestedShareLimit,
+        steth,
+      );
+
       const confirm = await confirmOperation(
         `Are you sure you want to change the tier of the vault ${vaultAddress} to ${tier} and connect to VaultHub?
-        Requested share limit: ${formatEther(requestedShareLimit)}
+        Requested share limit: ${formatEther(resolvedShareLimit)}
         Current settled growth: ${formatEther(currentSettledGrowth)}
         Fund with 1 ETH: ${fund}`,
       );
@@ -778,7 +773,7 @@ vaultOperationsWrite
       await callWriteMethodWithReceipt({
         contract,
         methodName: 'connectAndAcceptTier',
-        payload: [tier, requestedShareLimit],
+        payload: [tier, resolvedShareLimit],
         value,
       });
     },
