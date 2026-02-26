@@ -198,9 +198,15 @@ const sendIndividualTransactions = async (
   }
 
   const publicClient = await getPublicClient();
+  const confirmations = process.env.CONFIRMATIONS
+    ? Number(process.env.CONFIRMATIONS)
+    : 3;
   let lastTxHash: Hex | undefined;
 
-  for (const call of calls) {
+  for (let i = 0; i < calls.length; i++) {
+    const call = calls[i];
+    if (!call) throw new Error('Call is undefined');
+
     const txHash = await walletConnectClient.sendTransaction({
       account,
       to: call.to,
@@ -212,12 +218,11 @@ const sendIndividualTransactions = async (
 
     logInfo(`Transaction submitted: ${txHash}`);
 
-    if (!isGnosis) {
+    // Wait for each intermediate tx; the last one is awaited below to capture the receipt
+    if (!isGnosis && i < calls.length - 1) {
       await waitForTransactionReceipt(publicClient, {
         hash: txHash,
-        confirmations: process.env.CONFIRMATIONS
-          ? Number(process.env.CONFIRMATIONS)
-          : 3,
+        confirmations,
       });
     }
   }
@@ -232,9 +237,7 @@ const sendIndividualTransactions = async (
 
   const receipt = await waitForTransactionReceipt(publicClient, {
     hash: lastTxHash,
-    confirmations: process.env.CONFIRMATIONS
-      ? Number(process.env.CONFIRMATIONS)
-      : 3,
+    confirmations,
   });
 
   return { id: lastTxHash, txHash: lastTxHash, receipt };

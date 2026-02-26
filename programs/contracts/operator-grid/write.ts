@@ -1,4 +1,4 @@
-import { Address, formatEther } from 'viem';
+import { Address } from 'viem';
 import { Option } from 'commander';
 import {
   getDashboardContract,
@@ -56,13 +56,11 @@ operatorGridWrite
     ) => {
       const operatorGridContract = await getOperatorGridContract();
 
-      const shareLimit = await resolveStethShareLimit(
-        requestedShareLimit,
-        steth,
-      );
+      const { shares: shareLimit, label: shareLimitLabel } =
+        await resolveStethShareLimit(requestedShareLimit, steth);
 
       const confirm = await confirmOperation(
-        `Are you sure you want to request change tier ${tierId} for vault ${vault} with requested share limit ${formatEther(shareLimit)} shares?`,
+        `Are you sure you want to request change tier ${tierId} for vault ${vault} with requested share limit ${shareLimitLabel}?`,
       );
       if (!confirm) return;
 
@@ -117,13 +115,11 @@ operatorGridWrite
     ) => {
       const operatorGridContract = await getOperatorGridContract();
 
-      const shareLimit = await resolveStethShareLimit(
-        requestedShareLimit,
-        steth,
-      );
+      const { shares: shareLimit, label: shareLimitLabel } =
+        await resolveStethShareLimit(requestedShareLimit, steth);
 
       const confirm = await confirmOperation(
-        `Are you sure you want to update the share limit of the vault ${vault} to ${formatEther(shareLimit)} shares?`,
+        `Are you sure you want to update the share limit of the vault ${vault} to ${shareLimitLabel}?`,
       );
       if (!confirm) return;
 

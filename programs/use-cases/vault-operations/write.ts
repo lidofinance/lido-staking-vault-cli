@@ -464,14 +464,17 @@ vaultOperationsWrite
       const tierShareLimit = tierInfo.shareLimit;
       let currentShareLimit = tierShareLimit;
 
+      if (steth && requestedShareLimit == null) {
+        logError('--steth flag requires --requestedShareLimit to be specified');
+        return;
+      }
+
       if (requestedShareLimit != null) {
-        const resolvedShareLimit = await resolveStethShareLimit(
-          requestedShareLimit,
-          steth,
-        );
+        const { shares: resolvedShareLimit, label: shareLimitLabel } =
+          await resolveStethShareLimit(requestedShareLimit, steth);
 
         const confirmShareLimit = await confirmOperation(
-          `Are you sure you want to request change share limit for vault ${vaultAddress} to ${formatEther(resolvedShareLimit)} shares (requested tier share limit is ${formatEther(tierShareLimit)} shares)?`,
+          `Are you sure you want to request change share limit for vault ${vaultAddress} to ${shareLimitLabel} (requested tier share limit is ${formatEther(tierShareLimit)} shares)?`,
         );
         if (!confirmShareLimit) return;
 
@@ -538,14 +541,18 @@ vaultOperationsWrite
       const tierShareLimit = tierInfo.shareLimit;
 
       let currentShareLimit = tierShareLimit;
+
+      if (steth && requestedShareLimit == null) {
+        logError('--steth flag requires --requestedShareLimit to be specified');
+        return;
+      }
+
       if (requestedShareLimit != null) {
-        const resolvedShareLimit = await resolveStethShareLimit(
-          requestedShareLimit,
-          steth,
-        );
+        const { shares: resolvedShareLimit, label: shareLimitLabel } =
+          await resolveStethShareLimit(requestedShareLimit, steth);
 
         const confirmShareLimit = await confirmOperation(
-          `Are you sure you want to request change share limit for vault ${vaultAddress} to ${formatEther(resolvedShareLimit)} shares (requested tier share limit is ${formatEther(tierShareLimit)} shares)?`,
+          `Are you sure you want to request change share limit for vault ${vaultAddress} to ${shareLimitLabel} (requested tier share limit is ${formatEther(tierShareLimit)} shares)?`,
         );
         if (!confirmShareLimit) return;
 
@@ -748,14 +755,12 @@ vaultOperationsWrite
         payload: [],
       });
 
-      const resolvedShareLimit = await resolveStethShareLimit(
-        requestedShareLimit,
-        steth,
-      );
+      const { shares: resolvedShareLimit, label: shareLimitLabel } =
+        await resolveStethShareLimit(requestedShareLimit, steth);
 
       const confirm = await confirmOperation(
         `Are you sure you want to change the tier of the vault ${vaultAddress} to ${tier} and connect to VaultHub?
-        Requested share limit: ${formatEther(resolvedShareLimit)}
+        Requested share limit: ${shareLimitLabel}
         Current settled growth: ${formatEther(currentSettledGrowth)}
         Fund with 1 ETH: ${fund}`,
       );
