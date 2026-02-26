@@ -731,7 +731,7 @@ yarn start vo w ct <tierId> [options]
 - If `--requestedShareLimit` provided with `--steth`, converts the stETH value to shares on-chain and logs the conversion
 - If `--requestedShareLimit` provided, prompts for confirmation to use custom limit
 - Uses requested share limit if provided; otherwise uses tier default
-- Displays confirmation with tier ID and share limit
+- Displays confirmation with tier ID and share limit (when `--steth` is used, the prompt shows both shares and the original stETH amount)
 - Verifies caller has VAULT_CONFIGURATION_ROLE permission
 - Ensures vault report is fresh (submits update if needed)
 - Submits tier change transaction
@@ -775,7 +775,7 @@ yarn start vo w ct-no <tierId> [options]
 - If `--requestedShareLimit` provided with `--steth`, converts the stETH value to shares on-chain and logs the conversion
 - If `--requestedShareLimit` provided, prompts for confirmation to use custom limit
 - Uses requested share limit if provided; otherwise uses tier default
-- Displays confirmation with tier ID and share limit
+- Displays confirmation with tier ID and share limit (when `--steth` is used, the prompt shows both shares and the original stETH amount)
 - Ensures vault report is fresh (submits update if needed)
 - Submits tier change via OperatorGrid contract
 
@@ -853,7 +853,7 @@ yarn start vo w connect-and-accept <vaultAddress> <tierId> <requestedShareLimit>
 
 1. Reads current `settledGrowth` from the dashboard
 2. If `--steth` is provided, converts the stETH value to shares on-chain and logs the conversion
-3. Displays confirmation with target tier, vault address, share limit, settled growth, and funding details
+3. Displays confirmation with target tier, vault address, share limit (and original stETH when `--steth` is used), settled growth, and funding details
 4. Handles funding:
    - If `--fund` flag is provided: Always funds with 1 ETH
    - If `--fund` flag is NOT provided (default): Checks vault's available balance and prompts for funding if insufficient

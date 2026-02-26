@@ -24,8 +24,7 @@ WalletConnect is an open protocol to connect dApps with wallets. In this CLI, Wa
 
 ### Supported Multisig Wallets
 
-- **Gnosis Safe** (Recommended) - Most widely used, excellent WalletConnect support
-- **Safe\{Wallet\}** - Modern interface for Gnosis Safe
+- **Gnosis Safe / Safe\{Wallet\}** (Recommended) - Most widely used multisig, excellent WalletConnect support
 - Other multisig wallets with WalletConnect v2 support
 
 ## Prerequisites
@@ -93,7 +92,7 @@ WALLET_CONNECT_PROJECT_ID=ee928c025792b10a6daa97d85328c433
 
 - **Attempts**: Up to 3 connection attempts
 - **Timeout**: 180 seconds per attempt
-- **Batch Support**: Detects `wallet_sendCalls` (EIP-5792) support from the session's approved methods. Uses `wallet_sendCalls` when available; otherwise falls back silently to individual `eth_sendTransaction` calls without noisy errors
+- **Batch Support**: Uses EIP-5792 `wallet_getCapabilities` (with your account address) to detect real batch support per chain. If the wallet reports `atomic.status === 'supported'` (or `atomicBatch.supported`), the CLI uses `wallet_sendCalls` for batch operations; otherwise it falls back to individual `eth_sendTransaction` calls. Some wallets (e.g. MetaMask) declare `wallet_sendCalls` in the session but require EIP-7702 to be enabled — if not enabled or if the batch call fails (e.g. code 5750), the CLI automatically falls back to sending transactions one by one and logs that fallback
 
 ## Using WalletConnect with Gnosis Safe (Recommended)
 
@@ -171,7 +170,7 @@ After CLI prepares the transaction:
 
 1. First signer signs the transaction
 2. Safe creates a pending transaction
-3. **CLI completes and exits** after first signature
+3. **CLI completes and exits** immediately after submitting the transaction to Safe (it does not wait for signatures or execution)
 4. CLI displays Safe transaction hash/nonce
 5. Other signers must sign separately:
    - Open the Safe interface
@@ -318,11 +317,10 @@ yarn start report w submit --wallet-connect
 
 ### Batch/Advanced Issues
 
-**Problem: Batch fails with unsupported method**
+**Problem: Batch fails or wallet says "EIP-7702 disabled" (e.g. MetaMask code 5750)**
 
-- Wallet may not support `wallet_sendCalls` (EIP-5792)
-- CLI detects support from the session's approved methods at connection time and logs a warning if `wallet_sendCalls` is not approved
-- CLI automatically uses individual `eth_sendTransaction` calls instead — no action required
+- Some wallets (e.g. MetaMask) implement `wallet_sendCalls` via EIP-7702 and require it to be enabled in wallet settings. If it's disabled, the batch call can fail.
+- The CLI checks real support at connection time via `wallet_getCapabilities` (EIP-5792). If the wallet does not report atomic batch support, or if a batch send fails (e.g. user rejected EIP-7702), the CLI automatically falls back to individual `eth_sendTransaction` calls and logs that fallback — no action required. You can also enable EIP-7702 in the wallet if you prefer a single batch transaction.
 
 **Problem: Transaction simulation fails**
 
@@ -336,7 +334,7 @@ yarn start report w submit --wallet-connect
 ### Current Limitations
 
 - **Session persistence**: Not guaranteed between runs; you typically approve per session
-- **Batch support**: Depends on wallet's EIP-5792 support
+- **Batch support**: Detected via EIP-5792 `wallet_getCapabilities`; falls back to individual transactions when batch is not supported or fails (e.g. MetaMask with EIP-7702 disabled)
 - **Gnosis Safe multisig**: CLI exits after first signature; does not wait for threshold or execution
 - **No transaction tracking**: CLI does not monitor pending Safe transactions after exit
 - **Network switching**: Must be done manually in wallet before connecting
