@@ -7,3 +7,4 @@ export * from './vault-roles.js';
 export * from './create-vault.js';
 export * from './roles.js';
 export * from './connect-vault.js';
+export * from './share-limit.js';

@@ -16,6 +16,7 @@ import {
   checkPdgIsPaused,
   callWriteMethodsWithReportFresh,
   checkValidatorInfo,
+  resolveStethShareLimit,
 } from 'features';
 import {
   callReadMethod,
@@ -897,10 +898,15 @@ dashboardWrite
   .argument('<tier>', 'tier to change to', stringToBigInt)
   .argument(
     '<requestedShareLimit>',
-    'requested new share limit for the vault (in shares)',
+    'requested new share limit for the vault (in shares by default, or in stETH if --steth flag is provided)',
     etherToWei,
   )
   .option('-f, --fund', 'optional fund the vault with 1 ETH', false)
+  .option(
+    '--steth',
+    'interpret requestedShareLimit as stETH value and convert to shares on-chain',
+    false,
+  )
   .addHelpText(
     'after',
     `Reverts if settledGrowth is not corrected after the vault is disconnected`,
@@ -910,7 +916,7 @@ dashboardWrite
       address: Address,
       tier: bigint,
       requestedShareLimit: bigint,
-      { fund }: { fund: boolean },
+      { fund, steth }: { fund: boolean; steth: boolean },
     ) => {
       const contract = await getDashboardContract(address);
       const vault = await callReadMethod({
@@ -924,9 +930,12 @@ dashboardWrite
         payload: [],
       });
 
+      const { shares: resolvedShareLimit, label: shareLimitLabel } =
+        await resolveStethShareLimit(requestedShareLimit, steth);
+
       const confirm = await confirmOperation(
         `Are you sure you want to change the tier of the vault ${vault} to ${tier} and connect to VaultHub?
-        Requested share limit: ${formatEther(requestedShareLimit)}
+        Requested share limit: ${shareLimitLabel}
         Current settled growth: ${formatEther(currentSettledGrowth)}`,
       );
       if (!confirm) return;
@@ -934,7 +943,7 @@ dashboardWrite
       await callWriteMethodWithReceipt({
         contract,
         methodName: 'connectAndAcceptTier',
-        payload: [tier, requestedShareLimit],
+        payload: [tier, resolvedShareLimit],
         value: fund ? parseEther('1') : undefined,
       });
     },
@@ -1152,11 +1161,21 @@ dashboardWrite
   .argument('<tierId>', 'tier id', stringToBigInt)
   .argument(
     '<requestedShareLimit>',
-    'requested share limit (in shares)',
+    'requested share limit (in shares by default, or in stETH if --steth flag is provided)',
     etherToWei,
   )
+  .option(
+    '--steth',
+    'interpret requestedShareLimit as stETH value and convert to shares on-chain',
+    false,
+  )
   .action(
-    async (address: Address, tierId: bigint, requestedShareLimit: bigint) => {
+    async (
+      address: Address,
+      tierId: bigint,
+      requestedShareLimit: bigint,
+      { steth }: { steth: boolean },
+    ) => {
       const contract = await getDashboardContract(address);
       const vault = await callReadMethod({
         contract,
@@ -1164,15 +1183,18 @@ dashboardWrite
         payload: [],
       });
 
+      const { shares: shareLimit, label: shareLimitLabel } =
+        await resolveStethShareLimit(requestedShareLimit, steth);
+
       const confirm = await confirmOperation(
-        `Are you sure you want to change the current tier to tier ID ${tierId} for vault ${vault} with share limit ${formatEther(requestedShareLimit)} shares?`,
+        `Are you sure you want to change the current tier to tier ID ${tierId} for vault ${vault} with share limit ${shareLimitLabel}?`,
       );
       if (!confirm) return;
 
       await callWriteMethodWithReceipt({
         contract,
         methodName: 'changeTier',
-        payload: [tierId, requestedShareLimit],
+        payload: [tierId, shareLimit],
       });
     },
   );
@@ -1214,26 +1236,44 @@ dashboardWrite
   .alias('usl')
   .description('requests a change of share limit on the OperatorGrid')
   .argument('<address>', 'dashboard address', stringToAddress)
-  .argument('<shareLimit>', 'share limit', etherToWei)
-  .action(async (address: Address, shareLimit: bigint) => {
-    const contract = await getDashboardContract(address);
-    const vault = await callReadMethod({
-      contract,
-      methodName: 'stakingVault',
-      payload: [],
-    });
+  .argument(
+    '<shareLimit>',
+    'share limit (in shares by default, or in stETH if --steth flag is provided)',
+    etherToWei,
+  )
+  .option(
+    '--steth',
+    'interpret shareLimit as stETH value and convert to shares on-chain',
+    false,
+  )
+  .action(
+    async (
+      address: Address,
+      shareLimit: bigint,
+      { steth }: { steth: boolean },
+    ) => {
+      const contract = await getDashboardContract(address);
+      const vault = await callReadMethod({
+        contract,
+        methodName: 'stakingVault',
+        payload: [],
+      });
 
-    const confirm = await confirmOperation(
-      `Are you sure you want to request a change of share limit on the OperatorGrid for the vault ${vault} to ${formatEther(shareLimit)}?`,
-    );
-    if (!confirm) return;
+      const { shares: resolvedShareLimit, label: shareLimitLabel } =
+        await resolveStethShareLimit(shareLimit, steth);
 
-    await callWriteMethodWithReceipt({
-      contract,
-      methodName: 'updateShareLimit',
-      payload: [shareLimit],
-    });
-  });
+      const confirm = await confirmOperation(
+        `Are you sure you want to request a change of share limit on the OperatorGrid for the vault ${vault} to ${shareLimitLabel}?`,
+      );
+      if (!confirm) return;
+
+      await callWriteMethodWithReceipt({
+        contract,
+        methodName: 'updateShareLimit',
+        payload: [resolvedShareLimit],
+      });
+    },
+  );
 
 dashboardWrite
   .command('disburse-abnormally-high-fee')

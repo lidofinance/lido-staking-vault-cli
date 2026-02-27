@@ -128,6 +128,7 @@ export const getWalletWithAccount = async (): Promise<WalletClient> => {
 export const getWalletConnectClient = async (): Promise<{
   walletConnectClient: WalletClient;
   isGnosis: boolean;
+  supportsWalletSendCalls: boolean;
 }> => {
   const walletConnectClient = await createWalletConnectClient();
 

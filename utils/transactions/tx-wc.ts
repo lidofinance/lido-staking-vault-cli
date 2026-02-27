@@ -1,8 +1,11 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
   encodeFunctionData,
   type Hex,
   type SimulateCallsReturnType,
   type Abi,
+  type WalletClient,
+  type TransactionReceipt,
 } from 'viem';
 import { waitForTransactionReceipt } from 'viem/actions';
 
@@ -17,7 +20,7 @@ import {
 } from 'utils';
 
 import { PartialContract, PopulatedTx, BatchTxArgs } from './types.js';
-import { simulateCallsErrorHandler } from './utils.js';
+import { simulateCallsErrorHandler, isWcSendCallsFailure } from './utils.js';
 
 export const PROVIDER_POLLING_INTERVAL = 12_000;
 export const AA_TX_POLLING_TIMEOUT = 180_000; // 3 minutes
@@ -179,6 +182,98 @@ export const callWCWriteMethodWithReceiptPayloads = async <
   return result;
 };
 
+const sendIndividualTransactions = async (
+  walletConnectClient: WalletClient,
+  calls: PopulatedTx[],
+  isGnosis: boolean,
+  withSpinner?: boolean,
+): Promise<{
+  id: Hex;
+  callStatus?: undefined;
+  txHash?: Hex;
+  receipt?: Awaited<ReturnType<typeof waitForTransactionReceipt>>;
+}> => {
+  const { account } = walletConnectClient;
+  const isBatch = calls.length > 1;
+
+  if (!account) {
+    throw new Error(
+      'No wallet connect account found. Check your wallet and try again.',
+    );
+  }
+
+  logInfo(
+    `wallet_sendCalls not supported — sending ${calls.length} transaction(s) individually`,
+  );
+
+  const publicClient = await getPublicClient();
+  const confirmations = process.env.CONFIRMATIONS
+    ? Number(process.env.CONFIRMATIONS)
+    : 3;
+  const txHashes: Hex[] = [];
+  const receipts: TransactionReceipt[] = [];
+
+  for (let i = 0; i < calls.length; i++) {
+    const call = calls[i];
+    if (!call) throw new Error(`Call ${i + 1} is undefined`);
+    if (!call.to) throw new Error(`Call ${i + 1} has no "to" address`);
+    if (!call.data) throw new Error(`Call ${i + 1} has no "data"`);
+
+    const hideSubmitSpinner = withSpinner
+      ? showSpinner({
+          type: 'bouncingBar',
+          message: isBatch
+            ? `Submitting transaction ${i + 1}/${calls.length}...`
+            : 'Submitting transaction...',
+        })
+      : () => {};
+
+    const txHash = await walletConnectClient.sendTransaction({
+      account,
+      to: call.to,
+      data: call.data,
+      value: call.value ?? 0n,
+      chain: walletConnectClient.chain,
+    });
+    txHashes.push(txHash);
+
+    hideSubmitSpinner();
+    logInfo(`Transaction submitted: ${txHash}`);
+
+    // Wait for each intermediate tx receipt
+    if (!isGnosis) {
+      const hideReceiptSpinner = withSpinner
+        ? showSpinner({
+            type: 'bouncingBar',
+            message: isBatch
+              ? `Waiting for transaction ${i + 1}/${calls.length} receipt...`
+              : 'Waiting for transaction receipt...',
+          })
+        : () => {};
+      const receipt = await waitForTransactionReceipt(publicClient, {
+        hash: txHash,
+        confirmations,
+      });
+
+      hideReceiptSpinner();
+      receipts.push(receipt);
+
+      logInfo(
+        `Transaction ${i + 1}/${calls.length} confirmed: ${receipt.status}`,
+      );
+    }
+  }
+
+  if (txHashes.length === 0) throw new Error('No transactions were sent');
+  if (isGnosis) return { id: txHashes[txHashes.length - 1]! };
+
+  return {
+    id: txHashes[txHashes.length - 1]!,
+    txHash: txHashes[txHashes.length - 1]!,
+    receipt: receipts[receipts.length - 1]!,
+  };
+};
+
 const callWalletConnectSendCalls = async (args: {
   calls: PopulatedTx[];
   withSpinner?: boolean;
@@ -194,7 +289,8 @@ const callWalletConnectSendCalls = async (args: {
   }
 
   try {
-    const { walletConnectClient, isGnosis } = await getWalletConnectClient();
+    const { walletConnectClient, isGnosis, supportsWalletSendCalls } =
+      await getWalletConnectClient();
 
     if (!walletConnectClient || !walletConnectClient.account) {
       throw new Error(
@@ -209,6 +305,28 @@ const callWalletConnectSendCalls = async (args: {
       abi,
     });
 
+    // If wallet doesn't support wallet_sendCalls, skip directly to individual transactions
+    if (!supportsWalletSendCalls) {
+      const result = await sendIndividualTransactions(
+        walletConnectClient,
+        calls,
+        isGnosis,
+        withSpinner,
+      );
+
+      if (isGnosis) {
+        logInfo('Transaction submitted to Gnosis Safe for signing.');
+        logInfo(
+          'Please sign and execute the transaction in the Gnosis Safe UI.',
+        );
+        logInfo(
+          'Note: The CLI will not wait for execution completion as signing time is unlimited.',
+        );
+      }
+
+      return result;
+    }
+
     const hideSubmitSpinner = withSpinner
       ? showSpinner({
           type: 'bouncingBar',
@@ -218,11 +336,44 @@ const callWalletConnectSendCalls = async (args: {
         })
       : () => {};
 
-    const result = await walletConnectClient.sendCalls({
-      account: walletConnectClient.account.address,
-      calls,
-      experimental_fallback: true, // fallback to legacy sendTransaction if sendCalls is not supported
-    });
+    let sendCallsResult: Awaited<
+      ReturnType<typeof walletConnectClient.sendCalls>
+    >;
+    try {
+      sendCallsResult = await walletConnectClient.sendCalls({
+        account: walletConnectClient.account.address,
+        calls,
+      });
+    } catch (sendCallsErr) {
+      hideSubmitSpinner();
+      // If wallet_sendCalls fails despite being declared as supported, fall back to individual transactions
+      const isSendCallsFailure = isWcSendCallsFailure(sendCallsErr);
+
+      if (isSendCallsFailure) {
+        logInfo(
+          'wallet_sendCalls failed, falling back to individual eth_sendTransaction calls',
+        );
+        const result = await sendIndividualTransactions(
+          walletConnectClient,
+          calls,
+          isGnosis,
+          withSpinner,
+        );
+
+        if (isGnosis) {
+          logInfo('Transaction submitted to Gnosis Safe for signing.');
+          logInfo(
+            'Please sign and execute the transaction in the Gnosis Safe UI.',
+          );
+          logInfo(
+            'Note: The CLI will not wait for execution completion as signing time is unlimited.',
+          );
+        }
+
+        return result;
+      }
+      throw sendCallsErr;
+    }
 
     hideSubmitSpinner();
 
@@ -233,7 +384,7 @@ const callWalletConnectSendCalls = async (args: {
         'Note: The CLI will not wait for execution completion as signing time is unlimited.',
       );
 
-      return { id: result.id as Hex };
+      return { id: sendCallsResult.id as Hex };
     }
 
     const hideStatusSpinner = withSpinner
@@ -246,7 +397,7 @@ const callWalletConnectSendCalls = async (args: {
       : () => {};
 
     const callStatus = await walletConnectClient.waitForCallsStatus({
-      id: result.id,
+      id: sendCallsResult.id,
       pollingInterval: PROVIDER_POLLING_INTERVAL,
       timeout: AA_TX_POLLING_TIMEOUT,
     });
@@ -313,7 +464,7 @@ const callWalletConnectSendCalls = async (args: {
 
     hideReceiptSpinner();
 
-    return { id: result.id as Hex, callStatus, txHash, receipt };
+    return { id: sendCallsResult.id as Hex, callStatus, txHash, receipt };
   } catch (err) {
     await disconnectWalletConnect();
 
