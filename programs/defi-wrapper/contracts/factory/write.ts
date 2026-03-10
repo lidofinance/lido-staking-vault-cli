@@ -1,4 +1,10 @@
-import { Address, Hex, zeroAddress } from 'viem';
+import {
+  Address,
+  encodeAbiParameters,
+  Hex,
+  keccak256,
+  zeroAddress,
+} from 'viem';
 import { getTransactionReceipt } from 'viem/actions';
 import { Command, Option } from 'commander';
 
@@ -11,18 +17,23 @@ import {
   stringToNumber,
   stringToBoolean,
   stringToHash,
+  toHex,
 } from 'utils';
-import { getFactoryContract } from 'contracts/defi-wrapper/index.js';
+import {
+  getFactoryContract,
+  getStrategyFactoryContract,
+} from 'contracts/defi-wrapper/index.js';
 import {
   getCreatePoolEventData,
   getReserveRatioGapBP,
-  getBoolean,
-  promtBaseVaultConfiguration,
+  promptBaseVaultConfiguration,
   logCreatePoolEventData,
   type BaseFactoryOptions,
   finalizePoolCreation,
   prepareCreationConfigrationText,
   simulatePoolCreation,
+  promptAllowListConfiguration,
+  MELLOW_VAULTS_STRATEGY_ID,
 } from 'features';
 
 import { factory } from './main.js';
@@ -33,7 +44,7 @@ type MintableOptions = {
 };
 
 type AllowlistableOptions = {
-  allowListEnabled?: boolean;
+  allowList?: boolean;
   allowListManager?: Address;
 };
 
@@ -106,7 +117,7 @@ const applyCommonOptions = (command: Command): Command => {
 };
 
 const ALLOW_LIST_ENABLED_OPTION = [
-  '-al, --allowList <allowListEnabled>',
+  '-al, --allowList <allowList>',
   'is allowlist enabled (true/false)',
   stringToBoolean,
 ] as const;
@@ -168,7 +179,7 @@ applyCommonOptions(
     async (
       address: Address,
       {
-        allowListEnabled,
+        allowList,
         allowListManager,
         ...baseOptions
       }: BaseFactoryOptions & AllowlistableOptions,
@@ -176,14 +187,12 @@ applyCommonOptions(
       const contract = await getFactoryContract(address);
 
       const { vaultConfig, timelockConfig, commonPoolConfig } =
-        await promtBaseVaultConfiguration(baseOptions);
+        await promptBaseVaultConfiguration(baseOptions);
 
-      const allowListEnabledValue = await getBoolean(
-        allowListEnabled,
-        'AllowList',
-      );
-
-      const allowListManagerValue = allowListManager ?? zeroAddress;
+      const allowListConfig = await promptAllowListConfiguration({
+        allowList,
+        allowListManager,
+      });
 
       const confirmationMessage = `Are you sure you want to create a new STV pool with a configured wrapper?\n
          ${prepareCreationConfigrationText(
@@ -191,26 +200,25 @@ applyCommonOptions(
            timelockConfig,
            commonPoolConfig,
          )} 
-        allowListEnabled: ${allowListEnabledValue}
-        allowListManager: ${allowListManagerValue === zeroAddress ? '<none>' : allowListManagerValue}\n`;
+        allowListEnabled: ${allowListConfig.allowListEnabled}
+        allowListManager: ${allowListConfig.allowListManager === zeroAddress ? '<none>' : allowListConfig.allowListManager}\n`;
 
       const confirm = await confirmOperation(confirmationMessage);
       if (!confirm) return;
 
       const methodName = 'createPoolStvStart' as const;
-      const payload = [
-        vaultConfig,
-        timelockConfig,
-        commonPoolConfig,
-        allowListEnabledValue,
-        allowListManagerValue,
-      ] as const;
 
       if (!baseOptions.skipSimulation)
         await simulatePoolCreation(
           contract,
           methodName,
-          payload,
+          [
+            vaultConfig,
+            timelockConfig,
+            commonPoolConfig,
+            allowListConfig.allowListEnabled,
+            allowListConfig.allowListManager,
+          ],
           baseOptions.simulationOnly,
         );
 
@@ -219,7 +227,13 @@ applyCommonOptions(
       const result = await callWriteMethodWithReceipt({
         contract,
         methodName,
-        payload: [...payload],
+        payload: [
+          vaultConfig,
+          timelockConfig,
+          commonPoolConfig,
+          allowListConfig.allowListEnabled,
+          allowListConfig.allowListManager,
+        ],
       });
 
       if (!result.receipt || !result.tx) {
@@ -258,23 +272,22 @@ applyCommonOptions(
       address: Address,
       {
         reserveRatioGapBP,
-        allowListEnabled,
+        allowList,
         allowListManager,
         ...baseOptions
       }: BaseFactoryOptions & AllowlistableOptions & MintableOptions,
     ) => {
       const contract = await getFactoryContract(address);
       const { vaultConfig, timelockConfig, commonPoolConfig } =
-        await promtBaseVaultConfiguration(baseOptions);
+        await promptBaseVaultConfiguration(baseOptions);
 
-      const allowListEnabledValue = await getBoolean(
-        allowListEnabled,
-        'AllowList',
-      );
+      const allowListConfig = await promptAllowListConfiguration({
+        allowList,
+        allowListManager,
+      });
+
       const reserveRatioGapBPValue =
         await getReserveRatioGapBP(reserveRatioGapBP);
-
-      const allowListManagerValue = allowListManager ?? zeroAddress;
 
       const confirmationMessage = `Are you sure you want to create a new STV-STETH pool with minting enabled?\n
         ${prepareCreationConfigrationText(
@@ -282,8 +295,8 @@ applyCommonOptions(
           timelockConfig,
           commonPoolConfig,
         )}
-        allowListEnabled: ${allowListEnabledValue}
-        allowListManager: ${allowListManagerValue === zeroAddress ? '<none>' : allowListManagerValue}
+        allowListEnabled: ${allowListConfig.allowListEnabled}
+        allowListManager: ${allowListConfig.allowListManager === zeroAddress ? '<none>' : allowListConfig.allowListManager}
         reserveRatioGapBP: ${reserveRatioGapBPValue}\n`;
       const confirm = await confirmOperation(confirmationMessage);
       if (!confirm) return;
@@ -293,8 +306,8 @@ applyCommonOptions(
         vaultConfig,
         timelockConfig,
         commonPoolConfig,
-        allowListEnabledValue,
-        allowListManagerValue,
+        allowListConfig.allowListEnabled,
+        allowListConfig.allowListManager,
         BigInt(reserveRatioGapBPValue),
       ] as const;
 
@@ -352,7 +365,7 @@ applyCommonOptions(
       {
         reserveRatioGapBP,
         allowListManager,
-        allowListEnabled,
+        allowList,
         mintingEnabled,
         strategyFactory,
         strategyFactoryDeployBytes,
@@ -364,14 +377,24 @@ applyCommonOptions(
     ) => {
       const contract = await getFactoryContract(address);
       const { vaultConfig, timelockConfig, commonPoolConfig } =
-        await promtBaseVaultConfiguration(baseOptions);
+        await promptBaseVaultConfiguration(baseOptions);
 
-      const allowListEnabledValue = await getBoolean(
-        allowListEnabled,
-        'AllowList',
-      );
+      const allowListConfig = await promptAllowListConfiguration({
+        allowList,
+        allowListManager,
+      });
 
-      const allowListManagerValue = allowListManager ?? zeroAddress;
+      if (strategyFactory) {
+        if (!allowListConfig.allowListEnabled)
+          throw new Error(
+            'StvStrategyPool creation requires allowlist to be enabled. AllowList can be configured on strategy contract(if supported).',
+          );
+        if (allowListConfig.allowListManager !== zeroAddress) {
+          throw new Error(
+            'StvStrategyPool creation with custom strategy factory does not support setting AllowList Manager. This role will be able to manage list of allowed strategies and should only be set via Timelock Governance after the pool creation.',
+          );
+        }
+      }
 
       const reserveRatioGapBPValue =
         await getReserveRatioGapBP(reserveRatioGapBP);
@@ -387,8 +410,8 @@ applyCommonOptions(
           strategyFactoryDeployBytes ? strategyFactoryDeployBytes : '<none>'
         }
         mintingEnabled: ${mintingEnabled !== undefined ? mintingEnabled : true}
-        allowListEnabled: ${allowListEnabledValue}
-        allowListManager: ${allowListManagerValue === zeroAddress ? '<none>' : allowListManagerValue}
+        allowListEnabled: ${allowListConfig.allowListEnabled}
+        allowListManager: ${allowListConfig.allowListManager === zeroAddress ? '<none>' : allowListConfig.allowListManager}
         reserveRatioGapBP: ${reserveRatioGapBPValue}\n`;
 
       const confirm = await confirmOperation(confirmationMessage);
@@ -400,8 +423,8 @@ applyCommonOptions(
         timelockConfig,
         commonPoolConfig,
         {
-          allowListEnabled: allowListEnabledValue,
-          allowListManager: allowListManagerValue,
+          allowListEnabled: allowListConfig.allowListEnabled,
+          allowListManager: allowListConfig.allowListManager,
           reserveRatioGapBP: BigInt(reserveRatioGapBPValue),
           mintingEnabled: true,
         },
@@ -442,6 +465,138 @@ applyCommonOptions(
       logInfo('Pool Creation Finalize');
 
       await finalizePoolCreation(contract, eventData);
+    },
+  );
+
+applyCommonOptions(
+  factoryWrite
+    .command('create-strategy-pool-lido-earn-eth')
+    .description(
+      'initiates deployment of a strategy pool with Lido Earn ETH strategy',
+    )
+    .argument('<address>', 'factory address', stringToAddress)
+    .argument(
+      '<strategyFactoryAddress>',
+      'strategy factory address',
+      stringToAddress,
+    ),
+)
+  .option(...RR_GAP_BP_OPTION)
+  .option(...ALLOW_LIST_ENABLED_OPTION)
+  .action(
+    async (
+      factoryAddress: Address,
+      strategyFactoryAddress: Address,
+      {
+        allowListManager,
+        allowList,
+        reserveRatioGapBP,
+        ...baseOptions
+      }: BaseFactoryOptions & AllowlistableOptions & MintableOptions,
+    ) => {
+      const wrapperFactoryContract = await getFactoryContract(factoryAddress);
+      const strategyFactoryContract = await getStrategyFactoryContract(
+        strategyFactoryAddress,
+      );
+
+      const [STRATEGY_ID, error] = await strategyFactoryContract.read
+        .STRATEGY_ID()
+        .then(
+          (res) => [res, null] as const,
+          (error) => [null, error] as const,
+        );
+
+      if (error) {
+        throw new Error(
+          `Error reading STRATEGY_ID from the strategy factory contract: ${error}. Make sure the provided address is correct and the contract is properly deployed.`,
+        );
+      }
+
+      if (STRATEGY_ID !== keccak256(toHex(MELLOW_VAULTS_STRATEGY_ID))) {
+        throw new Error(
+          `The provided strategy factory contract has an incompatible STRATEGY_ID. Check that the contract at address ${strategyFactoryAddress} is the correct one.`,
+        );
+      }
+
+      const { vaultConfig, timelockConfig, commonPoolConfig } =
+        await promptBaseVaultConfiguration(baseOptions);
+
+      const allowListConfig = await promptAllowListConfiguration({
+        allowList,
+        allowListManager,
+        promptAllowListManager: false,
+      });
+
+      const reserveRatioGapBPValue =
+        await getReserveRatioGapBP(reserveRatioGapBP);
+
+      const confirmationMessage = `Are you sure you want to create a new custom pool?\n
+        ${prepareCreationConfigrationText(
+          vaultConfig,
+          timelockConfig,
+          commonPoolConfig,
+        )}
+        strategy.id: ${MELLOW_VAULTS_STRATEGY_ID}
+        strategy.allowListEnabled: ${allowListConfig.allowListEnabled}
+        reserveRatioGapBP: ${reserveRatioGapBPValue}\n`;
+
+      const confirm = await confirmOperation(confirmationMessage);
+      if (!confirm) return;
+
+      const strategyFactoryDeployBytes = encodeAbiParameters(
+        [{ type: 'bool', name: 'allowListEnabled' }],
+        [allowListConfig.allowListEnabled],
+      );
+
+      const methodName = 'createPoolStart' as const;
+      const payload = [
+        vaultConfig,
+        timelockConfig,
+        commonPoolConfig,
+        {
+          reserveRatioGapBP: BigInt(reserveRatioGapBPValue),
+          // correct configuration for stvStrategyPool
+          allowListEnabled: true,
+          allowListManager: zeroAddress,
+          mintingEnabled: true,
+        },
+        strategyFactoryAddress,
+        strategyFactoryDeployBytes,
+      ] as const;
+
+      if (!baseOptions.skipSimulation)
+        await simulatePoolCreation(
+          wrapperFactoryContract,
+          methodName,
+          payload,
+          baseOptions.simulationOnly,
+        );
+
+      if (baseOptions.simulationOnly) return;
+
+      const result = await callWriteMethodWithReceipt({
+        contract: wrapperFactoryContract,
+        methodName,
+        payload: [...payload],
+      });
+
+      if (!result.receipt || !result.tx) {
+        logInfo(FIRST_STEP_MESSAGE);
+        return;
+      }
+
+      const eventData = await getCreatePoolEventData(result.receipt, result.tx);
+
+      logCreatePoolEventData(eventData);
+
+      if (baseOptions.skipFinalization) {
+        logInfo('Skipping pool creation finalization as per user request');
+        return;
+      }
+
+      logInfo('Pool Creation Finalize');
+
+      await finalizePoolCreation(wrapperFactoryContract, eventData);
     },
   );
 
