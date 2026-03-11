@@ -18,10 +18,10 @@ import {
 import { wrapperOperations } from './main.js';
 import { getWithdrawalQueueContract } from 'contracts/defi-wrapper/withdrawal-queue.js';
 import {
+  ContractFunctionRevertedError,
   encodeFunctionData,
   formatEther,
   parseEventLogs,
-  WatchContractEventOnLogsParameter,
   zeroAddress,
   type Address,
 } from 'viem';
@@ -34,7 +34,6 @@ import { getStvPoolContract } from 'contracts/defi-wrapper/stv-pool.js';
 import { bigIntMin } from 'utils/bigInt.js';
 import { getStvStethPoolContract } from 'contracts/defi-wrapper/stv-steth-pool.js';
 import { areVaultParamsInSync, tryFetchPost } from 'features';
-import { LazyOracleAbi } from 'abi';
 
 export const wrapperOperationsWrite = wrapperOperations
   .command('write')
@@ -404,9 +403,9 @@ wrapperOperationsWrite
   )
   .option(
     '--polling-interval <pollingInterval>',
-    'polling interval in ms for checking new reports, default: 60_000 (1 minute)',
+    'polling interval in ms for checking new reports, default: 300_000 (5 minutes)',
     stringToNumber,
-    60_000,
+    300_000,
   )
   .action(
     async (
@@ -478,28 +477,7 @@ wrapperOperationsWrite
         return;
       }
 
-      const onNewReport = async (
-        events: WatchContractEventOnLogsParameter<
-          typeof LazyOracleAbi,
-          'VaultsReportDataUpdated',
-          true
-        >,
-      ) => {
-        const event = events[0];
-        if (event) {
-          logTable({
-            params: { head: ['New report is available'] },
-            data: [
-              ['Data CID', event.args.cid],
-              ['Merkle Root', event.args.root],
-              ['Ref slot', event.args.refSlot],
-              ['Timestamp', event.args.timestamp],
-              ['Block Number', event.blockNumber],
-              ['Transaction Hash', event.transactionHash],
-            ],
-          });
-        }
-
+      const onNewReport = async () => {
         const isConnected = await callReadMethod({
           contract: vaultHub,
           methodName: 'isVaultConnected',
@@ -533,6 +511,12 @@ wrapperOperationsWrite
         } else {
           logInfo('Report submission step skipped.');
         }
+
+        latestReportTimestamp = await callReadMethod({
+          contract: lazyOracle,
+          methodName: 'latestReportTimestamp',
+          payload: [],
+        });
 
         let canFinalize = false;
         let requestsFinalized = 0n;
@@ -576,7 +560,17 @@ wrapperOperationsWrite
             canFinalize = true;
           } catch (error) {
             canFinalize = false;
-            logInfo('Finalization simulation failed', error);
+
+            if (
+              error instanceof ContractFunctionRevertedError &&
+              error.name === 'NoRequestsToFinalize'
+            ) {
+              logInfo(
+                `0/${unfinalizedRequestsNumber} requests can be finalized according to simulation`,
+              );
+            } else {
+              logInfo('Finalization simulation failed', error);
+            }
           }
         } else {
           logInfo('No pending withdrawals to finalize.');
@@ -656,43 +650,23 @@ wrapperOperationsWrite
         }
       };
 
-      // dry run to submit report & finalize withdrawals immediately if possible
-      logInfo(
-        'Performing initial dry-run in case report is already available...',
-      );
-      await onNewReport([]);
+      let latestReportTimestamp = 0n;
 
-      logInfo('Starting watching for reports...');
-      lazyOracle.watchEvent.VaultsReportDataUpdated(
-        {},
-        {
-          onLogs: () => void onNewReport,
-          batch: false,
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
+        const currentReportTimestamp = await callReadMethodSilent({
+          contract: lazyOracle,
+          methodName: 'latestReportTimestamp',
+          payload: [],
+        });
 
-          poll: true,
-          strict: true,
-          pollingInterval,
-          onError: (error) => {
-            logError(
-              `Error while watching VaultsReportDataUpdated events: ${error}`,
-            );
-            if (callbackUrl) {
-              void tryFetchPost(callbackUrl, {
-                error: `Error while watching VaultsReportDataUpdated events: ${error}`,
-              }).then(({ error }) => {
-                if (error) {
-                  logError(
-                    `Failed to send error callback to ${callbackUrl}: ${error}`,
-                  );
-                }
-              });
-            }
+        if (currentReportTimestamp > latestReportTimestamp) {
+          logInfo('New report detected, running operations...');
+          await onNewReport();
+          latestReportTimestamp = currentReportTimestamp;
+        }
 
-            process.exit(1);
-          },
-        },
-      );
-      // empty await to keep the process alive
-      await new Promise(() => {});
+        await new Promise((resolve) => setTimeout(resolve, pollingInterval));
+      }
     },
   );
