@@ -7,14 +7,19 @@ All notable changes to this project will be documented in this file.
 - [Dashboard,VaultHub] fixed `trigger-validator-withdrawal` command for multiple pubkeys
 - [DeFi Wrapper] fixed incorrect parsing of `--salt` option for all timelock operations
 - Edge case in pdg-helpers validator-info when validator is not yet present on CL
+- improved DefiWrapper factory commands options parsing, prompting and error handling
+- improved `defi-wrapper use-cases w auto-report` to use polling instead of subscription for better reliability
+- improved `--walletConnect` behavior for non-7702 wallets
 
 ### Added
 
 #### General
 
+- Added `create-strategy-pool-lido-earn-eth` to `defi-wrapper contracts factory w`
 - JSON output now outputs only json array without additional log messages for better parsing in scripts
 - All common options are now available in `--help` for all commands for better discoverability
 - added `account write send-tx` command for manually sending transactions with connected wallet accounts
+- `update-vault-share-limit`/`change-tier` commands now accepts steth amount via `--steth`
 
 #### DeFi Wrapper
 
