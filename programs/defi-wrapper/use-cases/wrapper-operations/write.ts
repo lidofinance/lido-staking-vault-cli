@@ -14,6 +14,7 @@ import {
   stringArrayToAddressArray,
   callReadMethodSilent,
   stringToNumber,
+  sleep,
 } from 'utils';
 import { wrapperOperations } from './main.js';
 import { getWithdrawalQueueContract } from 'contracts/defi-wrapper/withdrawal-queue.js';
@@ -666,7 +667,7 @@ wrapperOperationsWrite
           latestReportTimestamp = currentReportTimestamp;
         }
 
-        await new Promise((resolve) => setTimeout(resolve, pollingInterval));
+        await sleep(pollingInterval);
       }
     },
   );

@@ -386,15 +386,20 @@ export const promptAllowListConfiguration = async ({
   promptAllowListManager = true,
 }: AllowListFactoryOptions) => {
   const allowListEnabledValue = await getBoolean(allowList, 'AllowList');
+
+  // disallow specifying an allowListManager option if allowList is disabled
+  if (allowListManager && !allowListEnabledValue) {
+    throw new Error(
+      'Cannot specify an AllowList Manager when AllowList is disabled',
+    );
+  }
+
+  // only promt for manager if allowList is on and supports manager(e.g. strategy does not)
   let allowListManagerAddress = zeroAddress;
-  if (allowListEnabledValue && promptAllowListManager) {
+  if (promptAllowListManager && allowListEnabledValue) {
     allowListManagerAddress = await getAddress(
       allowListManager,
       'AllowList Manager',
-    );
-  } else if (allowListManager) {
-    throw new Error(
-      'Cannot specify an AllowList Manager when AllowList is disabled',
     );
   }
 

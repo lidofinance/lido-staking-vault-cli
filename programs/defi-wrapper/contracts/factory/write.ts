@@ -18,6 +18,7 @@ import {
   stringToNumber,
   stringToBoolean,
   stringToHash,
+  withError,
 } from 'utils';
 import {
   getFactoryContract,
@@ -499,14 +500,11 @@ applyCommonOptions(
         strategyFactoryAddress,
       );
 
-      const [STRATEGY_ID, error] = await strategyFactoryContract.read
-        .STRATEGY_ID()
-        .then(
-          (res) => [res, null] as const,
-          (error) => [null, error] as const,
-        );
+      const { result: STRATEGY_ID, error } = await withError(
+        strategyFactoryContract.read.STRATEGY_ID(),
+      );
 
-      if (error) {
+      if (error || !STRATEGY_ID) {
         throw new Error(
           `Error reading STRATEGY_ID from the strategy factory contract: ${error}. Make sure the provided address is correct and the contract is properly deployed.`,
         );
