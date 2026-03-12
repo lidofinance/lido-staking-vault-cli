@@ -86,7 +86,7 @@ const validateTimeInHours = (
 export const getMinWithdrawalDelayTime = async (
   minWithdrawalDelayTime?: number,
 ): Promise<number> => {
-  if (!minWithdrawalDelayTime) {
+  if (typeof minWithdrawalDelayTime !== 'number') {
     const minWithdrawalDelayTimeValue = await numberPrompt(
       `Enter the min withdrawal delay time (in hours) (min: ${MIN_TIME_IN_SECONDS / 3600} hours, max: ${MAX_TIME_IN_SECONDS / 3600} hours)`,
       'value',
@@ -118,7 +118,7 @@ export const getMinWithdrawalDelayTime = async (
 export const getMinDelaySeconds = async (
   minDelaySeconds?: number,
 ): Promise<number> => {
-  if (!minDelaySeconds) {
+  if (typeof minDelaySeconds !== 'number') {
     const minDelaySecondsValue = await numberPrompt(
       `Enter the min execution delay for timelock governance (min: 0, max: ${MAX_TIME_IN_SECONDS / 3600} hours)`,
       'value',
@@ -173,7 +173,7 @@ export const getPoolTokenSymbol = async (symbol?: string): Promise<string> => {
 export const getReserveRatioGapBP = async (
   reserveRatioGapBP?: number,
 ): Promise<number> => {
-  if (!reserveRatioGapBP) {
+  if (typeof reserveRatioGapBP !== 'number') {
     const reserveRatioGapBPValue = await numberPrompt(
       `Enter the reserve ratio gap (in basis points) (max: ${MAX_BASIS_POINTS} basis points)`,
       'value',

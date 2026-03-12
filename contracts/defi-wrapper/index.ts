@@ -5,3 +5,4 @@ export * from './stv-steth-pool.js';
 export * from './factory.js';
 export * from './timelock.js';
 export * from './ossifiable-proxy.js';
+export * from './strategy-factory.js';

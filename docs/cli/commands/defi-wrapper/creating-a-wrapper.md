@@ -12,6 +12,7 @@ There are three main commands to initiate the deployment of a new wrapper, each 
 
 - `create-pool-stv`: Deploys a standard STV (Staking Vault) pool.
 - `create-pool-stv-steth`: Deploys an STV-stETH pool, which includes minting capabilities.
+- `create-strategy-pool-lido-earn-eth`: Deploys a strategy pool that integrates with Lido's Earn ETH product
 - `create-pool-custom`: Deploys a pool with a custom configuration, allowing for greater flexibility.
 - `create-pool-finalize`: Finalizes unfinished deployment of the pool
 
@@ -86,6 +87,22 @@ yarn start dw c f w create-pool-stv-steth <factory-address> [options]
 | `--reserveRatioGapBP` | `<number>` | The reserve ratio gap in basis points. |
 | `--allowList` | `true` / `false` | Enables or disables an allowlist for deposits. |
 | `--allowListManager` | `<address>` | The address that can manage the allowlist. |
+
+### `create-strategy-pool-lido-earn-eth`
+
+This command allows for the deployment of a pool with Strategy that integrates with Lido's Earn ETH product.
+
+**Command:**
+
+```bash
+yarn start dw c f w create-strategy-pool-lido-earn-eth <factory-address> <strategy-factory-address> [options]
+```
+
+**Specific Options:**
+| Option | Argument | Description |
+| ------------------------------ | ---------------- | ------------------------------------------------------------------------ |
+| `--reserveRatioGapBP` | `<number>` | The reserve ratio gap in basis points. |
+| `--allowList` | `true` / `false` | Enables or disables an allowlist for deposits on strategy contract. |
 
 ### `create-pool-custom`
 

@@ -14,6 +14,7 @@ import { FactoryAbi } from 'abi/defi-wrapper/Factory.js';
 import { getVaultHubContract } from 'contracts';
 import {
   getAddress,
+  getBoolean,
   getConfirmExpiry,
   getMinDelaySeconds,
   getMinWithdrawalDelayTime,
@@ -66,11 +67,19 @@ export type BaseFactoryOptions = {
   skipFinalization?: boolean;
 };
 
+export type AllowListFactoryOptions = {
+  allowList?: boolean;
+  allowListManager?: Address;
+  promptAllowListManager?: boolean;
+};
+
+export const MELLOW_VAULTS_STRATEGY_ID = 'strategy.mellow.v1';
+
 // сommon filaliztion step between two pools
 export const finalizePoolCreation = async (
   contract: FactoryContract,
   creationEventData: Awaited<ReturnType<typeof getCreatePoolEventData>>,
-) => {
+): Promise<void> => {
   if (
     !creationEventData.auxiliaryConfig ||
     !creationEventData.strategyFactory ||
@@ -296,7 +305,7 @@ export const logFinalizePoolEventData = (
   });
 };
 
-export const promtBaseVaultConfiguration = async ({
+export const promptBaseVaultConfiguration = async ({
   nodeOperator,
   nodeOperatorManager,
   nodeOperatorFeeRateBP,
@@ -368,6 +377,35 @@ export const promtBaseVaultConfiguration = async ({
     vaultConfig,
     timelockConfig,
     commonPoolConfig,
+  };
+};
+
+export const promptAllowListConfiguration = async ({
+  allowList,
+  allowListManager,
+  promptAllowListManager = true,
+}: AllowListFactoryOptions) => {
+  const allowListEnabledValue = await getBoolean(allowList, 'AllowList');
+
+  // disallow specifying an allowListManager option if allowList is disabled
+  if (allowListManager && !allowListEnabledValue) {
+    throw new Error(
+      'Cannot specify an AllowList Manager when AllowList is disabled',
+    );
+  }
+
+  // only promt for manager if allowList is on and supports manager(e.g. strategy does not)
+  let allowListManagerAddress = zeroAddress;
+  if (promptAllowListManager && allowListEnabledValue) {
+    allowListManagerAddress = await getAddress(
+      allowListManager,
+      'AllowList Manager',
+    );
+  }
+
+  return {
+    allowListEnabled: allowListEnabledValue,
+    allowListManager: allowListManagerAddress,
   };
 };
 
