@@ -20,8 +20,11 @@ export const getMinMax = (arr: number[]) => {
   const hasFloat = arr.some((v) => !Number.isInteger(v));
   let minY, maxY;
   if (hasFloat) {
-    minY = Math.floor((min - range * 0.15) * 10) / 10;
-    maxY = Math.ceil((max + range * 0.15) * 10) / 10;
+    // Scale based on magnitude of max value so tiny floats (e.g. 0.002) don't
+    // get collapsed to 0 by fixed *10/10 rounding
+    const scale = Math.pow(10, -Math.floor(Math.log10(Math.abs(max) || 1)) + 1);
+    minY = Math.floor((min - range * 0.15) * scale) / scale;
+    maxY = Math.ceil((max + range * 0.15) * scale) / scale;
   } else {
     minY = Math.floor(min - range * 0.15);
     maxY = Math.ceil(max + range * 0.15);

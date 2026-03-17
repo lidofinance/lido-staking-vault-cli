@@ -13,7 +13,7 @@ import {
   getRebaseRewardFromCache,
   formatTimestamp,
 } from 'utils';
-import { getNodeOperatorAccruedFeeByBlockNumbers } from 'features';
+import { getNOFeeSnapshotsByBlockNumbers } from 'features';
 
 import {
   logGrossStakingAPRChart,
@@ -77,10 +77,11 @@ export const renderSimpleCharts = async ({
   const timeLabels = [];
 
   const blockNumbers = history.map((r) => r.blockNumber);
-  const nodeOperatorAccruedFees = await getNodeOperatorAccruedFeeByBlockNumbers(
+  const noFeeSnapshots = await getNOFeeSnapshotsByBlockNumbers(
     vault,
     blockNumbers,
     dashboardContract,
+    history,
   );
 
   for (let i = 1; i < history.length; i++) {
@@ -89,11 +90,21 @@ export const renderSimpleCharts = async ({
 
     if (!current || !previous) continue;
 
+    const noFeeCurr = noFeeSnapshots[i] ?? {
+      accruedFee: 0n,
+      settledGrowth: 0n,
+      feeRate: 0n,
+    };
+    const noFeePrev = noFeeSnapshots[i - 1] ?? {
+      accruedFee: 0n,
+      settledGrowth: 0n,
+      feeRate: 0n,
+    };
+
     const stEthLiabilityRebaseRewards = await getRebaseRewardFromCache({
       vaultAddress: vault,
       blockNumberCurr: current.blockNumber,
       blockNumberPrev: previous.blockNumber,
-      liabilitySharesCurr: BigInt(current.data.liabilityShares),
       liabilitySharesPrev: BigInt(previous.data.liabilityShares),
     });
 
@@ -104,14 +115,14 @@ export const renderSimpleCharts = async ({
       getGrossStakingAPR(current, previous).apr_percent,
     );
     netStakingAPRPercent.push(
-      getNetStakingAPR(current, previous, nodeOperatorAccruedFees[i] ?? 0n)
-        .apr_percent,
+      getNetStakingAPR(current, previous, noFeeCurr, noFeePrev).apr_percent,
     );
     carrySpreadPercent.push(
       getCarrySpread(
         current,
         previous,
-        nodeOperatorAccruedFees[i] ?? 0n,
+        noFeeCurr,
+        noFeePrev,
         stEthLiabilityRebaseRewards,
       ).apr_percent,
     );
@@ -120,7 +131,8 @@ export const renderSimpleCharts = async ({
         getBottomLine(
           current,
           previous,
-          nodeOperatorAccruedFees[i] ?? 0n,
+          noFeeCurr,
+          noFeePrev,
           stEthLiabilityRebaseRewards,
         ),
       ),

@@ -4,7 +4,7 @@ import contrib from 'blessed-contrib';
 import { Address } from 'viem';
 import { callReadMethodSilent, getVaultReportHistory } from 'utils';
 import { getDashboardContract } from 'contracts';
-import { getNodeOperatorAccruedFeeByBlockNumbers } from 'features';
+import { getNOFeeSnapshotsByBlockNumbers } from 'features';
 
 import { lineOpts } from './utils.js';
 import { LIMIT } from './constants.js';
@@ -48,21 +48,19 @@ export const fetchRewardsChartsData = async ({
   if (!history || history.length < 2) throw new Error('Not enough data');
 
   const blockNumbers = history.map((r) => r.blockNumber);
-  const nodeOperatorAccruedFees = await getNodeOperatorAccruedFeeByBlockNumbers(
+  const noFeeSnapshots = await getNOFeeSnapshotsByBlockNumbers(
     vault,
     blockNumbers,
     dashboardContract,
+    history,
   );
 
   const grossStakingRewards = prepareGrossStakingRewards(history);
   const nodeOperatorRewards = prepareNodeOperatorRewards(
     history,
-    nodeOperatorAccruedFees,
+    noFeeSnapshots,
   );
-  const netStakingRewards = prepareNetStakingRewards(
-    history,
-    nodeOperatorAccruedFees,
-  );
+  const netStakingRewards = prepareNetStakingRewards(history, noFeeSnapshots);
 
   const grossStakingRewardsChart =
     buildGrossStakingRewardsChart(grossStakingRewards);
