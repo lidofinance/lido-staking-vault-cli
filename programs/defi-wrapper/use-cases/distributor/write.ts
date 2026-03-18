@@ -20,6 +20,8 @@ import {
   stringToHash,
   stringToBigInt,
   stringArrayToTokenPairs,
+  pinToIPFS,
+  logResult,
 } from 'utils';
 import {
   getDistributorContract,
@@ -116,7 +118,8 @@ type DistributeOptions = {
   blacklist: Address[];
   outputPath?: string;
   skipTransfer: boolean;
-  pinningUrl?: string;
+  upload?: string;
+  uploadAuthorization?: string;
   skipSetRoot: boolean;
   skipWrite: boolean;
   fromBlock?: bigint;
@@ -162,8 +165,12 @@ distributorWrite
   )
   .option(
     '--upload [pinningUrl]',
-    'uploading distribution data to provided pinning service URL',
+    '(unstable) uploading distribution data to provided pinning service URL',
     false,
+  )
+  .option(
+    '--upload-authorization [token]',
+    'authorization token for uploading distribution data to pinning service, used as `Authorization: Bearer <token>`',
   )
   .option('--skip-set-root', 'skip setting merkle root on distributor', false)
   .action(
@@ -174,7 +181,8 @@ distributorWrite
         blacklist,
         outputPath,
         skipTransfer,
-        pinningUrl,
+        upload,
+        uploadAuthorization,
         skipSetRoot,
         skipWrite,
         fromBlock,
@@ -236,16 +244,25 @@ distributorWrite
         ...merkleTree.dump(),
       };
 
-      const writeString = JSON.stringify(
-        dataToWrite,
-        (_, value) => (typeof value === 'bigint' ? value.toString() : value),
-        2,
+      const writeString = JSON.stringify(dataToWrite, (_, value) =>
+        typeof value === 'bigint' ? value.toString() : value,
       );
 
       const encoder = new TextEncoder();
-      const CID = await calculateIPFSAddCID(encoder.encode(writeString));
+      const distributionCID = await calculateIPFSAddCID(
+        encoder.encode(writeString),
+      );
+      const CidV0 = distributionCID.toV0().toString();
 
-      logInfo(`Calculated new distribution data CID: ${CID.toString()}`);
+      logInfo(`Calculated new distribution data CID: ${CidV0}`);
+      logResult({
+        data: [
+          ['Merkle Root', merkleTree.root],
+          ['CID', distributionCID.toString()],
+          ['CID (v0)', CidV0],
+          ['CID (v1)', distributionCID.toV1().toString()],
+        ],
+      });
 
       // writing distribution data to file
       if (!skipWrite) {
@@ -255,12 +272,8 @@ distributorWrite
 
         await fs.mkdir(dir, { recursive: true });
 
-        await fs.writeFile(
-          outputPath,
-          // replace BigInt with string in JSON
-          writeString,
-          'utf-8',
-        );
+        await fs.writeFile(outputPath, writeString, 'utf-8');
+
         logInfo(`Distribution data written to ${outputPath}`);
       }
 
@@ -295,39 +308,35 @@ distributorWrite
         logInfo(`Skipping transfer of tokens to distributor as requested.`);
       }
 
-      if (pinningUrl) {
-        const fetchResponse = await fetch(pinningUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: writeString,
-        });
-
-        if (!fetchResponse.ok) {
-          logError(
-            `Failed to upload distribution data to pinning service at ${pinningUrl}. Status: ${fetchResponse.status} ${fetchResponse.statusText}`,
-          );
-          return;
-        }
-        const responseData = await fetchResponse.json();
+      if (upload) {
         logInfo(
-          `Successfully uploaded distribution data to pinning service at ${pinningUrl}. Response: ${JSON.stringify(
-            responseData,
-          )}`,
+          '⚠️⚠️⚠️ Uploading distribution API is unstable, use manual upload to IPFS and choose CIDv0. ⚠️⚠️⚠️',
         );
+        try {
+          const uploadResponse = await pinToIPFS({
+            fileContent: writeString,
+            uploadUrl: upload,
+            uploadAuthorization,
+            fileName: `distribution-${merkleTree.root}.json`,
+          });
+          logInfo('Distribution uploaded to IPFS provider', uploadResponse);
+        } catch (error) {
+          logError('Failed to upload distribution data to IPFS', error);
+        }
       }
 
       if (!skipSetRoot) {
+        const cidV0 = distributionCID.toV0().toString();
+
         const confirm = await confirmOperation(
-          `Set new Merkle root ${merkleTree.root} and CID ${CID.toString()} on distributor at ${distributorAddress}?`,
+          `Set new Merkle root ${merkleTree.root} and CID ${cidV0} on distributor at ${distributorAddress}?`,
         );
 
         if (confirm) {
           await callWriteMethodWithReceipt({
             contract: await getDistributorContract(distributorAddress),
             methodName: 'setMerkleRoot',
-            payload: [merkleTree.root as Hash, CID.toString()],
+            payload: [merkleTree.root as Hash, cidV0],
           });
         }
       }

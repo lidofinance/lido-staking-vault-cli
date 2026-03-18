@@ -142,3 +142,44 @@ export const fetchIPFSWithCacheAndVerify = async <T>(
     return json;
   }
 };
+
+type PinToIPFSArgs = {
+  uploadUrl: string;
+  uploadAuthorization?: string;
+  fileContent: string;
+  fileName?: string;
+  uploadType?: 'pinata';
+};
+
+export const pinToIPFS = async ({
+  fileContent,
+  fileName = 'file.json',
+  uploadAuthorization,
+  uploadUrl,
+}: PinToIPFSArgs): Promise<any> => {
+  const blob = new Blob([fileContent]);
+  const file = new File([blob], fileName, {
+    type: 'application/json',
+  });
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const fetchResponse = await fetch(uploadUrl, {
+    method: 'POST',
+    headers: {
+      ...(uploadAuthorization
+        ? { Authorization: `Bearer ${uploadAuthorization}` }
+        : {}),
+    },
+
+    body: formData,
+  });
+
+  if (!fetchResponse.ok) {
+    throw new Error(
+      `Failed to upload distribution data to pinning service at ${uploadUrl}. Status: ${fetchResponse.status} ${fetchResponse.statusText}`,
+    );
+  }
+  const responseData = await fetchResponse.json();
+  return responseData;
+};
