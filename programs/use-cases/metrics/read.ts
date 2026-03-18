@@ -32,7 +32,7 @@ import {
 import {
   checkQuarantine,
   chooseVaultAndGetDashboard,
-  getNodeOperatorAccruedFeeByBlockNumbers,
+  getNOFeeSnapshotsByBlockNumbers,
 } from 'features';
 
 import { metrics } from './main.js';
@@ -161,12 +161,12 @@ metricsRead
     );
 
     const blockNumbers = history.map((r) => r.blockNumber);
-    const nodeOperatorAccruedFees =
-      await getNodeOperatorAccruedFeeByBlockNumbers(
-        vault,
-        blockNumbers,
-        dashboardContract,
-      );
+    const noFeeSnapshots = await getNOFeeSnapshotsByBlockNumbers(
+      vaultAddress,
+      blockNumbers,
+      dashboardContract,
+      history,
+    );
 
     const [
       grossStakingRewards,
@@ -179,12 +179,12 @@ metricsRead
       dailyLidoFees,
     ] = await Promise.all([
       prepareGrossStakingRewards(history),
-      prepareNodeOperatorRewards(history, nodeOperatorAccruedFees),
-      prepareNetStakingRewards(history, nodeOperatorAccruedFees),
+      prepareNodeOperatorRewards(history, noFeeSnapshots),
+      prepareNetStakingRewards(history, noFeeSnapshots),
       prepareGrossStakingAPR(history),
-      prepareNetStakingAPR(history, nodeOperatorAccruedFees),
-      prepareCarrySpread(history, nodeOperatorAccruedFees, vaultAddress),
-      prepareBottomLine(history, nodeOperatorAccruedFees, vaultAddress),
+      prepareNetStakingAPR(history, noFeeSnapshots),
+      prepareCarrySpread(history, noFeeSnapshots, vaultAddress),
+      prepareBottomLine(history, noFeeSnapshots, vaultAddress),
       prepareDailyLidoFees(history),
     ]);
 
