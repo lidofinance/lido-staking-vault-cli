@@ -20,6 +20,8 @@ yarn start metrics -h
 
 Metrics commands provide comprehensive analytics and reporting for Lido Staking Vaults, including APR calculations, rewards tracking, and visual chart generation for performance analysis.
 
+For a detailed explanation of how each metric is calculated, see [Metrics Calculation Reference](../metrics-calculation.md).
+
 ## API
 
 | Command  | Description   |

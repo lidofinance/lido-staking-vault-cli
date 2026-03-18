@@ -4,7 +4,7 @@ import { Address } from 'viem';
 
 import { callReadMethodSilent, getVaultReportHistory } from 'utils';
 import { getDashboardContract } from 'contracts';
-import { getNodeOperatorAccruedFeeByBlockNumbers } from 'features';
+import { getNOFeeSnapshotsByBlockNumbers } from 'features';
 
 import { lineOpts, getMinMax } from './utils.js';
 import { LIMIT } from './constants.js';
@@ -56,24 +56,17 @@ export const fetchAprChartsData = async ({
   if (!history || history.length < 2) throw new Error('Not enough data');
 
   const blockNumbers = history.map((r) => r.blockNumber);
-  const nodeOperatorAccruedFees = await getNodeOperatorAccruedFeeByBlockNumbers(
+  const noFeeSnapshots = await getNOFeeSnapshotsByBlockNumbers(
     vault,
     blockNumbers,
     dashboardContract,
+    history,
   );
 
   const grossStakingAPR = prepareGrossStakingAPR(history);
-  const netStakingAPR = prepareNetStakingAPR(history, nodeOperatorAccruedFees);
-  const carrySpread = await prepareCarrySpread(
-    history,
-    nodeOperatorAccruedFees,
-    vault,
-  );
-  const bottomLine = await prepareBottomLine(
-    history,
-    nodeOperatorAccruedFees,
-    vault,
-  );
+  const netStakingAPR = prepareNetStakingAPR(history, noFeeSnapshots);
+  const carrySpread = await prepareCarrySpread(history, noFeeSnapshots, vault);
+  const bottomLine = await prepareBottomLine(history, noFeeSnapshots, vault);
   const lidoAPR = await prepareLidoAPR(history);
 
   const grossStakingAPRChart = buildGrossStakingAPRChart(grossStakingAPR);
