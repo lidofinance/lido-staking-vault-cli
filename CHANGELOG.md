@@ -10,6 +10,9 @@ All notable changes to this project will be documented in this file.
 - improved DefiWrapper factory commands options parsing, prompting and error handling
 - improved `defi-wrapper use-cases w auto-report` to use polling instead of subscription for better reliability
 - improved `--walletConnect` behavior for non-7702 wallets
+- [Metrics] node operator fee now uses `Δ(noEarnings)` — correctly accounts for mid-period fee withdrawals; previously, when NO withdrew fees during a period, `accruedFee` reset to zero causing netAPR to be overstated
+- [Metrics] stETH liability rebase adjustment now uses opening shares only (`sharesPrev × ΔshareRate`), fixing incorrect CarrySpread values when new stETH was minted mid-period
+- [Metrics] `accruedFee` is now computed off-chain from IPFS data — stays correct even when vault owner hasn't applied the latest oracle report on-chain
 
 ### Added
 
@@ -24,6 +27,10 @@ All notable changes to this project will be documented in this file.
 #### DeFi Wrapper
 
 - manual pool creation finalization and logging after creation tx is executed
+
+#### Metrics
+
+- added `docs/cli/metrics-calculation.md` — reference documentation for all metric formulas and methodology
 
 ## 1.5.0
 
