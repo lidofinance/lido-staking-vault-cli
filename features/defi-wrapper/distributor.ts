@@ -27,6 +27,7 @@ type GenerateDistributionParams = {
   toBlock?: bigint;
   fromBlock?: bigint;
   maxBatchSize?: bigint;
+  mode: 'integral' | 'snapshot';
 };
 
 const treeFromData = (data: any) => {
@@ -152,7 +153,8 @@ const getUserShares = async (
   blackListSet: Set<Address>,
   fromBlock: bigint,
   toBlock: bigint,
-  batchSize?: bigint,
+  batchSize: bigint | undefined,
+  mode: 'integral' | 'snapshot',
 ) => {
   const publicClient = await getPublicClient();
   const userSharesMap: Map<
@@ -252,8 +254,16 @@ const getUserShares = async (
     const lastBalance = info.balance;
     const lastBlock = info.lastBlock;
 
-    const newShare =
-      lastBalance * (toBlock - lastBlock) + info.accumulatedShare;
+    let newShare: bigint;
+    if (mode === 'integral') {
+      // for integral mode, we calculate share based on historical holding share, so we accumulate share since last block until toBlock
+      newShare = lastBalance * (toBlock - lastBlock) + info.accumulatedShare;
+    } else if (mode === 'snapshot') {
+      // for snapshot mode, we calculate share based on snapshot of balances on toBlock, so we only take the last balance as share
+      newShare = lastBalance;
+    } else {
+      throw new Error(`Unsupported distribution mode: ${mode}`);
+    }
     userSharesMap.set(address, {
       accumulatedShare: newShare,
       balance: lastBalance,
@@ -285,6 +295,7 @@ export const generateDistribution = async ({
   fromBlock,
   ipfsGateway,
   maxBatchSize,
+  mode,
 }: GenerateDistributionParams) => {
   // Contracts
   const publicClient = await getPublicClient();
@@ -364,6 +375,7 @@ export const generateDistribution = async ({
     fromBlockNumber + 1n,
     BigInt(currentBlock.number),
     maxBatchSize,
+    mode,
   );
 
   const newMerkleValues: [Address, Address, bigint][] = [];

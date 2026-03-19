@@ -133,6 +133,7 @@ type DistributeOptions = {
   toBlock?: bigint;
   ipfsGateway?: string;
   maxBatchSize: bigint;
+  mode: 'integral' | 'snapshot';
 };
 
 distributorWrite
@@ -143,6 +144,11 @@ distributorWrite
     '<tokens...>',
     'ERC20 token addresses and amounts to distribute,e.g.  0x... 123.15 0x... 456.78',
     stringArrayToTokenPairs,
+  )
+  .option(
+    '--mode [mode]',
+    'distribution calculation mode, `integral`(default) or `snapshot`. `integral` mode calculates based on historical holding share while `snapshot` calculates by balances on toBlock',
+    'integral',
   )
   .option(
     '--blacklist [addresses...]',
@@ -173,11 +179,12 @@ distributorWrite
   .option(
     '--upload [pinningUrl]',
     '(unstable) uploading distribution data to provided pinning service URL',
-    false,
+    undefined,
   )
   .option(
     '--upload-authorization [token]',
     'authorization token for uploading distribution data to pinning service, used as `Authorization: Bearer <token>`',
+    undefined,
   )
   .option('--skip-set-root', 'skip setting merkle root on distributor', false)
   .action(
@@ -196,6 +203,7 @@ distributorWrite
         toBlock,
         ipfsGateway,
         maxBatchSize,
+        mode,
       }: DistributeOptions,
     ) => {
       const publicClient = await getPublicClient();
@@ -235,6 +243,7 @@ distributorWrite
         toBlock,
         fromBlock,
         ipfsGateway,
+        mode,
         maxBatchSize,
         tokens: tokens.map((t) => ({
           address: t.contract.address,
@@ -354,6 +363,7 @@ type ClaimOptions = {
   recipients?: Address[];
   tokens?: Address[];
   printOnly: boolean;
+  ipfsGateway?: string;
 };
 
 distributorWrite
@@ -369,6 +379,10 @@ distributorWrite
     '--tokens [addresses...]',
     'only claim for specified token addresses',
     stringArrayToAddressArray,
+  )
+  .option(
+    '--ipfs-gateway [gateway]',
+    'IPFS gateway to fetch previous data from',
   )
   .option(
     '--print-only',
@@ -397,7 +411,7 @@ distributorWrite
       return;
     }
 
-    const distribution = await fetchDistributionTree(cid);
+    const distribution = await fetchDistributionTree(cid, options.ipfsGateway);
 
     const userAddressSet = options.recipients
       ? new Set(options.recipients.map((addr) => addr.toLowerCase()))

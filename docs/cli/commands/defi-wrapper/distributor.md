@@ -42,6 +42,7 @@ The Distributor commands are used to manage the distribution of side tokens via 
 | add-token       | add a new token to distribute                           |
 | set-merkle-root | updates merkle root and CID on the distributor contract |
 | distribute      | generates and optionally uploads new distribution data  |
+| claim           | permissionlessly claim rewards to recipients            |
 
 ## Command Details
 
@@ -125,18 +126,20 @@ Generates a new rewards distribution based on pool shares, and provides options 
 
 **Options:**
 
-| Option                       | Description                                                                                     | Default                             |
-| ---------------------------- | ----------------------------------------------------------------------------------------------- | ----------------------------------- |
-| `--blacklist [addresses...]` | A list of addresses to exclude from the distribution.                                           | `[]`                                |
-| `--from-block [block]`       | The starting block for calculating pool share balances.                                         | `undefined`                         |
-| `--to-block [block]`         | The ending block for calculating pool share balances.                                           | `undefined`                         |
-| `--max-batch-size [size]`    | The maximum number of blocks to fetch events for in a single batch.                             | `50000`                             |
-| `--output-path [path]`       | The local file path to save the generated distribution data.                                    | `./distribution-[merkle-root].json` |
-| `--skip-write`               | If set, the distribution data will not be written to a local file.                              | `false`                             |
-| `--skip-transfer`            | If set, the command will not attempt to transfer the reward tokens to the distributor contract. | `false`                             |
-| `--ipfs-gateway [gateway]`   | A custom IPFS gateway to fetch previous distribution data from.                                 | `undefined`                         |
-| `--upload [pinningUrl]`      | A URL for a pinning service to upload the distribution data to.                                 | `false`                             |
-| `--skip-set-root`            | If set, the new Merkle root will not be set on the distributor contract.                        | `false`                             |
+| Option                           | Description                                                                                                                                                              | Default                             |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------- |
+| `--blacklist [addresses...]`     | A list of addresses to exclude from the distribution.                                                                                                                    | `[]`                                |
+| `--mode [mode]`                  | distribution calculation mode, `integral` or `snapshot`. `integral` mode calculates based on historical holding share while `snapshot` calculates by balances on toBlock | `integral`                          |
+| `--from-block [block]`           | The starting block for calculating pool share balances.                                                                                                                  | `undefined`                         |
+| `--to-block [block]`             | The ending block for calculating pool share balances.                                                                                                                    | `undefined`                         |
+| `--max-batch-size [size]`        | The maximum number of blocks to fetch events for in a single batch.                                                                                                      | `50000`                             |
+| `--output-path [path]`           | The local file path to save the generated distribution data.                                                                                                             | `./distribution-[merkle-root].json` |
+| `--skip-write`                   | If set, the distribution data will not be written to a local file.                                                                                                       | `false`                             |
+| `--skip-transfer`                | If set, the command will not attempt to transfer the reward tokens to the distributor contract.                                                                          | `false`                             |
+| `--ipfs-gateway [gateway]`       | A custom IPFS gateway to fetch previous distribution data from.                                                                                                          | `undefined`                         |
+| `--upload [pinningUrl]`          | (unstable) uploading distribution data to provided pinning service URL                                                                                                   | `undefined`                         |
+| `--upload-authorization [token]` | Authorization token for uploading distribution data to pinning service, used as `Authorization: Bearer <token>`                                                          | `undefined`                         |
+| `--skip-set-root`                | If set, the new Merkle root will not be set on the distributor contract.                                                                                                 | `false`                             |
 
 **Example:**
 
@@ -146,3 +149,24 @@ yarn start dw uc d w distribute 0x... 0xtoken1... 1000 0xtoken2... 500.5 --uploa
 ```
 
 **Use Case:** To perform a complete rewards distribution run. This command can calculate rewards, generate the necessary data, upload it to IPFS, and update the smart contract all in one go, making it a powerful tool for automating rewards distribution.
+
+### claim
+
+Allows to permissionlessly claim distributed tokens to set or all recipients.
+
+**Arguments:**
+
+- `<pool address>`: The contract address of the pool.
+- `--recipients [addresses...]`: (optional) The addresses(space separated) of the recipients to claim the distributed tokens for, if not provided, all recipients will be claimed.
+- `--tokens [addresses]`: (optional) The addresses(space separated) of the tokens to claim, if not provided, all tokens in the distribution will be claimed.
+- `--ipfs-gateway [gateway]`: (optional) A custom IPFS gateway to fetch distribution data from, if not provided, the default gateway will be used.
+- `--print-only`: (optional) If set, the claim data will be printed to the console without sending any transactions.
+
+**Example:**
+
+```bash
+# distribute rewards to specific recipients for specific tokens
+yarn start dw uc d w claim 0x<poolAddress>  --recipients 0x<recipientAddress1> 0x<recipientAddress2> --tokens 0x<tokenAddress1> 0x<tokenAddress2>
+```
+
+**Use Case:** Manually claim personal rewards or force claim for all recipients
