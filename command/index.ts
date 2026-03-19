@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 
-import { version } from 'version/index.js';
+import { version } from '../version/index.js';
 
 export const program = new Command();
 
