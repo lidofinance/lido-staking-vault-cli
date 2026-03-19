@@ -5,7 +5,7 @@ import {
   getSettledGrowthsByBlockNumbers,
   getNodeOperatorAccruedFeeByBlockNumbers,
 } from 'features';
-import { getDashboardContract } from 'contracts';
+import { DashboardContract, getDashboardContract } from 'contracts';
 import { getPublicClient } from 'providers';
 import { loadTestConfig } from './helpers/test-config.js';
 import { getDashboardByVault } from 'features';
@@ -14,9 +14,7 @@ describe('Metrics Integration Tests', () => {
   let config: ReturnType<typeof loadTestConfig>;
   let vaultAddress: Address;
   let dashboardAddress: Address | null;
-  let dashboardContract: Awaited<
-    ReturnType<typeof getDashboardContract>
-  > | null;
+  let dashboardContract: DashboardContract | null;
   let currentBlockNumber: number;
 
   beforeAll(async () => {

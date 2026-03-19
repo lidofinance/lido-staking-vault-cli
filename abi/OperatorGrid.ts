@@ -1,5 +1,6 @@
 import { VaultHubErrorsAbi } from './VaultHub.js';
 import { StakingVaultErrorsAbi } from './StakingVault.js';
+import type { Abi } from 'viem';
 
 export const OperatorGridErrorsAbi = [
   {
@@ -319,7 +320,7 @@ export const OperatorGridErrorsAbi = [
     name: 'ZeroConfirmingRoles',
     type: 'error',
   },
-] as const;
+] as const satisfies Abi;
 
 export const OperatorGridAbi = [
   ...OperatorGridErrorsAbi,
@@ -1588,4 +1589,4 @@ export const OperatorGridAbi = [
     stateMutability: 'view',
     type: 'function',
   },
-] as const;
+] as const satisfies Abi;

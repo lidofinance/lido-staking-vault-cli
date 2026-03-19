@@ -7,7 +7,12 @@ import { program } from './command/index.js';
 import { logError, logInfo } from './utils/logging/console.js';
 import { withInterruptHandling } from './utils/interrupt-handler.js';
 import './programs/index.js';
-import { disconnectWalletConnect } from './utils/index.js';
+import {
+  closeJsonLogging,
+  disconnectWalletConnect,
+  logJson,
+  openJsonLogging,
+} from './utils/index.js';
 
 export * from './utils/index.js';
 
@@ -45,6 +50,7 @@ const showMainnetWarning = () => {
 
 program.addHelpText('afterAll', () => {
   const chain = process.env.CHAIN_ID;
+  if (program.opts().json) return '';
   if (chain === String(mainnet.id)) {
     showMainnetWarning();
   } else {
@@ -55,26 +61,40 @@ program.addHelpText('afterAll', () => {
 
 // Add interrupt handling to the CLI
 const runCLI = withInterruptHandling(async () => {
+  // programm.opts is not init yet
+  const isJson = process.argv.includes('--json');
   const chain = await getChain();
-  logInfo(`${'-'.repeat(100)}`);
-  logInfo(`Using chain: Name: ${chain.name}, Chain ID: ${chain.id}`);
-  logInfo(`${'-'.repeat(100)}`);
+  if (isJson) {
+    openJsonLogging();
+  } else {
+    logInfo(`${'-'.repeat(100)}`);
+    logInfo(`Using chain: Name: ${chain.name}, Chain ID: ${chain.id}`);
+    logInfo(`${'-'.repeat(100)}`);
+  }
   await program.parseAsync(process.argv);
 });
 
 runCLI()
   .catch(async (error) => {
-    logError('CLI Error:', error.message);
-    await disconnectWalletConnect();
+    await disconnectWalletConnect().catch(() => {});
+    if (program.opts().json) {
+      logJson({ error: error.message });
+      closeJsonLogging();
+    } else {
+      logError('CLI Error:', error.message);
+    }
     process.exit(1);
   })
   .finally(async () => {
-    const chain = await getChain();
-
-    if (chain.id === mainnet.id) {
-      showMainnetWarning();
+    if (program.opts().json) {
+      closeJsonLogging();
     } else {
-      showTestnetWarning();
+      const chain = await getChain();
+      if (chain.id === mainnet.id) {
+        showMainnetWarning();
+      } else {
+        showTestnetWarning();
+      }
     }
 
     await disconnectWalletConnect();

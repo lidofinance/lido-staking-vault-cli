@@ -81,11 +81,27 @@ export const getAccount = async () => {
   return privateKeyToAccount(privateKey as Address);
 };
 
+export type RegisteredPublicClient = ReturnType<typeof createPublicClient>;
+
+const PUBLIC_CLIENT_CACHE: {
+  [key: number]: ReturnType<typeof createPublicClient>;
+} = {};
+
 export const getPublicClient = async () => {
-  return createPublicClient({
-    chain: await getChain(),
+  const chain = await getChain();
+
+  const cached = PUBLIC_CLIENT_CACHE[chain.id];
+  if (cached) {
+    return cached as typeof publicClient;
+  }
+
+  const publicClient = createPublicClient({
+    chain,
     transport: http(getElUrl()),
   });
+  PUBLIC_CLIENT_CACHE[chain.id] = publicClient;
+
+  return publicClient;
 };
 
 export const getTestClient = async () => {
@@ -112,6 +128,7 @@ export const getWalletWithAccount = async (): Promise<WalletClient> => {
 export const getWalletConnectClient = async (): Promise<{
   walletConnectClient: WalletClient;
   isGnosis: boolean;
+  supportsWalletSendCalls: boolean;
 }> => {
   const walletConnectClient = await createWalletConnectClient();
 

@@ -6,16 +6,31 @@ All notable changes to this project will be documented in this file.
 
 - [Dashboard,VaultHub] fixed `trigger-validator-withdrawal` command for multiple pubkeys
 - [DeFi Wrapper] fixed incorrect parsing of `--salt` option for all timelock operations
+- Edge case in pdg-helpers validator-info when validator is not yet present on CL
+- improved DefiWrapper factory commands options parsing, prompting and error handling
+- improved `defi-wrapper use-cases w auto-report` to use polling instead of subscription for better reliability
+- improved `--walletConnect` behavior for non-7702 wallets
+- [Metrics] node operator fee now uses `Δ(noEarnings)` — correctly accounts for mid-period fee withdrawals; previously, when NO withdrew fees during a period, `accruedFee` reset to zero causing netAPR to be overstated
+- [Metrics] stETH liability rebase adjustment now uses opening shares only (`sharesPrev × ΔshareRate`), fixing incorrect CarrySpread values when new stETH was minted mid-period
+- [Metrics] `accruedFee` is now computed off-chain from IPFS data — stays correct even when vault owner hasn't applied the latest oracle report on-chain
 
 ### Added
 
 #### General
 
+- Added `create-strategy-pool-lido-earn-eth` to `defi-wrapper contracts factory w`
+- JSON output now outputs only json array without additional log messages for better parsing in scripts
+- All common options are now available in `--help` for all commands for better discoverability
 - added `account write send-tx` command for manually sending transactions with connected wallet accounts
+- `update-vault-share-limit`/`change-tier` commands now accepts steth amount via `--steth`
 
 #### DeFi Wrapper
 
 - manual pool creation finalization and logging after creation tx is executed
+
+#### Metrics
+
+- added `docs/cli/metrics-calculation.md` — reference documentation for all metric formulas and methodology
 
 ## 1.5.0
 

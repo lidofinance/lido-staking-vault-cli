@@ -55,9 +55,9 @@ yarn start contracts operator-grid -h
 
 ### Write
 
-| Command                                                     | Description                                                |
-| ----------------------------------------------------------- | ---------------------------------------------------------- |
-| change-tier ct\<vault> \<tierId> \<requestedShareLimit>     | vault tier change with multi-role confirmation             |
-| sync-tier st\<vault>                                        | syncs vault tier with current tier params                  |
-| update-vault-share-limit usl\<vault> \<requestedShareLimit> | update vault share limit                                   |
-| confirm-tier-change \<vault>                                | Confirms a tier change proposal only for the Node Operator |
+| Command                                                               | Description                                                                                                                                                                         |
+| --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| change-tier ct\<vault> \<tierId> \<requestedShareLimit> [--steth]     | vault tier change with multi-role confirmation. `requestedShareLimit` is in shares by default; use `--steth` to provide it in stETH (converted on-chain via `getSharesByPooledEth`) |
+| sync-tier st\<vault>                                                  | syncs vault tier with current tier params                                                                                                                                           |
+| update-vault-share-limit usl\<vault> \<requestedShareLimit> [--steth] | update vault share limit. `requestedShareLimit` is in shares by default; use `--steth` to provide it in stETH (converted on-chain via `getSharesByPooledEth`)                       |
+| confirm-tier-change \<vault>                                          | Confirms a tier change proposal only for the Node Operator                                                                                                                          |

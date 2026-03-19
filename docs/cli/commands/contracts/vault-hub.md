@@ -58,7 +58,7 @@ yarn start contracts hub -h
 | is-v-h \<vault>                                       | get is vault healthy boolean                                                          |
 | latest-report-data \<vault>                           | get latest report for the vault                                                       |
 | liability-shares \<vault>                             | get liability shares of the vault                                                     |
-| locked \<vault>                                       | get llocked amount of ether for the vault                                             |
+| locked \<vault>                                       | get locked amount of ether for the vault                                              |
 | max-lockable-value \<vault>                           | get the amount of ether that can be locked in the vault given the current total value |
 | obligations \<vault>                                  | get the vault's current obligations toward the protocol                               |
 | obligationsShortfallValue \<\_vault>                  | Calls the read-only function "obligationsShortfallValue" on the contract.             |

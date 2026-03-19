@@ -1,31 +1,22 @@
-import {
-  getContract,
-  createPublicClient,
-  http,
-  GetContractReturnType,
-  WalletClient,
-} from 'viem';
+import { getContract, GetContractReturnType } from 'viem';
 import { OperatorGridAbi } from 'abi/index.js';
-import { getChain, getElUrl } from 'configs';
 import { getLocatorContract } from 'contracts';
+import { getPublicClient, RegisteredPublicClient } from 'providers/index.js';
 
-export const getOperatorGridContract = async (): Promise<
-  GetContractReturnType<typeof OperatorGridAbi, WalletClient>
-> => {
-  const locator = await getLocatorContract();
-  const chain = await getChain();
-  const address = await locator.read.operatorGrid();
+export const getOperatorGridContract =
+  async (): Promise<OperatorGridContract> => {
+    const locator = await getLocatorContract();
+    const publicClient = await getPublicClient();
+    const address = await locator.read.operatorGrid();
 
-  return getContract({
-    address,
-    abi: OperatorGridAbi,
-    client: createPublicClient({
-      chain,
-      transport: http(getElUrl()),
-    }),
-  });
-};
+    return getContract({
+      address,
+      abi: OperatorGridAbi,
+      client: publicClient,
+    });
+  };
 
-export type OperatorGridContract = Awaited<
-  ReturnType<typeof getOperatorGridContract>
+export type OperatorGridContract = GetContractReturnType<
+  typeof OperatorGridAbi,
+  RegisteredPublicClient
 >;

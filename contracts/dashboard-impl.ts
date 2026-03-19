@@ -1,30 +1,20 @@
-import {
-  getContract,
-  createPublicClient,
-  http,
-  GetContractReturnType,
-  PublicClient,
-} from 'viem';
+import { getContract, GetContractReturnType } from 'viem';
 import { DashboardAbi } from 'abi';
-import { getChain, getDashboardImplAddress, getElUrl } from 'configs';
+import { getDashboardImplAddress } from 'configs';
+import { getPublicClient, RegisteredPublicClient } from 'providers/index.js';
 
-export const getDashboardImplContract = async (): Promise<
-  GetContractReturnType<typeof DashboardAbi, PublicClient>
-> => {
-  const elUrl = getElUrl();
-  const chain = await getChain();
-  const address = getDashboardImplAddress();
+export const getDashboardImplContract =
+  async (): Promise<DashboardImplContract> => {
+    const publicClient = await getPublicClient();
+    const address = getDashboardImplAddress();
 
-  return getContract({
-    address,
-    abi: DashboardAbi,
-    client: createPublicClient({
-      chain,
-      transport: http(elUrl),
-    }),
-  });
-};
+    return getContract({
+      address,
+      abi: DashboardAbi,
+      client: publicClient,
+    });
+  };
 
 export type DashboardImplContract = Awaited<
-  ReturnType<typeof getDashboardImplContract>
+  GetContractReturnType<typeof DashboardAbi, RegisteredPublicClient>
 >;

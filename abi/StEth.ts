@@ -1,3 +1,5 @@
+import type { Abi } from 'viem';
+
 export const StEthAbi = [
   {
     constant: true,
@@ -1054,4 +1056,4 @@ export const StEthAbi = [
     name: 'ContractVersionSet',
     type: 'event',
   },
-] as const;
+] as const satisfies Abi;

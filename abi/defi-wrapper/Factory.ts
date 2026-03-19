@@ -1,3 +1,5 @@
+import type { Abi } from 'viem';
+
 export const FactoryAbi = [
   {
     type: 'function',
@@ -1364,4 +1366,4 @@ export const FactoryAbi = [
       },
     ],
   },
-] as const;
+] as const satisfies Abi;

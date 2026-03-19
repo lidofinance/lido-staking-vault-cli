@@ -1,3 +1,5 @@
+import type { Abi } from 'viem';
+
 export const validatorConsolidationRequestsAbi = [
   {
     inputs: [
@@ -155,4 +157,4 @@ export const validatorConsolidationRequestsAbi = [
     stateMutability: 'view',
     type: 'function',
   },
-] as const;
+] as const satisfies Abi;

@@ -311,7 +311,6 @@ type GetRebaseRewardFromCacheArgs = {
   blockNumberPrev: number;
   blockNumberCurr: number;
   liabilitySharesPrev: bigint;
-  liabilitySharesCurr: bigint;
 };
 
 export const getRebaseRewardFromCache = async (
@@ -322,7 +321,6 @@ export const getRebaseRewardFromCache = async (
     blockNumberPrev,
     blockNumberCurr,
     liabilitySharesPrev,
-    liabilitySharesCurr,
   } = args;
 
   const cacheKey = `${blockNumberPrev}_${blockNumberCurr}`;
@@ -336,7 +334,6 @@ export const getRebaseRewardFromCache = async (
     shareRatePrev,
     shareRateCurr,
     sharesPrev: liabilitySharesPrev,
-    sharesCurr: liabilitySharesCurr,
   });
 
   await cache.setRebaseReward(vaultAddress, cacheKey, reward);

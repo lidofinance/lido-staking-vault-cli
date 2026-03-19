@@ -1,3 +1,5 @@
+import type { Abi } from 'viem';
+
 export const OssifiableProxyAbi = [
   {
     type: 'function',
@@ -89,4 +91,4 @@ export const OssifiableProxyAbi = [
     ],
     stateMutability: 'view',
   },
-] as const;
+] as const satisfies Abi;

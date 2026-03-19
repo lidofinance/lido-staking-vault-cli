@@ -1,14 +1,17 @@
 import { describe, test, expect, beforeAll } from 'vitest';
 import { type Hex } from 'viem';
 import { checkValidatorInfo, checkPdgIsPaused } from 'features';
-import { getPredepositGuaranteeContract } from 'contracts/pdg.js';
+import {
+  getPredepositGuaranteeContract,
+  PredepositGuaranteeContract,
+} from 'contracts/pdg.js';
 import { loadTestConfig } from './helpers/test-config.js';
 import { setupIntegrationTestsBeforeEach } from './helpers/test-setup.js';
 
 describe('Deposits Integration Tests', () => {
   setupIntegrationTestsBeforeEach();
 
-  let pdgContract: Awaited<ReturnType<typeof getPredepositGuaranteeContract>>;
+  let pdgContract: PredepositGuaranteeContract;
 
   beforeAll(async () => {
     loadTestConfig();

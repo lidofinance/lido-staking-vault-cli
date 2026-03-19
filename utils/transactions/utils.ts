@@ -40,3 +40,18 @@ export const simulateCallsErrorHandler = (
     printError(error, shortMessage);
   }
 };
+
+export const isWcSendCallsFailure = (error: unknown) => {
+  const errMsg = error instanceof Error ? error.message : String(error);
+  const errCode =
+    error != null && typeof error === 'object' && 'code' in error
+      ? (error as { code: unknown }).code
+      : undefined;
+
+  return (
+    errMsg.includes('wallet_sendCalls') ||
+    errMsg.includes('isValidRequest') ||
+    errMsg.includes('EIP-7702') ||
+    errCode === 5750 // MetaMask error code for EIP-7702
+  );
+};

@@ -1,15 +1,10 @@
-import {
-  getContract,
-  Address,
-  GetContractReturnType,
-  WalletClient,
-} from 'viem';
+import { getContract, Address, GetContractReturnType } from 'viem';
 import { DistributorAbi } from 'abi/defi-wrapper/index.js';
-import { getPublicClient } from 'providers';
+import { getPublicClient, RegisteredPublicClient } from 'providers';
 
 export const getDistributorContract = async (
   address: Address,
-): Promise<GetContractReturnType<typeof DistributorAbi, WalletClient>> => {
+): Promise<DistributorContract> => {
   const publicClient = await getPublicClient();
 
   return getContract({
@@ -19,4 +14,7 @@ export const getDistributorContract = async (
   });
 };
 
-export type DistributorContract = ReturnType<typeof getDistributorContract>;
+export type DistributorContract = GetContractReturnType<
+  typeof DistributorAbi,
+  RegisteredPublicClient
+>;

@@ -1,3 +1,4 @@
+import type { Abi } from 'viem';
 import { VaultHubErrorsAbi } from './VaultHub.js';
 
 export const LazyOracleAbi = [
@@ -1144,4 +1145,4 @@ export const LazyOracleAbi = [
     stateMutability: 'view',
     type: 'function',
   },
-] as const;
+] as const satisfies Abi;

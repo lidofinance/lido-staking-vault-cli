@@ -1,4 +1,4 @@
-import logUpdate from 'log-update';
+import { logUpdateStderr } from 'log-update';
 
 import { spinners, SpinnerType } from './constants.js';
 
@@ -8,6 +8,8 @@ type args = {
 };
 
 export const showSpinner = (args?: args) => {
+  if (process.argv.includes('--json')) return () => {};
+
   const { type = 'point', message = 'Executing...' } = args || {};
 
   const spinner = spinners[type || 'point'];
@@ -15,11 +17,11 @@ export const showSpinner = (args?: args) => {
 
   const interval = setInterval(() => {
     const { frames } = spinner;
-    logUpdate(frames[(index = ++index % frames.length)] + ` ${message}`);
+    logUpdateStderr(frames[(index = ++index % frames.length)] + ` ${message}`);
   }, spinner.interval);
 
   return () => {
     clearInterval(interval);
-    logUpdate.clear();
+    logUpdateStderr.clear();
   };
 };

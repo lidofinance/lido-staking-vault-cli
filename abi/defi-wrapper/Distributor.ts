@@ -1,3 +1,5 @@
+import type { Abi } from 'viem';
+
 export const DistributorAbi = [
   {
     type: 'constructor',
@@ -629,4 +631,4 @@ export const DistributorAbi = [
     name: 'ZeroAddress',
     inputs: [],
   },
-] as const;
+] as const satisfies Abi;

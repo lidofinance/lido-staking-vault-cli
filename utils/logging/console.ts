@@ -28,43 +28,57 @@ const bigIntStringify = <T>(value: T): string => {
   );
 };
 
+// Flag so that next log can add comma if previous log is JSON to create valid JSON array output
+let IS_PREV_JSON_LOG = false;
+
+export const openJsonLogging = () => {
+  console.info('[');
+};
+
+export const closeJsonLogging = () => {
+  console.info(']');
+};
+
+export const TEST_RESET_JSON_LOG_FLAG = () => {
+  IS_PREV_JSON_LOG = false;
+};
+
 export const createConsole = (
   headMessage: HeadMessage,
-  type: 'info' | 'error' | 'table' | 'bold' = 'info',
+  type: 'info' | 'error' | 'table' | 'bold' | 'json' = 'info',
 ) => {
   return <T, U>(...args: T[] | U[]) => {
+    // print comma if previous log is JSON to separate logs
+    if (IS_PREV_JSON_LOG) {
+      console.info(',');
+    }
+    // set flag so that next log can check if previous log is JSON and print comma
+    if (program.opts().json) {
+      IS_PREV_JSON_LOG = true;
+    }
+
     switch (type) {
       case 'table':
         if (program.opts().json) {
-          console.info(`\n${getColoredLog(headMessage, headMessage + ':')}`);
-          console.info('<JSON>');
-          console.info(bigIntStringify(args));
-          console.info('</JSON>');
-          return;
+          return console.info(bigIntStringify(args));
         }
         console.info(`\n${getColoredLog(headMessage, headMessage + ':')}`);
-        console.table(...args);
-        break;
+        return console.table(...args);
+
       case 'bold':
         if (program.opts().json) {
-          console.info(`\n${getColoredLog(headMessage, headMessage + ':')}`);
-          console.info('<JSON>');
-          console.info(bigIntStringify({ Result: args }));
-          console.info('</JSON>');
-          return;
+          return console.info(bigIntStringify({ result: args }));
         }
-        console.info(getColoredLog(headMessage, args));
-        break;
+        return console.info(getColoredLog(headMessage, args));
+      case 'json':
+        args.forEach((arg) => console.info(bigIntStringify(arg)));
+        return;
       default:
         if (program.opts().json) {
-          console.info(`\n${getColoredLog(headMessage, headMessage + ':')}`);
-          console.info('<JSON>');
-          console.info(bigIntStringify({ Result: args }));
-          console.info('</JSON>');
-          return;
+          return console.info(bigIntStringify({ result: args }));
         }
         // eslint-disable-next-line no-console
-        console[type](
+        return console[type](
           `\n${getColoredLog(headMessage, headMessage + ':')}`,
           ...args,
         );
@@ -74,16 +88,20 @@ export const createConsole = (
 
 const createTable = (headMessage?: HeadMessage) => (args: CreateTableArgs) => {
   const { data, params, csvPath } = args;
-  if (headMessage)
+  if (headMessage && !program.opts().json)
     console.info(`\n${getColoredLog(headMessage, headMessage + ':')}`);
 
   if (!data) return;
 
   if (program.opts().json) {
-    console.info('<JSON>');
-    console.info(bigIntStringify({ Result: data }));
-    console.info('</JSON>');
-    return;
+    // print comma if previous log is JSON to separate logs
+    if (IS_PREV_JSON_LOG) {
+      console.info(',');
+    }
+
+    IS_PREV_JSON_LOG = true;
+
+    return console.info(bigIntStringify({ result: data }));
   } else {
     const table = new Table({ ...TABLE_PARAMS, ...params });
     table.push(...data);
@@ -106,3 +124,4 @@ export const logError = createConsole('Error', 'error');
 export const logBold = createConsole('Bold', 'bold');
 export const logCancel = createConsole('Cancel');
 export const logResultSimple = createConsole('Result', 'table');
+export const logJson = createConsole('Result', 'json');

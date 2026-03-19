@@ -4,7 +4,6 @@ import {
   logInfo,
   logResult,
   logTable,
-  printError,
   showSpinner,
   createPDGProof,
   ValidatorWitness,
@@ -89,7 +88,6 @@ export const makePDGProofByIndex = async (validatorIndex: number) => {
     return packageProof;
   } catch (err) {
     hideSpinner();
-    printError(err, 'Error when making proof');
     throw err;
   }
 };
@@ -97,7 +95,8 @@ export const makePDGProofByIndex = async (validatorIndex: number) => {
 export const makePDGProofByIndexes = async (indexes: number[]) => {
   const witnesses: ValidatorWitness[] = [];
 
-  for (const index of indexes) {
+  for (const [i, index] of indexes.entries()) {
+    logInfo(`--- Validator ${i + 1}/${indexes.length} [index: ${index}] ---`);
     const validatorIndex = await confirmMakeProof(index);
     if (!validatorIndex) return;
 
