@@ -1,4 +1,4 @@
-import { CID } from 'multiformats/cid';
+import { CID, Version } from 'multiformats/cid';
 import { MemoryBlockstore } from 'blockstore-core';
 import { importer } from 'ipfs-unixfs-importer';
 import jsonBigInt from 'json-bigint';
@@ -71,12 +71,14 @@ export const fetchIPFSBuffer = async (
 // Recalculate CID using full UnixFS logic (like `ipfs add`)
 export const calculateIPFSAddCID = async (
   fileContent: Uint8Array,
+  version: Version = 0,
 ): Promise<CID> => {
   const blockstore = new MemoryBlockstore();
 
   const entries = importer([{ content: fileContent }], blockstore, {
-    cidVersion: 0,
-    rawLeaves: false, // important! otherwise CID will be v1
+    cidVersion: version,
+    // important! otherwise CID will be v1
+    rawLeaves: version === 0 ? false : undefined,
   });
 
   let lastCid: CID | null = null;
@@ -99,19 +101,22 @@ export const fetchIPFSDirectAndVerify = async <T>(
   const originalCID = CID.parse(cid);
 
   const fileContent = await fetchIPFSBuffer({ cid, gateway });
-  const calculatedCID = await calculateIPFSAddCID(fileContent);
+  const calculatedCID = await calculateIPFSAddCID(
+    fileContent,
+    originalCID.version,
+  );
 
   if (!calculatedCID.equals(originalCID)) {
     throw new Error(
-      `❌ CID mismatch! Expected ${originalCID}, but got ${calculatedCID}`,
+      `❌ File hash mismatch! Expected ${originalCID}, but got ${calculatedCID}`,
     );
   }
 
   logTable({
     data: [
       ['✅ CID verified, file matches IPFS hash'],
-      ['Original CID', originalCID.toString()],
-      ['Calculated CID', calculatedCID.toString()],
+      [`Original CIDv${originalCID.version}`, originalCID.toString()],
+      [`Calculated CIDv${calculatedCID.version}`, calculatedCID.toString()],
     ],
     params: {
       head: ['Type', 'CID'],

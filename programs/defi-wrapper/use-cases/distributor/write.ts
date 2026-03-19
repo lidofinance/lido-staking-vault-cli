@@ -1,11 +1,14 @@
 import {
   Address,
+  encodeFunctionData,
   erc20Abi,
   formatUnits,
   getContract,
   Hash,
+  Hex,
   isAddressEqual,
   parseUnits,
+  zeroHash,
 } from 'viem';
 import { Option } from 'commander';
 import {
@@ -22,6 +25,7 @@ import {
   stringArrayToTokenPairs,
   pinToIPFS,
   logResult,
+  callWriteMethodWithReceiptBatchCalls,
 } from 'utils';
 import {
   getDistributorContract,
@@ -30,7 +34,10 @@ import {
 
 import { distributorUseCases } from './main.js';
 import { getPublicClient } from 'providers/wallet.js';
-import { generateDistribution } from 'features/defi-wrapper/distributor.js';
+import {
+  fetchDistributionTree,
+  generateDistribution,
+} from 'features/defi-wrapper/distributor.js';
 import path from 'path';
 import fs from 'fs/promises';
 
@@ -342,3 +349,133 @@ distributorWrite
       }
     },
   );
+
+type ClaimOptions = {
+  recipients?: Address[];
+  tokens?: Address[];
+  printOnly: boolean;
+};
+
+distributorWrite
+  .command('claim')
+  .description('claim tokens from distributor to recipients permissionlessly')
+  .argument('<pool address>', 'pool contract address', stringToAddress)
+  .option(
+    '--recipients [addresses...]',
+    'recipient addresses to claim for, empty to claim for all recipients(might call many transactions)',
+    stringArrayToAddressArray,
+  )
+  .option(
+    '--tokens [addresses...]',
+    'only claim for specified token addresses',
+    stringArrayToAddressArray,
+  )
+  .option(
+    '--print-only',
+    'only print claim data without sending transactions',
+    false,
+  )
+  .action(async (poolAddress: Address, options: ClaimOptions) => {
+    const poolContract = await getStvPoolContract(poolAddress);
+    const distributorAddress = await poolContract.read.DISTRIBUTOR();
+    const distributor = await getDistributorContract(distributorAddress);
+
+    const [cid, root] = await Promise.all([
+      distributor.read.cid(),
+      distributor.read.root(),
+    ]);
+
+    logResult({
+      data: [
+        ['Merkle Root', root],
+        ['CID', cid],
+      ],
+    });
+
+    if (root === zeroHash || cid === '') {
+      logError(`No distribution present. Merkle Root: ${root}, CID: ${cid}`);
+      return;
+    }
+
+    const distribution = await fetchDistributionTree(cid);
+
+    const userAddressSet = options.recipients
+      ? new Set(options.recipients.map((addr) => addr.toLowerCase()))
+      : null;
+
+    const tokenFilterSet = options.tokens
+      ? new Set(options.tokens.map((addr) => addr.toLowerCase()))
+      : null;
+
+    const claims: {
+      leafIndex: number;
+      recipient: Address;
+      token: Address;
+      cumulativeAmount: bigint;
+      claimableAmount: bigint;
+      proof: Hex[];
+    }[] = [];
+
+    for (const leaf of distribution.entries()) {
+      const [index, [recipientRaw, token, cumulativeAmount]] = leaf;
+      const recipient = recipientRaw.toLowerCase() as Address;
+
+      if (userAddressSet && !userAddressSet.has(recipient)) continue;
+      if (tokenFilterSet && !tokenFilterSet.has(token.toLowerCase())) continue;
+
+      const proof = distribution.getProof(index) as Hex[];
+
+      const claimableAmount = await distributor.read.previewClaim([
+        recipient,
+        token,
+        cumulativeAmount,
+        proof,
+      ]);
+
+      if (claimableAmount == 0n) continue;
+
+      claims.push({
+        leafIndex: index,
+        recipient,
+        token,
+        cumulativeAmount,
+        claimableAmount,
+        proof,
+      });
+    }
+
+    if (claims.length === 0) {
+      logInfo('No claims found for the given filters.');
+      return;
+    }
+
+    if (options.printOnly) {
+      logResult({
+        params: {
+          head: ['Recipient', 'Token', 'Claimable Amount'],
+        },
+        data: claims.map((claim) => [
+          claim.recipient,
+          claim.token,
+          claim.claimableAmount,
+        ]),
+      });
+      return;
+    }
+
+    await callWriteMethodWithReceiptBatchCalls({
+      calls: claims.map((claim) => ({
+        to: distributor.address,
+        data: encodeFunctionData({
+          abi: distributor.abi,
+          functionName: 'claim',
+          args: [
+            claim.recipient,
+            claim.token,
+            claim.cumulativeAmount,
+            claim.proof,
+          ],
+        }),
+      })),
+    });
+  });

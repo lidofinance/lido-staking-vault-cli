@@ -265,6 +265,18 @@ const getUserShares = async (
   return { userSharesMap, denominator };
 };
 
+export const fetchDistributionTree = async (
+  cid: string,
+  ipfsGateway?: string,
+) => {
+  const dataPrev = await fetchIPFS({
+    cid,
+    bigNumberType: 'bigint',
+    gateway: ipfsGateway,
+  });
+  return treeFromData(dataPrev);
+};
+
 export const generateDistribution = async ({
   tokens: tokensArg,
   poolAddress,
@@ -319,12 +331,7 @@ export const generateDistribution = async ({
   const merkleRootPrev = await distributor.read.root();
   let treePrev: ReturnType<typeof treeFromData> | null = null;
   if (cidPrev === '' && merkleRootPrev !== zeroHash) {
-    const dataPrev = await fetchIPFS({
-      cid: cidPrev,
-      bigNumberType: 'bigint',
-      gateway: ipfsGateway,
-    });
-    treePrev = treeFromData(dataPrev);
+    treePrev = await fetchDistributionTree(cidPrev, ipfsGateway);
 
     if (merkleRootPrev !== treePrev.root) {
       throw new Error(
