@@ -132,7 +132,7 @@ type DistributeOptions = {
   fromBlock?: bigint;
   toBlock?: bigint;
   ipfsGateway?: string;
-  maxBatchSize: bigint;
+  maxBatchSize?: bigint;
   mode: 'integral' | 'snapshot';
 };
 
@@ -165,9 +165,8 @@ distributorWrite
   .option('--to-block [block]', 'to block number', stringToBigInt, undefined)
   .option(
     '--max-batch-size [size]',
-    'maximum batch size for fetching events',
+    '(default 50000) maximum batch size for fetching events ',
     stringToBigInt,
-    50_000n,
   )
   .option('--output-path [path]', 'path to save distribution data')
   .option('--skip-write', 'skip writing distribution data to file', false)
@@ -202,7 +201,8 @@ distributorWrite
         fromBlock,
         toBlock,
         ipfsGateway,
-        maxBatchSize,
+        // commander does not support bigint default value
+        maxBatchSize = 50000n,
         mode,
       }: DistributeOptions,
     ) => {
