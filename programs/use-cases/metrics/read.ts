@@ -28,6 +28,7 @@ import {
   prepareBottomLine,
   prepareDailyLidoFees,
   formatTimestamp,
+  formatBP,
 } from 'utils';
 import {
   checkQuarantine,
@@ -190,6 +191,171 @@ metricsRead
 
     logResult({
       data: [
+        ['Gross Staking Rewards, ETH', ...grossStakingRewards.values],
+        ['Node Operator Rewards, ETH', ...nodeOperatorRewards.values],
+        ['Net Staking Rewards, ETH', ...netStakingRewards.values],
+        ['Gross Staking APR, %', ...grossStakingAPR.values.map(formatRatio)],
+        ['Net Staking APR, %', ...netStakingAPR.values.map(formatRatio)],
+        ['Carry Spread, %', ...carrySpread.values.map(formatRatio)],
+        ['Bottom Line, WEI', ...bottomLine.values],
+        ['Daily Lido Fees, ETH', ...dailyLidoFees.values],
+        ['Timestamp', ...grossStakingRewards.timestamp],
+      ],
+      params: {
+        head: [
+          'Metric',
+          ...grossStakingRewards.timestamp.map((ts) =>
+            formatTimestamp(ts, 'dd.mm hh:mm', utc ? 'UTC' : 'local'),
+          ),
+        ],
+      },
+      csvPath: csv,
+    });
+  });
+
+metricsRead
+  .command('statistic-by-reports-full')
+  .description('get statistic data for N last reports with full data')
+  .argument('<count>', 'count of reports', stringToNumber)
+  .option('-v, --vault <string>', 'vault address')
+  .option('-g, --gateway', 'ipfs gateway url')
+  .option('--no-utc', 'do not use UTC time zone')
+  .action(async (count: number, { vault, gateway, utc }) => {
+    const { contract: dashboardContract, vault: vaultAddress } =
+      await chooseVaultAndGetDashboard({ vault });
+
+    await checkQuarantine(vaultAddress);
+
+    const lazyOracleContract = await getLazyOracleContract();
+    const [
+      _vaultsDataTimestamp,
+      _vaultsDataRefSlot,
+      _vaultsDataTreeRoot,
+      vaultsDataReportCid,
+    ] = await callReadMethod({
+      contract: lazyOracleContract,
+      methodName: 'latestReportData',
+      payload: [],
+    });
+
+    const { cacheUse, csv } = program.opts();
+    const history = await getVaultReportHistory(
+      {
+        vault: vaultAddress,
+        cid: vaultsDataReportCid,
+        limit: count,
+        direction: 'asc',
+        gateway,
+      },
+      cacheUse,
+    );
+
+    const blockNumbers = history.map((r) => r.blockNumber);
+    const noFeeSnapshots = await getNOFeeSnapshotsByBlockNumbers(
+      vaultAddress,
+      blockNumbers,
+      dashboardContract,
+      history,
+    );
+
+    const [
+      grossStakingRewards,
+      nodeOperatorRewards,
+      netStakingRewards,
+      grossStakingAPR,
+      netStakingAPR,
+      carrySpread,
+      bottomLine,
+      dailyLidoFees,
+    ] = await Promise.all([
+      prepareGrossStakingRewards(history),
+      prepareNodeOperatorRewards(history, noFeeSnapshots),
+      prepareNetStakingRewards(history, noFeeSnapshots),
+      prepareGrossStakingAPR(history),
+      prepareNetStakingAPR(history, noFeeSnapshots),
+      prepareCarrySpread(history, noFeeSnapshots, vaultAddress),
+      prepareBottomLine(history, noFeeSnapshots, vaultAddress),
+      prepareDailyLidoFees(history),
+    ]);
+
+    const historyCutted = history.slice(1); // cut first report to align with metrics which calculated from 2 reports
+    const noFeeSnapshotsCutted = noFeeSnapshots.slice(1); // cut first report to align with metrics which calculated from 2 reports
+
+    logResult({
+      data: [
+        ['Vault Address', vaultAddress],
+        [
+          'Node Operator Accrued Fee, ETH',
+          ...noFeeSnapshotsCutted.map((r) => formatEther(BigInt(r.accruedFee))),
+        ],
+        [
+          'Node Operator Fee Rate, %',
+          ...noFeeSnapshotsCutted.map((r) => formatBP(r.feeRate)),
+        ],
+        [
+          'Node Operator Settled Growth, ETH',
+          ...noFeeSnapshotsCutted.map((r) =>
+            formatEther(BigInt(r.settledGrowth)),
+          ),
+        ],
+        [
+          'Total Value, ETH',
+          ...historyCutted.map((r) =>
+            formatEther(BigInt(r.data.totalValueWei)),
+          ),
+        ],
+        [
+          'Fee, ETH',
+          ...historyCutted.map((r) => formatEther(BigInt(r.data.fee))),
+        ],
+        [
+          'Liability Shares, ETH',
+          ...historyCutted.map((r) =>
+            formatEther(BigInt(r.data.liabilityShares)),
+          ),
+        ],
+        [
+          'Slashing Reserve, ETH',
+          ...historyCutted.map((r) =>
+            formatEther(BigInt(r.data.slashingReserve)),
+          ),
+        ],
+        [
+          'In/Out Delta, ETH',
+          ...historyCutted.map((r) =>
+            formatEther(BigInt(r.extraData.inOutDelta)),
+          ),
+        ],
+        [
+          'Prev Fee, ETH',
+          ...historyCutted.map((r) => formatEther(BigInt(r.extraData.prevFee))),
+        ],
+        [
+          'Infra Fee, ETH',
+          ...historyCutted.map((r) =>
+            formatEther(BigInt(r.extraData.infraFee)),
+          ),
+        ],
+        [
+          'Liquidity Fee, ETH',
+          ...historyCutted.map((r) =>
+            formatEther(BigInt(r.extraData.liquidityFee)),
+          ),
+        ],
+        [
+          'Reservation Fee, ETH',
+          ...historyCutted.map((r) =>
+            formatEther(BigInt(r.extraData.reservationFee)),
+          ),
+        ],
+        ['Timestamp', ...historyCutted.map((r) => r.timestamp)],
+        ['CID', ...historyCutted.map((r) => r.cid)],
+        [
+          'Report date',
+          ...historyCutted.map((r) =>
+            formatTimestamp(r.timestamp, 'dd.mm hh:mm', utc ? 'UTC' : 'local'),
+          ),
+        ],
         ['Gross Staking Rewards, ETH', ...grossStakingRewards.values],
         ['Node Operator Rewards, ETH', ...nodeOperatorRewards.values],
         ['Net Staking Rewards, ETH', ...netStakingRewards.values],

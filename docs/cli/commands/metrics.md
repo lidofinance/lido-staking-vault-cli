@@ -30,13 +30,14 @@ For a detailed explanation of how each metric is calculated, see [Metrics Calcul
 
 ### Read
 
-| Command                        | Description                                |
-| ------------------------------ | ------------------------------------------ |
-| statistic                      | get statistic data for last report         |
-| statistic-by-reports \<count\> | get statistic data for N last reports      |
-| report-data \<count\>          | get report data for Vault from N reports   |
-| charts-apr \<count\>           | get APR charts data for N last reports     |
-| charts-rewards \<count\>       | get rewards charts data for N last reports |
+| Command                             | Description                                          |
+| ----------------------------------- | ---------------------------------------------------- |
+| statistic                           | get statistic data for last report                   |
+| statistic-by-reports \<count\>      | get statistic data for N last reports                |
+| statistic-by-reports-full \<count\> | get statistic data for N last reports with full data |
+| report-data \<count\>               | get report data for Vault from N reports             |
+| charts-apr \<count\>                | get APR charts data for N last reports               |
+| charts-rewards \<count\>            | get rewards charts data for N last reports           |
 
 ### Write
 
@@ -107,6 +108,20 @@ Analyzes multiple historical vault reports and calculates comprehensive performa
 - **Daily Lido Fees**: Protocol fees paid to Lido
 
 **Use Case:** Compare performance metrics across multiple reporting periods and identify trends over time.
+
+### statistic-by-reports-full
+
+Analyzes multiple historical vault reports and calculates comprehensive performance metrics for N last reports with full data.
+
+**Arguments:**
+
+- `<count>`: Number of historical reports to analyze
+
+**Options:**
+
+- `-v, --vault <string>`: Vault address
+- `-g, --gateway`: IPFS gateway URL for report data retrieval
+- `--no-utc`: format timestamps in local time instead of UTC
 
 ### report-data
 
