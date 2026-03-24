@@ -1,5 +1,5 @@
 import { getStethContract, type DashboardContract } from 'contracts';
-import { bigIntMax, bigIntMin } from 'utils/bigInt.js';
+import { bigIntMax, bigIntMin } from 'utils/big-int.js';
 
 export const vaultMintLimit = async (
   dashboard: DashboardContract,

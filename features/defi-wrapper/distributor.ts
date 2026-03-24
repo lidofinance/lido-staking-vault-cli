@@ -13,7 +13,7 @@ import {
   logInfo,
   V3_START_BLOCKS,
 } from 'utils';
-import { bigIntMax } from 'utils/bigInt.js';
+import { bigIntMax } from 'utils/big-int.js';
 import { Address, zeroAddress, zeroHash } from 'viem';
 
 type GenerateDistributionParams = {
@@ -97,7 +97,7 @@ const fetchEventsForBlocks = async ({
 
     const blocksSet = new Set(batch);
     const minBlock = batch[0] as bigint;
-    const maxBlock = batch[batch.length - 1] as bigint;
+    const maxBlock = batch.at(-1) as bigint;
 
     logInfo(
       `Batch ${i + 1}/${batches.length}: fetching blocks ${minBlock} to ${maxBlock} (${batch.length} blocks)...`,
@@ -285,12 +285,13 @@ export const generateDistribution = async ({
   const blackListSet = new Set(
     blacklist.map((addr) => addr.toLowerCase() as Address),
   );
-  [
+  for (const address of [
     distributorAddress,
     withdrawalQueueAddress,
     poolAddress,
     zeroAddress,
-  ].forEach((address) => blackListSet.add(address.toLowerCase() as Address));
+  ])
+    blackListSet.add(address.toLowerCase() as Address);
 
   // allow user to provider their own block or rely on last processed block from distributor(can be zero for first time)
   let fromBlockNumber =

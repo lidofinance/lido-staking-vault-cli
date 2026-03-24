@@ -55,7 +55,7 @@ export const readCommandConfig: ReadProgramCommandConfig<
       _requestId: {
         name: 'requestId',
         description: 'request id',
-        modifier: (value) => BigInt(value),
+        modifier: BigInt,
       },
     },
   },

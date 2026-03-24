@@ -167,7 +167,6 @@ const connectWalletConnectWithTimeout = async (
   isGnosis: boolean;
   supportsWalletSendCalls: boolean;
 }> => {
-  // eslint-disable-next-line no-async-promise-executor
   return new Promise(async (resolve, reject) => {
     const timeoutId = setTimeout(() => {
       reject(new Error(`Connection timeout after ${timeout}ms`));

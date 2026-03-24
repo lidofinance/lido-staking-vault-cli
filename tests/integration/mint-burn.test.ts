@@ -1,9 +1,8 @@
 import { describe, test, expect, beforeAll } from 'vitest';
 import { type Address } from 'viem';
-import { checkAllowance } from 'features';
+import { checkAllowance, getDashboardByVault } from 'features';
 import { DashboardContract, getDashboardContract } from 'contracts';
 import { loadTestConfig } from './helpers/test-config.js';
-import { getDashboardByVault } from 'features';
 import { setupIntegrationTestsBeforeEach } from './helpers/test-setup.js';
 
 describe('Mint-Burn Integration Tests', () => {

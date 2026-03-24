@@ -1,7 +1,7 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { mkdtempSync, rmSync, writeFileSync } from 'fs';
-import path from 'path';
-import { tmpdir } from 'os';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import path from 'node:path';
+import { tmpdir } from 'node:os';
 import { program } from 'commander';
 import type { Mock } from 'vitest';
 
@@ -41,7 +41,6 @@ vi.mock('commander', () => ({ program: { error: vi.fn() } }));
 let programError: Mock;
 
 beforeEach(() => {
-  // eslint-disable-next-line @typescript-eslint/unbound-method
   programError = program.error as unknown as Mock;
   vi.clearAllMocks();
 });

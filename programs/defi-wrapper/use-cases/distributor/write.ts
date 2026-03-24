@@ -29,8 +29,8 @@ import {
 import { distributorUseCases } from './main.js';
 import { getPublicClient } from 'providers/wallet.js';
 import { generateDistribution } from 'features/defi-wrapper/distributor.js';
-import path from 'path';
-import fs from 'fs/promises';
+import path from 'node:path';
+import fs from 'node:fs/promises';
 
 const distributorWrite = distributorUseCases
   .command('write')
@@ -140,13 +140,8 @@ distributorWrite
     stringArrayToAddressArray,
     [],
   )
-  .option(
-    '--from-block [block]',
-    'from block number',
-    stringToBigInt,
-    undefined,
-  )
-  .option('--to-block [block]', 'to block number', stringToBigInt, undefined)
+  .option('--from-block [block]', 'from block number', stringToBigInt)
+  .option('--to-block [block]', 'to block number', stringToBigInt)
   .option(
     '--max-batch-size [size]',
     'maximum batch size for fetching events',
@@ -259,7 +254,7 @@ distributorWrite
           outputPath,
           // replace BigInt with string in JSON
           writeString,
-          'utf-8',
+          'utf8',
         );
         logInfo(`Distribution data written to ${outputPath}`);
       }

@@ -24,7 +24,7 @@ import { getPublicClient } from 'providers';
 
 import { DashboardAbi } from 'abi';
 import { StvPoolAbi } from 'abi/defi-wrapper/StvPool.js';
-import { StvStETHPoolAbi } from 'abi/defi-wrapper/StvStETHPool.js';
+import { StvStETHPoolAbi } from 'abi/defi-wrapper/StvStEthPool.js';
 import { WithdrawalQueueAbi } from 'abi/defi-wrapper/WithdrawalQueue.js';
 import { OssifiableProxyAbi } from 'abi/defi-wrapper/OssifiableProxy.js';
 import { TimeLockAbi } from 'abi/defi-wrapper/TimeLock.js';
@@ -165,7 +165,7 @@ commonRead
           });
           args = decodeResult.args;
           functionName = decodeResult.functionName;
-        } catch (e) {
+        } catch {
           args = [];
           functionName = 'Unknown function';
         }

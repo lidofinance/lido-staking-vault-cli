@@ -1,7 +1,7 @@
 import { parseEther } from 'viem';
 
 import { calculateHealth } from './health/calculate-health.js';
-import { bigIntMax, bigIntMin } from './bigInt.js';
+import { bigIntMax, bigIntMin } from './big-int.js';
 import { BASIS_POINTS_DENOMINATOR, SCALING_FACTOR } from './consts.js';
 
 type OverviewArgs = {
@@ -20,7 +20,7 @@ type OverviewArgs = {
 export const formatBP = (bp: number | bigint) =>
   `${((Number(bp) / Number(BASIS_POINTS_DENOMINATOR)) * 100).toFixed(2)}%`;
 export const formatRatio = (r: number) =>
-  isFinite(r) ? `${r.toFixed(4)}%` : '∞';
+  Number.isFinite(r) ? `${r.toFixed(4)}%` : '∞';
 
 /** @deprecated */
 export const calculateOverview = (args: OverviewArgs) => {

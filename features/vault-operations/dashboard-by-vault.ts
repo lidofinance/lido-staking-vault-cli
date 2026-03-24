@@ -68,13 +68,9 @@ export const chooseVaultAndGetDashboard = async (args: {
   vault: Address;
 }> => {
   const { vault, isNotMember = false } = args;
-  let chosenVault: Address;
-
-  if (isNotMember) {
-    chosenVault = vault ?? (await enterContractAddress('stVault'));
-  } else {
-    chosenVault = vault ?? (await chooseVault());
-  }
+  const chosenVault: Address = isNotMember
+    ? (vault ?? (await enterContractAddress('stVault')))
+    : (vault ?? (await chooseVault()));
 
   const dashboard = await getDashboardByVault(chosenVault);
   const dashboardContract = await getDashboardContract(dashboard);

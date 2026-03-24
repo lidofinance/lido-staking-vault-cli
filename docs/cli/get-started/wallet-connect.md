@@ -67,17 +67,14 @@ WALLET_CONNECT_PROJECT_ID=ee928c025792b10a6daa97d85328c433
 ### Connection Flow
 
 1. **CLI Initialization**
-
    - CLI initializes WalletConnect session using `WALLET_CONNECT_PROJECT_ID`
    - Displays connection URI and QR code in terminal
 
 2. **Wallet Connection**
-
    - **Mobile wallet**: Scan QR code with your wallet app
    - **Desktop/Multisig**: Copy and paste the WalletConnect URI
 
 3. **Session Approval**
-
    - Approve the connection in your wallet
    - CLI confirms connection and shows connected account
 

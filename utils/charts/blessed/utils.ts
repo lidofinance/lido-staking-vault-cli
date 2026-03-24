@@ -10,6 +10,7 @@ import {
 } from './constants.js';
 
 export const randomColor = () => {
+  // eslint-disable-next-line sonarjs/pseudo-random -- non-security use: chart colors
   return [Math.random() * 255, Math.random() * 255, Math.random() * 255];
 };
 

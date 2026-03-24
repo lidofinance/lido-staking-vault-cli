@@ -92,13 +92,13 @@ vaultFactoryWrite
         }
 
         logResult({});
-        results.forEach((item) => {
+        for (const item of results) {
           if (program.opts().populateTx) {
             logInfo('Populated transaction data:', item);
-            return;
+            continue;
           }
           // Gnosis safe case
-          if (!isCreateVaultResult(item)) return;
+          if (!isCreateVaultResult(item)) continue;
 
           logTable({
             data: [
@@ -114,7 +114,7 @@ vaultFactoryWrite
               ['Block Number', item.blockNumber],
             ],
           });
-        });
+        }
       } catch (err) {
         if (err instanceof Error) {
           logInfo('Error occurred while creating vaults', err.message);
@@ -186,14 +186,14 @@ vaultFactoryWrite
         }
 
         logResult({});
-        // eslint-disable-next-line sonarjs/no-identical-functions
-        results.forEach((item) => {
+
+        for (const item of results) {
           if (program.opts().populateTx) {
             logInfo('Populated transaction data:', item);
-            return;
+            continue;
           }
           // Gnosis safe case
-          if (!isCreateVaultResult(item)) return;
+          if (!isCreateVaultResult(item)) continue;
 
           logTable({
             data: [
@@ -209,7 +209,7 @@ vaultFactoryWrite
               ['Block Number', item.blockNumber],
             ],
           });
-        });
+        }
       } catch (err) {
         if (err instanceof Error) {
           logInfo('Error occurred while creating vaults', err.message);

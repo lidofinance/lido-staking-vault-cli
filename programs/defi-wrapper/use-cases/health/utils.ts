@@ -71,7 +71,7 @@ const fetchEventsForBlocks = async ({
 
     const blocksSet = new Set(batch);
     const minBlock = batch[0] as bigint;
-    const maxBlock = batch[batch.length - 1] as bigint;
+    const maxBlock = batch.at(-1) as bigint;
 
     logInfo(
       `Batch ${i + 1}/${batches.length}: fetching blocks ${minBlock} to ${maxBlock} (${batch.length} blocks)...`,

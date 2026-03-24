@@ -10,7 +10,7 @@ import {
 
 describe('data-validators', () => {
   test('validateConfig detects NaN', () => {
-    const errors = validateConfig({ CHAIN_ID: NaN, DEPLOYED: 'true' });
+    const errors = validateConfig({ CHAIN_ID: Number.NaN, DEPLOYED: 'true' });
     expect(errors).toHaveProperty('CHAIN_ID');
   });
 

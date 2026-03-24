@@ -1,11 +1,11 @@
 import { Hex } from 'viem';
-import assert from 'assert';
+import assert from 'node:assert';
 
 import {
   finalityCheckpoints,
   fetchValidatorsInfo,
   ValidatorsInfo,
-} from '../fetchCL.js';
+} from '../fetch-cl.js';
 
 import { TargetAndSourceValidators } from './types.js';
 
@@ -55,7 +55,7 @@ export const checkSourceValidators = (
       !validator.validator.withdrawal_credentials.startsWith('0x02'),
   );
 
-  assert(
+  assert.ok(
     incorrectWCSourceValidators.length === 0,
     'All source pubkeys must have a withdrawal credentials starting with 0x01 or 0x02. Wrong pubkeys:' +
       incorrectWCSourceValidators.map((v) => v.validator.pubkey).join(', '),
@@ -66,7 +66,7 @@ export const checkSourceValidators = (
       finalizedEpoch - Number(validator.validator.activation_epoch) <
       MIN_256_EPOCHS,
   );
-  assert(
+  assert.ok(
     sourceValidatorsWithLess256Epochs.length === 0,
     'All source pubkeys must have an activation epoch less than the finalized epoch by at least 256 epochs. Wrong pubkeys:' +
       sourceValidatorsWithLess256Epochs
@@ -82,7 +82,7 @@ export const checkTargetValidators = (
     (validator) =>
       !validator.validator.withdrawal_credentials.startsWith('0x02'),
   );
-  assert(
+  assert.ok(
     wrongWCTargetValidators.length === 0,
     'All target pubkeys must have a withdrawal credentials starting with 0x02. Wrong pubkeys:' +
       wrongWCTargetValidators.map((v) => v.validator.pubkey).join(', '),

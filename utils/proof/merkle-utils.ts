@@ -1,7 +1,7 @@
 /* 
   Utils that could be used for testing lodestar packages
 */
-import { createHash } from 'crypto';
+import { createHash } from 'node:crypto';
 import { Hex } from 'viem';
 
 export type Validator = {
