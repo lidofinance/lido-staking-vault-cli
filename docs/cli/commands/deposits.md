@@ -29,30 +29,30 @@ Deposits commands handle validator deposits for Lido Staking Vaults. They work w
 
 ### Read
 
-| Command                                     | Description                                                                                                              |
-| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| info                                        | get PredepositGuarantee base info                                                                                        |
-| roles                                       | get PredepositGuarantee roles                                                                                            |
-| validator-status v-status\<validatorPubkey> | get validator status                                                                                                     |
-| no-balance no-bal                           | get total,locked & unlocked (the amount of ether that NO can lock for predeposit or withdraw) balances for the NO in PDG |
-| no-info                                     | get info about the NO in PDG                                                                                             |
-| pending-activations pd                      | get the number of validators in PREDEPOSITED and PROVEN states but not ACTIVATED yet                                     |
+| Command                                              | Description                                                                                                              |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| info                                                 | get PredepositGuarantee base info                                                                                        |
+| roles                                                | get PredepositGuarantee roles                                                                                            |
+| validator-status (v-status) \<validatorPubkey>       | get validator status                                                                                                     |
+| no-balance (no-bal)                                  | get total, locked & unlocked (the amount of ether that NO can lock for predeposit or withdraw) balances for the NO in PDG |
+| no-info                                              | get info about the NO in PDG                                                                                             |
+| pending-activations (pd)                             | get the number of validators in PREDEPOSITED and PROVEN states but not ACTIVATED yet                                     |
 
 ### Write
 
-| Command                                                               | Description                                                                                                        |
-| --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| predeposit \<deposits>                                                | deposits NO's validators with PREDEPOSIT_AMOUNT ether from StakingVault and locks up NO's balance                  |
-| prove-and-activate prove                                              | permissionless method to prove correct Withdrawal Credentials for the validator and to send the activation deposit |
-| prove-and-top-up \<indexes> \<amounts>                                | prove validators to unlock NO balance, activate the validators from stash, and optionally top up NO balance        |
-| top-up-existing-validators top-up-val\<topUps>                        | deposits ether to proven validators from staking vault.                                                            |
-| top-up-no \<amount>                                                   | top up Node Operator balance                                                                                       |
-| withdraw-no-balance \<amount>                                         | withdraw Node Operator balance                                                                                     |
-| set-no-guarantor set-no-g                                             | set Node Operator guarantor                                                                                        |
-| claim-guarantor-refund claim-g-refund                                 | claims refund for the previous guarantor of the NO                                                                 |
-| activate-validator activate\<pubkey>                                  | permissionless method to activate the proven validator depositing 31 ETH from the staged balance of StakingVault   |
-| set-no-depositor set-no-d                                             | sets the depositor for the NO                                                                                      |
-| unguaranteed-deposit-to-beacon-chain unguaranteed-deposit \<deposits> | withdraws ether from vault and deposits directly to provided validators bypassing the default PDG process          |
+| Command                                                                        | Description                                                                                                        |
+| ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| predeposit \<deposits>                                                         | deposits NO's validators with PREDEPOSIT_AMOUNT ether from StakingVault and locks up NO's balance                  |
+| prove-and-activate (prove)                                                     | permissionless method to prove correct Withdrawal Credentials for the validator and to send the activation deposit |
+| prove-and-top-up \<indexes> \<amounts>                                         | prove validators to unlock NO balance, activate the validators from stash, and optionally top up NO balance        |
+| top-up-existing-validators (top-up-val) \<topUps>                              | deposits ether to proven validators from staking vault.                                                            |
+| top-up-no \<amount>                                                            | top up Node Operator balance                                                                                       |
+| withdraw-no-balance \<amount>                                                  | withdraw Node Operator balance                                                                                     |
+| set-no-guarantor (set-no-g)                                                    | set Node Operator guarantor                                                                                        |
+| claim-guarantor-refund (claim-g-refund)                                        | claims refund for the previous guarantor of the NO                                                                 |
+| activate-validator (activate) \<pubkey>                                        | permissionless method to activate the proven validator depositing 31 ETH from the staged balance of StakingVault   |
+| set-no-depositor (set-no-d)                                                    | sets the depositor for the NO                                                                                      |
+| unguaranteed-deposit-to-beacon-chain (unguaranteed-deposit) \<deposits>        | withdraws ether from vault and deposits directly to provided validators bypassing the default PDG process          |
 
 ## Command Details
 

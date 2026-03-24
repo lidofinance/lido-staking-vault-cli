@@ -342,7 +342,6 @@ yarn start vo w fund <ether> [options]
 
 - Checks quarantine status (requires confirmation if quarantined)
 - Verifies caller has FUND_ROLE permission
-- Ensures report is fresh (submits update if needed)
 - Displays funding confirmation with amount and vault address
 - Transfers ETH directly to the vault contract
 
@@ -350,7 +349,6 @@ yarn start vo w fund <ether> [options]
 
 - Caller must have FUND_ROLE for the vault
 - Sufficient ETH balance for funding
-- Vault report must be fresh
 
 ### withdraw
 
@@ -646,6 +644,7 @@ yarn start vo w disburse-node-operator-fee [options]
 **Process:**
 
 - Checks quarantine status (requires confirmation if quarantined)
+- Ensures vault report is fresh (throws error if stale)
 - Retrieves node operator fee recipient address
 - Checks if node operator has any disbursable fees (exits if none)
 - Displays confirmation with recipient address and fee amount in ETH
@@ -655,6 +654,7 @@ yarn start vo w disburse-node-operator-fee [options]
 
 - Node operator must have accrued fees available for disbursement (> 0 ETH)
 - nodeOperatorFeeRecipient must be properly configured
+- Vault report must be fresh
 
 **Returns:**
 
