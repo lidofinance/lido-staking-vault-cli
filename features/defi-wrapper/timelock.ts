@@ -114,7 +114,6 @@ export const promptAccount = async (
 export const promptOperationId = async (
   operationIdInput: string | undefined,
 ) => {
-  let operationId: Hex;
   if (!operationIdInput) {
     const operationIdPrompt = await textPrompt(
       'Enter operation ID (bytes32 hash)',
@@ -124,11 +123,9 @@ export const promptOperationId = async (
   }
 
   // Validate and convert to hex - if already hex, use as is
-  if (isHash(operationIdInput)) {
-    operationId = operationIdInput;
-  } else {
-    operationId = stringToHash(operationIdInput);
-  }
+  const operationId = isHash(operationIdInput)
+    ? operationIdInput
+    : stringToHash(operationIdInput);
   return operationId;
 };
 

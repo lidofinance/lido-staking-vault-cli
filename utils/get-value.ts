@@ -9,7 +9,7 @@ export const getValueByPath = <T extends Record<string, unknown>>(
     if (typeof current === 'object' && current !== null && segment in current) {
       current = (current as T)[segment];
     } else {
-      return undefined;
+      return;
     }
   }
 

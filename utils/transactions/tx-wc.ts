@@ -189,7 +189,7 @@ const sendIndividualTransactions = async (
   withSpinner?: boolean,
 ): Promise<{
   id: Hex;
-  callStatus?: undefined;
+  callStatus?: never;
   txHash?: Hex;
   receipt?: Awaited<ReturnType<typeof waitForTransactionReceipt>>;
 }> => {
@@ -265,12 +265,12 @@ const sendIndividualTransactions = async (
   }
 
   if (txHashes.length === 0) throw new Error('No transactions were sent');
-  if (isGnosis) return { id: txHashes[txHashes.length - 1]! };
+  if (isGnosis) return { id: txHashes.at(-1)! };
 
   return {
-    id: txHashes[txHashes.length - 1]!,
-    txHash: txHashes[txHashes.length - 1]!,
-    receipt: receipts[receipts.length - 1]!,
+    id: txHashes.at(-1)!,
+    txHash: txHashes.at(-1)!,
+    receipt: receipts.at(-1)!,
   };
 };
 
@@ -344,10 +344,10 @@ const callWalletConnectSendCalls = async (args: {
         account: walletConnectClient.account.address,
         calls,
       });
-    } catch (sendCallsErr) {
+    } catch (error) {
       hideSubmitSpinner();
       // If wallet_sendCalls fails despite being declared as supported, fall back to individual transactions
-      const isSendCallsFailure = isWcSendCallsFailure(sendCallsErr);
+      const isSendCallsFailure = isWcSendCallsFailure(error);
 
       if (isSendCallsFailure) {
         logInfo(
@@ -372,7 +372,7 @@ const callWalletConnectSendCalls = async (args: {
 
         return result;
       }
-      throw sendCallsErr;
+      throw error;
     }
 
     hideSubmitSpinner();
@@ -438,7 +438,7 @@ const callWalletConnectSendCalls = async (args: {
 
     // extract last receipt if there was no atomic batch
     const txHash = callStatus.receipts
-      ? callStatus?.receipts[callStatus.receipts.length - 1]?.transactionHash
+      ? callStatus?.receipts.at(-1)?.transactionHash
       : undefined;
 
     if (!txHash) {

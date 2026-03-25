@@ -120,36 +120,31 @@ dashboardRead
     if (!confirmations) return console.error('No confirmations found');
 
     logResult({});
-    Object.entries(confirmations).forEach(
-      (
-        [
-          data,
-          { member, roleOrAddress, expiryTimestamp, expiryDate, decodedData },
+    for (const [
+      idx,
+      [
+        data,
+        { member, roleOrAddress, expiryTimestamp, expiryDate, decodedData },
+      ],
+    ] of Object.entries(confirmations).entries()) {
+      console.info(`\nEvent ${idx + 1}`);
+      logTable({
+        data: [
+          ['Member', member],
+          ['Role/Address', roleOrAddress],
+          ['Expiry Timestamp', `${expiryTimestamp.toString()} (${expiryDate})`],
+          ['Data', data],
         ],
-        idx,
-      ) => {
-        console.info(`\nEvent ${idx + 1}`);
-        logTable({
-          data: [
-            ['Member', member],
-            ['Role/Address', roleOrAddress],
-            [
-              'Expiry Timestamp',
-              `${expiryTimestamp.toString()} (${expiryDate})`,
-            ],
-            ['Data', data],
-          ],
-        });
+      });
 
-        console.info('Decoded data:');
-        logTable({
-          data: [
-            ['Function', decodedData.functionName],
-            ['Argument', decodedData.args[0]],
-          ],
-        });
-      },
-    );
+      console.info('Decoded data:');
+      logTable({
+        data: [
+          ['Function', decodedData.functionName],
+          ['Argument', decodedData.args[0]],
+        ],
+      });
+    }
   });
 
 dashboardRead

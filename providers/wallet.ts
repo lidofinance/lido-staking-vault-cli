@@ -1,4 +1,4 @@
-import { readFileSync } from 'fs';
+import { readFileSync } from 'node:fs';
 import { program } from 'command';
 import {
   Address,
@@ -16,9 +16,9 @@ import { Keystore } from 'ox';
 import { envs, getConfig, getChainId, getElUrl, getChain } from 'configs';
 import { createWalletConnectClient } from 'utils';
 
-const getPrivateKey = () => {
+const getPrivateKey = async () => {
   const { PRIVATE_KEY, ACCOUNT_FILE, ACCOUNT_FILE_PASSWORD } = getConfig();
-  const id = getChainId();
+  const id = await getChainId();
 
   if (PRIVATE_KEY && ACCOUNT_FILE) {
     throw new Error(
@@ -39,8 +39,7 @@ const getPrivateKey = () => {
       throw new Error('Account file password is not provided');
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const file = readFileSync(ACCOUNT_FILE, 'utf-8');
+    const file = readFileSync(ACCOUNT_FILE, 'utf8');
     const fileContent: Keystore.Keystore = JSON.parse(file);
 
     const kdfType = fileContent.crypto.kdf;
@@ -60,7 +59,7 @@ const getPrivateKey = () => {
 };
 
 export const getAccount = async () => {
-  const id = getChainId();
+  const id = await getChainId();
 
   if (program.opts().walletConnect) {
     const { walletConnectClient } = await getWalletConnectClient();
@@ -72,7 +71,7 @@ export const getAccount = async () => {
     return walletConnectClient.account;
   }
 
-  const privateKey = getPrivateKey();
+  const privateKey = await getPrivateKey();
 
   if (!privateKey) {
     throw new Error(`Private key for ${id} chain is not set`);

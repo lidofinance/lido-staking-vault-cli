@@ -74,9 +74,13 @@ const runCLI = withInterruptHandling(async () => {
   await program.parseAsync(process.argv);
 });
 
-runCLI()
+void runCLI()
   .catch(async (error) => {
-    await disconnectWalletConnect().catch(() => {});
+    try {
+      await disconnectWalletConnect();
+    } catch {
+      // Ignore disconnection errors
+    }
     if (program.opts().json) {
       logJson({ error: error.message });
       closeJsonLogging();

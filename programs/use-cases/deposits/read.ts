@@ -7,6 +7,7 @@ import {
   getValidatorStatus,
   specifyNodeOperatorAddress,
   chooseVaultAndGetDashboard,
+  checkPdgIsPaused,
 } from 'features';
 import { getPredepositGuaranteeContract } from 'contracts';
 import { getAccount } from 'providers';
@@ -18,7 +19,6 @@ import {
   logResult,
   stringToAddress,
 } from 'utils';
-import { checkPdgIsPaused } from 'features';
 
 import { deposits } from './main.js';
 

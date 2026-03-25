@@ -15,15 +15,15 @@ program
         program.error(`File not found: ${absolutePath}`, { exitCode: 1 });
       }
 
-      const rawData = readFileSync(absolutePath, 'utf-8');
+      const rawData = readFileSync(absolutePath, 'utf8');
       const config = JSON.parse(rawData);
 
       const errors = validateConfig(config);
       const errorKeys = Object.keys(errors);
       if (errorKeys.length > 0) {
-        errorKeys.forEach((key) =>
-          program.error(`${key} - ${errors[key as keyof Config]}`),
-        );
+        for (const key of errorKeys) {
+          program.error(`${key} - ${errors[key as keyof Config]}`);
+        }
         process.exit(1);
       }
 

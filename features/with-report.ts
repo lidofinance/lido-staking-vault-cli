@@ -1,5 +1,5 @@
 import { Address } from 'viem';
-import { checkIsReportFresh } from 'features';
+import { checkIsReportFresh } from 'features/utils/report-fresh.js';
 import { callWriteMethodWithCalls } from 'utils';
 
 import {

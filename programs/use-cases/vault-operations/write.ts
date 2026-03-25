@@ -641,12 +641,8 @@ vaultOperationsWrite
         vault,
       });
 
-      let roleAssignmentsValue: RoleAssignment[] = [];
-      if (roleAssignments) {
-        roleAssignmentsValue = roleAssignments;
-      } else {
-        roleAssignmentsValue = await askRoleOperationInfo(contract, 'grant');
-      }
+      const roleAssignmentsValue: RoleAssignment[] =
+        roleAssignments ?? (await askRoleOperationInfo(contract, 'grant'));
 
       const confirm = await logRolesOperations(
         contract,
@@ -694,12 +690,8 @@ vaultOperationsWrite
         vault,
       });
 
-      let roleAssignmentsValue: RoleAssignment[] = [];
-      if (roleAssignments) {
-        roleAssignmentsValue = roleAssignments;
-      } else {
-        roleAssignmentsValue = await askRoleOperationInfo(contract, 'revoke');
-      }
+      const roleAssignmentsValue: RoleAssignment[] =
+        roleAssignments ?? (await askRoleOperationInfo(contract, 'revoke'));
 
       const confirm = await logRolesOperations(
         contract,

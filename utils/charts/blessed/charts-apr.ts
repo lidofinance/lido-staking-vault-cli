@@ -190,7 +190,7 @@ export const renderAprCharts = ({
     [netStakingAPRChart.dataset, lidoAPRChart.dataset],
   ];
 
-  charts.forEach((chart, i) => {
+  for (const [i, chart] of charts.entries()) {
     if (chart.type === 'stackedBar' || chart.type === 'bar') {
       chart.setData(datasets[i]);
     } else if (Array.isArray(datasets[i])) {
@@ -198,7 +198,7 @@ export const renderAprCharts = ({
     } else {
       chart.setData([datasets[i]]);
     }
-  });
+  }
   screen.key(['escape', 'q', 'C-c'], () => process.exit(0));
   screen.render();
 };

@@ -1,6 +1,6 @@
 import { createAnvil } from '@viem/anvil';
 import * as dotenv from 'dotenv';
-import path from 'path';
+import path from 'node:path';
 
 // Load environment variables from .env.test or .env
 dotenv.config({ path: path.resolve(process.cwd(), '.env.test') });

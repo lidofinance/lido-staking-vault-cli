@@ -1,6 +1,6 @@
 import { getContract, GetContractReturnType } from 'viem';
 import { WstEthAbi } from 'abi/index.js';
-import { getLocatorContract } from 'contracts';
+import { getLocatorContract } from 'contracts/locator.js';
 import { RegisteredPublicClient, getPublicClient } from 'providers/index.js';
 
 export type WstEthContract = GetContractReturnType<

@@ -1,6 +1,6 @@
 import { Hex, parseGwei } from 'viem';
 
-import { ValidatorsInfo } from '../fetchCL.js';
+import { ValidatorsInfo } from '../fetch-cl.js';
 
 import { TargetAndSourceValidators } from './types.js';
 
@@ -11,7 +11,7 @@ export const getTargetAndSourceValidatorsInfo = (
   sourceValidatorsInfo: ValidatorsInfo,
 ): TargetAndSourceValidators => {
   const targetAndSourceValidatorsInfo: TargetAndSourceValidators = new Map();
-  targetPubkeys.forEach((targetPubkey, i) => {
+  for (const [i, targetPubkey] of targetPubkeys.entries()) {
     const targetValidatorInfo = targetValidatorsInfo.data.find(
       (validator) => validator.validator.pubkey === targetPubkey,
     );
@@ -30,7 +30,7 @@ export const getTargetAndSourceValidatorsInfo = (
       sourceValidators: new Map(),
     });
     const sourcePubkeysGroup = sourcePubkeys[i] ?? [];
-    sourcePubkeysGroup.forEach((sourcePubkey) => {
+    for (const sourcePubkey of sourcePubkeysGroup) {
       const sourceValidatorInfo = sourceValidatorsInfo.data.find(
         (validator) => validator.validator.pubkey === sourcePubkey,
       );
@@ -49,7 +49,7 @@ export const getTargetAndSourceValidatorsInfo = (
             sourceValidatorInfo.validator.effective_balance,
           ),
         });
-    });
-  });
+    }
+  }
   return targetAndSourceValidatorsInfo;
 };

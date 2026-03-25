@@ -14,7 +14,7 @@ describe('getCommandsJson', () => {
     const json = getCommandsJson(program);
     const arr = JSON.parse(json);
     expect(arr).toEqual([
-      { Command: 'run r\\<file>', Description: 'Run command' },
+      { Command: String.raw`run r\<file>`, Description: 'Run command' },
     ]);
   });
 });

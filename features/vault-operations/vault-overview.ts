@@ -49,7 +49,7 @@ export const getVaultOverviewByDashboard = async (
       payload: [],
     });
     report = await getVaultReport({ vault, cid });
-  } catch (error) {
+  } catch {
     logInfo('No report found');
   }
 

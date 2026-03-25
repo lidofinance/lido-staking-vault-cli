@@ -1,6 +1,6 @@
-import { lstatSync, readFileSync } from 'fs';
+import { lstatSync, readFileSync } from 'node:fs';
 import * as process from 'node:process';
-import path from 'path';
+import path from 'node:path';
 import { zeroAddress, Address, Chain } from 'viem';
 
 import { getValueByPath, logError, logInfo, validateConfig } from 'utils';
@@ -18,7 +18,7 @@ export const importDeployFile = () => {
   let json: Record<string, number | string | Chain | any> = {};
 
   if (lstatSync(fullPath).isFile()) {
-    const fileContent = readFileSync(fullPath, 'utf-8');
+    const fileContent = readFileSync(fullPath, 'utf8');
     const config = JSON.parse(fileContent);
     json = structuredClone(config);
   }
@@ -39,7 +39,8 @@ export const getConfig = () => {
   const errors = validateConfig(config as unknown as Config);
   const errorKeys = Object.keys(errors);
   if (errorKeys.length > 0) {
-    errorKeys.forEach((key) => console.error(`${errors[key as keyof Config]}`));
+    for (const key of errorKeys)
+      console.error(`${errors[key as keyof Config]}`);
     process.exit(1);
   }
 
@@ -55,7 +56,7 @@ export const getDeployed = () => {
 let chainIdCache: number | undefined;
 const getRpcChainId = async (elURL: string | undefined) => {
   if (!elURL) {
-    return undefined;
+    return;
   }
 
   if (chainIdCache) {
@@ -89,11 +90,11 @@ const getRpcChainId = async (elURL: string | undefined) => {
       );
     }
 
-    const rpcChainId = parseInt(rpcChainIdData.result, 16);
+    const rpcChainId = Number.parseInt(rpcChainIdData.result, 16);
     chainIdCache = rpcChainId;
 
     return rpcChainId;
-  } catch (error) {
+  } catch {
     logError(
       'Failed to get RPC chainId. Please check if the EL_URL environment variable is correct or try to use another EL.',
     );
@@ -177,7 +178,7 @@ export const getDeployedAddress = (...contractKeys: string[]) => {
     getContractDeploy(contractKey),
   );
 
-  const contract = contracts.find((contract) => contract);
+  const contract = contracts.find(Boolean);
 
   if (typeof contract === 'string') {
     return contract as Address;

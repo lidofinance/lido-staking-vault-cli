@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 
-import { bigIntMax, bigIntMin } from '../../utils/bigInt.js';
+import { bigIntMax, bigIntMin } from '../../utils/big-int.js';
 
 describe('bigIntMax', () => {
   test('returns maximum value from multiple positive bigints', () => {

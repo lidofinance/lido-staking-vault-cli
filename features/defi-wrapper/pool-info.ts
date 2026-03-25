@@ -7,7 +7,7 @@ import {
 import { callReadMethodSilent, fetchAndCalculateVaultHealth } from 'utils';
 import { reportFreshWarning, vaultMintLimit } from 'features';
 import { getDashboardContract, getStakingVaultContract } from 'contracts';
-import { bigIntMax } from 'utils/bigInt.js';
+import { bigIntMax } from 'utils/big-int.js';
 
 export const STV_POOL_NAME = 'StvPool';
 export const STV_STETH_POOL_NAME = 'StvStETHPool';
@@ -115,7 +115,7 @@ export const areVaultParamsInSync = async (poolAddress: Address) => {
 
   const dashboard = await getDashboardContract(dashboardAddress);
 
-  const poolTypeName = fromHex(poolType, 'string').replace(/\W/g, '');
+  const poolTypeName = fromHex(poolType, 'string').replaceAll(/\W/g, '');
 
   const isStvStethPool =
     poolTypeName === STV_STETH_POOL_NAME ||
@@ -213,7 +213,7 @@ const getStvStethPoolInfo = async (address: Address) => {
 export const getPoolInfo = async (address: Address) => {
   const stvPoolInfo = await getStvPoolInfo(address);
 
-  const poolTypeName = fromHex(stvPoolInfo.poolType, 'string').replace(
+  const poolTypeName = fromHex(stvPoolInfo.poolType, 'string').replaceAll(
     /\W/g,
     '',
   );
@@ -229,7 +229,7 @@ export const getPoolInfo = async (address: Address) => {
 
   return {
     ...stvPoolInfo,
-    ...(stvStethPoolInfo ? stvStethPoolInfo : {}),
+    ...stvStethPoolInfo,
     poolTypeName,
     isStvStethPool,
     isStvPool,

@@ -189,14 +189,14 @@ export const getVaultReportHistory = async (
       history.push(report);
       if (!report.prevTreeCID || report.prevTreeCID === cid) break;
       cid = report.prevTreeCID;
-    } catch (e) {
+    } catch {
       break;
     }
   }
 
   logInfo('Report hostory cached', history.length);
   if (direction === 'asc') {
-    return history.reverse();
+    return history.toReversed();
   }
 
   return history;

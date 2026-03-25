@@ -11,7 +11,7 @@ import {
   stringToBigInt,
 } from 'utils';
 import { common } from './main.js';
-import { Address, Hex, stringToHex, isHex, Hash } from 'viem';
+import { Address, stringToHex, isHex, Hash } from 'viem';
 import {
   DEFAULT_PREDECESSOR,
   executeOperation,
@@ -72,7 +72,6 @@ commonWrite
 
       const finalValue = value ?? 0n;
 
-      let payload: Hex;
       if (!payloadInput) {
         const payloadPrompt = await textPrompt(
           'Enter call data payload (hex)',
@@ -82,11 +81,9 @@ commonWrite
       }
 
       // Validate and convert to hex - if already hex, use as is
-      if (isHex(payloadInput)) {
-        payload = payloadInput;
-      } else {
-        payload = stringToHex(payloadInput);
-      }
+      const payload = isHex(payloadInput)
+        ? payloadInput
+        : stringToHex(payloadInput);
 
       const predecessor = options?.predecessor
         ? isHex(options.predecessor)

@@ -40,7 +40,7 @@ let importer: Mock;
 
 beforeEach(async () => {
   vi.clearAllMocks();
-  global.fetch = vi.fn() as any;
+  globalThis.fetch = vi.fn() as any;
 
   const loggingModule = await import('../../utils/logging/console.js');
   logInfo = loggingModule.logInfo as unknown as Mock;
@@ -57,7 +57,7 @@ describe('ipfs helpers', () => {
     const buffer = encoder.encode(jsonData).buffer;
     const testCid = fakeCid.toString();
 
-    (global.fetch as Mock).mockResolvedValueOnce({
+    (globalThis.fetch as Mock).mockResolvedValueOnce({
       ok: true,
       text: async () => jsonData,
       arrayBuffer: async () => buffer,
@@ -69,7 +69,7 @@ describe('ipfs helpers', () => {
     });
 
     const res = await ipfs.fetchIPFS<{ foo: number }>({ cid: testCid }, false);
-    expect(global.fetch).toHaveBeenCalledWith(
+    expect(globalThis.fetch).toHaveBeenCalledWith(
       `https://ipfs.io/ipfs/${testCid}`,
     );
     expect(res).toEqual({ foo: 1 });
@@ -77,7 +77,7 @@ describe('ipfs helpers', () => {
   });
 
   test('fetchIPFS throws on bad response', async () => {
-    (global.fetch as Mock).mockResolvedValueOnce({
+    (globalThis.fetch as Mock).mockResolvedValueOnce({
       ok: false,
       statusText: 'bad',
     });
@@ -88,12 +88,12 @@ describe('ipfs helpers', () => {
 
   test('fetchIPFSBuffer returns buffer', async () => {
     const buf = new ArrayBuffer(4);
-    (global.fetch as Mock).mockResolvedValueOnce({
+    (globalThis.fetch as Mock).mockResolvedValueOnce({
       ok: true,
       arrayBuffer: async () => buf,
     });
     const res = await ipfs.fetchIPFSBuffer({ cid: 'abc' });
-    expect(global.fetch).toHaveBeenCalledWith('https://ipfs.io/ipfs/abc');
+    expect(globalThis.fetch).toHaveBeenCalledWith('https://ipfs.io/ipfs/abc');
     expect(res).toEqual(new Uint8Array(buf));
   });
 
@@ -118,7 +118,7 @@ describe('ipfs helpers', () => {
     const fileContent = encoder.encode(jsonData);
 
     // Mock fetch to prevent actual network calls
-    (global.fetch as Mock).mockResolvedValueOnce({
+    (globalThis.fetch as Mock).mockResolvedValueOnce({
       ok: true,
       arrayBuffer: async () => fileContent.buffer,
     });
@@ -142,7 +142,7 @@ describe('ipfs helpers', () => {
     const fileContent = encoder.encode(jsonData);
 
     // Mock fetch to return the file content
-    (global.fetch as Mock).mockResolvedValueOnce({
+    (globalThis.fetch as Mock).mockResolvedValueOnce({
       ok: true,
       arrayBuffer: async () => fileContent.buffer,
     });
