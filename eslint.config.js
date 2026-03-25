@@ -135,6 +135,14 @@ export default defineConfig(
       // ── SonarJS overrides ───────────────────────────────────────────────────
       // Duplicate of @typescript-eslint/no-unused-vars
       'sonarjs/no-unused-vars': 'off',
+      // False positives: SonarJS does not read TypeScript types/narrowing,
+      // null safety is already enforced by TypeScript strictNullChecks.
+      'sonarjs/null-dereference': 'off',
+      // False positives on generics: TypeScript enforces argument types natively.
+      'sonarjs/argument-type': 'off',
+      // False positives on `keyof T & string` pattern — standard TS idiom
+      // for narrowing keyof to string keys; use Extract<keyof T, string> as alternative.
+      'sonarjs/no-useless-intersection': 'off',
       // "Hard" ruleset only; too strict for migration
       'sonarjs/cognitive-complexity': 'off',
       // Informational; not an actionable lint error

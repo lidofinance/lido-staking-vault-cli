@@ -24,13 +24,13 @@ PredepositGuarantee Helper commands provide utilities for working with Beacon Ch
 
 | Command                                                                                             | Description                                                         |
 | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| proof-and-check proof-check                                                                         | make predeposit proof by validator index and check by test contract |
-| proof                                                                                               | make predeposit proof by validator index                            |
-| verify-predeposit-bls verify-bls\<deposits>                                                         | Verifies BLS signature of the deposit                               |
-| fv-gindex \<forks>                                                                                  | get first validator gindex                                          |
-| compute-deposit-data-root compute-dd-root\<pubkey> \<withdrawal-credentials> \<signature> \<amount> | compute deposit data root                                           |
-| compute-deposit-domain compute-d-domain\<forkVersion>                                               | compute deposit domain                                              |
-| validator-info \<validator-pubkey>                                                                  | get validator info from Consensus Layer                             |
+| proof-and-check (proof-check)                                                                                    | make predeposit proof by validator index and check by the PDG contract |
+| proof                                                                                                            | make predeposit proof by validator index                               |
+| verify-predeposit-bls (verify-bls) \<deposits>                                                                   | Verifies BLS signature of the deposit                                  |
+| fv-gindex \<forks...>                                                                                            | get first validator gindex                                             |
+| compute-deposit-data-root (compute-dd-root) \<pubkey> \<withdrawal-credentials> \<signature> \<amount>           | compute deposit data root                                              |
+| compute-deposit-domain (compute-d-domain) \<forkVersion>                                                         | compute deposit domain                                                 |
+| validator-info \<validator-pubkey>                                                                               | get validator info from Consensus Layer                                |
 
 ## Command Details
 

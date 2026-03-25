@@ -40,13 +40,13 @@ yarn start contracts lazy-oracle -h
 | getRoleMemberCount \<role>           | Calls the read-only function "getRoleMemberCount" on the contract.                  |
 | getRoleMembers \<role>               | Calls the read-only function "getRoleMembers" on the contract.                      |
 | hasRole \<role> \<account>           | Calls the read-only function "hasRole" on the contract.                             |
-| latest-report-data lrd               | get latest report data                                                              |
-| latest-report-timestamp lrt          | get latest report timestamp                                                         |
-| max-lido-fee-rate-per-second max-lfs | get the max Lido fee rate per second, in ether                                      |
-| max-reward-ratio-bp mrr              | get max reward ratio                                                                |
-| quarantine-period qp                 | get quarantine period                                                               |
-| quarantine-value qv\<vault>          | get the amount of total value that is pending in the quarantine for the given vault |
+| latest-report-data (lrd)             | get latest report data                                                              |
+| latest-report-timestamp (lrt)        | get latest report timestamp                                                         |
+| max-lido-fee-rate-per-second (max-lfs) | get the max Lido fee rate per second, in ether                                    |
+| max-reward-ratio-bp (mrr)            | get max reward ratio                                                                |
+| quarantine-period (qp)               | get quarantine period                                                               |
+| quarantine-value (qv) \<vault>       | get the amount of total value that is pending in the quarantine for the given vault |
 | supportsInterface \<interfaceId>     | Calls the read-only function "supportsInterface" on the contract.                   |
-| vault-info vi\<vault>                | get the vault data info                                                             |
-| vault-quarantine vq\<vault>          | get vault quarantine                                                                |
-| vaults-count vc                      | get vaults count                                                                    |
+| vault-info (vi) \<vault>             | get the vault data info                                                             |
+| vault-quarantine (vq) \<vault>       | get vault quarantine                                                                |
+| vaults-count (vc)                    | get vaults count                                                                    |
