@@ -9,15 +9,14 @@ vi.mock('fs/promises', () => ({
   },
 }));
 
-// Mock utils to avoid blockchain imports — only stub the functions cache.ts uses
-vi.mock('utils', async (importOriginal) => {
-  const original = await importOriginal<typeof import('utils')>();
-  return {
-    ...original,
-    calculateShareRate: vi.fn(),
-    calculateRebaseReward: vi.fn(),
-  };
-});
+// Mock the direct module paths that cache.ts imports from
+vi.mock('../../utils/share-rate.js', () => ({
+  calculateShareRate: vi.fn(),
+}));
+
+vi.mock('../../utils/rebase-rewards.js', () => ({
+  calculateRebaseReward: vi.fn(),
+}));
 
 // Mock logging
 vi.mock('../../utils/logging/index.js', () => ({
@@ -30,7 +29,8 @@ import {
   getShareRateFromCache,
   getRebaseRewardFromCache,
 } from '../../utils/cache.js';
-import { calculateShareRate, calculateRebaseReward } from 'utils';
+import { calculateShareRate } from '../../utils/share-rate.js';
+import { calculateRebaseReward } from '../../utils/rebase-rewards.js';
 
 const mockReadFile = fs.readFile as Mock;
 const mockWriteFile = fs.writeFile as Mock;
