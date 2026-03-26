@@ -121,7 +121,6 @@ For additional information about available methods and functionality, refer to t
 
 ### Key Topics
 
-- [Quick Reference](./get-started/cheatsheet.md) - Most common commands at a glance
 - [Configuration Guide](./get-started/configuration.md) - Environment setup and wallet configuration
 - [WalletConnect Setup](./get-started/wallet-connect.md) - Secure transaction signing with external wallets
 - [Global Flags](./commands/global-flags.md) - `--json`, `--populate-tx`, `--yes`, `--csv` and more

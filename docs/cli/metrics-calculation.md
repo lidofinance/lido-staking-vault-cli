@@ -29,7 +29,7 @@ On-chain values read at the oracle report block:
 
 ## Gross Staking Rewards
 
-The gross staking reward for a period is the increase in total vault value net of any ETH flowing in or out:
+The gross staking reward for a given period is the increase in total vault value, excluding any ETH inflows or outflows:
 
 ```
 grossStakingRewards = (totalValueCurr − totalValuePrev)
@@ -39,7 +39,7 @@ grossStakingRewards = (totalValueCurr − totalValuePrev)
 `inOutDelta` is a cumulative counter, so its delta isolates the organic ETH growth from staking vs. new deposits or withdrawals.
 
 :::note
-Currently, **any ETH change not accounted for in `inOutDelta` is treated as staking rewards**. This means slashing penalties, unexpected value changes, or other vault-level ETH movements are absorbed into `grossStakingRewards` rather than tracked separately.
+**Currently, any ETH change not captured in `inOutDelta` is treated as staking rewards.** This means that slashing penalties, unexpected value changes, or other vault-level ETH movements are included in `grossStakingRewards` rather than tracked separately.
 :::
 
 ---
@@ -106,13 +106,13 @@ stEthLiabilityRebaseCost = liabilitySharesPrev × (shareRateCurr − shareRatePr
 
 **Why opening shares (`liabilitySharesPrev`) only?**
 
-Using the opening share count mirrors the simple-return convention used by Lido's own APR formula:
+Using the opening share count mirrors the simple-return convention used by Lido Core APR formula:
 
 ```
 lidoAPR = (shareRateCurr − shareRatePrev) / shareRatePrev × annualization
 ```
 
-Both formulas denominate against the value at the _start_ of the period. Shares minted mid-period are treated as arriving at the beginning of the _next_ period — their rebase adjustment is deferred one period. This keeps vault metrics directly comparable to Lido APR figures.
+Both formulas denominate against the value at the _start_ of the period. Shares minted mid-period are treated as arriving at the beginning of the _next_ period — their rebase adjustment is deferred one period. This keeps vault metrics directly comparable to Lido Core APR figures.
 
 A practical consequence: in the first report period after a large stETH mint, `liabilitySharesPrev = 0` and the rebase adjustment is zero for that one period. The full adjustment is recognized in the following period once those shares become `liabilitySharesPrev`.
 
@@ -127,6 +127,8 @@ bottomLine = netStakingRewards − stEthLiabilityRebaseCost
 ```
 
 A positive bottom line means the vault earned more from staking than it paid in fees and stETH liability growth. A negative value occurs when stETH liabilities grow faster than staking earnings — common during the period when new validators are in the activation queue.
+
+Another applicable use of this metric is tracking the Health Factor trend: a positive bottom line increases the Health Factor, while a negative bottom line decreases it.
 
 ---
 
@@ -152,11 +154,11 @@ Where:
 
 ### Denominator: opening TVL
 
-Using the opening TVL (`previousTVL`) is consistent with how Lido calculates its own APR:
+Using the opening TVL (`previousTVL`) is consistent with how Lido Core APR is calculated:
 
 ```
-lidoAPR  = ΔshareRate / preShareRate  × annualization   (Lido methodology)
-vaultAPR = rewards    / previousTVL   × annualization   (this CLI)
+lidoCoreAPR  = ΔshareRate / preShareRate  × annualization   (Lido Core methodology)
+vaultAPR = rewards    / previousTVL   × annualization   (this stVaults CLI methodology)
 ```
 
 Both use the value at the _start_ of the period as the denominator, following the standard simple-return convention. This makes vault APR figures directly comparable to the Lido APR shown in the `charts-apr` output.
@@ -169,10 +171,10 @@ In reporting periods where a large ETH deposit arrives mid-period, `previousTVL`
 
 ## Lido APR
 
-The CLI also reports the Lido protocol APR for each period as a reference benchmark:
+The CLI also reports the Lido Core Gross APR for each period as a reference benchmark:
 
 ```
-lidoAPR = (postShareRate − preShareRate) / preShareRate × (31536000 / periodSeconds) × 100
+lidoCoreAPR = (postShareRate − preShareRate) / preShareRate × (31536000 / periodSeconds) × 100
 ```
 
 `preShareRate` and `postShareRate` are the stETH share rates at the start and end of the reporting period. This value is drawn directly from the oracle report data and represents the stETH yield that all stETH holders received during the period.
@@ -192,4 +194,4 @@ lidoAPR = (postShareRate − preShareRate) / preShareRate × (31536000 / periodS
 | Gross Staking APR (%)             | `grossStakingRewards × 100 × 31536000 / (previousTVL × periodSeconds)`           |
 | Net Staking APR (%)               | `netStakingRewards × 100 × 31536000 / (previousTVL × periodSeconds)`             |
 | Carry Spread (%)                  | `bottomLine × 100 × 31536000 / (previousTVL × periodSeconds)`                    |
-| Lido APR (%)                      | `(postShareRate − preShareRate) / preShareRate × 31536000 / periodSeconds × 100` |
+| Lido Core APR (%)                 | `(postShareRate − preShareRate) / preShareRate × 31536000 / periodSeconds × 100` |

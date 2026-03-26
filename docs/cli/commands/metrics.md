@@ -142,15 +142,15 @@ Retrieves raw report data for the vault from N last reports.
 Header row contains `Metric` and corresponding timestamps. Rows include:
 
 - `Vault Address`
-- `Total Value, WEI`
-- `Fee, WEI`
-- `Liability Shares, WEI`
-- `Slashing Reserve, WEI`
-- `In/Out Delta, WEI`
-- `Prev Fee, WEI`
-- `Infra Fee, WEI`
-- `Liquidity Fee, WEI`
-- `Reservation Fee, WEI`
+- `Total Value, ETH`
+- `Fee, ETH`
+- `Liability Shares, ETH`
+- `Slashing Reserve, ETH`
+- `In/Out Delta, ETH`
+- `Prev Fee, ETH`
+- `Infra Fee, ETH`
+- `Liquidity Fee, ETH`
+- `Reservation Fee, ETH`
 - `Timestamp`
 - `CID`
 
