@@ -389,6 +389,12 @@ predepositGuaranteeHelpers
     }
 
     const validatorInfo = validatorsInfo.data[0];
+
+    if (!validatorInfo) {
+      logError(`❌ No validator info found for Pubkey ${validatorPubkey}`);
+      return;
+    }
+
     logTable({
       data: [
         ['Index', validatorInfo.index],

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseGwei } from 'viem';
+import { parseGwei, type Hex } from 'viem';
 import { getTargetAndSourceValidatorsInfo } from '../../utils/consolidation/validator-info.js';
 import {
   VALID_PUBKEY_1,
