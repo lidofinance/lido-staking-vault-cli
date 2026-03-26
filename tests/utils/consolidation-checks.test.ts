@@ -37,7 +37,7 @@ describe('checkPubkeysArgs', () => {
   it('should throw when neither file nor pubkeys are provided', () => {
     expect(() =>
       // @ts-expect-error: testing with null/undefined
-      checkPubkeysArgs(null, undefined, undefined),
+      checkPubkeysArgs(null),
     ).toThrow('Provide --file or both --source_pubkeys and --target_pubkeys');
   });
 
@@ -135,7 +135,6 @@ describe('validateConsolidationInput', () => {
         [[VALID_PUBKEY_2]],
         [VALID_PUBKEY_1],
         VALID_DASHBOARD,
-        undefined,
       ),
     ).not.toThrow();
   });

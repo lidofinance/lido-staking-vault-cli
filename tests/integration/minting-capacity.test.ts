@@ -1,7 +1,6 @@
 import { describe, test, expect, beforeAll } from 'vitest';
-import { checkMintingCapacity } from 'features';
+import { checkMintingCapacity, getDashboardByVault } from 'features';
 import { DashboardContract, getDashboardContract } from 'contracts';
-import { getDashboardByVault } from 'features';
 import { loadTestConfig } from './helpers/test-config.js';
 import { setupIntegrationTestsBeforeAll } from './helpers/test-setup.js';
 

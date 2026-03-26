@@ -24,8 +24,12 @@ vi.mock('../../utils/logging/index.js', () => ({
   logInfo: vi.fn(),
 }));
 
-import fs from 'fs/promises';
-import { cache, getShareRateFromCache, getRebaseRewardFromCache } from '../../utils/cache.js';
+import fs from 'node:fs/promises';
+import {
+  cache,
+  getShareRateFromCache,
+  getRebaseRewardFromCache,
+} from '../../utils/cache.js';
 import { calculateShareRate, calculateRebaseReward } from 'utils';
 
 const mockReadFile = fs.readFile as Mock;
@@ -57,8 +61,8 @@ describe('cache.getShareRate / cache.setShareRate', () => {
 
   it('should write share rate to file', async () => {
     mockReadFile.mockRejectedValue(new Error('ENOENT'));
-    mockMkdir.mockResolvedValue(undefined);
-    mockWriteFile.mockResolvedValue(undefined);
+    mockMkdir.mockResolvedValue(Promise.resolve());
+    mockWriteFile.mockResolvedValue(Promise.resolve());
 
     await cache.setShareRate(100, 1234567890n);
 
@@ -66,21 +70,21 @@ describe('cache.getShareRate / cache.setShareRate', () => {
     expect(mockWriteFile).toHaveBeenCalledWith(
       expect.stringContaining('share-rate-cache-global.json'),
       JSON.stringify({ 100: '1234567890' }),
-      'utf-8',
+      'utf8',
     );
   });
 
   it('should merge with existing data on set', async () => {
     mockReadFile.mockResolvedValue(JSON.stringify({ 100: '111' }));
-    mockMkdir.mockResolvedValue(undefined);
-    mockWriteFile.mockResolvedValue(undefined);
+    mockMkdir.mockResolvedValue(Promise.resolve());
+    mockWriteFile.mockResolvedValue(Promise.resolve());
 
     await cache.setShareRate(200, 222n);
 
     expect(mockWriteFile).toHaveBeenCalledWith(
       expect.any(String),
       JSON.stringify({ 100: '111', 200: '222' }),
-      'utf-8',
+      'utf8',
     );
   });
 });
@@ -89,9 +93,7 @@ describe('cache.getRebaseReward / cache.setRebaseReward', () => {
   const vaultAddress = '0x1234';
 
   it('should return cached rebase reward', async () => {
-    mockReadFile.mockResolvedValue(
-      JSON.stringify({ '100_200': '5000' }),
-    );
+    mockReadFile.mockResolvedValue(JSON.stringify({ '100_200': '5000' }));
     const result = await cache.getRebaseReward(vaultAddress, '100_200');
     expect(result).toBe(5000n);
   });
@@ -104,15 +106,15 @@ describe('cache.getRebaseReward / cache.setRebaseReward', () => {
 
   it('should write rebase reward to vault-specific file', async () => {
     mockReadFile.mockRejectedValue(new Error('ENOENT'));
-    mockMkdir.mockResolvedValue(undefined);
-    mockWriteFile.mockResolvedValue(undefined);
+    mockMkdir.mockResolvedValue(Promise.resolve());
+    mockWriteFile.mockResolvedValue(Promise.resolve());
 
     await cache.setRebaseReward(vaultAddress, '100_200', 5000n);
 
     expect(mockWriteFile).toHaveBeenCalledWith(
       expect.stringContaining(`rebase-rewards-cache-${vaultAddress}.json`),
       JSON.stringify({ '100_200': '5000' }),
-      'utf-8',
+      'utf8',
     );
   });
 });
@@ -134,8 +136,8 @@ describe('cache.getNodeOperatorFeeRate / cache.setNodeOperatorFeeRate', () => {
 
   it('should write fee rate to vault-specific file', async () => {
     mockReadFile.mockRejectedValue(new Error('ENOENT'));
-    mockMkdir.mockResolvedValue(undefined);
-    mockWriteFile.mockResolvedValue(undefined);
+    mockMkdir.mockResolvedValue(Promise.resolve());
+    mockWriteFile.mockResolvedValue(Promise.resolve());
 
     await cache.setNodeOperatorFeeRate(vaultAddress, 500, 100n);
 
@@ -144,7 +146,7 @@ describe('cache.getNodeOperatorFeeRate / cache.setNodeOperatorFeeRate', () => {
         `node-operator-fee-rate-cache-${vaultAddress}.json`,
       ),
       expect.any(String),
-      'utf-8',
+      'utf8',
     );
   });
 });
@@ -210,17 +212,18 @@ describe('cache.getIndexedEventsByBlock / cache.setIndexedEventsForBlocks', () =
 
   it('should write multiple blocks of events', async () => {
     mockReadFile.mockRejectedValue(new Error('ENOENT'));
-    mockMkdir.mockResolvedValue(undefined);
-    mockWriteFile.mockResolvedValue(undefined);
+    mockMkdir.mockResolvedValue(Promise.resolve());
+    mockWriteFile.mockResolvedValue(Promise.resolve());
 
-    const eventsMap = new Map();
-    eventsMap.set(100n, { transfer: [], minted: [], burned: [] });
-    eventsMap.set(101n, { transfer: [], minted: [], burned: [] });
+    const eventsMap = new Map([
+      [100n, { transfer: [], minted: [], burned: [] }],
+      [101n, { transfer: [], minted: [], burned: [] }],
+    ]);
 
     await cache.setIndexedEventsForBlocks(cacheKey, eventsMap);
 
     expect(mockWriteFile).toHaveBeenCalledTimes(1);
-    const writtenData = JSON.parse(mockWriteFile.mock.calls[0][1]);
+    const writtenData = JSON.parse(mockWriteFile.mock.calls[0]?.[1]);
     expect(writtenData['100']).toBeDefined();
     expect(writtenData['101']).toBeDefined();
   });
@@ -256,8 +259,8 @@ describe('getShareRateFromCache', () => {
 
   it('should call calculateShareRate and cache on miss', async () => {
     mockReadFile.mockRejectedValue(new Error('ENOENT'));
-    mockMkdir.mockResolvedValue(undefined);
-    mockWriteFile.mockResolvedValue(undefined);
+    mockMkdir.mockResolvedValue(Promise.resolve());
+    mockWriteFile.mockResolvedValue(Promise.resolve());
     (calculateShareRate as Mock).mockResolvedValue(12345n);
 
     const result = await getShareRateFromCache(100);
@@ -289,8 +292,8 @@ describe('getRebaseRewardFromCache', () => {
     mockReadFile.mockResolvedValueOnce(JSON.stringify({ 100: '1000' }));
     // Share rate cache for blockNumberCurr
     mockReadFile.mockResolvedValueOnce(JSON.stringify({ 200: '1100' }));
-    mockMkdir.mockResolvedValue(undefined);
-    mockWriteFile.mockResolvedValue(undefined);
+    mockMkdir.mockResolvedValue(Promise.resolve());
+    mockWriteFile.mockResolvedValue(Promise.resolve());
     (calculateRebaseReward as Mock).mockReturnValue(500n);
 
     const result = await getRebaseRewardFromCache({
