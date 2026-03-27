@@ -1,4 +1,4 @@
-import { spawn } from 'child_process';
+import { spawn } from 'node:child_process';
 import { logInfo, logError } from 'utils';
 
 import { anvil } from './main.js';
@@ -107,9 +107,9 @@ anvil
     logInfo(`Command: anvil ${args.join(' ')}`);
     logInfo('');
 
+    // eslint-disable-next-line sonarjs/no-os-command-from-path -- anvil binary is a known dev tool
     const anvilProcess = spawn('anvil', args, {
       stdio: 'inherit',
-      shell: true,
     });
 
     logInfo(

@@ -62,10 +62,10 @@ export const prepareCreateVaultPayload = (args: {
     roles,
   } = args;
 
-  const qnt = parseInt(quantity);
+  const qnt = Number.parseInt(quantity);
   const otherRoles = roles || [];
 
-  if (isNaN(qnt)) {
+  if (Number.isNaN(qnt)) {
     logError('quantity must be a number');
     return;
   }
@@ -78,12 +78,12 @@ export const prepareCreateVaultPayload = (args: {
     ...validateAddressMap([nodeOperator, defaultAdmin, nodeOperatorManager]),
   ];
   if (errorsList.length > 0) {
-    errorsList.forEach((error) => program.error(error));
+    for (const error of errorsList) program.error(error);
     return;
   }
 
   // eslint-disable-next-line unicorn/new-for-builtins
-  const list: number[] = Array.from(Array(qnt));
+  const list: number[] = [...Array(qnt)];
   const payload = {
     defaultAdmin,
     nodeOperator,

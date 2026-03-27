@@ -2,8 +2,8 @@ import { CID, Version } from 'multiformats/cid';
 import { MemoryBlockstore } from 'blockstore-core';
 import { importer } from 'ipfs-unixfs-importer';
 import jsonBigInt from 'json-bigint';
-import fs from 'fs/promises';
-import path from 'path';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 
 import { logInfo, logTable } from './logging/console.js';
 
@@ -138,12 +138,12 @@ export const fetchIPFSWithCacheAndVerify = async <T>(
 
   try {
     logInfo('Trying to get content from cache', cid);
-    const data = await fs.readFile(cacheFile, 'utf-8');
+    const data = await fs.readFile(cacheFile, 'utf8');
     return JSON.parse(data) as T;
   } catch {
     // Not in cache, fetch from IPFS
     const { json } = await fetchIPFSDirectAndVerify<T>(cid, gateway);
-    await fs.writeFile(cacheFile, JSON.stringify(json), 'utf-8');
+    await fs.writeFile(cacheFile, JSON.stringify(json), 'utf8');
     return json;
   }
 };

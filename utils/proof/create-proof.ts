@@ -89,7 +89,7 @@ export const createPDGProof = async (
     }
 
     headerByParentSlot = headerByParentJson.data[0].header.message.slot;
-  } catch (error) {
+  } catch {
     logError(
       'Error fetching beacon header by parent root. Calculating child block timestamp manually...',
     );

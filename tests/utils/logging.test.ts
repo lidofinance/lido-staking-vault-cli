@@ -187,7 +187,7 @@ describe('logResult and logTable', () => {
     logResult({ data });
 
     const calls = vi.mocked(console.info).mock.calls;
-    const payload = calls[calls.length - 1]?.[0];
+    const payload = calls.at(-1)?.[0];
 
     const jsonOutput = JSON.parse(payload);
 

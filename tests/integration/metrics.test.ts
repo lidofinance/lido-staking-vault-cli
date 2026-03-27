@@ -4,11 +4,11 @@ import {
   getNodeOperatorFeeRatesByBlockNumbers,
   getSettledGrowthsByBlockNumbers,
   getNodeOperatorAccruedFeeByBlockNumbers,
+  getDashboardByVault,
 } from 'features';
 import { DashboardContract, getDashboardContract } from 'contracts';
 import { getPublicClient } from 'providers';
 import { loadTestConfig } from './helpers/test-config.js';
-import { getDashboardByVault } from 'features';
 
 describe('Metrics Integration Tests', () => {
   let config: ReturnType<typeof loadTestConfig>;

@@ -11,7 +11,7 @@ export const readCommandConfig: ReadProgramCommandConfig<
       _numberOfKeys: {
         name: 'numberOfKeys',
         description: 'number of validators public keys',
-        modifier: (value: string) => BigInt(value),
+        modifier: BigInt,
       },
     },
   },

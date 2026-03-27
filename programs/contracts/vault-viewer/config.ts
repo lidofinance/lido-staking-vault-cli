@@ -12,12 +12,12 @@ export const readCommandConfig: ReadProgramCommandConfig<
       _offset: {
         name: 'offset',
         description: 'offset',
-        modifier: (value) => BigInt(value),
+        modifier: BigInt,
       },
       _limit: {
         name: 'limit',
         description: 'limit',
-        modifier: (value) => BigInt(value),
+        modifier: BigInt,
       },
     },
   },
@@ -40,12 +40,12 @@ export const readCommandConfig: ReadProgramCommandConfig<
       _offset: {
         name: 'offset',
         description: 'offset',
-        modifier: (value) => BigInt(value),
+        modifier: BigInt,
       },
       _limit: {
         name: 'limit',
         description: 'limit',
-        modifier: (value) => BigInt(value),
+        modifier: BigInt,
       },
     },
   },
@@ -62,12 +62,12 @@ export const readCommandConfig: ReadProgramCommandConfig<
       _offset: {
         name: 'offset',
         description: 'offset',
-        modifier: (value) => BigInt(value),
+        modifier: BigInt,
       },
       _limit: {
         name: 'limit',
         description: 'limit',
-        modifier: (value) => BigInt(value),
+        modifier: BigInt,
       },
     },
   },
@@ -96,12 +96,12 @@ export const readCommandConfig: ReadProgramCommandConfig<
       _offset: {
         name: 'offset',
         description: 'offset',
-        modifier: (value) => BigInt(value),
+        modifier: BigInt,
       },
       _limit: {
         name: 'limit',
         description: 'limit',
-        modifier: (value) => BigInt(value),
+        modifier: BigInt,
       },
     },
   },

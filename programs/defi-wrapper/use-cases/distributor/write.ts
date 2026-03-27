@@ -38,8 +38,8 @@ import {
   fetchDistributionTree,
   generateDistribution,
 } from 'features/defi-wrapper/distributor.js';
-import path from 'path';
-import fs from 'fs/promises';
+import path from 'node:path';
+import fs from 'node:fs/promises';
 
 const distributorWrite = distributorUseCases
   .command('write')
@@ -156,13 +156,8 @@ distributorWrite
     stringArrayToAddressArray,
     [],
   )
-  .option(
-    '--from-block [block]',
-    'from block number',
-    stringToBigInt,
-    undefined,
-  )
-  .option('--to-block [block]', 'to block number', stringToBigInt, undefined)
+  .option('--from-block [block]', 'from block number', stringToBigInt)
+  .option('--to-block [block]', 'to block number', stringToBigInt)
   .option(
     '--max-batch-size [size]',
     '(default 50000) maximum batch size for fetching events ',
@@ -178,12 +173,10 @@ distributorWrite
   .option(
     '--upload [pinningUrl]',
     '(unstable) uploading distribution data to provided pinning service URL',
-    undefined,
   )
   .option(
     '--upload-authorization [token]',
     'authorization token for uploading distribution data to pinning service, used as `Authorization: Bearer <token>`',
-    undefined,
   )
   .option('--skip-set-root', 'skip setting merkle root on distributor', false)
   .action(
@@ -288,8 +281,12 @@ distributorWrite
 
         await fs.mkdir(dir, { recursive: true });
 
-        await fs.writeFile(outputPath, writeString, 'utf-8');
-
+        await fs.writeFile(
+          outputPath,
+          // replace BigInt with string in JSON
+          writeString,
+          'utf8',
+        );
         logInfo(`Distribution data written to ${outputPath}`);
       }
 

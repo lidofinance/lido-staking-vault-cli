@@ -12,9 +12,9 @@ export const logLiabilityBar = (
   data: LiabilityOverview,
   barLength = 68,
 ): void => {
-  const totalValueEth = parseFloat(formatEther(data.totalValue));
-  const liabilitySteth = parseFloat(formatEther(data.stETHLiability));
-  const totalMintingCapacitySteth = parseFloat(
+  const totalValueEth = Number.parseFloat(formatEther(data.totalValue));
+  const liabilitySteth = Number.parseFloat(formatEther(data.stETHLiability));
+  const totalMintingCapacitySteth = Number.parseFloat(
     formatEther(data.stETHTotalMintingCapacity),
   );
 

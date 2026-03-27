@@ -32,7 +32,7 @@ import {
   getVaultHubContract,
 } from 'contracts';
 import { getStvPoolContract } from 'contracts/defi-wrapper/stv-pool.js';
-import { bigIntMin } from 'utils/bigInt.js';
+import { bigIntMin } from 'utils/big-int.js';
 import { getStvStethPoolContract } from 'contracts/defi-wrapper/stv-steth-pool.js';
 import { areVaultParamsInSync, tryFetchPost } from 'features';
 
@@ -653,7 +653,6 @@ wrapperOperationsWrite
 
       let latestReportTimestamp = 0n;
 
-      // eslint-disable-next-line no-constant-condition
       while (true) {
         const currentReportTimestamp = await callReadMethodSilent({
           contract: lazyOracle,

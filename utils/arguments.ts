@@ -1,5 +1,5 @@
 import { program } from 'commander';
-import { readFileSync } from 'fs';
+import { readFileSync } from 'node:fs';
 import { Permit, RoleAssignment, Tier, Deposit, ValidatorTopUp } from 'types';
 import { Address, Hex, isAddress, isHex, parseEther } from 'viem';
 
@@ -8,7 +8,7 @@ import { PubkeyMap } from 'utils/consolidation/types.js';
 import { toHex } from './proof/merkle-utils.js';
 
 const toCamelCase = (str: string): string =>
-  str.replace(/_([a-z])/g, (_, char) => char.toUpperCase());
+  str.replaceAll(/_([a-z])/g, (_, char) => char.toUpperCase());
 
 export const stringToBigIntArray = (value: string) => {
   return value.split(',').map(BigInt);
@@ -19,7 +19,7 @@ export const stringToBigIntArrayWei = (value: string) => {
 };
 
 export const stringTo2dArray = (value: string): string[][] => {
-  const trimmed = value.replace(/^["']|["']$/g, '');
+  const trimmed = value.replaceAll(/^["']|["']$/g, '');
   return trimmed
     .split(',')
     .map((group) => group.trim().split(/\s+/).filter(Boolean));
@@ -38,7 +38,7 @@ export const jsonToPermit = (value: string) => {
 };
 
 export const jsonFileToPubkeys = (value: string) => {
-  const content = readFileSync(value, 'utf-8');
+  const content = readFileSync(value, 'utf8');
   if (content.length === 0) {
     throw new Error('File is empty');
   }
@@ -48,21 +48,21 @@ export const jsonFileToPubkeys = (value: string) => {
     throw new Error('Invalid PubkeyMap format: not an object');
   }
 
-  Object.entries(parsed).forEach(([key, value]) => {
+  for (const [key, value] of Object.entries(parsed)) {
     if (!isHex(key)) {
       throw new Error(`Invalid key: ${key}`);
     }
 
     if (!Array.isArray(value)) {
-      throw new Error(`Value for key ${key} is not an array`);
+      throw new TypeError(`Value for key ${key} is not an array`);
     }
 
-    value.forEach((item) => {
+    for (const item of value) {
       if (!isHex(item)) {
         throw new Error(`Invalid hex in array for key ${key}: ${item}`);
       }
-    });
-  });
+    }
+  }
 
   return parsed as PubkeyMap;
 };
@@ -71,9 +71,7 @@ export const jsonToRoleAssignment = (value: string) => {
   return JSON.parse(value) as RoleAssignment[];
 };
 
-export const stringToBigInt = (value: string) => {
-  return BigInt(value);
-};
+export const stringToBigInt = BigInt;
 
 export const stringToNumberArray = (value: string) => {
   return value.split(',').map(Number);
@@ -95,16 +93,16 @@ export const stringArrayToTokenPairs = (
     prev.isAmount = true;
   } else {
     const numberAmount = Number(value);
-    const prevEntry = prev.result[prev.result.length - 1];
+    const prevEntry = prev.result.at(-1);
     if (
       !prevEntry ||
-      isNaN(numberAmount) ||
+      Number.isNaN(numberAmount) ||
       isAddress(value) ||
       numberAmount <= 0 ||
       !value
     ) {
       throw new Error(
-        `Invalid amount: ${value} for token ${prev.result[prev.result.length - 1]?.address}`,
+        `Invalid amount: ${value} for token ${prev.result.at(-1)?.address}`,
       );
     }
     prevEntry.amount = value;
@@ -131,10 +129,10 @@ export const etherToGweiArray = (value: string) => {
 };
 
 export const stringToNumber = (value: string) => {
-  if (isNaN(Number(value)) || Number(value) < 0) {
+  if (Number.isNaN(Number(value)) || Number(value) < 0) {
     program.error('value must be a positive number', { exitCode: 1 });
   }
-  return parseInt(value);
+  return Number.parseInt(value);
 };
 
 export const stringToBoolean = (value: string) => {
@@ -182,7 +180,6 @@ export const parseDepositArray = (str: string): Deposit[] => {
     return [];
   }
 
-  // eslint-disable-next-line sonarjs/no-identical-functions
   const parsed = JSON.parse(trimmed, (key, value) => {
     if (key === '') return value; // root array
     if (key === 'amount') return BigInt(value) * BigInt(10 ** 9); // gwei to wei
@@ -211,7 +208,6 @@ export const parseValidatorTopUpArray = (str: string): ValidatorTopUp[] => {
     return [];
   }
 
-  // eslint-disable-next-line sonarjs/no-identical-functions
   const parsed = JSON.parse(trimmed, (key, value) => {
     if (key === '') return value; // root array
     if (key === 'amount') return BigInt(value) * BigInt(10 ** 9); // gwei to wei
@@ -235,7 +231,7 @@ export const stringArrayToAddressArray = (
   value: string,
   previous: Address[],
 ) => {
-  return previous.concat([stringToAddress(value)]);
+  return [...previous, stringToAddress(value)];
 };
 
 export const stringToHash = (value: string): Hex => {

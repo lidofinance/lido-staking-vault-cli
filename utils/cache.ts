@@ -1,7 +1,8 @@
-import fs from 'fs/promises';
-import path from 'path';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 
-import { calculateShareRate, calculateRebaseReward } from 'utils';
+import { calculateShareRate } from './share-rate.js';
+import { calculateRebaseReward } from './rebase-rewards.js';
 import { logInfo } from './logging/index.js';
 import { Address } from 'viem';
 
@@ -42,7 +43,7 @@ export const cache = {
   async getShareRate(blockNumber: number): Promise<bigint | null> {
     try {
       const data = JSON.parse(
-        await fs.readFile(getShareRateCacheFile(), 'utf-8'),
+        await fs.readFile(getShareRateCacheFile(), 'utf8'),
       );
       if (data[blockNumber] !== undefined) return BigInt(data[blockNumber]);
     } catch {
@@ -54,7 +55,7 @@ export const cache = {
   async setShareRate(blockNumber: number, value: bigint) {
     let data: Record<string, string> = {};
     try {
-      data = JSON.parse(await fs.readFile(getShareRateCacheFile(), 'utf-8'));
+      data = JSON.parse(await fs.readFile(getShareRateCacheFile(), 'utf8'));
     } catch {
       /* ignore */
     }
@@ -62,7 +63,7 @@ export const cache = {
     await fs.mkdir(path.dirname(getShareRateCacheFile()), {
       recursive: true,
     });
-    await fs.writeFile(getShareRateCacheFile(), JSON.stringify(data), 'utf-8');
+    await fs.writeFile(getShareRateCacheFile(), JSON.stringify(data), 'utf8');
   },
 
   async getRebaseReward(
@@ -71,7 +72,7 @@ export const cache = {
   ): Promise<bigint | null> {
     try {
       const data = JSON.parse(
-        await fs.readFile(getRebaseRewardCacheFile(vaultAddress), 'utf-8'),
+        await fs.readFile(getRebaseRewardCacheFile(vaultAddress), 'utf8'),
       );
       if (data[cacheKey] !== undefined) return BigInt(data[cacheKey]);
     } catch {
@@ -84,7 +85,7 @@ export const cache = {
     let data: Record<string, string> = {};
     try {
       data = JSON.parse(
-        await fs.readFile(getRebaseRewardCacheFile(vaultAddress), 'utf-8'),
+        await fs.readFile(getRebaseRewardCacheFile(vaultAddress), 'utf8'),
       );
     } catch {
       /* ignore */
@@ -96,7 +97,7 @@ export const cache = {
     await fs.writeFile(
       getRebaseRewardCacheFile(vaultAddress),
       JSON.stringify(data),
-      'utf-8',
+      'utf8',
     );
   },
 
@@ -108,7 +109,7 @@ export const cache = {
       const data = JSON.parse(
         await fs.readFile(
           getNodeOperatorFeeRateCacheFile(vaultAddress),
-          'utf-8',
+          'utf8',
         ),
       );
       if (data[blockNumber] !== undefined) return BigInt(data[blockNumber]);
@@ -128,7 +129,7 @@ export const cache = {
       data = JSON.parse(
         await fs.readFile(
           getNodeOperatorFeeRateCacheFile(vaultAddress),
-          'utf-8',
+          'utf8',
         ),
       );
     } catch {
@@ -144,7 +145,7 @@ export const cache = {
     await fs.writeFile(
       getNodeOperatorFeeRateCacheFile(vaultAddress),
       JSON.stringify(data),
-      'utf-8',
+      'utf8',
     );
   },
 
@@ -154,7 +155,7 @@ export const cache = {
   ): Promise<bigint | null> {
     try {
       const data = JSON.parse(
-        await fs.readFile(getSettledGrowthCacheFile(vaultAddress), 'utf-8'),
+        await fs.readFile(getSettledGrowthCacheFile(vaultAddress), 'utf8'),
       );
       if (data[blockNumber] !== undefined) return BigInt(data[blockNumber]);
     } catch {
@@ -171,7 +172,7 @@ export const cache = {
     let data: Record<string, string> = {};
     try {
       data = JSON.parse(
-        await fs.readFile(getSettledGrowthCacheFile(vaultAddress), 'utf-8'),
+        await fs.readFile(getSettledGrowthCacheFile(vaultAddress), 'utf8'),
       );
     } catch {
       /* ignore */
@@ -183,7 +184,7 @@ export const cache = {
     await fs.writeFile(
       getSettledGrowthCacheFile(vaultAddress),
       JSON.stringify(data),
-      'utf-8',
+      'utf8',
     );
   },
 
@@ -195,7 +196,7 @@ export const cache = {
       const data = JSON.parse(
         await fs.readFile(
           getNodeOperatorAccruedFeeCacheFile(vaultAddress),
-          'utf-8',
+          'utf8',
         ),
       );
       if (data[blockNumber] !== undefined) return BigInt(data[blockNumber]);
@@ -215,7 +216,7 @@ export const cache = {
       data = JSON.parse(
         await fs.readFile(
           getNodeOperatorAccruedFeeCacheFile(vaultAddress),
-          'utf-8',
+          'utf8',
         ),
       );
     } catch {
@@ -231,7 +232,7 @@ export const cache = {
     await fs.writeFile(
       getNodeOperatorAccruedFeeCacheFile(vaultAddress),
       JSON.stringify(data),
-      'utf-8',
+      'utf8',
     );
   },
 
@@ -241,7 +242,7 @@ export const cache = {
   ): Promise<CachedEvents | null> {
     try {
       const data = JSON.parse(
-        await fs.readFile(getIndexedEventsCacheFile(cacheKey), 'utf-8'),
+        await fs.readFile(getIndexedEventsCacheFile(cacheKey), 'utf8'),
       );
       const key = blockNumber.toString();
       if (data[key] !== undefined) return data[key];
@@ -256,7 +257,7 @@ export const cache = {
   ): Promise<Record<string, CachedEvents>> {
     try {
       const data = JSON.parse(
-        await fs.readFile(getIndexedEventsCacheFile(cacheKey), 'utf-8'),
+        await fs.readFile(getIndexedEventsCacheFile(cacheKey), 'utf8'),
       );
       return data;
     } catch {
@@ -272,7 +273,7 @@ export const cache = {
     let data: Record<string, CachedEvents> = {};
     try {
       data = JSON.parse(
-        await fs.readFile(getIndexedEventsCacheFile(cacheKey), 'utf-8'),
+        await fs.readFile(getIndexedEventsCacheFile(cacheKey), 'utf8'),
       );
     } catch {
       /* ignore */
@@ -289,7 +290,7 @@ export const cache = {
     await fs.writeFile(
       getIndexedEventsCacheFile(cacheKey),
       JSON.stringify(data),
-      'utf-8',
+      'utf8',
     );
   },
 };

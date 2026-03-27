@@ -10,12 +10,12 @@ export const readCommandConfig: ReadProgramCommandConfig<typeof LazyOracleAbi> =
         _offset: {
           name: 'offset',
           description: 'offset',
-          modifier: (value) => BigInt(value),
+          modifier: BigInt,
         },
         _limit: {
           name: 'limit',
           description: 'limit',
-          modifier: (value) => BigInt(value),
+          modifier: BigInt,
         },
       },
     },

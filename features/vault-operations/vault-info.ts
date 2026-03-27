@@ -1,6 +1,6 @@
 import { formatEther } from 'viem';
 
-import { DashboardContract } from 'contracts';
+import { DashboardContract, getStakingVaultContract } from 'contracts';
 import {
   formatBP,
   logInfo,
@@ -12,7 +12,6 @@ import {
 } from 'utils';
 import { getPublicClient } from 'providers';
 import { reportFreshWarning } from 'features';
-import { getStakingVaultContract } from 'contracts';
 
 export const getVaultInfoByDashboard = async (contract: DashboardContract) => {
   const vault = await callReadMethodSilent({

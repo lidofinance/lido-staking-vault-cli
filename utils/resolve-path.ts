@@ -1,5 +1,5 @@
-import path from 'path';
-import { homedir } from 'os';
+import path from 'node:path';
+import { homedir } from 'node:os';
 
 export const resolvePath = (pathString: string) => {
   return pathString.startsWith('~')

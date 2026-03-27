@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
-import path from 'path';
-import { homedir } from 'os';
+import path from 'node:path';
+import { homedir } from 'node:os';
 
 import { resolvePath } from '../../utils/resolve-path.js';
 

@@ -1,6 +1,6 @@
 import { getContract, GetContractReturnType } from 'viem';
 import { OperatorGridAbi } from 'abi/index.js';
-import { getLocatorContract } from 'contracts';
+import { getLocatorContract } from 'contracts/locator.js';
 import { getPublicClient, RegisteredPublicClient } from 'providers/index.js';
 
 export const getOperatorGridContract =

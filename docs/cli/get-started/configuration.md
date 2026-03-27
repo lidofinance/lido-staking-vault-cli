@@ -75,6 +75,7 @@ WALLET_CONNECT_PROJECT_ID=ee928c025792b10a6daa97d85328c433
 
 - Ethereum network chain ID
 - Common values:
+  - `1`: Ethereum Mainnet
   - `560048`: Hoodi Testnet
 
 **CL_URL** (Required for validator operations)

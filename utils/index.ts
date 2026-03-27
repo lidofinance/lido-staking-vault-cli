@@ -14,7 +14,7 @@ export * from './arguments.js';
 export * from './report/index.js';
 export * from './health/index.js';
 export * from './logging/index.js';
-export * from './fetchCL.js';
+export * from './fetch-cl.js';
 export * from './ipfs.js';
 export * from './commands/index.js';
 export * from './bls.js';

@@ -143,17 +143,15 @@ reportWrite
         bigint,
         bigint,
         Hex[],
-      ][] =
-        // eslint-disable-next-line sonarjs/no-identical-functions
-        proofs.map((report) => [
-          report.data.vaultAddress as Address,
-          BigInt(report.data.totalValueWei),
-          BigInt(report.data.fee),
-          BigInt(report.data.liabilityShares),
-          BigInt(report.data.maxLiabilityShares),
-          BigInt(report.data.slashingReserve),
-          report.proof,
-        ]);
+      ][] = proofs.map((report) => [
+        report.data.vaultAddress as Address,
+        BigInt(report.data.totalValueWei),
+        BigInt(report.data.fee),
+        BigInt(report.data.liabilityShares),
+        BigInt(report.data.maxLiabilityShares),
+        BigInt(report.data.slashingReserve),
+        report.proof,
+      ]);
 
       try {
         await callWriteMethodWithReceiptBatchPayloads({

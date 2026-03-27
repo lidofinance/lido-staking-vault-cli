@@ -20,8 +20,8 @@ export const tryFetchPost = async <TResult = any>(
     }
     result = (await response.json()) as TResult;
     success = true;
-  } catch (errorCaught) {
-    error = errorCaught;
+  } catch (error_) {
+    error = error_;
   }
   return {
     success,

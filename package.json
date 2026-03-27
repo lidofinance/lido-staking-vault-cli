@@ -11,7 +11,7 @@
     "start": "tsx ./index.ts",
     "build": "npx tsc && tsc-alias",
     "types": "echo 'No types yet'",
-    "lint": "eslint . --ext .ts --max-warnings 0",
+    "lint": "eslint . --max-warnings 0",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -63,7 +63,6 @@
     "@commitlint/cli": "^17.4.4",
     "@commitlint/config-conventional": "^17.4.4",
     "@commitlint/prompt": "^19.8.1",
-    "@lidofinance/eslint-config": "^0.48.0",
     "@swc/core": "^1.11.21",
     "@types/blessed": "^0.1.25",
     "@types/cli-progress": "^3.11.6",
@@ -73,25 +72,16 @@
     "@types/node": "^22.14.1",
     "@types/prompts": "^2.4.9",
     "@types/qrcode-terminal": "^0.12.2",
-    "@typescript-eslint/eslint-plugin": "^5",
-    "@typescript-eslint/parser": "^5.46.0",
     "@viem/anvil": "^0.0.10",
     "@vitest/coverage-v8": "^4.0.15",
-    "@vitest/eslint-plugin": "^1.5.2",
-    "eslint": "^8.57.0",
-    "eslint-config-prettier": "^8.5.0",
-    "eslint-import-resolver-node": "^0.3.6",
-    "eslint-import-resolver-typescript": "^3.7.0",
-    "eslint-plugin-deprecation": "^2.0.0",
-    "eslint-plugin-eslint-comments": "^3",
-    "eslint-plugin-import": "^2",
-    "eslint-plugin-jest": "^29.2.1",
-    "eslint-plugin-jsx-a11y": "^6.7.1",
-    "eslint-plugin-prettier": "^4",
-    "eslint-plugin-promise": "^6",
-    "eslint-plugin-sonarjs": "^0.14.0",
-    "eslint-plugin-unicorn": "^45",
-    "eslint-plugin-vitest": "^0.5.4",
+    "@vitest/eslint-plugin": "^1.6.9",
+    "eslint": "^10.0.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-import-resolver-typescript": "^4.4.4",
+    "eslint-plugin-import-x": "^4.16.1",
+    "eslint-plugin-promise": "^7.2.1",
+    "eslint-plugin-sonarjs": "^4.0.0",
+    "eslint-plugin-unicorn": "^63.0.0",
     "lint-staged": "^15.4.3",
     "prettier": "^3.0.1",
     "semantic-release": "^24.2.0",
@@ -100,16 +90,18 @@
     "tsconfig-paths": "^4.2.0",
     "tsx": "^4.19.3",
     "typescript": "^5.7.2",
+    "typescript-eslint": "^8.56.1",
     "vitest": "^4.0.15"
   },
   "resolutions": {
     "xml2js": "^0.5.0",
     "tmp": "^0.2.4",
-    "tar": "^7.5.8"
+    "tar": "^7.5.8",
+    "@scure/bip32": "1.7.0"
   },
   "lint-staged": {
     "{!(docs)/**/*.{ts,tsx},*.{ts,tsx}}": [
-      "eslint --ignore-path .gitignore --max-warnings=0"
+      "eslint --max-warnings=0"
     ],
     "./**/*.{ts,tsx,css,md,json}": [
       "prettier --write"

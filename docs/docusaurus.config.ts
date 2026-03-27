@@ -34,16 +34,11 @@ const config: Config = {
         docs: {
           sidebarPath: './sidebars.ts',
           path: 'cli',
-          // Remove this to remove the "edit this page" links.
-          editUrl: 'https://github.com/lidofinance/lido-staking-vault-cli',
+          editUrl:
+            'https://github.com/lidofinance/lido-staking-vault-cli/tree/develop/docs/',
           routeBasePath: '/',
         },
-        blog: {
-          showReadingTime: true,
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
-          editUrl: 'https://github.com/lidofinance/lido-staking-vault-cli',
-        },
+        blog: false,
       } satisfies Preset.Options,
     ],
   ],
@@ -53,7 +48,7 @@ const config: Config = {
   },
   themes: ['@docusaurus/theme-mermaid'],
   themeConfig: {
-    image: 'img/package_logo.png',
+    image: 'img/favicon.png',
     navbar: {
       title: 'Lido Staking Vault CLI Docs',
       logo: {

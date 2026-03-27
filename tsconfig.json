@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "declaration": true,
-    "lib": ["DOM", "ES2022"],
+    "lib": ["DOM", "ES2023"],
     "target": "ESNext",
     "moduleResolution": "NodeNext",
     "useDefineForClassFields": true, // Not enabled by default in `strict` mode unless we bump `target` to ES2022.
@@ -32,6 +32,7 @@
       "version": ["./version/index.js"]
     },
     "outDir": "dist",
+    "baseUrl": ".",
     "sourceMap": true,
     "rootDir": ".",
     "module": "NodeNext"

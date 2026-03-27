@@ -566,7 +566,7 @@ dashboardWrite
   .action(async (address: Address, roleAssignment: RoleAssignment[]) => {
     const contract = await getDashboardContract(address);
     if (!Array.isArray(roleAssignment)) {
-      throw new Error(
+      throw new TypeError(
         'the 2nd argument should be an array of role assignments',
       );
     }
@@ -612,7 +612,7 @@ dashboardWrite
   .action(async (address: Address, roleAssignment: RoleAssignment[]) => {
     const contract = await getDashboardContract(address);
     if (!Array.isArray(roleAssignment)) {
-      throw new Error(
+      throw new TypeError(
         'the 2nd argument should be an array of role assignments',
       );
     }

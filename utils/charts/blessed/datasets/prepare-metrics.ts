@@ -13,9 +13,9 @@ import {
   getNodeOperatorFeeForPeriod,
   NOFeeSnapshot,
   EMPTY_NO_FEE_SNAPSHOT,
+  getRebaseRewardFromCache,
+  getShareRateFromCache,
 } from 'utils';
-
-import { getRebaseRewardFromCache, getShareRateFromCache } from 'utils';
 
 const snapshotAt = (
   noFeeSnapshots: NOFeeSnapshot[],

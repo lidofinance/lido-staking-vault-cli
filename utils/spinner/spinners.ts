@@ -17,7 +17,8 @@ export const showSpinner = (args?: args) => {
 
   const interval = setInterval(() => {
     const { frames } = spinner;
-    logUpdateStderr(frames[(index = ++index % frames.length)] + ` ${message}`);
+    index = ++index % frames.length;
+    logUpdateStderr(frames[index] + ` ${message}`);
   }, spinner.interval);
 
   return () => {

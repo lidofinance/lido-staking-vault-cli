@@ -27,7 +27,7 @@ export const getReportProofByVault = async (
     ({ value }) => value[0].toLowerCase() === vault.toLowerCase(),
   );
 
-  if (vaultIndex < 0) {
+  if (vaultIndex === -1) {
     throw new Error(`Vault ${vault} not found in report`);
   }
   const reportData = getVaultData(IPFSReportData, vault, args.cid);

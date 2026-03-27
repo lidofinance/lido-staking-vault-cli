@@ -72,6 +72,7 @@ describe('merkle-utils', () => {
     it('should throw error for unsupported types', () => {
       expect(() => toHex({})).toThrow('Unsupported value type');
       expect(() => toHex(null)).toThrow('Unsupported value type');
+      // eslint-disable-next-line unicorn/no-useless-undefined
       expect(() => toHex(undefined)).toThrow('Unsupported value type');
     });
   });

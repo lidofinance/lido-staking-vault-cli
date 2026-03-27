@@ -10,6 +10,7 @@ import {
 } from './constants.js';
 
 export const randomColor = () => {
+  // eslint-disable-next-line sonarjs/pseudo-random -- non-security use: chart colors
   return [Math.random() * 255, Math.random() * 255, Math.random() * 255];
 };
 
@@ -67,6 +68,7 @@ export const lineOpts = (
     range: { min: number; max: number; minY: number; maxY: number };
   },
   opts?: { legendNames?: string[]; legendColors?: string[] },
+  // eslint-disable-next-line sonarjs/function-return-type
 ) => {
   const base = {
     label: `${title} (min: ${range.min.toFixed(2)}, max: ${range.max.toFixed(2)})`,

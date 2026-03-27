@@ -58,22 +58,28 @@ export const createConsole = (
     }
 
     switch (type) {
-      case 'table':
+      case 'table': {
         if (program.opts().json) {
           return console.info(bigIntStringify(args));
         }
         console.info(`\n${getColoredLog(headMessage, headMessage + ':')}`);
         return console.table(...args);
+      }
 
-      case 'bold':
+      case 'bold': {
         if (program.opts().json) {
           return console.info(bigIntStringify({ result: args }));
         }
         return console.info(getColoredLog(headMessage, args));
-      case 'json':
-        args.forEach((arg) => console.info(bigIntStringify(arg)));
+      }
+      case 'json': {
+        for (const arg of args) {
+          console.info(bigIntStringify(arg));
+        }
         return;
-      default:
+      }
+      case 'error':
+      case 'info': {
         if (program.opts().json) {
           return console.info(bigIntStringify({ result: args }));
         }
@@ -82,6 +88,7 @@ export const createConsole = (
           `\n${getColoredLog(headMessage, headMessage + ':')}`,
           ...args,
         );
+      }
     }
   };
 };
