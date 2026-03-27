@@ -23,12 +23,14 @@ import {
 import { getPublicClient } from 'providers';
 
 import { DashboardAbi } from 'abi';
-import { StvPoolAbi } from 'abi/defi-wrapper/StvPool.js';
-import { StvStETHPoolAbi } from 'abi/defi-wrapper/StvStEthPool.js';
-import { WithdrawalQueueAbi } from 'abi/defi-wrapper/WithdrawalQueue.js';
-import { OssifiableProxyAbi } from 'abi/defi-wrapper/OssifiableProxy.js';
-import { TimeLockAbi } from 'abi/defi-wrapper/TimeLock.js';
-import { DistributorAbi } from 'abi/defi-wrapper/Distributor.js';
+import {
+  StvPoolAbi,
+  StvStETHPoolAbi,
+  WithdrawalQueueAbi,
+  TimeLockAbi,
+  OssifiableProxyAbi,
+  DistributorAbi,
+} from 'abi/defi-wrapper/index.js';
 
 // all abis of expected timelock governed contracts
 const mixAbi = [
