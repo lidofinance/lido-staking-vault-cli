@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file.
 
 - [DeFi Wrapper] use case distributor now has `claim` command and `distribute` command now supports modes for `snapshot` generation
 
+### Fixed
+
+- IPFS utils now support CIDv1
+
 ## 1.6.0
 
 ### Fixed
