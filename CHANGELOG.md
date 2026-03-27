@@ -1,5 +1,11 @@
 All notable changes to this project will be documented in this file.
 
+## 1.7.0
+
+### Added
+
+- [DeFi Wrapper] use case distributor now has `claim` command and `distribute` command now supports modes for `snapshot` generation
+
 ## 1.6.0
 
 ### Fixed
