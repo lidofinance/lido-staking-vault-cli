@@ -1,5 +1,28 @@
 All notable changes to this project will be documented in this file.
 
+## 1.7.0
+
+### Added
+
+#### DeFi Wrapper
+
+- use case distributor now has `claim` command and `distribute` command now supports modes for `snapshot` generation
+
+#### Metrics
+
+- added `statistic-by-reports-full` command for full report-by-report metrics breakdown
+- improved metrics calculation accuracy: refined `report-statistic`, `rebase-rewards`, and chart dataset utilities
+
+#### Testing & Build
+
+- added ~90 unit and integration tests covering utilities, consolidation checks, cache, report freshness, quarantine, and minting capacity
+- migrated ESLint from v8 to v10 with flat config; added SonarJS, unicorn, vitest, and promise plugins
+
+### Fixed
+
+- IPFS utils now support CIDv1
+- fixed help message display for distributor commands
+
 ## 1.6.0
 
 ### Fixed

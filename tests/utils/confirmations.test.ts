@@ -32,10 +32,7 @@ describe('formatConfirmationArgs', () => {
 
   it('should format transferVaultOwnership with new owner', () => {
     const newOwner = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd' as Address;
-    const result = formatConfirmationArgs(
-      [newOwner],
-      'transferVaultOwnership',
-    );
+    const result = formatConfirmationArgs([newOwner], 'transferVaultOwnership');
     expect(result).toBe(`new owner: ${newOwner}`);
   });
 

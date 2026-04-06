@@ -1,9 +1,6 @@
 import { describe, test, expect, beforeAll, vi } from 'vitest';
 import { type Address } from 'viem';
-import {
-  checkIsReportFresh,
-  checkIsReportFreshThrowError,
-} from 'features';
+import { checkIsReportFresh, checkIsReportFreshThrowError } from 'features';
 import { loadTestConfig } from './helpers/test-config.js';
 import { setupIntegrationTestsBeforeAll } from './helpers/test-setup.js';
 

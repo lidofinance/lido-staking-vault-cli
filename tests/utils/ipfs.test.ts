@@ -137,6 +137,7 @@ describe('ipfs helpers', () => {
     const other = CID.parse(
       'bafkreib3m4q5x2fr2di5m3lgvq4hzj4qkgjq2d0k8vh7y6xfxkrmwrkduy',
     );
+    const dataCid = `bafkreigh2akiscaildcjk2d6gtrevhb7f7esg6k4t4u5p4sqkgfa6vlriu`;
     const jsonData = '{"test":456}';
     const encoder = new TextEncoder();
     const fileContent = encoder.encode(jsonData);
@@ -154,6 +155,8 @@ describe('ipfs helpers', () => {
 
     await expect(
       ipfs.fetchIPFSDirectAndVerify(fakeCid.toString()),
-    ).rejects.toThrow('CID mismatch');
+    ).rejects.toThrow(
+      `❌ File hash mismatch! Expected ${dataCid}, but got ${other}`,
+    );
   });
 });
