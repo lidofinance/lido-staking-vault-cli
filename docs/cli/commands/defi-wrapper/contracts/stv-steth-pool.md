@@ -109,3 +109,5 @@ yarn start defi-wrapper contracts stv-steth -h
 | mint-steth-shares \<address> \<stethShares>                    | mint stETH shares up to the user's minting capacity                           |
 | burn-steth-shares \<address> \<stethShares>                    | burn stETH shares to reduce the user's minted stETH obligation                |
 | transfer-with-liability \<address> \<to> \<stv> \<stethShares> | transfer stETH shares with liability to another address                       |
+| pause-minting \<address>                                       | pause minting of stETH shares on the pool                                     |
+| resume-minting \<address>                                      | resume minting of stETH shares on the pool                                    |
