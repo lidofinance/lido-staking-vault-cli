@@ -221,6 +221,42 @@ stvStethPoolWrite
   });
 
 stvStethPoolWrite
+  .command('pause-minting')
+  .description('pause minting of stETH shares')
+  .argument('<address>', 'stv steth pool address', stringToAddress)
+  .action(async (address: Address) => {
+    const contract = await getStvStethPoolContract(address);
+
+    const confirmationMessage = `Are you sure you want to pause minting for the pool ${address}?`;
+    const confirm = await confirmOperation(confirmationMessage);
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'pauseMinting',
+      payload: [],
+    });
+  });
+
+stvStethPoolWrite
+  .command('resume-minting')
+  .description('resume minting of stETH shares')
+  .argument('<address>', 'stv steth pool address', stringToAddress)
+  .action(async (address: Address) => {
+    const contract = await getStvStethPoolContract(address);
+
+    const confirmationMessage = `Are you sure you want to resume minting for the pool ${address}?`;
+    const confirm = await confirmOperation(confirmationMessage);
+    if (!confirm) return;
+
+    await callWriteMethodWithReceipt({
+      contract,
+      methodName: 'resumeMinting',
+      payload: [],
+    });
+  });
+
+stvStethPoolWrite
   .command('transfer-with-liability')
   .description('transfer stETH shares with liability to another address')
   .argument('<address>', 'distributor address', stringToAddress)
