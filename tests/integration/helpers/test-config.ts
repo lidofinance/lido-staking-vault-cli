@@ -1,6 +1,6 @@
 import * as dotenv from 'dotenv';
 import { Address } from 'viem';
-import path from 'path';
+import path from 'node:path';
 
 // Load environment variables from .env.test or .env
 dotenv.config({ path: path.resolve(process.cwd(), '.env.test') });
@@ -45,8 +45,8 @@ export const loadTestConfig = (): IntegrationTestConfig => {
   }
 
   const chainId = Number(CHAIN_ID);
-  if (isNaN(chainId)) {
-    throw new Error(`Invalid CHAIN_ID: ${CHAIN_ID}`);
+  if (Number.isNaN(chainId)) {
+    throw new TypeError(`Invalid CHAIN_ID: ${CHAIN_ID}`);
   }
 
   // Validate address format
@@ -66,7 +66,7 @@ export const loadTestConfig = (): IntegrationTestConfig => {
   if (
     FORK_BLOCK_NUMBER &&
     forkBlockNumber !== undefined &&
-    isNaN(forkBlockNumber)
+    Number.isNaN(forkBlockNumber)
   ) {
     throw new Error(`Invalid FORK_BLOCK_NUMBER: ${FORK_BLOCK_NUMBER}`);
   }

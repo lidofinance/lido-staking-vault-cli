@@ -1,7 +1,8 @@
 import { RootHex, Slot } from '@lodestar/types';
 
 import { getConfig } from 'configs';
-import { logError, printError } from 'utils';
+import { logError } from './logging/console.js';
+import { printError } from './error-handler.js';
 import { Hex } from 'viem';
 
 import { SupportedFork } from './proof/constants.js';
@@ -18,23 +19,21 @@ export type StateId =
 export type ValidatorsInfo = {
   execution_optimistic: boolean;
   finalized: boolean;
-  data: [
-    {
-      index: string;
-      balance: string;
-      status: string;
-      validator: {
-        pubkey: string;
-        withdrawal_credentials: string;
-        effective_balance: string;
-        slashed: boolean;
-        activation_eligibility_epoch: string;
-        activation_epoch: string;
-        exit_epoch: string;
-        withdrawable_epoch: string;
-      };
-    },
-  ];
+  data: {
+    index: string;
+    balance: string;
+    status: string;
+    validator: {
+      pubkey: string;
+      withdrawal_credentials: string;
+      effective_balance: string;
+      slashed: boolean;
+      activation_eligibility_epoch: string;
+      activation_epoch: string;
+      exit_epoch: string;
+      withdrawable_epoch: string;
+    };
+  }[];
 };
 
 type FinalityCheckpoints = {

@@ -1,6 +1,8 @@
 import { Command } from 'commander';
 import { Abi, AbiFunction } from 'viem';
-import { callReadMethod, ReadContract, stringToAddress } from 'utils';
+import { callReadMethod } from './transactions/tx-private-key.js';
+import type { ReadContract } from './transactions/types.js';
+import { stringToAddress } from './arguments.js';
 
 // Enhanced typing for extracting function names from ABI
 type ExtractFunctionNames<T extends Abi> = {
@@ -45,7 +47,7 @@ export function generateReadCommands<U extends Abi>(
  * Only functions with stateMutability === 'view' or 'pure' are taken.
  * Allows adding custom descriptions.
  */
-// eslint-disable-next-line func-style
+
 export function generateReadCommands<T, U extends Abi>(
   abi: U,
   createContractAsync:
@@ -74,13 +76,13 @@ export function generateReadCommands<T, U extends Abi>(
   const methods: string[] = [];
 
   // Generate subcommands
-  readOnlyFunctions.forEach((fn: AbiFunction) => {
+  for (const fn of readOnlyFunctions as AbiFunction[]) {
     const fnName = fn.name;
     const inputs = fn.inputs || [];
 
     // Search for a custom description for this function
     const configForFn = commandConfig[fnName as ExtractFunctionNames<U>];
-    if (configForFn?.hidden) return;
+    if (configForFn?.hidden) continue;
 
     // Custom command name if specified
     const commandName = methods.includes(fnName)
@@ -107,7 +109,7 @@ export function generateReadCommands<T, U extends Abi>(
     }
 
     // Add arguments for each function parameter
-    inputs.forEach((input: any, index: number) => {
+    for (const [index, input] of (inputs as any[]).entries()) {
       const abiArgName = input.name || `param${index}`;
       // Check if there is a custom description for this argument
       const configArg = configForFn?.arguments?.[abiArgName];
@@ -126,7 +128,7 @@ export function generateReadCommands<T, U extends Abi>(
 
       if (parseFn) fnCommand.argument(`<${cliArgName}>`, cliArgDesc, parseFn);
       else fnCommand.argument(`<${cliArgName}>`, cliArgDesc);
-    });
+    }
 
     fnCommand.action(async (...cliArgs: any[]) => {
       try {
@@ -150,20 +152,19 @@ export function generateReadCommands<T, U extends Abi>(
 
         fnArgs = inputs.length > 0 ? fnArgs.slice(0, inputs.length) : undefined;
 
-        if (fnArgs)
-          await callReadMethod({
-            contract,
-            methodName: fnName,
-            payload: [fnArgs],
-          });
-        else
-          await callReadMethod({ contract, methodName: fnName, payload: [] });
+        await (fnArgs
+          ? callReadMethod({
+              contract,
+              methodName: fnName,
+              payload: [fnArgs],
+            })
+          : callReadMethod({ contract, methodName: fnName, payload: [] }));
       } catch (error) {
         console.error(`Error calling function ${fnName}:`, error);
         process.exit(1);
       }
     });
-  });
+  }
 
   return command;
 }

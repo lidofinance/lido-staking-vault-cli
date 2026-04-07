@@ -64,24 +64,29 @@ export const formatConfirmationArgs = (
   functionName: FunctionName,
 ) => {
   switch (functionName) {
-    case 'setConfirmExpiry':
+    case 'setConfirmExpiry': {
       return CONFIRM_METHODS_MAP.setConfirmExpiry(
         args as FunctionArgsMap['setConfirmExpiry'],
       );
-    case 'setNodeOperatorFeeRate':
+    }
+    case 'setNodeOperatorFeeRate': {
       return CONFIRM_METHODS_MAP.setNodeOperatorFeeRate(
         args as FunctionArgsMap['setNodeOperatorFeeRate'],
       );
-    case 'changeTier':
+    }
+    case 'changeTier': {
       return CONFIRM_METHODS_MAP.changeTier(
         args as FunctionArgsMap['changeTier'],
       );
-    case 'transferVaultOwnership':
+    }
+    case 'transferVaultOwnership': {
       return CONFIRM_METHODS_MAP.transferVaultOwnership(
         args as FunctionArgsMap['transferVaultOwnership'],
       );
-    default:
+    }
+    default: {
       throw new Error(`Unknown function: ${functionName}`);
+    }
   }
 };
 
@@ -107,7 +112,9 @@ export const getConfirmationsInfo = async <T extends ConfirmationContract>(
   }
 
   const logsData: LogsData = logs
-    .sort((a, b) => Number(a.blockNumber - b.blockNumber))
+    .toSorted((a: { blockNumber: bigint }, b: { blockNumber: bigint }) =>
+      Number(a.blockNumber - b.blockNumber),
+    )
     .reduce<Record<Hex, any>>((acc, log) => {
       const { args } = log;
       const decodedData = decodeFunctionData({
@@ -153,8 +160,10 @@ const filterLogsByVault = (logsData: LogsData, vault?: Address): LogsData => {
         const argVault = decodedData.args[0];
         return argVault.toLowerCase() === vault.toLowerCase();
       }
-      default:
+      case 'setConfirmExpiry':
+      case 'setNodeOperatorFeeRate': {
         return false;
+      }
     }
   });
 
@@ -181,7 +190,7 @@ export const confirmProposal = async <T extends ConfirmationContract>({
   );
   if (!logsData && additionalLogsData.length === 0) return;
   const allLogsData = {
-    ...(logsData ?? {}),
+    ...logsData,
     ...additionalLogsData.reduce((acc, curr) => ({ ...acc, ...curr }), {}),
   };
 

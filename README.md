@@ -27,7 +27,7 @@ For changes between versions see [Changelog](./CHANGELOG.md)
 ## Prerequisites
 
 - **Node.js**: Ensure you have Node.js (v20 or later) installed.
-- **npm**: Node Package Manager is required to install dependencies.
+- **Yarn**: Yarn package manager is required to install dependencies.
 
 ## Installation
 
@@ -36,6 +36,7 @@ For changes between versions see [Changelog](./CHANGELOG.md)
 ```bash
 git clone git@github.com:lidofinance/lido-staking-vault-cli.git
 cd lido-staking-vault-cli
+yarn install
 ```
 
 ### Branch Selection
@@ -57,13 +58,14 @@ git checkout develop
 
 Before using the CLI, configure your environment variables. You can set them in a `.env` file in your project root.
 
-```.env
-CHAIN_ID=560048 // required
-CL_URL=url
-EL_URL=url
+```env
+# Network Configuration (Required)
+CHAIN_ID=560048
+CL_URL=https://your-consensus-layer-endpoint
+EL_URL=https://your-execution-layer-endpoint
 
-# Contract addresses
-DEPLOYED=deployed-hoodi-vaults.json // required
+# Contract addresses (Required)
+DEPLOYED=deployed-hoodi-vaults.json
 
 # Wallet
 PRIVATE_KEY=0x
@@ -78,8 +80,8 @@ PRIVATE_KEY=0x
 WALLET_CONNECT_PROJECT_ID=ee928c025792b10a6daa97d85328c433
 ```
 
-If you plan to manage contracts, the **privateKey** is a required property for this type of operations.
-For using elLink in the right way, be attentive to match the RPC resolver link and its chain ID.
+If you plan to manage contracts, **PRIVATE_KEY** (or an encrypted account file) is required for write operations.
+Ensure your **EL_URL** matches the configured **CHAIN_ID**.
 
 ## Usage
 
@@ -110,20 +112,24 @@ yarn start contracts hub r v-count
 ## Programs
 
 - [Get Started](https://lidofinance.github.io/lido-staking-vault-cli/category/get-started)
+- [Global Flags](https://lidofinance.github.io/lido-staking-vault-cli/commands/global-flags)
 - [Account](https://lidofinance.github.io/lido-staking-vault-cli/commands/account)
 - [Vault Operations](https://lidofinance.github.io/lido-staking-vault-cli/commands/vault-operations)
 - [Deposits](https://lidofinance.github.io/lido-staking-vault-cli/commands/deposits)
 - [Metrics](https://lidofinance.github.io/lido-staking-vault-cli/commands/metrics)
 - [Report](https://lidofinance.github.io/lido-staking-vault-cli/commands/report)
+- [Consolidation](https://lidofinance.github.io/lido-staking-vault-cli/commands/consolidation)
 - [PredepositGuarantee Helpers](https://lidofinance.github.io/lido-staking-vault-cli/commands/pdg-helpers)
 - Contracts:
   - [Dashboard](https://lidofinance.github.io/lido-staking-vault-cli/commands/contracts/dashboard)
+  - [LazyOracle](https://lidofinance.github.io/lido-staking-vault-cli/commands/contracts/lazy-oracle)
   - [OperatorGrid](https://lidofinance.github.io/lido-staking-vault-cli/commands/contracts/operator-grid)
   - [PredepositGuarantee](https://lidofinance.github.io/lido-staking-vault-cli/commands/contracts/predeposit-guarantee)
   - [VaultFactory](https://lidofinance.github.io/lido-staking-vault-cli/commands/contracts/vault-factory)
   - [VaultHub](https://lidofinance.github.io/lido-staking-vault-cli/commands/contracts/vault-hub)
   - [VaultViewer](https://lidofinance.github.io/lido-staking-vault-cli/commands/contracts/vault-viewer)
   - [Vault](https://lidofinance.github.io/lido-staking-vault-cli/commands/contracts/vault)
+- [DeFi Wrapper](https://lidofinance.github.io/lido-staking-vault-cli/category/defi-wrapper)
 
 ## Testing
 

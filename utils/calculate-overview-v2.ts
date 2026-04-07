@@ -1,5 +1,5 @@
 import { calculateHealth } from './health/calculate-health.js';
-import { bigIntMax, bigIntMin } from './bigInt.js';
+import { bigIntMax, bigIntMin } from './big-int.js';
 
 type OverviewArgs = {
   totalValue: bigint;

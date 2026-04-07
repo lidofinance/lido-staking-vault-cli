@@ -1,16 +1,18 @@
 import { describe, test, expect } from 'vitest';
 
+/* eslint-disable sonarjs/deprecation */
 import {
   calculateOverview,
   formatBP,
   formatRatio,
 } from '../../utils/calculate-overview.js';
+/* eslint-enable sonarjs/deprecation */
 
-const big = (n: number) => BigInt(n);
+const big = BigInt;
 
 describe('calculateOverview', () => {
   test('basic calculation', () => {
-    // eslint-disable-next-line deprecation/deprecation
+    // eslint-disable-next-line sonarjs/deprecation
     const result = calculateOverview({
       totalValue: big(1000),
       reserveRatioBP: 1000,

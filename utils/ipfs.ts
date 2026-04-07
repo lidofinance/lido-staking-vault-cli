@@ -1,9 +1,9 @@
-import { CID } from 'multiformats/cid';
+import { CID, Version } from 'multiformats/cid';
 import { MemoryBlockstore } from 'blockstore-core';
 import { importer } from 'ipfs-unixfs-importer';
 import jsonBigInt from 'json-bigint';
-import fs from 'fs/promises';
-import path from 'path';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 
 import { logInfo, logTable } from './logging/console.js';
 
@@ -71,12 +71,14 @@ export const fetchIPFSBuffer = async (
 // Recalculate CID using full UnixFS logic (like `ipfs add`)
 export const calculateIPFSAddCID = async (
   fileContent: Uint8Array,
+  version: Version = 0,
 ): Promise<CID> => {
   const blockstore = new MemoryBlockstore();
 
   const entries = importer([{ content: fileContent }], blockstore, {
-    cidVersion: 0,
-    rawLeaves: false, // important! otherwise CID will be v1
+    cidVersion: version,
+    // important! otherwise CID will be v1
+    rawLeaves: version === 0 ? false : undefined,
   });
 
   let lastCid: CID | null = null;
@@ -99,19 +101,22 @@ export const fetchIPFSDirectAndVerify = async <T>(
   const originalCID = CID.parse(cid);
 
   const fileContent = await fetchIPFSBuffer({ cid, gateway });
-  const calculatedCID = await calculateIPFSAddCID(fileContent);
+  const calculatedCID = await calculateIPFSAddCID(
+    fileContent,
+    originalCID.version,
+  );
 
   if (!calculatedCID.equals(originalCID)) {
     throw new Error(
-      `❌ CID mismatch! Expected ${originalCID}, but got ${calculatedCID}`,
+      `❌ File hash mismatch! Expected ${originalCID}, but got ${calculatedCID}`,
     );
   }
 
   logTable({
     data: [
       ['✅ CID verified, file matches IPFS hash'],
-      ['Original CID', originalCID.toString()],
-      ['Calculated CID', calculatedCID.toString()],
+      [`Original CIDv${originalCID.version}`, originalCID.toString()],
+      [`Calculated CIDv${calculatedCID.version}`, calculatedCID.toString()],
     ],
     params: {
       head: ['Type', 'CID'],
@@ -133,12 +138,53 @@ export const fetchIPFSWithCacheAndVerify = async <T>(
 
   try {
     logInfo('Trying to get content from cache', cid);
-    const data = await fs.readFile(cacheFile, 'utf-8');
+    const data = await fs.readFile(cacheFile, 'utf8');
     return JSON.parse(data) as T;
   } catch {
     // Not in cache, fetch from IPFS
     const { json } = await fetchIPFSDirectAndVerify<T>(cid, gateway);
-    await fs.writeFile(cacheFile, JSON.stringify(json), 'utf-8');
+    await fs.writeFile(cacheFile, JSON.stringify(json), 'utf8');
     return json;
   }
+};
+
+type PinToIPFSArgs = {
+  uploadUrl: string;
+  uploadAuthorization?: string;
+  fileContent: string;
+  fileName?: string;
+  uploadType?: 'pinata';
+};
+
+export const pinToIPFS = async ({
+  fileContent,
+  fileName = 'file.json',
+  uploadAuthorization,
+  uploadUrl,
+}: PinToIPFSArgs): Promise<any> => {
+  const blob = new Blob([fileContent]);
+  const file = new File([blob], fileName, {
+    type: 'application/json',
+  });
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const fetchResponse = await fetch(uploadUrl, {
+    method: 'POST',
+    headers: {
+      ...(uploadAuthorization
+        ? { Authorization: `Bearer ${uploadAuthorization}` }
+        : {}),
+    },
+
+    body: formData,
+  });
+
+  if (!fetchResponse.ok) {
+    throw new Error(
+      `Failed to upload distribution data to pinning service at ${uploadUrl}. Status: ${fetchResponse.status} ${fetchResponse.statusText}`,
+    );
+  }
+  const responseData = await fetchResponse.json();
+  return responseData;
 };

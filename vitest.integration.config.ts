@@ -1,5 +1,5 @@
 import { defineConfig } from 'vitest/config';
-import path from 'path';
+import path from 'node:path';
 
 export default defineConfig({
   test: {
@@ -7,7 +7,7 @@ export default defineConfig({
     environment: 'node',
     include: ['tests/integration/**/*.test.ts'],
     exclude: ['**/node_modules/**', '**/dist/**'],
-    globalSetup: ['./tests/integration/globalSetup.ts'],
+    globalSetup: ['./tests/integration/global-setup.ts'],
     globals: true,
     testTimeout: 120000,
     hookTimeout: 60000,

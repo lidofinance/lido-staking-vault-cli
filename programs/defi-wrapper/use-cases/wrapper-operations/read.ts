@@ -20,7 +20,7 @@ import {
 
 import { wrapperOperations } from './main.js';
 import { getDashboardContract, getStethContract } from 'contracts';
-import { bigIntMin } from 'utils/bigInt.js';
+import { bigIntMin } from 'utils/big-int.js';
 import { getPublicClient } from 'providers';
 
 const wrapperOperationsRead = wrapperOperations
@@ -382,9 +382,9 @@ wrapperOperationsRead
         finalizers.length + finalizationBlocker(finalizers.length),
       ]);
 
-      finalizers.forEach((address: Address, index: number) => {
+      for (const [index, address] of finalizers.entries()) {
         logData.push([`Finalizer ${index + 1}`, address]);
-      });
+      }
 
       const withdrawableEther = await callReadMethodSilent({
         contract: dashboard,

@@ -12,7 +12,7 @@ const escapeCsv = (s: string, delimiter: string): string => {
     s.includes('"') ||
     s.includes('\n') ||
     s.includes('\r');
-  const escaped = s.replace(/"/g, '""');
+  const escaped = s.replaceAll('"', '""');
   return needsQuote ? `"${escaped}"` : escaped;
 };
 

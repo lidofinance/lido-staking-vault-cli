@@ -79,6 +79,23 @@ yarn start vo w -h
 yarn start deposits r -h
 ```
 
+## `--no-cache-use`
+
+Disable caching for data fetched from IPFS. By default the CLI caches IPFS responses to speed up repeated requests; use this flag to always fetch fresh data.
+
+```bash
+yarn start report r by-vault --no-cache-use
+yarn start metrics r statistic -v 0x... --no-cache-use
+```
+
+## `--version`
+
+Output the current CLI version and exit. Only available on the root command (`yarn start`), not on subcommands.
+
+```bash
+yarn start --version
+```
+
 ## Combining Flags
 
 Flags can be combined freely:

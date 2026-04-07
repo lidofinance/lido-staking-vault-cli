@@ -1,7 +1,5 @@
 import { getContract, Address, GetContractReturnType } from 'viem';
-import { mainnet } from 'viem/chains';
-
-import { hoodi } from 'viem/chains';
+import { mainnet, hoodi } from 'viem/chains';
 
 import { VaultViewerAbi } from 'abi';
 import { getPublicClient, RegisteredPublicClient } from 'providers/index.js';

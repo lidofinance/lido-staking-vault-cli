@@ -5,7 +5,7 @@ import { Config, RoleAssignment } from 'types';
 export const validateConfig = (config: Config) => {
   const errors = {} as Record<keyof Config, string>;
 
-  if (isNaN(config.CHAIN_ID)) {
+  if (Number.isNaN(config.CHAIN_ID)) {
     errors.CHAIN_ID = 'Invalid chainId: must be in config.';
   }
 
@@ -23,7 +23,7 @@ export const isValidUrl = (value: string | undefined): boolean => {
 
   try {
     // used global here to avid types issue
-    new global.URL(value);
+    new globalThis.URL(value);
     return true;
   } catch {
     return false;
@@ -47,11 +47,11 @@ export const transformAddressesToArray = (payload: RoleAssignment[]) => {
 
 export const validateAddressesMap = (payload: Record<any, any>) => {
   return Object.keys(payload).reduce((acc, key) => {
-    payload[key].forEach((item: string) => {
+    for (const item of payload[key] as string[]) {
       if (!isAddress(item)) {
         acc.push(`${key}: ${item} is not a valid address`);
       }
-    });
+    }
 
     return acc;
   }, [] as string[]);

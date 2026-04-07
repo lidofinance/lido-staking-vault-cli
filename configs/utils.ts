@@ -1,5 +1,5 @@
 import { Address } from 'viem';
-import { getConfig, getDeployed } from 'configs';
+import { getConfig, getDeployed } from 'configs/deployed.js';
 
 export const getLocatorAddress = (): Address => {
   const deployed = getDeployed();

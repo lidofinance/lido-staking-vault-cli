@@ -1,5 +1,5 @@
 import { getStethContract } from 'contracts';
-import { callReadMethodSilent } from 'utils';
+import { callReadMethodSilent } from './transactions/tx-private-key.js';
 
 export const calculateShareRate = async (
   blockNumber: number,

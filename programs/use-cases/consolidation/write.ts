@@ -8,17 +8,6 @@ import {
   callWriteMethodWithReceiptBatchCalls,
   logCancel,
   callReadMethodSilent,
-} from 'utils';
-import { Address, Hex } from 'viem';
-import { consolidation } from './main.js';
-import {
-  consolidateAndIncreaseFeeExemptionWithoutBatching,
-  consolidationRequestsAndIncreaseFeeExemption,
-  confirmNewFeeExemption,
-} from 'features/consolidation.js';
-import { checkVaultRole, checkIsReportFresh } from 'features';
-import { getAccount } from 'providers';
-import {
   checkPubkeysArgs,
   validateConsolidationInput,
   getValidatorsInfo,
@@ -29,6 +18,15 @@ import {
   calculateAndConfirmFeeExemption,
   removeInactiveValidators,
 } from 'utils';
+import { Address, Hex } from 'viem';
+import { consolidation } from './main.js';
+import {
+  consolidateAndIncreaseFeeExemptionWithoutBatching,
+  consolidationRequestsAndIncreaseFeeExemption,
+  confirmNewFeeExemption,
+} from 'features/consolidation.js';
+import { checkVaultRole, checkIsReportFresh } from 'features';
+import { getAccount } from 'providers';
 import { PubkeyMap } from 'utils/consolidation/types.js';
 import { getDashboardContract } from 'contracts';
 

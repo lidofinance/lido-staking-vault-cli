@@ -406,10 +406,8 @@ applyCommonOptions(
           timelockConfig,
           commonPoolConfig,
         )}
-        strategyFactory: ${strategyFactory ? strategyFactory : '<none>'}
-        strategyFactoryDeployBytes: ${
-          strategyFactoryDeployBytes ? strategyFactoryDeployBytes : '<none>'
-        }
+        strategyFactory: ${strategyFactory ?? '<none>'}
+        strategyFactoryDeployBytes: ${strategyFactoryDeployBytes ?? '<none>'}
         mintingEnabled: ${mintingEnabled !== undefined ? mintingEnabled : true}
         allowListEnabled: ${allowListConfig.allowListEnabled}
         allowListManager: ${allowListConfig.allowListManager === zeroAddress ? '<none>' : allowListConfig.allowListManager}

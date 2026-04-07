@@ -30,13 +30,14 @@ For a detailed explanation of how each metric is calculated, see [Metrics Calcul
 
 ### Read
 
-| Command                        | Description                                |
-| ------------------------------ | ------------------------------------------ |
-| statistic                      | get statistic data for last report         |
-| statistic-by-reports \<count\> | get statistic data for N last reports      |
-| report-data \<count\>          | get report data for Vault from N reports   |
-| charts-apr \<count\>           | get APR charts data for N last reports     |
-| charts-rewards \<count\>       | get rewards charts data for N last reports |
+| Command                             | Description                                          |
+| ----------------------------------- | ---------------------------------------------------- |
+| statistic                           | get statistic data for last report                   |
+| statistic-by-reports \<count\>      | get statistic data for N last reports                |
+| statistic-by-reports-full \<count\> | get statistic data for N last reports with full data |
+| report-data \<count\>               | get report data for Vault from N reports             |
+| charts-apr \<count\>                | get APR charts data for N last reports               |
+| charts-rewards \<count\>            | get rewards charts data for N last reports           |
 
 ### Write
 
@@ -108,6 +109,20 @@ Analyzes multiple historical vault reports and calculates comprehensive performa
 
 **Use Case:** Compare performance metrics across multiple reporting periods and identify trends over time.
 
+### statistic-by-reports-full
+
+Analyzes multiple historical vault reports and calculates comprehensive performance metrics for N last reports with full data.
+
+**Arguments:**
+
+- `<count>`: Number of historical reports to analyze
+
+**Options:**
+
+- `-v, --vault <string>`: Vault address
+- `-g, --gateway`: IPFS gateway URL for report data retrieval
+- `--no-utc`: format timestamps in local time instead of UTC
+
 ### report-data
 
 Retrieves raw report data for the vault from N last reports.
@@ -127,15 +142,15 @@ Retrieves raw report data for the vault from N last reports.
 Header row contains `Metric` and corresponding timestamps. Rows include:
 
 - `Vault Address`
-- `Total Value, WEI`
-- `Fee, WEI`
-- `Liability Shares, WEI`
-- `Slashing Reserve, WEI`
-- `In/Out Delta, WEI`
-- `Prev Fee, WEI`
-- `Infra Fee, WEI`
-- `Liquidity Fee, WEI`
-- `Reservation Fee, WEI`
+- `Total Value, ETH`
+- `Fee, ETH`
+- `Liability Shares, ETH`
+- `Slashing Reserve, ETH`
+- `In/Out Delta, ETH`
+- `Prev Fee, ETH`
+- `Infra Fee, ETH`
+- `Liquidity Fee, ETH`
+- `Reservation Fee, ETH`
 - `Timestamp`
 - `CID`
 

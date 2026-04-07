@@ -270,7 +270,7 @@ export const logFinalizePoolEventData = (
 ) => {
   const poolType =
     finalizeEventData.poolType &&
-    fromHex(finalizeEventData.poolType, 'string').replace(/\W/g, '');
+    fromHex(finalizeEventData.poolType, 'string').replaceAll(/\W/g, '');
 
   logInfo('Pool Creation Finalized');
   logResult({
