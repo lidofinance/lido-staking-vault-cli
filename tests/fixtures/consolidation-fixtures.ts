@@ -19,8 +19,7 @@ export const VALID_DASHBOARD =
   '0x318FcB0CCE93aBA9C21a1B4B38dbACcCEfF091E0' as Hex;
 export const VALID_REFUND_RECIPIENT =
   '0x463f500FCb218d38FB35BECD20475ea75a79B7A9' as Hex;
-export const ZERO_ADDRESS =
-  '0x0000000000000000000000000000000000000000' as Hex;
+export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000' as Hex;
 
 export const createValidatorInfo = (
   overrides: Partial<ValidatorInfo> = {},
@@ -81,8 +80,7 @@ export const createCLValidatorData = (
     activation_eligibility_epoch: '0',
     activation_epoch: overrides.activation_epoch ?? '0',
     exit_epoch: overrides.exit_epoch ?? '18446744073709551615',
-    withdrawable_epoch:
-      overrides.withdrawable_epoch ?? '18446744073709551615',
+    withdrawable_epoch: overrides.withdrawable_epoch ?? '18446744073709551615',
   },
 });
 

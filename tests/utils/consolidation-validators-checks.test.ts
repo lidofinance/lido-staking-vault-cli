@@ -86,7 +86,9 @@ describe('checkSourceValidators', () => {
       }),
     ];
     expect(() => checkSourceValidators(validators, FINALIZED_EPOCH)).toThrow(
-      new RegExp(`${VALID_PUBKEY_1}.*${VALID_PUBKEY_2}|${VALID_PUBKEY_2}.*${VALID_PUBKEY_1}`),
+      new RegExp(
+        `${VALID_PUBKEY_1}.*${VALID_PUBKEY_2}|${VALID_PUBKEY_2}.*${VALID_PUBKEY_1}`,
+      ),
     );
   });
 });

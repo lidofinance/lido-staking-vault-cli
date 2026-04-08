@@ -1,11 +1,14 @@
 import {
   Address,
+  encodeFunctionData,
   erc20Abi,
   formatUnits,
   getContract,
   Hash,
+  Hex,
   isAddressEqual,
   parseUnits,
+  zeroHash,
 } from 'viem';
 import { Option } from 'commander';
 import {
@@ -20,6 +23,9 @@ import {
   stringToHash,
   stringToBigInt,
   stringArrayToTokenPairs,
+  pinToIPFS,
+  logResult,
+  callWriteMethodWithReceiptBatchCalls,
 } from 'utils';
 import {
   getDistributorContract,
@@ -28,7 +34,10 @@ import {
 
 import { distributorUseCases } from './main.js';
 import { getPublicClient } from 'providers/wallet.js';
-import { generateDistribution } from 'features/defi-wrapper/distributor.js';
+import {
+  fetchDistributionTree,
+  generateDistribution,
+} from 'features/defi-wrapper/distributor.js';
 import path from 'node:path';
 import fs from 'node:fs/promises';
 
@@ -116,13 +125,15 @@ type DistributeOptions = {
   blacklist: Address[];
   outputPath?: string;
   skipTransfer: boolean;
-  pinningUrl?: string;
+  upload?: string;
+  uploadAuthorization?: string;
   skipSetRoot: boolean;
   skipWrite: boolean;
   fromBlock?: bigint;
   toBlock?: bigint;
   ipfsGateway?: string;
-  maxBatchSize: bigint;
+  maxBatchSize?: bigint;
+  mode: 'integral' | 'snapshot';
 };
 
 distributorWrite
@@ -135,6 +146,11 @@ distributorWrite
     stringArrayToTokenPairs,
   )
   .option(
+    '--mode [mode]',
+    'distribution calculation mode, `integral`(default) or `snapshot`. `integral` mode calculates based on historical holding share while `snapshot` calculates by balances on toBlock',
+    'integral',
+  )
+  .option(
     '--blacklist [addresses...]',
     'addresses to blacklist from distribution',
     stringArrayToAddressArray,
@@ -144,9 +160,8 @@ distributorWrite
   .option('--to-block [block]', 'to block number', stringToBigInt)
   .option(
     '--max-batch-size [size]',
-    'maximum batch size for fetching events',
+    '(default 50000) maximum batch size for fetching events ',
     stringToBigInt,
-    50_000n,
   )
   .option('--output-path [path]', 'path to save distribution data')
   .option('--skip-write', 'skip writing distribution data to file', false)
@@ -157,8 +172,11 @@ distributorWrite
   )
   .option(
     '--upload [pinningUrl]',
-    'uploading distribution data to provided pinning service URL',
-    false,
+    '(unstable) uploading distribution data to provided pinning service URL',
+  )
+  .option(
+    '--upload-authorization [token]',
+    'authorization token for uploading distribution data to pinning service, used as `Authorization: Bearer <token>`',
   )
   .option('--skip-set-root', 'skip setting merkle root on distributor', false)
   .action(
@@ -169,13 +187,16 @@ distributorWrite
         blacklist,
         outputPath,
         skipTransfer,
-        pinningUrl,
+        upload,
+        uploadAuthorization,
         skipSetRoot,
         skipWrite,
         fromBlock,
         toBlock,
         ipfsGateway,
-        maxBatchSize,
+        // commander does not support bigint default value
+        maxBatchSize = 50000n,
+        mode,
       }: DistributeOptions,
     ) => {
       const publicClient = await getPublicClient();
@@ -215,6 +236,7 @@ distributorWrite
         toBlock,
         fromBlock,
         ipfsGateway,
+        mode,
         maxBatchSize,
         tokens: tokens.map((t) => ({
           address: t.contract.address,
@@ -231,16 +253,25 @@ distributorWrite
         ...merkleTree.dump(),
       };
 
-      const writeString = JSON.stringify(
-        dataToWrite,
-        (_, value) => (typeof value === 'bigint' ? value.toString() : value),
-        2,
+      const writeString = JSON.stringify(dataToWrite, (_, value) =>
+        typeof value === 'bigint' ? value.toString() : value,
       );
 
       const encoder = new TextEncoder();
-      const CID = await calculateIPFSAddCID(encoder.encode(writeString));
+      const distributionCID = await calculateIPFSAddCID(
+        encoder.encode(writeString),
+      );
+      const CidV0 = distributionCID.toV0().toString();
 
-      logInfo(`Calculated new distribution data CID: ${CID.toString()}`);
+      logInfo(`Calculated new distribution data CID: ${CidV0}`);
+      logResult({
+        data: [
+          ['Merkle Root', merkleTree.root],
+          ['CID', distributionCID.toString()],
+          ['CID (v0)', CidV0],
+          ['CID (v1)', distributionCID.toV1().toString()],
+        ],
+      });
 
       // writing distribution data to file
       if (!skipWrite) {
@@ -290,41 +321,172 @@ distributorWrite
         logInfo(`Skipping transfer of tokens to distributor as requested.`);
       }
 
-      if (pinningUrl) {
-        const fetchResponse = await fetch(pinningUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: writeString,
-        });
-
-        if (!fetchResponse.ok) {
-          logError(
-            `Failed to upload distribution data to pinning service at ${pinningUrl}. Status: ${fetchResponse.status} ${fetchResponse.statusText}`,
-          );
-          return;
-        }
-        const responseData = await fetchResponse.json();
+      if (upload) {
         logInfo(
-          `Successfully uploaded distribution data to pinning service at ${pinningUrl}. Response: ${JSON.stringify(
-            responseData,
-          )}`,
+          '⚠️⚠️⚠️ Uploading distribution API is unstable, use manual upload to IPFS and choose CIDv0. ⚠️⚠️⚠️',
         );
+        try {
+          const uploadResponse = await pinToIPFS({
+            fileContent: writeString,
+            uploadUrl: upload,
+            uploadAuthorization,
+            fileName: `distribution-${merkleTree.root}.json`,
+          });
+          logInfo('Distribution uploaded to IPFS provider', uploadResponse);
+        } catch (error) {
+          logError('Failed to upload distribution data to IPFS', error);
+        }
       }
 
       if (!skipSetRoot) {
+        const cidV0 = distributionCID.toV0().toString();
+
         const confirm = await confirmOperation(
-          `Set new Merkle root ${merkleTree.root} and CID ${CID.toString()} on distributor at ${distributorAddress}?`,
+          `Set new Merkle root ${merkleTree.root} and CID ${cidV0} on distributor at ${distributorAddress}?`,
         );
 
         if (confirm) {
           await callWriteMethodWithReceipt({
             contract: await getDistributorContract(distributorAddress),
             methodName: 'setMerkleRoot',
-            payload: [merkleTree.root as Hash, CID.toString()],
+            payload: [merkleTree.root as Hash, cidV0],
           });
         }
       }
     },
   );
+
+type ClaimOptions = {
+  recipients?: Address[];
+  tokens?: Address[];
+  printOnly: boolean;
+  ipfsGateway?: string;
+};
+
+distributorWrite
+  .command('claim')
+  .description('claim tokens from distributor to recipients permissionlessly')
+  .argument('<pool address>', 'pool contract address', stringToAddress)
+  .option(
+    '--recipients [addresses...]',
+    'recipient addresses to claim for, empty to claim for all recipients(might call many transactions)',
+    stringArrayToAddressArray,
+  )
+  .option(
+    '--tokens [addresses...]',
+    'only claim for specified token addresses',
+    stringArrayToAddressArray,
+  )
+  .option(
+    '--ipfs-gateway [gateway]',
+    'IPFS gateway to fetch previous data from',
+  )
+  .option(
+    '--print-only',
+    'only print claim data without sending transactions',
+    false,
+  )
+  .action(async (poolAddress: Address, options: ClaimOptions) => {
+    const poolContract = await getStvPoolContract(poolAddress);
+    const distributorAddress = await poolContract.read.DISTRIBUTOR();
+    const distributor = await getDistributorContract(distributorAddress);
+
+    const [cid, root] = await Promise.all([
+      distributor.read.cid(),
+      distributor.read.root(),
+    ]);
+
+    logResult({
+      data: [
+        ['Merkle Root', root],
+        ['CID', cid],
+      ],
+    });
+
+    if (root === zeroHash || cid === '') {
+      logError(`No distribution present. Merkle Root: ${root}, CID: ${cid}`);
+      return;
+    }
+
+    const distribution = await fetchDistributionTree(cid, options.ipfsGateway);
+
+    const userAddressSet = options.recipients
+      ? new Set(options.recipients.map((addr) => addr.toLowerCase()))
+      : null;
+
+    const tokenFilterSet = options.tokens
+      ? new Set(options.tokens.map((addr) => addr.toLowerCase()))
+      : null;
+
+    const claims: {
+      leafIndex: number;
+      recipient: Address;
+      token: Address;
+      cumulativeAmount: bigint;
+      claimableAmount: bigint;
+      proof: Hex[];
+    }[] = [];
+
+    for (const leaf of distribution.entries()) {
+      const [index, [recipientRaw, token, cumulativeAmount]] = leaf;
+      const recipient = recipientRaw.toLowerCase() as Address;
+
+      if (userAddressSet && !userAddressSet.has(recipient)) continue;
+      if (tokenFilterSet && !tokenFilterSet.has(token.toLowerCase())) continue;
+
+      const proof = distribution.getProof(index) as Hex[];
+
+      const claimableAmount = await distributor.read.previewClaim([
+        recipient,
+        token,
+        cumulativeAmount,
+        proof,
+      ]);
+
+      if (claimableAmount == 0n) continue;
+
+      claims.push({
+        leafIndex: index,
+        recipient,
+        token,
+        cumulativeAmount,
+        claimableAmount,
+        proof,
+      });
+    }
+
+    if (claims.length === 0) {
+      logInfo('No claims found for the given filters.');
+      return;
+    }
+
+    if (options.printOnly) {
+      logResult({
+        params: {
+          head: ['Recipient', 'Token', 'Claimable Amount'],
+        },
+        data: claims.map((claim) => [
+          claim.recipient,
+          claim.token,
+          claim.claimableAmount,
+        ]),
+      });
+      return;
+    }
+
+    await callWriteMethodWithReceiptBatchCalls({
+      calls: claims.map((claim) => ({
+        to: distributor.address,
+        data: encodeFunctionData({
+          abi: distributor.abi,
+          functionName: 'claim',
+          args: [
+            claim.recipient,
+            claim.token,
+            claim.cumulativeAmount,
+            claim.proof,
+          ],
+        }),
+      })),
+    });
+  });
