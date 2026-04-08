@@ -39,6 +39,8 @@ import {
 
 import { factory } from './main.js';
 import { getPublicClient } from 'providers';
+import { verifyContract } from 'features/defi-wrapper/verify-contracts.js';
+import { envs } from 'configs/index.js';
 
 type MintableOptions = {
   reserveRatioGapBP?: number;
@@ -621,3 +623,33 @@ factoryWrite
 
     await finalizePoolCreation(contract, eventData);
   });
+
+factoryWrite
+  .command('verify-contract')
+  .description('verifies deployed contract on Etherscan')
+  .argument('<contractName>', 'contract name')
+  .argument('<contractAddress>', 's address', stringToAddress)
+  .option(
+    '--etherscanApiKey [etherscanApiKey]',
+    'Etherscan API Key',
+    envs?.ETHERSCAN_API_KEY,
+  )
+  .action(
+    async (
+      contractName: string,
+      contractAddress: Address,
+      options: { etherscanApiKey?: string },
+    ) => {
+      const { etherscanApiKey } = options;
+      if (!etherscanApiKey) {
+        throw new Error(
+          'Etherscan API key is required for contract verification. Please provide it in .env or via --etherscanApiKey option.',
+        );
+      }
+      await verifyContract(
+        contractName as any,
+        contractAddress,
+        etherscanApiKey,
+      );
+    },
+  );
