@@ -78,7 +78,7 @@ describe('getWalletWithAccount gas estimation override', () => {
     expect(result).toBe(150000n);
     expect(mockEstimateGas).toHaveBeenCalledTimes(1);
 
-    const [, callArgs] = mockEstimateGas.mock.calls[0];
+    const callArgs = mockEstimateGas.mock.calls[0]?.[1];
     expect(callArgs.stateOverride).toEqual(
       expect.arrayContaining([
         { address: MOCK_ACCOUNT_ADDRESS, balance: maxUint256 },
@@ -108,7 +108,7 @@ describe('getWalletWithAccount gas estimation override', () => {
 
     await (client as any).estimateGas(args);
 
-    const [, callArgs] = mockEstimateGas.mock.calls[0];
+    const callArgs = mockEstimateGas.mock.calls[0]?.[1];
     expect(callArgs.stateOverride).toHaveLength(2);
     expect(callArgs.stateOverride[0]).toEqual(existingOverride);
     expect(callArgs.stateOverride[1]).toEqual({
@@ -139,7 +139,7 @@ describe('getWalletWithAccount gas estimation override', () => {
     expect(mockEstimateGas).toHaveBeenCalledTimes(2);
 
     // Second call should NOT have stateOverride
-    const [, fallbackArgs] = mockEstimateGas.mock.calls[1];
+    const fallbackArgs = mockEstimateGas.mock.calls[1]?.[1];
     expect(fallbackArgs.stateOverride).toBeUndefined();
   });
 
@@ -206,7 +206,7 @@ describe('getWalletWithAccount gas estimation override', () => {
 
     await (client as any).estimateGas(args);
 
-    const [, callArgs] = mockEstimateGas.mock.calls[0];
+    const callArgs = mockEstimateGas.mock.calls[0]?.[1];
     expect(callArgs.stateOverride).toEqual([
       { address: MOCK_ACCOUNT_ADDRESS, balance: maxUint256 },
     ]);
@@ -229,7 +229,7 @@ describe('getWalletWithAccount gas estimation override', () => {
 
     await (client as any).estimateGas(args);
 
-    const [, callArgs] = mockEstimateGas.mock.calls[0];
+    const callArgs = mockEstimateGas.mock.calls[0]?.[1];
     expect(callArgs.stateOverride).toEqual([
       { address: differentAddress, balance: maxUint256 },
     ]);
