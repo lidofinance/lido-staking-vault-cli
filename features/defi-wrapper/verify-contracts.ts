@@ -1,7 +1,9 @@
 import { DefiWrapperSources } from 'abi/defi-wrapper/sources.js';
-import { logInfo } from 'index.js';
+import { logInfo, RateLimitedFetch } from 'index.js';
 import { getPublicClient } from 'providers/wallet.js';
-import { Address } from 'viem';
+import { Address, Hash } from 'viem';
+
+const EtherscanApi = new RateLimitedFetch(500); // at least 500ms delay between requests to avoid hitting rate limits
 
 type ContractName = keyof typeof DefiWrapperSources;
 
@@ -12,7 +14,7 @@ export const checkExistingVerification = async (
   const chainId = (await getPublicClient()).chain.id;
   const url = `https://api.etherscan.io/v2/api?apikey=${etherscanApiKey}&chainid=${chainId}&module=contract&action=getsourcecode&address=${address}`;
 
-  const response = await fetch(url);
+  const response = await EtherscanApi.fetch(url);
   if (!response.ok) {
     throw new Error(
       `Failed to fetch verification data: ${response.statusText}`,
@@ -20,6 +22,7 @@ export const checkExistingVerification = async (
   }
 
   const data = await response.json();
+
   if (data.status !== '1' || !data.result || data.result.length === 0) {
     throw new Error(`No verification data found for address: ${address}`);
   }
@@ -33,7 +36,7 @@ export const checkVerificationStatus = async (
   const chainId = (await getPublicClient()).chain.id;
   const url = `https://api.etherscan.io/v2/api?guid=${guid}&action=checkverifystatus&module=contract&apikey=${etherscanApiKey}&chainid=${chainId}`;
 
-  const response = await fetch(url);
+  const response = await EtherscanApi.fetch(url);
   if (!response.ok) {
     throw new Error(
       `Failed to fetch verification status: ${response.statusText}`,
@@ -59,6 +62,17 @@ export const verifyContract = async (
       `No source data found for contract: ${contract}. Available contracts: ${Object.keys(DefiWrapperSources).join(', ')}`,
     );
   }
+
+  const alreadyVerified = await checkExistingVerification(
+    address,
+    etherscanApiKey,
+  );
+
+  if (alreadyVerified) {
+    logInfo('Contract is already verified.');
+    return;
+  }
+
   const body = new URLSearchParams({
     apikey: etherscanApiKey,
     chainid: chainId.toString(),
@@ -74,7 +88,7 @@ export const verifyContract = async (
     evmVersion: sourceData.EVMVersion,
   });
 
-  const res = await fetch(
+  const res = await EtherscanApi.fetch(
     `https://api.etherscan.io/v2/api?chainid=${chainId}`,
     {
       method: 'POST',
@@ -110,4 +124,98 @@ export const verifyContract = async (
   }
 
   throw new Error('Verification status check timed out.');
+};
+
+const POOL_TYPE_CONTRACT = {
+  '0x537476506f6f6c00000000000000000000000000000000000000000000000007':
+    'stvPoolImpl',
+  // stvStethPool and stvStetStrategy have same implementation
+  '0x5374765374455448506f6f6c000000000000000000000000000000000000000c':
+    'stvStethPoolImpl',
+  '0x5374765374726174656779506f6f6c000000000000000000000000000000000f':
+    'stvStethPoolImpl',
+} as { [key in Hash]: keyof typeof DefiWrapperSources };
+
+const STRATEGY_TYPE_CONTRACT = {
+  '0x3b0e47226370dd0daa4b28feb910df52f3fa507a32622521ef348962830e24cd ':
+    'mellowStrategyImpl',
+} as {
+  [key in Hash]: keyof typeof DefiWrapperSources;
+};
+
+type VerifyDefiWrapperDeploymentParams = {
+  etherscanApiKey: string;
+  poolType: Hash;
+  strategyType: Hash | null;
+
+  poolProxy: Address;
+  poolImpl: Address;
+
+  withdrawalQueue: Address;
+  withdrawalQueueImpl: Address;
+
+  strategyProxy: Address | null;
+  strategyImpl: Address | null;
+
+  timelock: Address;
+};
+
+export const verifyDefiWrapperDeployment = async ({
+  etherscanApiKey,
+  poolProxy,
+  poolImpl,
+  poolType,
+  withdrawalQueue,
+  withdrawalQueueImpl,
+  timelock,
+  strategyType,
+  strategyImpl,
+  strategyProxy,
+}: VerifyDefiWrapperDeploymentParams) => {
+  logInfo('Verifying Pool Proxy...');
+  await verifyContract('proxy', poolProxy, etherscanApiKey);
+  logInfo('Pool Proxy verified successfully!');
+
+  logInfo('Verifying Pool Implementation...');
+  const poolContract = POOL_TYPE_CONTRACT[poolType];
+  if (!poolContract) {
+    throw new Error(`Unknown pool type for proxy: ${poolProxy}`);
+  }
+  await verifyContract(poolContract, poolImpl, etherscanApiKey);
+  logInfo('Pool Implementation verified successfully!');
+
+  logInfo('Verifying Withdrawal Queue Proxy...');
+  await verifyContract('proxy', withdrawalQueue, etherscanApiKey);
+  logInfo('Withdrawal Queue Proxy verified successfully!');
+
+  logInfo('Verifying Withdrawal Queue Implementation...');
+  await verifyContract('wqImpl', withdrawalQueueImpl, etherscanApiKey);
+  logInfo('Withdrawal Queue Implementation verified successfully!');
+
+  logInfo('Verifying TimeLock...');
+  await verifyContract('timelock', timelock, etherscanApiKey);
+  logInfo('TimeLock verified successfully!');
+
+  if (strategyType) {
+    if (!strategyImpl || !strategyProxy) {
+      throw new Error(
+        'Strategy type is set but strategy implementation or proxy address is missing',
+      );
+    }
+
+    logInfo('Verifying Strategy Proxy...');
+    await verifyContract('proxy', strategyProxy, etherscanApiKey);
+    logInfo('Strategy Proxy verified successfully!');
+
+    const strategyContract = STRATEGY_TYPE_CONTRACT[strategyType];
+    if (!strategyContract) {
+      throw new Error(`Unknown strategy type for proxy: ${strategyProxy}`);
+    }
+
+    logInfo('Verifying Strategy Implementation...');
+    await verifyContract(strategyContract, strategyImpl, etherscanApiKey);
+    logInfo('Strategy Implementation verified successfully!');
+  }
+
+  logInfo('All contracts verified successfully!');
 };
