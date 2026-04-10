@@ -5,11 +5,13 @@ import {
   createPublicClient,
   createWalletClient,
   http,
+  maxUint256,
   WalletClient,
   createTestClient,
   walletActions,
   publicActions,
 } from 'viem';
+import { estimateGas } from 'viem/actions';
 import { privateKeyToAccount } from 'viem/accounts';
 import { Keystore } from 'ox';
 
@@ -113,15 +115,65 @@ export const getTestClient = async () => {
     .extend(walletActions);
 };
 
+/**
+ * Creates a wallet client with balance-aware gas estimation.
+ *
+ * By default, viem's `writeContract` / `sendTransaction` calls `eth_estimateGas`
+ * internally. The node checks `balance >= blockGasLimit * maxFeePerGas` before
+ * estimation, which fails for low-balance accounts even though the actual TX
+ * cost is much lower.
+ *
+ * The `extend()` override injects a `stateOverride` that gives the sender an
+ * infinite balance during estimation only, so the node returns the accurate gas
+ * value regardless of the real balance. If the RPC does not support
+ * `stateOverride` (geth < 1.13), it falls back to the default estimation.
+ */
 export const getWalletWithAccount = async (): Promise<WalletClient> => {
   const account = await getAccount();
   const chain = await getChain();
 
-  return createWalletClient({
+  // Capture base client BEFORE extend() so the internal estimateGas call
+  // does not re-enter the override. Without this, the call chain would be:
+  // override -> estimateGas(client) -> prepareTransactionRequest ->
+  // getAction(client, estimateGas) -> override -> ... (infinite recursion)
+  const baseClient = createWalletClient({
     account,
     chain,
     transport: http(getElUrl()),
   });
+
+  return baseClient.extend(() => ({
+    estimateGas: async (args: Parameters<typeof estimateGas>[1]) => {
+      const from =
+        typeof args.account === 'string'
+          ? args.account
+          : (args.account?.address ?? account.address);
+
+      try {
+        // Use baseClient (not extended client) to avoid infinite recursion
+        return await estimateGas(baseClient, {
+          ...args,
+          stateOverride: [
+            ...(args.stateOverride ?? []),
+            { address: from, balance: maxUint256 },
+          ],
+        });
+      } catch (err) {
+        // Fall back to default estimation when the RPC does not support
+        // stateOverride (e.g. geth < 1.13). Real contract errors (reverts,
+        // invalid args) are re-thrown because they occur in both paths.
+        const msg = err instanceof Error ? err.message : String(err);
+        if (
+          msg.includes('stateOverride') ||
+          msg.includes('too many arguments') ||
+          msg.includes('invalid argument')
+        ) {
+          return await estimateGas(baseClient, args);
+        }
+        throw err;
+      }
+    },
+  })) as unknown as WalletClient;
 };
 
 export const getWalletConnectClient = async (): Promise<{
