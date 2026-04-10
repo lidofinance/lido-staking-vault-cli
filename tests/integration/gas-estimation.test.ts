@@ -4,7 +4,6 @@ import {
   createPublicClient,
   http,
   parseEther,
-  parseGwei,
   maxUint256,
 } from 'viem';
 import { estimateGas } from 'viem/actions';
@@ -14,7 +13,6 @@ import { loadTestConfig } from './helpers/test-config.js';
 import {
   createAnvilTestClient,
   mintEth,
-  mineBlocks,
   getAccountFromPrivateKey,
 } from './helpers/test-client.js';
 import { setupIntegrationTestsBeforeEach } from './helpers/test-setup.js';
@@ -49,13 +47,6 @@ describe('gas estimation with stateOverride', () => {
 
     await mintEth(testClient, lowBalanceAccount.address, parseEther('0.0001'));
 
-    // Raise base fee so blockGasLimit * baseFee >> account balance
-    await testClient.request({
-      method: 'anvil_setNextBlockBaseFeePerGas' as any,
-      params: [parseGwei('100').toString(16).replace(/^/, '0x')] as any,
-    });
-    await mineBlocks(testClient, 1);
-
     const publicClient = createPublicClient({
       chain: chainObj,
       transport: http(rpcUrl),
@@ -64,7 +55,7 @@ describe('gas estimation with stateOverride', () => {
     // With stateOverride — estimation succeeds regardless of real balance
     const gas = await publicClient.estimateGas({
       account: lowBalanceAccount,
-      to: lowBalanceAccount.address,
+      to: '0x0000000000000000000000000000000000000001',
       value: 0n,
       stateOverride: [
         {
@@ -83,12 +74,6 @@ describe('gas estimation with stateOverride', () => {
     const lowBalanceAccount = getAccountFromPrivateKey(LOW_BALANCE_KEY);
 
     await mintEth(testClient, lowBalanceAccount.address, parseEther('0.0001'));
-
-    await testClient.request({
-      method: 'anvil_setNextBlockBaseFeePerGas' as any,
-      params: [parseGwei('100').toString(16).replace(/^/, '0x')] as any,
-    });
-    await mineBlocks(testClient, 1);
 
     // Reproduce the exact extend() pattern from providers/wallet.ts
     const baseClient = createWalletClient({
@@ -128,7 +113,7 @@ describe('gas estimation with stateOverride', () => {
 
     const gas = await extendedClient.estimateGas({
       account: lowBalanceAccount,
-      to: lowBalanceAccount.address,
+      to: '0x0000000000000000000000000000000000000001',
       value: 0n,
     });
 
@@ -141,12 +126,6 @@ describe('gas estimation with stateOverride', () => {
     const lowBalanceAccount = getAccountFromPrivateKey(LOW_BALANCE_KEY);
 
     await mintEth(testClient, lowBalanceAccount.address, parseEther('0.0001'));
-
-    await testClient.request({
-      method: 'anvil_setNextBlockBaseFeePerGas' as any,
-      params: [parseGwei('100').toString(16).replace(/^/, '0x')] as any,
-    });
-    await mineBlocks(testClient, 1);
 
     const publicClient = createPublicClient({
       chain: chainObj,
