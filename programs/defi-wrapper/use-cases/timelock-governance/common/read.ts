@@ -105,21 +105,20 @@ commonRead
   .argument(...TIMELOCK_ARGUMENT)
   .option(
     '-n, --number <number>',
-    'number of blocks to look back',
+    'number of blocks to look back, default: 5000',
     stringToBigInt,
-    5000n,
   )
   .action(
     async (
       timelockAddress: Address | undefined,
-      options: { number: bigint },
+      { number: blockCount = 5000n }: { number?: bigint },
     ) => {
       const client = await getPublicClient();
       const timelock = await getPromptTimelock(timelockAddress);
       const currentBlock = await client.getBlock({ blockTag: 'latest' });
 
       const toBlock = currentBlock.number;
-      let fromBlock = toBlock - options.number;
+      let fromBlock = toBlock - blockCount;
       if (fromBlock < 0n) fromBlock = 0n;
 
       const events = await timelock.getEvents.CallScheduled(undefined, {

@@ -109,7 +109,7 @@ withdrawalQueueWrite
     stringToBigIntArray,
   )
   .argument(
-    '<address>',
+    '<owner>',
     'address that will be able to claim the created request',
     stringToAddress,
   )
@@ -141,7 +141,7 @@ withdrawalQueueWrite
   .argument('<stv>', 'amount of stv to withdraw', stringToBigInt)
   .argument('<steth>', 'amount of steth shares to rebalance', stringToBigInt)
   .argument(
-    '<address>',
+    '<owner>',
     'address that will be able to claim the created request',
     stringToAddress,
   )
@@ -245,17 +245,12 @@ withdrawalQueueWrite
 withdrawalQueueWrite
   .command('claim-withdrawals')
   .description(
-    'claim one `_requestId` request once finalized sending locked ether to the owner',
+    'claim multiple requests once finalized sending locked ether to the recipient',
   )
   .argument('<address>', 'withdrawal queue address', stringToAddress)
   .argument(
     '<requestIds>',
     'array of request ids to claim',
-    stringToBigIntArray,
-  )
-  .argument(
-    '<hints>',
-    'checkpoint hints. can be found with `findCheckpointHints(_requestIds, 1, getLastCheckpointIndex())`',
     stringToBigIntArray,
   )
   .argument(

@@ -408,7 +408,7 @@ applyCommonOptions(
         )}
         strategyFactory: ${strategyFactory ?? '<none>'}
         strategyFactoryDeployBytes: ${strategyFactoryDeployBytes ?? '<none>'}
-        mintingEnabled: ${mintingEnabled !== undefined ? mintingEnabled : true}
+        mintingEnabled: ${mintingEnabled ?? true}
         allowListEnabled: ${allowListConfig.allowListEnabled}
         allowListManager: ${allowListConfig.allowListManager === zeroAddress ? '<none>' : allowListConfig.allowListManager}
         reserveRatioGapBP: ${reserveRatioGapBPValue}\n`;
@@ -425,7 +425,7 @@ applyCommonOptions(
           allowListEnabled: allowListConfig.allowListEnabled,
           allowListManager: allowListConfig.allowListManager,
           reserveRatioGapBP: BigInt(reserveRatioGapBPValue),
-          mintingEnabled: true,
+          mintingEnabled: mintingEnabled ?? true,
         },
         strategyFactory ?? zeroAddress,
         strategyFactoryDeployBytes ?? '0x',
