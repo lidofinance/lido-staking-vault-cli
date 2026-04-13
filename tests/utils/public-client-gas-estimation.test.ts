@@ -12,25 +12,21 @@ vi.mock('viem/actions', () => ({
   estimateGas: (...args: unknown[]) => mockEstimateGas(...args),
 }));
 
-vi.mock('viem/accounts', () => ({
-  privateKeyToAccount: () => ({
-    address: MOCK_ACCOUNT_ADDRESS,
-    type: 'local',
-  }),
-}));
-
 vi.mock('viem', async (importOriginal) => {
   const actual = (await importOriginal()) as Record<string, unknown>;
   return {
     ...actual,
-    createWalletClient: () => ({
-      account: { address: MOCK_ACCOUNT_ADDRESS },
-      chain: MOCK_CHAIN,
-      extend: (fn: (client: unknown) => Record<string, unknown>) => {
-        const extensions = fn({});
-        return { account: { address: MOCK_ACCOUNT_ADDRESS }, ...extensions };
-      },
-    }),
+    createPublicClient: () => {
+      const base = {
+        chain: MOCK_CHAIN,
+        extend: (fn: (client: unknown) => Record<string, unknown>) => {
+          const extensions = fn(base);
+          for (const key in base) delete (extensions as any)[key];
+          return { ...base, ...extensions };
+        },
+      };
+      return base;
+    },
   };
 });
 
@@ -39,7 +35,10 @@ vi.mock('command', () => ({
 }));
 
 vi.mock('../../configs/index.js', () => ({
-  getConfig: () => ({ PRIVATE_KEY: '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80' }),
+  getConfig: () => ({
+    PRIVATE_KEY:
+      '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80',
+  }),
   getChainId: async () => 560048,
   getElUrl: () => MOCK_EL_URL,
   getChain: async () => MOCK_CHAIN,
@@ -54,7 +53,7 @@ vi.mock('ox', () => ({
   Keystore: {},
 }));
 
-describe('getWalletWithAccount gas estimation override', () => {
+describe('getPublicClient gas estimation override', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -62,10 +61,8 @@ describe('getWalletWithAccount gas estimation override', () => {
   it('should inject stateOverride with maxUint256 balance into estimateGas', async () => {
     mockEstimateGas.mockResolvedValue(150000n);
 
-    const { getWalletWithAccount } = await import(
-      '../../providers/wallet.js'
-    );
-    const client = await getWalletWithAccount();
+    const { getPublicClient } = await import('../../providers/wallet.js');
+    const client = await getPublicClient();
 
     const args = {
       to: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef' as const,
@@ -89,10 +86,8 @@ describe('getWalletWithAccount gas estimation override', () => {
   it('should preserve existing stateOverride entries', async () => {
     mockEstimateGas.mockResolvedValue(200000n);
 
-    const { getWalletWithAccount } = await import(
-      '../../providers/wallet.js'
-    );
-    const client = await getWalletWithAccount();
+    const { getPublicClient } = await import('../../providers/wallet.js');
+    const client = await getPublicClient();
 
     const existingOverride = {
       address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as const,
@@ -122,10 +117,8 @@ describe('getWalletWithAccount gas estimation override', () => {
       .mockRejectedValueOnce(new Error('invalid argument 2: stateOverride'))
       .mockResolvedValueOnce(100000n);
 
-    const { getWalletWithAccount } = await import(
-      '../../providers/wallet.js'
-    );
-    const client = await getWalletWithAccount();
+    const { getPublicClient } = await import('../../providers/wallet.js');
+    const client = await getPublicClient();
 
     const args = {
       to: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef' as const,
@@ -148,10 +141,8 @@ describe('getWalletWithAccount gas estimation override', () => {
       .mockRejectedValueOnce(new Error('too many arguments, want at most 2'))
       .mockResolvedValueOnce(100000n);
 
-    const { getWalletWithAccount } = await import(
-      '../../providers/wallet.js'
-    );
-    const client = await getWalletWithAccount();
+    const { getPublicClient } = await import('../../providers/wallet.js');
+    const client = await getPublicClient();
 
     const args = {
       to: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef' as const,
@@ -171,10 +162,8 @@ describe('getWalletWithAccount gas estimation override', () => {
     );
     mockEstimateGas.mockRejectedValue(revertError);
 
-    const { getWalletWithAccount } = await import(
-      '../../providers/wallet.js'
-    );
-    const client = await getWalletWithAccount();
+    const { getPublicClient } = await import('../../providers/wallet.js');
+    const client = await getPublicClient();
 
     const args = {
       to: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef' as const,
@@ -190,35 +179,33 @@ describe('getWalletWithAccount gas estimation override', () => {
     expect(mockEstimateGas).toHaveBeenCalledTimes(1);
   });
 
-  it('should use outer account address when args.account is missing', async () => {
-    mockEstimateGas.mockResolvedValue(150000n);
+  it('should skip override when no account is provided', async () => {
+    mockEstimateGas.mockResolvedValue(21000n);
 
-    const { getWalletWithAccount } = await import(
-      '../../providers/wallet.js'
-    );
-    const client = await getWalletWithAccount();
+    const { getPublicClient } = await import('../../providers/wallet.js');
+    const client = await getPublicClient();
 
     const args = {
       to: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef' as const,
-      data: '0x1234' as const,
-      // no account field
+      value: 0n,
+      // no account
     };
 
-    await (client as any).estimateGas(args);
+    const result = await (client as any).estimateGas(args);
 
+    expect(result).toBe(21000n);
+    expect(mockEstimateGas).toHaveBeenCalledTimes(1);
+
+    // Should call without stateOverride since no account
     const callArgs = mockEstimateGas.mock.calls[0]?.[1];
-    expect(callArgs.stateOverride).toEqual([
-      { address: MOCK_ACCOUNT_ADDRESS, balance: maxUint256 },
-    ]);
+    expect(callArgs.stateOverride).toBeUndefined();
   });
 
   it('should handle string account address', async () => {
     mockEstimateGas.mockResolvedValue(150000n);
 
-    const { getWalletWithAccount } = await import(
-      '../../providers/wallet.js'
-    );
-    const client = await getWalletWithAccount();
+    const { getPublicClient } = await import('../../providers/wallet.js');
+    const client = await getPublicClient();
 
     const differentAddress = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
     const args = {
