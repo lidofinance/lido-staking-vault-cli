@@ -14,4 +14,6 @@ if (envs) {
   envs.CL_URL = (process.env.CL_URL as string) ?? envs?.CL_URL;
   envs.EL_URL = (process.env.EL_URL as string) ?? envs?.EL_URL;
   envs.CHAIN_ID = (process.env.CHAIN_ID as string) ?? envs?.CHAIN_ID;
+  envs.ETHERSCAN_API_KEY =
+    (process.env.ETHERSCAN_API_KEY as string) ?? envs?.ETHERSCAN_API_KEY;
 }

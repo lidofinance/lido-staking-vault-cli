@@ -2,6 +2,7 @@ import {
   Address,
   encodeAbiParameters,
   Hex,
+  isAddressEqual,
   keccak256,
   toBytes,
   zeroAddress,
@@ -22,7 +23,9 @@ import {
 } from 'utils';
 import {
   getFactoryContract,
+  getOssifiableProxyContract,
   getStrategyFactoryContract,
+  getStvPoolContract,
 } from 'contracts/defi-wrapper/index.js';
 import {
   getCreatePoolEventData,
@@ -35,10 +38,17 @@ import {
   simulatePoolCreation,
   promptAllowListConfiguration,
   MELLOW_VAULTS_STRATEGY_ID,
+  getFinalizePoolEventData,
 } from 'features';
 
 import { factory } from './main.js';
 import { getPublicClient } from 'providers';
+import {
+  verifyContract,
+  verifyDefiWrapperDeployment,
+} from 'features/defi-wrapper/verify-contracts.js';
+import { envs } from 'configs/index.js';
+import { getGenericStrategyContract } from 'contracts/defi-wrapper/generic-strategy.js';
 
 type MintableOptions = {
   reserveRatioGapBP?: number;
@@ -621,3 +631,136 @@ factoryWrite
 
     await finalizePoolCreation(contract, eventData);
   });
+
+factoryWrite
+  .command('verify-contract')
+  .description(
+    'verifies single deployed contract of defi-wrapper set on Etherscan',
+  )
+  .argument(
+    '<contractName>',
+    'contract type, can be one of "wqImpl", "timelock", "proxy", "stvPoolImpl", "stvStethPoolImpl", "dashboardImpl", "mellowStrategyImpl"',
+  )
+  .argument('<contractAddress>', 'contract address', stringToAddress)
+  .option(
+    '--etherscanApiKey [etherscanApiKey]',
+    'Etherscan API Key, can also be set in .env file as ETHERSCAN_API_KEY',
+    envs?.ETHERSCAN_API_KEY,
+  )
+  .action(
+    async (
+      contractName: string,
+      contractAddress: Address,
+      options: { etherscanApiKey?: string },
+    ) => {
+      const { etherscanApiKey } = options;
+      if (!etherscanApiKey) {
+        throw new Error(
+          'Etherscan API key is required for contract verification. Please provide it in .env or via --etherscanApiKey option.',
+        );
+      }
+      await verifyContract(
+        contractName as any,
+        contractAddress,
+        etherscanApiKey,
+      );
+    },
+  );
+
+factoryWrite
+  .command('verify-deployment')
+  .description(
+    'verifies all contracts deployed by the defi wrapper factory on Etherscan',
+  )
+  .argument(
+    '<txHashStart>',
+    'first transaction hash of the factory deployment',
+    stringToHash,
+  )
+  .argument(
+    '<txHashFinish>',
+    'final transaction hash of the factory deployment',
+    stringToHash,
+  )
+  .option(
+    '--etherscanApiKey [etherscanApiKey]',
+    'Etherscan API Key, can also be set in .env file as ETHERSCAN_API_KEY',
+    envs?.ETHERSCAN_API_KEY,
+  )
+  .action(
+    async (
+      txHashStart: Hex,
+      txHashFinish: Hex,
+      options: { etherscanApiKey?: string },
+    ) => {
+      const { etherscanApiKey } = options;
+      if (!etherscanApiKey) {
+        throw new Error(
+          'Etherscan API key is required for contract verification. Please provide it in .env or via --etherscanApiKey option.',
+        );
+      }
+
+      const publicClient = await getPublicClient();
+      const receiptStart = await publicClient.getTransactionReceipt({
+        hash: txHashStart,
+      });
+
+      const deployDataStart = await getCreatePoolEventData(
+        receiptStart,
+        txHashStart,
+      );
+
+      const receiptFinish = await publicClient.getTransactionReceipt({
+        hash: txHashFinish,
+      });
+
+      const deployDataFinish = await getFinalizePoolEventData(
+        receiptFinish,
+        txHashFinish,
+      );
+
+      if (!deployDataStart.intermediate) {
+        throw new Error(
+          'Invalid start transaction hash or the transaction does not contain expected events',
+        );
+      }
+
+      if (!deployDataFinish.vault) {
+        throw new Error(
+          'Invalid finish transaction hash or the transaction does not contain expected events',
+        );
+      }
+
+      const strategy =
+        deployDataFinish.strategy &&
+        !isAddressEqual(deployDataFinish.strategy, zeroAddress)
+          ? await getGenericStrategyContract(deployDataFinish.strategy)
+          : null;
+
+      const strategyImpl = strategy
+        ? await (
+            await getOssifiableProxyContract(strategy.address)
+          ).read.proxy__getImplementation()
+        : null;
+
+      const pool = await getStvPoolContract(
+        deployDataStart.intermediate.poolProxy,
+      );
+
+      const poolType = await pool.read.poolType();
+      const strategyType = strategy ? await strategy.read.STRATEGY_ID() : null;
+
+      await verifyDefiWrapperDeployment({
+        etherscanApiKey,
+        poolProxy: deployDataStart.intermediate.poolProxy,
+        poolImpl: deployDataStart.intermediate.poolImpl,
+        poolType,
+        withdrawalQueue: deployDataStart.intermediate.withdrawalQueueProxy,
+        withdrawalQueueImpl: deployDataStart.intermediate.wqImpl,
+        timelock: deployDataStart.intermediate.timelock,
+        strategyProxy: strategy ? strategy.address : null,
+        strategyImpl: strategyImpl,
+        strategyType,
+      });
+    },
+  );

@@ -54,10 +54,12 @@ yarn start defi-wrapper contracts factory -h
 
 ### Write
 
-| Command                                                                        | Description                                                         |
-| ------------------------------------------------------------------------------ | ------------------------------------------------------------------- |
-| create-pool-stv \<factoryAddress>                                              | initiates deployment of a STV staking pool                          |
-| create-pool-stv-steth \<factoryAddress>                                        | initiates deployment of a STV-STETH pool with minting enabled       |
-| create-pool-custom \<factoryAddress>                                           | initiates deployment of a custom pool                               |
-| create-strategy-pool-lido-earn-eth \<factoryAddress> \<strategyFactoryAddress> | initiates deployment of a strategy pool with Lido Earn ETH strategy |
-| create-pool-finalize \<factoryAddress> \<TxHash>                               | finalizes deployment of a pool                                      |
+| Command                                                                        | Description                                                                                       |
+| ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------- |
+| create-pool-stv \<factoryAddress>                                              | initiates deployment of a STV staking pool                                                        |
+| create-pool-stv-steth \<factoryAddress>                                        | initiates deployment of a STV-STETH pool with minting enabled                                     |
+| create-pool-custom \<factoryAddress>                                           | initiates deployment of a custom pool                                                             |
+| create-strategy-pool-lido-earn-eth \<factoryAddress> \<strategyFactoryAddress> | initiates deployment of a strategy pool with Lido Earn ETH strategy                               |
+| create-pool-finalize \<factoryAddress> \<TxHash>                               | finalizes deployment of a pool                                                                    |
+| verify-deployment \<txHashStart> \<txHashFinish>                               | verifies all contracts deployed by the defi wrapper factory on Etherscan, needs etherscan API key |
+| verify-contract \<contractName> \<address>                                     | verifies a single contract on Etherscan, needs etherscan API key                                  |
