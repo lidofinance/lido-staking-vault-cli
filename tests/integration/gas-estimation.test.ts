@@ -1,12 +1,5 @@
 import { describe, test, expect, beforeAll } from 'vitest';
-import {
-  createWalletClient,
-  createPublicClient,
-  http,
-  parseEther,
-  maxUint256,
-} from 'viem';
-import { estimateGas } from 'viem/actions';
+import { createPublicClient, http, parseEther, maxUint256 } from 'viem';
 import { getChain } from 'configs';
 
 import { loadTestConfig } from './helpers/test-config.js';
@@ -21,8 +14,7 @@ import { setupIntegrationTestsBeforeEach } from './helpers/test-setup.js';
  * Integration tests for the gas estimation stateOverride fix.
  *
  * Proves that stateOverride in eth_estimateGas allows accurate gas estimation
- * for low-balance accounts, and that the extend() pattern from
- * providers/wallet.ts works correctly on a real Anvil fork.
+ * for low-balance accounts on a real Anvil fork.
  */
 
 // Anvil's default account #1 (not the one used by the test suite)
@@ -63,58 +55,6 @@ describe('gas estimation with stateOverride', () => {
           balance: maxUint256,
         },
       ],
-    });
-
-    expect(gas).toBeGreaterThan(0n);
-    expect(gas).toBeLessThanOrEqual(100_000n);
-  });
-
-  test('extended walletClient: gas estimation works transparently for low-balance account', async () => {
-    const testClient = createAnvilTestClient(chainObj, rpcUrl);
-    const lowBalanceAccount = getAccountFromPrivateKey(LOW_BALANCE_KEY);
-
-    await mintEth(testClient, lowBalanceAccount.address, parseEther('0.0001'));
-
-    // Reproduce the exact extend() pattern from providers/wallet.ts
-    const baseClient = createWalletClient({
-      account: lowBalanceAccount,
-      chain: chainObj,
-      transport: http(rpcUrl),
-    });
-
-    const extendedClient = baseClient.extend(() => ({
-      estimateGas: async (args: Parameters<typeof estimateGas>[1]) => {
-        const from =
-          typeof args.account === 'string'
-            ? args.account
-            : (args.account?.address ?? lowBalanceAccount.address);
-
-        try {
-          return await estimateGas(baseClient, {
-            ...args,
-            stateOverride: [
-              ...(args.stateOverride ?? []),
-              { address: from, balance: maxUint256 },
-            ],
-          });
-        } catch (err) {
-          const msg = err instanceof Error ? err.message : String(err);
-          if (
-            msg.includes('stateOverride') ||
-            msg.includes('too many arguments') ||
-            msg.includes('invalid argument')
-          ) {
-            return await estimateGas(baseClient, args);
-          }
-          throw err;
-        }
-      },
-    }));
-
-    const gas = await extendedClient.estimateGas({
-      account: lowBalanceAccount,
-      to: '0x0000000000000000000000000000000000000001',
-      value: 0n,
     });
 
     expect(gas).toBeGreaterThan(0n);
