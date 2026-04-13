@@ -6,3 +6,4 @@ export * from './Factory.js';
 export * from './TimeLock.js';
 export * from './OssifiableProxy.js';
 export * from './StrategyFactory.js';
+export * from './GenericStrategy.js';
