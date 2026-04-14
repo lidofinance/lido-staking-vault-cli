@@ -39,12 +39,7 @@ commonWrite
   .description('execute a scheduled timelock operation')
   .argument(...TIMELOCK_ARGUMENT)
   .argument('[target]', 'target contract address', stringToAddress)
-  .argument(
-    '[value]',
-    'ETH value to send (in wei, default: 0)',
-    stringToBigInt,
-    0n,
-  )
+  .argument('[value]', 'ETH value to send (in wei, default: 0)', stringToBigInt)
   .argument('[payload]', 'call data payload (hex)')
   .option(
     '-p, --predecessor <predecessor>',

@@ -355,7 +355,7 @@ poolWrite
         args: [maxSocializablePortionBP],
       });
 
-      await proposeOperation(
+      await executeOperation(
         timelockContract.address,
         poolContract.address,
         data,

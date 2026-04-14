@@ -39,6 +39,7 @@ import {
   promptAllowListConfiguration,
   MELLOW_VAULTS_STRATEGY_ID,
   getFinalizePoolEventData,
+  getBoolean,
 } from 'features';
 
 import { factory } from './main.js';
@@ -407,6 +408,14 @@ applyCommonOptions(
         }
       }
 
+      if (strategyFactory && mintingEnabled != undefined && !mintingEnabled) {
+        throw new Error('Minting must always be enabled for strategy pools');
+      }
+
+      const mintingEnabledValue = strategyFactory
+        ? true
+        : await getBoolean(mintingEnabled, 'mintingEnabled');
+
       const reserveRatioGapBPValue =
         await getReserveRatioGapBP(reserveRatioGapBP);
 
@@ -418,7 +427,7 @@ applyCommonOptions(
         )}
         strategyFactory: ${strategyFactory ?? '<none>'}
         strategyFactoryDeployBytes: ${strategyFactoryDeployBytes ?? '<none>'}
-        mintingEnabled: ${mintingEnabled !== undefined ? mintingEnabled : true}
+        mintingEnabled: ${mintingEnabledValue}
         allowListEnabled: ${allowListConfig.allowListEnabled}
         allowListManager: ${allowListConfig.allowListManager === zeroAddress ? '<none>' : allowListConfig.allowListManager}
         reserveRatioGapBP: ${reserveRatioGapBPValue}\n`;
@@ -435,7 +444,7 @@ applyCommonOptions(
           allowListEnabled: allowListConfig.allowListEnabled,
           allowListManager: allowListConfig.allowListManager,
           reserveRatioGapBP: BigInt(reserveRatioGapBPValue),
-          mintingEnabled: true,
+          mintingEnabled: mintingEnabledValue,
         },
         strategyFactory ?? zeroAddress,
         strategyFactoryDeployBytes ?? '0x',
