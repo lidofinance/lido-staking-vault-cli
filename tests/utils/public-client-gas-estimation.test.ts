@@ -1,31 +1,31 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { maxUint256 } from 'viem';
 
-const MOCK_ACCOUNT_ADDRESS = '0x1234567890abcdef1234567890abcdef12345678';
+const MAX_UINT256_HEX =
+  '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+
 const MOCK_CHAIN = { id: 560048, name: 'hoodi' };
 const MOCK_EL_URL = 'http://localhost:8545';
+const MOCK_FROM = '0x1234567890abcdef1234567890abcdef12345678';
 
-// Track calls to the real estimateGas
-const mockEstimateGas = vi.fn();
-
-vi.mock('viem/actions', () => ({
-  estimateGas: (...args: unknown[]) => mockEstimateGas(...args),
-}));
+// Represents the raw RPC handler underneath the balanceAwareTransport wrapper
+const mockRpcRequest = vi.fn();
 
 vi.mock('viem', async (importOriginal) => {
   const actual = (await importOriginal()) as Record<string, unknown>;
   return {
     ...actual,
-    createPublicClient: () => {
-      const base = {
-        chain: MOCK_CHAIN,
-        extend: (fn: (client: unknown) => Record<string, unknown>) => {
-          const extensions = fn(base);
-          for (const key in base) delete (extensions as any)[key];
-          return { ...base, ...extensions };
-        },
-      };
-      return base;
+    // Return a minimal transport factory whose `request` we control
+    http: () => {
+      const factory = Object.assign(
+        () => ({ request: mockRpcRequest }),
+        { config: { key: 'http' }, value: undefined },
+      );
+      return factory;
+    },
+    // Expose the transport's wrapped `request` directly on the client
+    createPublicClient: ({ transport }: any) => {
+      const instance = transport({ chain: MOCK_CHAIN });
+      return { chain: MOCK_CHAIN, request: instance.request };
     },
   };
 });
@@ -53,172 +53,177 @@ vi.mock('ox', () => ({
   Keystore: {},
 }));
 
-describe('getPublicClient gas estimation override', () => {
+/**
+ * Tests for balanceAwareTransport — the transport-level wrapper that injects
+ * stateOverride into every eth_estimateGas RPC call to bypass the node's
+ * balance pre-check.
+ *
+ * We mock viem's http() transport so that `base.request` is our mockRpcRequest,
+ * then call the wrapped `request` directly to verify interception logic.
+ */
+describe('balanceAwareTransport (transport-level gas estimation fix)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('should inject stateOverride with maxUint256 balance into estimateGas', async () => {
-    mockEstimateGas.mockResolvedValue(150000n);
+  it('injects stateOverride with max balance into eth_estimateGas', async () => {
+    mockRpcRequest.mockResolvedValue('0x5208');
 
     const { getPublicClient } = await import('../../providers/wallet.js');
     const client = await getPublicClient();
 
-    const args = {
-      to: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef' as const,
-      data: '0x1234' as const,
-      account: { address: MOCK_ACCOUNT_ADDRESS, type: 'local' as const },
-    };
+    await (client as any).request({
+      method: 'eth_estimateGas',
+      params: [{ from: MOCK_FROM, to: '0xdead', data: '0x1234' }],
+    });
 
-    const result = await (client as any).estimateGas(args);
-
-    expect(result).toBe(150000n);
-    expect(mockEstimateGas).toHaveBeenCalledTimes(1);
-
-    const callArgs = mockEstimateGas.mock.calls[0]?.[1];
-    expect(callArgs.stateOverride).toEqual(
-      expect.arrayContaining([
-        { address: MOCK_ACCOUNT_ADDRESS, balance: maxUint256 },
-      ]),
-    );
-  });
-
-  it('should preserve existing stateOverride entries', async () => {
-    mockEstimateGas.mockResolvedValue(200000n);
-
-    const { getPublicClient } = await import('../../providers/wallet.js');
-    const client = await getPublicClient();
-
-    const existingOverride = {
-      address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as const,
-      balance: 999n,
-    };
-
-    const args = {
-      to: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef' as const,
-      data: '0x1234' as const,
-      account: { address: MOCK_ACCOUNT_ADDRESS, type: 'local' as const },
-      stateOverride: [existingOverride],
-    };
-
-    await (client as any).estimateGas(args);
-
-    const callArgs = mockEstimateGas.mock.calls[0]?.[1];
-    expect(callArgs.stateOverride).toHaveLength(2);
-    expect(callArgs.stateOverride[0]).toEqual(existingOverride);
-    expect(callArgs.stateOverride[1]).toEqual({
-      address: MOCK_ACCOUNT_ADDRESS,
-      balance: maxUint256,
+    expect(mockRpcRequest).toHaveBeenCalledTimes(1);
+    const rpcCall = mockRpcRequest.mock.calls[0]![0];
+    expect(rpcCall.method).toBe('eth_estimateGas');
+    expect(rpcCall.params).toHaveLength(3);
+    expect(rpcCall.params[0]).toEqual({
+      from: MOCK_FROM,
+      to: '0xdead',
+      data: '0x1234',
+    });
+    expect(rpcCall.params[1]).toBe('latest');
+    expect(rpcCall.params[2]).toEqual({
+      [MOCK_FROM]: { balance: MAX_UINT256_HEX },
     });
   });
 
-  it('should fall back to default estimateGas when stateOverride is unsupported', async () => {
-    mockEstimateGas
+  it('preserves existing stateOverride entries and custom blockTag', async () => {
+    mockRpcRequest.mockResolvedValue('0x5208');
+
+    const { getPublicClient } = await import('../../providers/wallet.js');
+    const client = await getPublicClient();
+
+    const existing = {
+      '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa': { balance: '0x3e7' },
+    };
+
+    await (client as any).request({
+      method: 'eth_estimateGas',
+      params: [{ from: MOCK_FROM, to: '0xdead' }, 'pending', existing],
+    });
+
+    const rpcCall = mockRpcRequest.mock.calls[0]![0];
+    expect(rpcCall.params[1]).toBe('pending');
+    expect(rpcCall.params[2]).toEqual({
+      ...existing,
+      [MOCK_FROM]: { balance: MAX_UINT256_HEX },
+    });
+  });
+
+  it('falls back when RPC rejects stateOverride', async () => {
+    mockRpcRequest
       .mockRejectedValueOnce(new Error('invalid argument 2: stateOverride'))
-      .mockResolvedValueOnce(100000n);
+      .mockResolvedValueOnce('0x5208');
 
     const { getPublicClient } = await import('../../providers/wallet.js');
     const client = await getPublicClient();
 
-    const args = {
-      to: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef' as const,
-      data: '0x1234' as const,
-      account: { address: MOCK_ACCOUNT_ADDRESS, type: 'local' as const },
-    };
+    const result = await (client as any).request({
+      method: 'eth_estimateGas',
+      params: [{ from: MOCK_FROM, to: '0xdead' }],
+    });
 
-    const result = await (client as any).estimateGas(args);
+    expect(result).toBe('0x5208');
+    expect(mockRpcRequest).toHaveBeenCalledTimes(2);
 
-    expect(result).toBe(100000n);
-    expect(mockEstimateGas).toHaveBeenCalledTimes(2);
-
-    // Second call should NOT have stateOverride
-    const fallbackArgs = mockEstimateGas.mock.calls[1]?.[1];
-    expect(fallbackArgs.stateOverride).toBeUndefined();
+    // Second call: original args without stateOverride
+    const fallbackCall = mockRpcRequest.mock.calls[1]![0];
+    expect(fallbackCall.params).toHaveLength(1);
   });
 
-  it('should fall back when RPC returns "too many arguments"', async () => {
-    mockEstimateGas
+  it('falls back on "too many arguments"', async () => {
+    mockRpcRequest
       .mockRejectedValueOnce(new Error('too many arguments, want at most 2'))
-      .mockResolvedValueOnce(100000n);
+      .mockResolvedValueOnce('0x5208');
 
     const { getPublicClient } = await import('../../providers/wallet.js');
     const client = await getPublicClient();
 
-    const args = {
-      to: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef' as const,
-      data: '0x1234' as const,
-      account: { address: MOCK_ACCOUNT_ADDRESS, type: 'local' as const },
-    };
+    const result = await (client as any).request({
+      method: 'eth_estimateGas',
+      params: [{ from: MOCK_FROM, to: '0xdead' }],
+    });
 
-    const result = await (client as any).estimateGas(args);
-
-    expect(result).toBe(100000n);
-    expect(mockEstimateGas).toHaveBeenCalledTimes(2);
+    expect(result).toBe('0x5208');
+    expect(mockRpcRequest).toHaveBeenCalledTimes(2);
   });
 
-  it('should re-throw real contract errors (not swallow them)', async () => {
-    const revertError = new Error(
-      'execution reverted: ERC20: transfer amount exceeds balance',
-    );
-    mockEstimateGas.mockRejectedValue(revertError);
+  it('falls back on "invalid argument"', async () => {
+    mockRpcRequest
+      .mockRejectedValueOnce(new Error('invalid argument'))
+      .mockResolvedValueOnce('0x5208');
 
     const { getPublicClient } = await import('../../providers/wallet.js');
     const client = await getPublicClient();
 
-    const args = {
-      to: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef' as const,
-      data: '0x1234' as const,
-      account: { address: MOCK_ACCOUNT_ADDRESS, type: 'local' as const },
-    };
+    const result = await (client as any).request({
+      method: 'eth_estimateGas',
+      params: [{ from: MOCK_FROM, to: '0xdead' }],
+    });
 
-    await expect((client as any).estimateGas(args)).rejects.toThrow(
-      'execution reverted',
+    expect(result).toBe('0x5208');
+    expect(mockRpcRequest).toHaveBeenCalledTimes(2);
+  });
+
+  it('re-throws real contract errors (not swallowed)', async () => {
+    mockRpcRequest.mockRejectedValue(
+      new Error('execution reverted: ERC20: transfer amount exceeds balance'),
     );
+
+    const { getPublicClient } = await import('../../providers/wallet.js');
+    const client = await getPublicClient();
+
+    await expect(
+      (client as any).request({
+        method: 'eth_estimateGas',
+        params: [{ from: MOCK_FROM, to: '0xdead' }],
+      }),
+    ).rejects.toThrow('execution reverted');
 
     // Should NOT retry — only 1 call
-    expect(mockEstimateGas).toHaveBeenCalledTimes(1);
+    expect(mockRpcRequest).toHaveBeenCalledTimes(1);
   });
 
-  it('should skip override when no account is provided', async () => {
-    mockEstimateGas.mockResolvedValue(21000n);
+  it('skips override when no from address in params', async () => {
+    mockRpcRequest.mockResolvedValue('0x5208');
 
     const { getPublicClient } = await import('../../providers/wallet.js');
     const client = await getPublicClient();
 
-    const args = {
-      to: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef' as const,
-      value: 0n,
-      // no account
-    };
+    await (client as any).request({
+      method: 'eth_estimateGas',
+      params: [{ to: '0xdead', data: '0x1234' }],
+    });
 
-    const result = await (client as any).estimateGas(args);
-
-    expect(result).toBe(21000n);
-    expect(mockEstimateGas).toHaveBeenCalledTimes(1);
-
-    // Should call without stateOverride since no account
-    const callArgs = mockEstimateGas.mock.calls[0]?.[1];
-    expect(callArgs.stateOverride).toBeUndefined();
+    expect(mockRpcRequest).toHaveBeenCalledTimes(1);
+    // Passed through unchanged — no stateOverride injected
+    const rpcCall = mockRpcRequest.mock.calls[0]![0];
+    expect(rpcCall).toEqual({
+      method: 'eth_estimateGas',
+      params: [{ to: '0xdead', data: '0x1234' }],
+    });
   });
 
-  it('should handle string account address', async () => {
-    mockEstimateGas.mockResolvedValue(150000n);
+  it('passes non-estimateGas calls through unchanged', async () => {
+    mockRpcRequest.mockResolvedValue('0x1');
 
     const { getPublicClient } = await import('../../providers/wallet.js');
     const client = await getPublicClient();
 
-    const differentAddress = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
-    const args = {
-      to: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef' as const,
-      data: '0x1234' as const,
-      account: differentAddress,
-    };
+    await (client as any).request({
+      method: 'eth_blockNumber',
+      params: [],
+    });
 
-    await (client as any).estimateGas(args);
-
-    const callArgs = mockEstimateGas.mock.calls[0]?.[1];
-    expect(callArgs.stateOverride).toEqual([
-      { address: differentAddress, balance: maxUint256 },
-    ]);
+    expect(mockRpcRequest).toHaveBeenCalledTimes(1);
+    expect(mockRpcRequest.mock.calls[0]![0]).toEqual({
+      method: 'eth_blockNumber',
+      params: [],
+    });
   });
 });

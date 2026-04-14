@@ -5,18 +5,86 @@ import {
   createPublicClient,
   createWalletClient,
   http,
-  maxUint256,
+  type Transport,
   WalletClient,
   createTestClient,
   walletActions,
   publicActions,
 } from 'viem';
-import { estimateGas } from 'viem/actions';
 import { privateKeyToAccount } from 'viem/accounts';
 import { Keystore } from 'ox';
 
 import { envs, getConfig, getChainId, getElUrl, getChain } from 'configs';
 import { createWalletConnectClient } from 'utils';
+
+const MAX_UINT256_HEX =
+  '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+
+/**
+ * Wraps viem's http() transport to inject a `stateOverride` into every
+ * `eth_estimateGas` RPC call, setting the sender's balance to maxUint256.
+ *
+ * Why: viem's `prepareTransactionRequest` fills `maxFeePerGas` BEFORE
+ * calling `eth_estimateGas`. The node then checks
+ * `balance >= blockGasLimit * maxFeePerGas`, which fails for low-balance
+ * accounts even though the actual TX cost is much lower.
+ *
+ * Operating at the transport level guarantees the override is applied
+ * regardless of how viem resolves its internal action chain (the
+ * `client.extend()` approach does not work because viem's bound methods
+ * close over the original base client and `getAction` short-circuits).
+ *
+ * Falls back to the original call if the RPC does not support
+ * `stateOverride` (geth < 1.13).
+ */
+const balanceAwareTransport = (url: string): Transport => {
+  const baseTransport = http(url);
+
+  return ((params: any) => {
+    const base = baseTransport(params);
+
+    return {
+      ...base,
+      async request(args: { method: string; params?: any }) {
+        if (
+          args.method === 'eth_estimateGas' &&
+          Array.isArray(args.params) &&
+          args.params[0]?.from
+        ) {
+          const from: string = args.params[0].from;
+          const txRequest = args.params[0];
+          const blockTag = args.params[1] ?? 'latest';
+          const existingOverride =
+            (args.params[2] as Record<string, unknown>) ?? {};
+
+          const stateOverride = {
+            ...existingOverride,
+            [from]: { balance: MAX_UINT256_HEX },
+          };
+
+          try {
+            return await base.request({
+              method: 'eth_estimateGas',
+              params: [txRequest, blockTag, stateOverride],
+            });
+          } catch (err: any) {
+            const msg = err instanceof Error ? err.message : String(err);
+            if (
+              msg.includes('stateOverride') ||
+              msg.includes('too many arguments') ||
+              msg.includes('invalid argument')
+            ) {
+              return await base.request(args);
+            }
+            throw err;
+          }
+        }
+
+        return base.request(args);
+      },
+    };
+  }) as Transport;
+};
 
 const getPrivateKey = async () => {
   const { PRIVATE_KEY, ACCOUNT_FILE, ACCOUNT_FILE_PASSWORD } = getConfig();
@@ -88,63 +156,6 @@ const PUBLIC_CLIENT_CACHE: {
   [key: number]: ReturnType<typeof createPublicClient>;
 } = {};
 
-/**
- * Returns an estimateGas override that injects a `stateOverride` with
- * maxUint256 balance for the sender during gas estimation only.
- *
- * Why: viem's `prepareTransactionRequest` fills `maxFeePerGas` BEFORE
- * calling `eth_estimateGas`. The node then checks
- * `balance >= blockGasLimit * maxFeePerGas`, which fails for low-balance
- * accounts even though the actual TX cost is much lower.
- *
- * The `baseClient` parameter MUST be the client created before `extend()`,
- * otherwise the override re-enters itself via `prepareTransactionRequest →
- * getAction → override → …` (infinite recursion).
- *
- * Falls back to default estimation if the RPC does not support
- * `stateOverride` (geth < 1.13).
- */
-const balanceAwareEstimateGas = (
-  baseClient: Parameters<typeof estimateGas>[0],
-) => ({
-  estimateGas: async (args: Parameters<typeof estimateGas>[1]) => {
-    const from =
-      typeof args.account === 'string' ? args.account : args.account?.address;
-
-    if (!from) {
-      return await estimateGas(baseClient, args);
-    }
-
-    try {
-      return await estimateGas(baseClient, {
-        ...args,
-        stateOverride: [
-          ...(args.stateOverride ?? []),
-          { address: from, balance: maxUint256 },
-        ],
-      });
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      if (
-        msg.includes('stateOverride') ||
-        msg.includes('too many arguments') ||
-        msg.includes('invalid argument')
-      ) {
-        return await estimateGas(baseClient, args);
-      }
-      throw err;
-    }
-  },
-});
-
-/**
- * Public client with balance-aware gas estimation.
- *
- * All contracts are created with `client: publicClient`, so viem uses it
- * for the entire `contract.write` chain (writeContract → sendTransaction →
- * prepareTransactionRequest → estimateGas). The override here covers all
- * contract write paths automatically.
- */
 export const getPublicClient = async () => {
   const chain = await getChain();
 
@@ -153,15 +164,10 @@ export const getPublicClient = async () => {
     return cached as typeof publicClient;
   }
 
-  const baseClient = createPublicClient({
+  const publicClient = createPublicClient({
     chain,
-    transport: http(getElUrl()),
+    transport: balanceAwareTransport(getElUrl()),
   });
-
-  const publicClient = baseClient.extend(() =>
-    balanceAwareEstimateGas(baseClient),
-  );
-
   PUBLIC_CLIENT_CACHE[chain.id] = publicClient;
 
   return publicClient;
@@ -177,25 +183,15 @@ export const getTestClient = async () => {
     .extend(walletActions);
 };
 
-/**
- * Wallet client with the same balance-aware gas estimation override.
- *
- * Covers the `send-tx` command path which uses
- * `walletClient.sendTransaction()` directly (not via contract.write).
- */
 export const getWalletWithAccount = async (): Promise<WalletClient> => {
   const account = await getAccount();
   const chain = await getChain();
 
-  const baseClient = createWalletClient({
+  return createWalletClient({
     account,
     chain,
-    transport: http(getElUrl()),
+    transport: balanceAwareTransport(getElUrl()),
   });
-
-  return baseClient.extend(() =>
-    balanceAwareEstimateGas(baseClient),
-  ) as unknown as WalletClient;
 };
 
 export const getWalletConnectClient = async (): Promise<{
