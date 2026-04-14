@@ -60,10 +60,14 @@ vi.mock('ox', () => ({
  *
  * We mock viem's http() transport so that `base.request` is our mockRpcRequest,
  * then call the wrapped `request` directly to verify interception logic.
+ *
+ * vi.resetModules() in beforeEach ensures each test gets a fresh module with
+ * a clean nodeSupportsStateOverride cache.
  */
 describe('balanceAwareTransport (transport-level gas estimation fix)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.resetModules();
   });
 
   it('injects stateOverride with max balance into eth_estimateGas', async () => {
@@ -225,5 +229,59 @@ describe('balanceAwareTransport (transport-level gas estimation fix)', () => {
       method: 'eth_blockNumber',
       params: [],
     });
+  });
+
+  it('caches stateOverride support after first successful call', async () => {
+    mockRpcRequest.mockResolvedValue('0x5208');
+
+    const { getPublicClient } = await import('../../providers/wallet.js');
+    const client = await getPublicClient();
+
+    // First call — probes stateOverride support
+    await (client as any).request({
+      method: 'eth_estimateGas',
+      params: [{ from: MOCK_FROM, to: '0xdead' }],
+    });
+
+    // Second call — should still inject stateOverride (cached: supported)
+    await (client as any).request({
+      method: 'eth_estimateGas',
+      params: [{ from: MOCK_FROM, to: '0xbeef' }],
+    });
+
+    expect(mockRpcRequest).toHaveBeenCalledTimes(2);
+    // Both calls include stateOverride (3 params each)
+    expect(mockRpcRequest.mock.calls[0]![0].params).toHaveLength(3);
+    expect(mockRpcRequest.mock.calls[1]![0].params).toHaveLength(3);
+  });
+
+  it('skips stateOverride on subsequent calls after fallback (cached: unsupported)', async () => {
+    // First call: stateOverride fails → fallback
+    mockRpcRequest
+      .mockRejectedValueOnce(new Error('too many arguments, want at most 2'))
+      .mockResolvedValueOnce('0x5208');
+
+    const { getPublicClient } = await import('../../providers/wallet.js');
+    const client = await getPublicClient();
+
+    await (client as any).request({
+      method: 'eth_estimateGas',
+      params: [{ from: MOCK_FROM, to: '0xdead' }],
+    });
+
+    expect(mockRpcRequest).toHaveBeenCalledTimes(2); // try + fallback
+
+    // Second call: should go directly to original (no stateOverride attempt)
+    mockRpcRequest.mockResolvedValueOnce('0x7530');
+    await (client as any).request({
+      method: 'eth_estimateGas',
+      params: [{ from: MOCK_FROM, to: '0xbeef' }],
+    });
+
+    expect(mockRpcRequest).toHaveBeenCalledTimes(3); // 2 from first + 1 direct
+    // Third RPC call: original args, no stateOverride
+    const directCall = mockRpcRequest.mock.calls[2]![0];
+    expect(directCall.params).toHaveLength(1);
+    expect(directCall.params[0]).toEqual({ from: MOCK_FROM, to: '0xbeef' });
   });
 });

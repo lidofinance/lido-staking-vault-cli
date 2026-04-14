@@ -20,6 +20,19 @@ import { createWalletConnectClient } from 'utils';
 const MAX_UINT256_HEX =
   '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
 
+// Cached after the first eth_estimateGas call to avoid a double RPC
+// roundtrip on every subsequent estimation when the node lacks support.
+let nodeSupportsStateOverride: boolean | null = null;
+
+const isStateOverrideError = (err: unknown): boolean => {
+  const msg = err instanceof Error ? err.message : String(err);
+  return (
+    msg.includes('stateOverride') ||
+    msg.includes('too many arguments') ||
+    msg.includes('invalid argument')
+  );
+};
+
 /**
  * Wraps viem's http() transport to inject a `stateOverride` into every
  * `eth_estimateGas` RPC call, setting the sender's balance to maxUint256.
@@ -35,7 +48,8 @@ const MAX_UINT256_HEX =
  * close over the original base client and `getAction` short-circuits).
  *
  * Falls back to the original call if the RPC does not support
- * `stateOverride` (geth < 1.13).
+ * `stateOverride` (geth < 1.13), and caches the result so subsequent
+ * calls skip the failed attempt.
  */
 const balanceAwareTransport = (url: string): Transport => {
   const baseTransport = http(url);
@@ -51,6 +65,10 @@ const balanceAwareTransport = (url: string): Transport => {
           Array.isArray(args.params) &&
           args.params[0]?.from
         ) {
+          if (nodeSupportsStateOverride === false) {
+            return base.request(args);
+          }
+
           const from: string = args.params[0].from;
           const txRequest = args.params[0];
           const blockTag = args.params[1] ?? 'latest';
@@ -63,17 +81,15 @@ const balanceAwareTransport = (url: string): Transport => {
           };
 
           try {
-            return await base.request({
+            const result = await base.request({
               method: 'eth_estimateGas',
               params: [txRequest, blockTag, stateOverride],
             });
+            nodeSupportsStateOverride = true;
+            return result;
           } catch (err: any) {
-            const msg = err instanceof Error ? err.message : String(err);
-            if (
-              msg.includes('stateOverride') ||
-              msg.includes('too many arguments') ||
-              msg.includes('invalid argument')
-            ) {
+            if (isStateOverrideError(err)) {
+              nodeSupportsStateOverride = false;
               return await base.request(args);
             }
             throw err;
