@@ -290,10 +290,10 @@ describe('balanceAwareTransport (transport-level gas estimation fix)', () => {
 
     expect(mockRpcRequest).toHaveBeenCalledTimes(3); // 2 from first + 1 direct
     // Third RPC call: original args, no stateOverride
-    const typedCalls = mockRpcRequest.mock.calls as Array<
-      [{ params: unknown[] }]
-    >;
-    const directCall = typedCalls[2][0];
+    // .at(-1) is safe here — we just asserted toHaveBeenCalledTimes(3)
+    const directCall = (
+      mockRpcRequest.mock.calls.at(-1) as [{ params: unknown[] }]
+    )[0];
     expect(directCall.params).toHaveLength(1);
     expect(directCall.params[0]).toEqual({ from: MOCK_FROM, to: '0xbeef' });
   });
