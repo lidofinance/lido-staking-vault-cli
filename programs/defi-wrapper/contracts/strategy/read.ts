@@ -5,9 +5,12 @@ import {
   getCommandsJson,
   stringToAddress,
   callReadMethod,
+  generateReadCommands,
 } from 'utils';
+import { GenericStrategyAbi } from 'abi/defi-wrapper/index.js';
 import { getGenericStrategyContract } from 'contracts/defi-wrapper/generic-strategy.js';
 import { strategy } from './main.js';
+import { readCommandConfig } from './config.js';
 
 const strategyRead = strategy
   .command('read')
@@ -34,3 +37,10 @@ strategyRead
       payload: [[user]],
     });
   });
+
+generateReadCommands(
+  GenericStrategyAbi,
+  getGenericStrategyContract,
+  strategyRead,
+  readCommandConfig,
+);

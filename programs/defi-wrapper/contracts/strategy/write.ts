@@ -25,7 +25,7 @@ strategyWrite.on('option:-cmd2json', function () {
 strategyWrite
   .command('safe-transfer-erc20')
   .description('transfer ERC20 tokens from strategy proxy to a recipient')
-  .argument('<address>', 'strategy proxy address', stringToAddress)
+  .argument('<address>', 'strategy address', stringToAddress)
   .argument('<token>', 'ERC20 token address', stringToAddress)
   .argument('<recipient>', 'recipient address', stringToAddress)
   .argument('<amount>', 'amount of tokens to transfer (in ETH)', etherToWei)
