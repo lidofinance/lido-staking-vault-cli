@@ -192,6 +192,25 @@ export const GenericStrategyAbi = [
     stateMutability: 'view',
   },
   {
+    type: 'function',
+    name: 'getStrategyCallForwarderAddress',
+    inputs: [
+      {
+        name: '_user',
+        type: 'address',
+        internalType: 'address',
+      },
+    ],
+    outputs: [
+      {
+        name: 'callForwarder',
+        type: 'address',
+        internalType: 'contract IStrategyCallForwarder',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
     type: 'error',
     name: 'ZeroArgument',
     inputs: [
