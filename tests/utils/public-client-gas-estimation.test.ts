@@ -16,10 +16,10 @@ vi.mock('viem', async (importOriginal) => {
     ...actual,
     // Return a minimal transport factory whose `request` we control
     http: () => {
-      const factory = Object.assign(
-        () => ({ request: mockRpcRequest }),
-        { config: { key: 'http' }, value: undefined },
-      );
+      const factory = Object.assign(() => ({ request: mockRpcRequest }), {
+        config: { key: 'http' },
+        value: undefined,
+      });
       return factory;
     },
     // Expose the transport's wrapped `request` directly on the client
@@ -82,7 +82,9 @@ describe('balanceAwareTransport (transport-level gas estimation fix)', () => {
     });
 
     expect(mockRpcRequest).toHaveBeenCalledTimes(1);
-    const rpcCall = mockRpcRequest.mock.calls[0]![0];
+    const [[rpcCall]] = mockRpcRequest.mock.calls as [
+      [{ method: string; params: unknown[] }],
+    ];
     expect(rpcCall.method).toBe('eth_estimateGas');
     expect(rpcCall.params).toHaveLength(3);
     expect(rpcCall.params[0]).toEqual({
@@ -111,7 +113,7 @@ describe('balanceAwareTransport (transport-level gas estimation fix)', () => {
       params: [{ from: MOCK_FROM, to: '0xdead' }, 'pending', existing],
     });
 
-    const rpcCall = mockRpcRequest.mock.calls[0]![0];
+    const [[rpcCall]] = mockRpcRequest.mock.calls as [[{ params: unknown[] }]];
     expect(rpcCall.params[1]).toBe('pending');
     expect(rpcCall.params[2]).toEqual({
       ...existing,
@@ -136,7 +138,10 @@ describe('balanceAwareTransport (transport-level gas estimation fix)', () => {
     expect(mockRpcRequest).toHaveBeenCalledTimes(2);
 
     // Second call: original args without stateOverride
-    const fallbackCall = mockRpcRequest.mock.calls[1]![0];
+    const [, [fallbackCall]] = mockRpcRequest.mock.calls as [
+      [unknown],
+      [{ params: unknown[] }],
+    ];
     expect(fallbackCall.params).toHaveLength(1);
   });
 
@@ -206,7 +211,7 @@ describe('balanceAwareTransport (transport-level gas estimation fix)', () => {
 
     expect(mockRpcRequest).toHaveBeenCalledTimes(1);
     // Passed through unchanged — no stateOverride injected
-    const rpcCall = mockRpcRequest.mock.calls[0]![0];
+    const [[rpcCall]] = mockRpcRequest.mock.calls as [[unknown]];
     expect(rpcCall).toEqual({
       method: 'eth_estimateGas',
       params: [{ to: '0xdead', data: '0x1234' }],
@@ -225,7 +230,8 @@ describe('balanceAwareTransport (transport-level gas estimation fix)', () => {
     });
 
     expect(mockRpcRequest).toHaveBeenCalledTimes(1);
-    expect(mockRpcRequest.mock.calls[0]![0]).toEqual({
+    const [[rpcCall]] = mockRpcRequest.mock.calls as [[unknown]];
+    expect(rpcCall).toEqual({
       method: 'eth_blockNumber',
       params: [],
     });
@@ -251,8 +257,12 @@ describe('balanceAwareTransport (transport-level gas estimation fix)', () => {
 
     expect(mockRpcRequest).toHaveBeenCalledTimes(2);
     // Both calls include stateOverride (3 params each)
-    expect(mockRpcRequest.mock.calls[0]![0].params).toHaveLength(3);
-    expect(mockRpcRequest.mock.calls[1]![0].params).toHaveLength(3);
+    const [[firstCall], [secondCall]] = mockRpcRequest.mock.calls as [
+      [{ params: unknown[] }],
+      [{ params: unknown[] }],
+    ];
+    expect(firstCall.params).toHaveLength(3);
+    expect(secondCall.params).toHaveLength(3);
   });
 
   it('skips stateOverride on subsequent calls after fallback (cached: unsupported)', async () => {
@@ -280,7 +290,10 @@ describe('balanceAwareTransport (transport-level gas estimation fix)', () => {
 
     expect(mockRpcRequest).toHaveBeenCalledTimes(3); // 2 from first + 1 direct
     // Third RPC call: original args, no stateOverride
-    const directCall = mockRpcRequest.mock.calls[2]![0];
+    const typedCalls = mockRpcRequest.mock.calls as Array<
+      [{ params: unknown[] }]
+    >;
+    const directCall = typedCalls[2][0];
     expect(directCall.params).toHaveLength(1);
     expect(directCall.params[0]).toEqual({ from: MOCK_FROM, to: '0xbeef' });
   });

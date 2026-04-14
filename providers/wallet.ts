@@ -51,7 +51,7 @@ const isStateOverrideError = (err: unknown): boolean => {
  * `stateOverride` (geth < 1.13), and caches the result so subsequent
  * calls skip the failed attempt.
  */
-const balanceAwareTransport = (url: string): Transport => {
+export const balanceAwareTransport = (url: string): Transport => {
   const baseTransport = http(url);
 
   return ((params: any) => {
