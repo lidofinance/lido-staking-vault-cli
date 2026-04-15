@@ -1,13 +1,18 @@
-import { Address, fromHex } from 'viem';
+import { Address, ContractFunctionExecutionError, fromHex, Hex } from 'viem';
 import {
   getStvStethPoolContract,
   getStvPoolContract,
   getWithdrawalQueueContract,
 } from 'contracts/defi-wrapper/index.js';
-import { callReadMethodSilent, fetchAndCalculateVaultHealth } from 'utils';
-import { reportFreshWarning, vaultMintLimit } from 'features';
+import {
+  callReadMethodSilent,
+  fetchAndCalculateVaultHealth,
+  logError,
+} from 'utils';
+import { KNOWN_STRATEGIES, reportFreshWarning, vaultMintLimit } from 'features';
 import { getDashboardContract, getStakingVaultContract } from 'contracts';
 import { bigIntMax } from 'utils/big-int.js';
+import { getGenericStrategyContract } from 'contracts/defi-wrapper/generic-strategy.js';
 
 export const STV_POOL_NAME = 'StvPool';
 export const STV_STETH_POOL_NAME = 'StvStETHPool';
@@ -210,6 +215,51 @@ const getStvStethPoolInfo = async (address: Address) => {
   };
 };
 
+export const getStrategyPoolInfo = async (address: Address) => {
+  const contract = await getStvStethPoolContract(address);
+
+  const strategyList = await contract.read.getAllowListAddresses();
+
+  const strategies: {
+    address: Address;
+    strategyId?: Hex;
+    isAllowListEnabled?: boolean;
+    allowListMangers?: Address[];
+    strategyName?: string;
+  }[] = [];
+  for (const strategyAddress of strategyList) {
+    const info: (typeof strategies)[number] = { address: strategyAddress };
+    const strategyContract = await getGenericStrategyContract(strategyAddress);
+    try {
+      const strategyId = await strategyContract.read.STRATEGY_ID();
+      const strategyName = KNOWN_STRATEGIES[strategyId] ?? 'Unknown';
+      info.strategyId = strategyId;
+      info.strategyName = strategyName;
+      const isAllowListEnabled =
+        await strategyContract.read.ALLOW_LIST_ENABLED();
+      info.isAllowListEnabled = isAllowListEnabled;
+      if (isAllowListEnabled) {
+        const allowListManagerRole =
+          await strategyContract.read.ALLOW_LIST_MANAGER_ROLE();
+        const managers = await strategyContract.read.getRoleMembers([
+          allowListManagerRole,
+        ]);
+        info.allowListMangers = [...managers];
+      }
+    } catch (error: any) {
+      if (error instanceof ContractFunctionExecutionError) {
+        logError(
+          `Failed to fetch info for strategy at address ${strategyAddress}, is it a valid strategy?`,
+        );
+      } else throw error;
+    }
+    strategies.push(info);
+  }
+  return {
+    strategies,
+  };
+};
+
 export const getPoolInfo = async (address: Address) => {
   const stvPoolInfo = await getStvPoolInfo(address);
 
@@ -222,16 +272,23 @@ export const getPoolInfo = async (address: Address) => {
     poolTypeName === STV_STETH_POOL_NAME ||
     poolTypeName === STV_STRATEGY_POOL_NAME;
   const isStvPool = poolTypeName === STV_POOL_NAME;
+  const isStrategyPool = poolTypeName === STV_STRATEGY_POOL_NAME;
 
   const stvStethPoolInfo = isStvStethPool
     ? await getStvStethPoolInfo(address)
     : null;
 
+  const strategyPoolInfo = isStrategyPool
+    ? await getStrategyPoolInfo(address)
+    : null;
+
   return {
     ...stvPoolInfo,
     ...stvStethPoolInfo,
+    ...strategyPoolInfo,
     poolTypeName,
     isStvStethPool,
     isStvPool,
+    isStrategyPool,
   };
 };

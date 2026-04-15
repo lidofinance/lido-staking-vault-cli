@@ -3,8 +3,6 @@ import {
   encodeAbiParameters,
   Hex,
   isAddressEqual,
-  keccak256,
-  toBytes,
   zeroAddress,
 } from 'viem';
 import { getTransactionReceipt } from 'viem/actions';
@@ -40,6 +38,7 @@ import {
   MELLOW_VAULTS_STRATEGY_ID,
   getFinalizePoolEventData,
   getBoolean,
+  KNOWN_STRATEGIES,
 } from 'features';
 
 import { factory } from './main.js';
@@ -527,7 +526,7 @@ applyCommonOptions(
         );
       }
 
-      if (STRATEGY_ID !== keccak256(toBytes(MELLOW_VAULTS_STRATEGY_ID))) {
+      if (KNOWN_STRATEGIES[STRATEGY_ID] !== MELLOW_VAULTS_STRATEGY_ID) {
         throw new Error(
           `The provided strategy factory contract has an incompatible STRATEGY_ID. Check that the contract at address ${strategyFactoryAddress} is the correct one.`,
         );
