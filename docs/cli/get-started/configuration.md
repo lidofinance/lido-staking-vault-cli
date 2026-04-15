@@ -10,6 +10,31 @@ Before using the Lido Staking Vault CLI, you need to configure your environment 
 
 ## Installation
 
+### From npm (Recommended)
+
+Install the CLI globally to use the `lsv-cli` command anywhere:
+
+```bash
+# Using npm
+npm install -g @lidofinance/lsv-cli
+
+# Using yarn
+yarn global add @lidofinance/lsv-cli
+```
+
+After installation, you can run the CLI directly:
+
+```bash
+lsv-cli [command] [options]
+lsv-cli -h
+```
+
+Alternatively, you can run it without a global install using `npx`:
+
+```bash
+npx @lidofinance/lsv-cli [command] [options]
+```
+
 ### Clone from Repository
 
 ```bash
@@ -142,10 +167,16 @@ Learn more details in the [WalletConnect Guide](https://lidofinance.github.io/li
 After configuration, verify your setup:
 
 ```bash
-# Check account information
+# Check account information (global install)
+lsv-cli account r info
+
+# Check account information (from source)
 yarn start account r info
 
-# Verify network connectivity
+# Verify network connectivity (global install)
+lsv-cli contracts hub r info
+
+# Verify network connectivity (from source)
 yarn start contracts hub r info
 ```
 
