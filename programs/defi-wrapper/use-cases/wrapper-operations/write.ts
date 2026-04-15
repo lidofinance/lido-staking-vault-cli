@@ -283,7 +283,11 @@ wrapperOperationsWrite
 wrapperOperationsWrite
   .command('allow-list-add')
   .description('add addresses(divided by spaces) to allow list ')
-  .argument('<poolAddress>', 'pool address', stringToAddress)
+  .argument(
+    '<poolAddress/strategyAddress>',
+    'address of the pool or strategy(for stvStrategyPools)',
+    stringToAddress,
+  )
   .argument(
     '<addressToAdd...>',
     '1 or more addresses to add to allow list divided by spaces',
@@ -299,7 +303,7 @@ wrapperOperationsWrite
     });
 
     if (!isAllowListEnabled) {
-      logError('Pool is not configured for using allow list.');
+      logError('Pool/Strategy is not configured for using allow list.');
       return;
     }
 
@@ -329,7 +333,11 @@ wrapperOperationsWrite
 wrapperOperationsWrite
   .command('allow-list-remove')
   .description('remove addresses(divided by spaces) from allow list ')
-  .argument('<poolAddress>', 'pool address', stringToAddress)
+  .argument(
+    '<poolAddress/strategyAddress>',
+    'address of the pool or strategy(for stvStrategyPools)',
+    stringToAddress,
+  )
   .argument(
     '<addressesToRemove...>',
     '1 or more addresses to remove divided by spaces',
@@ -345,7 +353,7 @@ wrapperOperationsWrite
     });
 
     if (!isAllowListEnabled) {
-      logError('Pool is not configured for using allow list.');
+      logError('Pool/Strategy is not configured for using allow list.');
       return;
     }
 

@@ -182,7 +182,11 @@ wrapperOperationsRead
 wrapperOperationsRead
   .command('allow-list')
   .description('get full or partial allow list data')
-  .argument('<address>', 'wrapper address', stringToAddress)
+  .argument(
+    '<poolAddress/strategyAddress>',
+    'pool or strategy(for stvStrategyPools) address',
+    stringToAddress,
+  )
   .argument(
     '[addresses...]',
     'list of addresses to check, leave empty to get full allow list',
