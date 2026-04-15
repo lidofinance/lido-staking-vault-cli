@@ -137,6 +137,19 @@ export const getChainId = async () => {
   return chainId;
 };
 
+export const getExplorerUrl = async (): Promise<string> => {
+  const chainId = await getChainId();
+  const chain = SUPPORTED_CHAINS_LIST.find((chain) => chain.id === chainId);
+
+  if (!chain) {
+    throw new Error(`Chain ${chainId} is not supported`);
+  }
+
+  const explorerUrl = chain.blockExplorers.default.url;
+
+  return explorerUrl;
+};
+
 export const getChain = async (): Promise<Chain> => {
   const chainId = await getChainId();
   const chain = SUPPORTED_CHAINS_LIST.find((chain) => chain.id === chainId);

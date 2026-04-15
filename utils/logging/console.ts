@@ -8,11 +8,13 @@ import { program } from 'command';
 
 import { getColoredLog, HeadMessage, TABLE_PARAMS } from './constants.js';
 import { exportCsv } from '../csv-file.js';
+import { isAddress } from 'viem';
 
 type CreateTableArgs = {
   data?: (VerticalTableRow | HorizontalTableRow | CrossTableRow)[];
   params?: TableConstructorOptions;
   csvPath?: string;
+  explorerBaseUrl?: string;
 };
 
 const bigIntStringify = <T>(value: T): string => {
@@ -93,8 +95,16 @@ export const createConsole = (
   };
 };
 
+const createEtherscanAddressTerminalLink = (
+  address: string,
+  scanBaseUrl: string,
+) => {
+  const url = `${scanBaseUrl}/address/${address}`;
+  return `\u001B]8;;${url}\u0007${address}\u001B]8;;\u0007`;
+};
+
 const createTable = (headMessage?: HeadMessage) => (args: CreateTableArgs) => {
-  const { data, params, csvPath } = args;
+  const { data, params, csvPath, explorerBaseUrl } = args;
   if (headMessage && !program.opts().json)
     console.info(`\n${getColoredLog(headMessage, headMessage + ':')}`);
 
@@ -111,7 +121,25 @@ const createTable = (headMessage?: HeadMessage) => (args: CreateTableArgs) => {
     return console.info(bigIntStringify({ result: data }));
   } else {
     const table = new Table({ ...TABLE_PARAMS, ...params });
-    table.push(...data);
+    let dataToRender = data;
+    if (explorerBaseUrl) {
+      dataToRender = data.map((row) => {
+        if (Array.isArray(row)) {
+          row = row.map((cell) => {
+            if (
+              typeof cell === 'string' &&
+              isAddress(cell, { strict: false })
+            ) {
+              return createEtherscanAddressTerminalLink(cell, explorerBaseUrl);
+            }
+            return cell;
+          });
+        }
+        return row;
+      });
+    }
+
+    table.push(...dataToRender);
     console.info(table.toString());
   }
 
