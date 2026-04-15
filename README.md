@@ -31,6 +31,18 @@ For changes between versions see [Changelog](./CHANGELOG.md)
 
 ## Installation
 
+### Global Installation (Recommended)
+
+Install the CLI globally via npm or yarn to use the `lsv-cli` command from anywhere:
+
+```bash
+# Using npm
+npm install -g @lidofinance/lsv-cli
+
+# Using yarn
+yarn global add @lidofinance/lsv-cli
+```
+
 ### From Source
 
 ```bash
@@ -86,6 +98,18 @@ Ensure your **EL_URL** matches the configured **CHAIN_ID**.
 ## Usage
 
 After installation and configuration, you can start using the CLI to manage your staking vaults.
+
+### Global install
+
+```bash
+lsv-cli [command] [options]
+```
+
+```bash
+lsv-cli -h
+```
+
+### From source
 
 ```bash
 yarn start [command] [options]
