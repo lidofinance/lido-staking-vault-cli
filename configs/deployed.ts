@@ -150,6 +150,10 @@ export const getExplorerUrl = async (): Promise<string> => {
   return explorerUrl;
 };
 
+export const CHAIN_CACHE = {
+  currentChain: undefined as (typeof SUPPORTED_CHAINS_LIST)[number] | undefined,
+};
+
 export const getChain = async (): Promise<Chain> => {
   const chainId = await getChainId();
   const chain = SUPPORTED_CHAINS_LIST.find((chain) => chain.id === chainId);
@@ -157,6 +161,8 @@ export const getChain = async (): Promise<Chain> => {
   if (!chain) {
     throw new Error(`Chain ${chainId} is not supported`);
   }
+
+  CHAIN_CACHE.currentChain = chain;
 
   return chain;
 };

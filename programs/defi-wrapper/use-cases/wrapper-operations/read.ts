@@ -22,7 +22,6 @@ import { wrapperOperations } from './main.js';
 import { getDashboardContract, getStethContract } from 'contracts';
 import { bigIntMin } from 'utils/big-int.js';
 import { getPublicClient } from 'providers';
-import { getExplorerUrl } from 'configs/deployed.js';
 
 const wrapperOperationsRead = wrapperOperations
   .command('read')
@@ -44,7 +43,6 @@ wrapperOperationsRead
 
     logInfo('Wrapper Info');
     logTable({
-      explorerBaseUrl: await getExplorerUrl(),
       data: [
         // Base Info
         ['Pool', address],

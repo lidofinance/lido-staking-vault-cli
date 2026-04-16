@@ -9,6 +9,7 @@ import { program } from 'command';
 import { getColoredLog, HeadMessage, TABLE_PARAMS } from './constants.js';
 import { exportCsv } from '../csv-file.js';
 import { isAddress } from 'viem';
+import { CHAIN_CACHE } from 'configs/deployed.js';
 
 type CreateTableArgs = {
   data?: (VerticalTableRow | HorizontalTableRow | CrossTableRow)[];
@@ -104,7 +105,12 @@ const createEtherscanAddressTerminalLink = (
 };
 
 const createTable = (headMessage?: HeadMessage) => (args: CreateTableArgs) => {
-  const { data, params, csvPath, explorerBaseUrl } = args;
+  const {
+    data,
+    params,
+    csvPath,
+    explorerBaseUrl = CHAIN_CACHE.currentChain?.blockExplorers.default.url,
+  } = args;
   if (headMessage && !program.opts().json)
     console.info(`\n${getColoredLog(headMessage, headMessage + ':')}`);
 
