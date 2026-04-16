@@ -1,5 +1,18 @@
 All notable changes to this project will be documented in this file.
 
+## 1.8.0
+
+### Added
+
+- Addresses in table outputs are now clickable links to block explorers
+
+#### DeFi Wrapper
+
+- `defi-wrapper contracts strategy` module for interacting with Strategy contracts connected to StvStrategyPool
+- `defi-wrapper use-cases timelock-governance strategy` module for proposing and executing timelock operation of Strategy contracts connected to StvStrategyPool.
+- `defi-wrapper use-cases wrapper-operations` allowList commands now directly indicate support fot Strategy Contracts
+- `defi-wrapper use-cases wrapper-operations read info` now displays connected Strategies
+
 ## 1.7.0
 
 ### Added
