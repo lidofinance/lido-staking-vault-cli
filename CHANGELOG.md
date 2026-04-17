@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 - `defi-wrapper use-cases timelock-governance strategy` module for proposing and executing timelock operation of Strategy contracts connected to StvStrategyPool.
 - `defi-wrapper use-cases wrapper-operations` allowList commands now directly indicate support fot Strategy Contracts
 - `defi-wrapper use-cases wrapper-operations read info` now displays connected Strategies
+- `defi-wrapper contracts factory w` module now contains `verify-contract` and `verify-deployment` commands for Etherscan verification of Factory and created pools
 
 ## 1.7.0
 
