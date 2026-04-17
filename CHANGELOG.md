@@ -14,6 +14,13 @@ All notable changes to this project will be documented in this file.
 - `defi-wrapper use-cases wrapper-operations read info` now displays connected Strategies
 - `defi-wrapper contracts factory w` module now contains `verify-contract` and `verify-deployment` commands for Etherscan verification of Factory and created pools
 
+### Fixed
+
+- estimateGas now handles low-balance accounts correctly
+- `defi-wrapper contracts factory` commands now correctly parse and handle `mintingEnabled`
+- `defi-wrapper use-cases wrapper-operations write` command with `--help` display correctly
+- `defi-wrapper use-cases timelock-governance pool execute-set-max-loss-socialization-bp` now correctly executes operation
+
 ## 1.7.0
 
 ### Added
