@@ -12,20 +12,22 @@ const RATE_LIMIT_DELAY_MS = 500; // Delay between batches
  * @param executor - Function to execute for each item
  * @returns Array of results
  */
+const parseEnvInt = (raw: string | undefined, fallback: number): number => {
+  if (!raw) return fallback;
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : fallback;
+};
+
 export const executeBatchedWithRateLimit = async <T, R>(
   items: T[],
   executor: (item: T) => Promise<R>,
   batchSize = Math.max(
     1,
-    process.env.RATE_LIMIT_BATCH_SIZE
-      ? Number(process.env.RATE_LIMIT_BATCH_SIZE)
-      : RATE_LIMIT_BATCH_SIZE,
+    parseEnvInt(process.env.RATE_LIMIT_BATCH_SIZE, RATE_LIMIT_BATCH_SIZE),
   ),
   delayMs = Math.max(
     0,
-    process.env.RATE_LIMIT_DELAY_MS
-      ? Number(process.env.RATE_LIMIT_DELAY_MS)
-      : RATE_LIMIT_DELAY_MS,
+    parseEnvInt(process.env.RATE_LIMIT_DELAY_MS, RATE_LIMIT_DELAY_MS),
   ),
 ): Promise<R[]> => {
   const results: R[] = [];

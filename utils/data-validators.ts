@@ -12,7 +12,7 @@ export const validateConfig = (config: Config) => {
   return errors;
 };
 
-const ALLOWED_SCHEMES = new Set(['http:', 'https:']);
+export const ALLOWED_HTTP_SCHEMES = new Set(['http:', 'https:']);
 
 export const isValidUrl = (value: string | undefined): boolean => {
   if (!value) {
@@ -21,7 +21,7 @@ export const isValidUrl = (value: string | undefined): boolean => {
 
   try {
     const url = new globalThis.URL(value);
-    return ALLOWED_SCHEMES.has(url.protocol);
+    return ALLOWED_HTTP_SCHEMES.has(url.protocol);
   } catch {
     return false;
   }

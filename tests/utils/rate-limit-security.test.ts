@@ -23,7 +23,6 @@ describe('rate-limit batch size clamping (L4)', () => {
 
     const promise = executeBatchedWithRateLimit(items, executor);
 
-    // With batchSize clamped to 1, items processed one at a time
     await vi.advanceTimersByTimeAsync(0);
     expect(executor).toHaveBeenCalledTimes(1);
 
@@ -61,8 +60,49 @@ describe('rate-limit batch size clamping (L4)', () => {
 
     const promise = executeBatchedWithRateLimit(items, executor, 2);
 
-    // With delayMs clamped to 0, all batches should process immediately
     await vi.advanceTimersByTimeAsync(0);
+    expect(executor).toHaveBeenCalledTimes(4);
+
+    const results = await promise;
+    expect(results).toEqual([1, 2, 3, 4]);
+  });
+
+  test('falls back to default when env batch size is NaN', async () => {
+    process.env.RATE_LIMIT_BATCH_SIZE = 'abc';
+    const items = Array.from({ length: 250 }, (_, i) => i + 1);
+    const executor = vi.fn(async (item: number) => item);
+
+    const promise = executeBatchedWithRateLimit(items, executor);
+
+    // Should use default batch size (120), not NaN
+    await vi.advanceTimersByTimeAsync(0);
+    expect(executor).toHaveBeenCalledTimes(120);
+
+    await vi.advanceTimersByTimeAsync(500);
+    expect(executor).toHaveBeenCalledTimes(240);
+
+    await vi.advanceTimersByTimeAsync(500);
+    expect(executor).toHaveBeenCalledTimes(250);
+
+    const results = await promise;
+    expect(results).toEqual(items);
+  });
+
+  test('falls back to default when env delay is NaN', async () => {
+    process.env.RATE_LIMIT_DELAY_MS = 'xyz';
+    const items = [1, 2, 3, 4];
+    const executor = vi.fn(async (item: number) => item);
+
+    const promise = executeBatchedWithRateLimit(items, executor, 2);
+
+    await vi.advanceTimersByTimeAsync(0);
+    expect(executor).toHaveBeenCalledTimes(2);
+
+    // Should use default delay (500ms), not NaN
+    await vi.advanceTimersByTimeAsync(400);
+    expect(executor).toHaveBeenCalledTimes(2);
+
+    await vi.advanceTimersByTimeAsync(100);
     expect(executor).toHaveBeenCalledTimes(4);
 
     const results = await promise;

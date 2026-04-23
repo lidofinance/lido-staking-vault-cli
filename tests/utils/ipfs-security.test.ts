@@ -13,7 +13,8 @@ vi.mock('multiformats/cid', () => {
       return other && other.str === this.str;
     }
     static parse(str: string) {
-      if (str === 'INVALID_CID') throw new Error('Invalid CID');
+      if (str === 'INVALID_CID' || str.includes('..'))
+        throw new Error('Invalid CID');
       return new MockCID(str);
     }
   }
@@ -120,5 +121,17 @@ describe('IPFS CID validation (M6)', () => {
     await expect(
       ipfs.fetchIPFSDirectAndVerify('INVALID_CID'),
     ).rejects.toThrow('Invalid IPFS CID: INVALID_CID');
+  });
+
+  test('fetchIPFSWithCacheAndVerify rejects path-traversal CID before fs access', async () => {
+    await expect(
+      ipfs.fetchIPFSWithCacheAndVerify('../../../etc/passwd'),
+    ).rejects.toThrow('Invalid IPFS CID');
+  });
+
+  test('fetchIPFSWithCacheAndVerify validates gateway URL', async () => {
+    await expect(
+      ipfs.fetchIPFSWithCacheAndVerify('validcid', 'file:///etc/passwd'),
+    ).rejects.toThrow('unsupported URL scheme "file:"');
   });
 });

@@ -6,8 +6,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 
 import { logInfo, logTable } from './logging/console.js';
-
-const ALLOWED_URL_SCHEMES = new Set(['http:', 'https:']);
+import { ALLOWED_HTTP_SCHEMES } from './data-validators.js';
 
 const assertSafeUrl = (url: string, label: string): void => {
   let parsed: URL;
@@ -16,7 +15,7 @@ const assertSafeUrl = (url: string, label: string): void => {
   } catch {
     throw new Error(`${label}: invalid URL: ${url}`);
   }
-  if (!ALLOWED_URL_SCHEMES.has(parsed.protocol)) {
+  if (!ALLOWED_HTTP_SCHEMES.has(parsed.protocol)) {
     throw new Error(
       `${label}: unsupported URL scheme "${parsed.protocol}" (only http/https allowed)`,
     );
@@ -156,6 +155,13 @@ export const fetchIPFSWithCacheAndVerify = async <T>(
   cid: string,
   gateway = IPFS_GATEWAY,
 ): Promise<T> => {
+  assertSafeUrl(gateway, 'IPFS gateway');
+  try {
+    CID.parse(cid);
+  } catch {
+    throw new Error(`Invalid IPFS CID: ${cid}`);
+  }
+
   await fs.mkdir(IPFS_CACHE_DIR, { recursive: true });
   const cacheFile = path.join(IPFS_CACHE_DIR, `${cid}.json`);
 

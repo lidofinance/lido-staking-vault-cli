@@ -6,10 +6,11 @@ import { calculateRebaseReward } from './rebase-rewards.js';
 import { logInfo } from './logging/index.js';
 import { Address } from 'viem';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const DANGEROUS_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+
 const safeJsonParse = (text: string): any =>
   JSON.parse(text, (key, value) =>
-    key === '__proto__' ? undefined : value,
+    DANGEROUS_KEYS.has(key) ? undefined : value,
   );
 
 // Types for cached events

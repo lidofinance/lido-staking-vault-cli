@@ -169,6 +169,17 @@ export const parseTiers = (value: string): Tier[] => {
   if (!Array.isArray(parsed)) {
     throw new Error('Invalid Tiers JSON: must be an array');
   }
+  for (const item of parsed) {
+    if (
+      typeof item !== 'object' ||
+      item === null ||
+      !('operator' in item)
+    ) {
+      throw new Error(
+        'Invalid Tier entry: each must contain operator field',
+      );
+    }
+  }
   return parsed as Tier[];
 };
 

@@ -37,9 +37,27 @@ describe('safeJsonParse prototype pollution prevention (M8)', () => {
     const result = await cache.getShareRate(100);
     expect(result).toBe(999n);
 
-    // Verify prototype was not polluted
     const obj = {} as any;
     expect(obj.polluted).toBeUndefined();
+  });
+
+  it('should strip constructor keys from cached JSON', async () => {
+    const malicious = '{"100": "999", "constructor": {"prototype": {"injected": true}}}';
+    mockReadFile.mockResolvedValue(malicious);
+
+    const result = await cache.getShareRate(100);
+    expect(result).toBe(999n);
+
+    const obj = {} as any;
+    expect(obj.injected).toBeUndefined();
+  });
+
+  it('should strip prototype keys from cached JSON', async () => {
+    const malicious = '{"100": "999", "prototype": {"leaked": true}}';
+    mockReadFile.mockResolvedValue(malicious);
+
+    const result = await cache.getShareRate(100);
+    expect(result).toBe(999n);
   });
 
   it('should strip nested __proto__ keys', async () => {
@@ -55,7 +73,7 @@ describe('safeJsonParse prototype pollution prevention (M8)', () => {
     expect(obj.bad).toBeUndefined();
   });
 
-  it('should handle normal JSON without __proto__', async () => {
+  it('should handle normal JSON without dangerous keys', async () => {
     mockReadFile.mockResolvedValue(JSON.stringify({ 100: '500' }));
     const result = await cache.getShareRate(100);
     expect(result).toBe(500n);

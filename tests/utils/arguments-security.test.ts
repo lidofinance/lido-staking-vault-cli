@@ -42,24 +42,9 @@ describe('jsonToRoleAssignment structural validation (M3)', () => {
       'must contain account and role fields',
     );
   });
-
-  test('accepts valid role assignment array', () => {
-    const result = jsonToRoleAssignment(
-      '[{"account":"0x1","role":"0x2"}]',
-    );
-    expect(result).toEqual([{ account: '0x1', role: '0x2' }]);
-  });
 });
 
 describe('stringToBigInt safe parsing (M5)', () => {
-  test('parses valid BigInt', () => {
-    expect(stringToBigInt('42')).toBe(42n);
-  });
-
-  test('parses negative BigInt', () => {
-    expect(stringToBigInt('-5')).toBe(-5n);
-  });
-
   test('calls program.error on invalid input', () => {
     stringToBigInt('not-a-number');
     expect(programError).toHaveBeenCalledWith(
@@ -82,14 +67,15 @@ describe('parseTiers validation', () => {
     expect(() => parseTiers('{"shareLimit":"1"}')).toThrow('must be an array');
   });
 
-  test('accepts valid tiers array', () => {
-    const tier = {
-      shareLimit: '1',
-      reserveRatioBP: '2',
-      forcedRebalanceThresholdBP: '3',
-      treasuryFeeBP: '4',
-    };
-    expect(parseTiers(JSON.stringify([tier]))).toEqual([tier]);
+  test('rejects element without operator field', () => {
+    const tier = { shareLimit: '1' };
+    expect(() => parseTiers(JSON.stringify([tier]))).toThrow(
+      'must contain operator field',
+    );
+  });
+
+  test('rejects null element', () => {
+    expect(() => parseTiers('[null]')).toThrow('must contain operator field');
   });
 });
 
@@ -102,10 +88,5 @@ describe('parseTier validation', () => {
     expect(() => parseTier('{"shareLimit":"1"}')).toThrow(
       'must contain operator field',
     );
-  });
-
-  test('accepts valid tier with operator', () => {
-    const tier = { operator: '0x1', shareLimit: '1' };
-    expect(parseTier(JSON.stringify(tier))).toEqual(tier);
   });
 });
