@@ -45,18 +45,10 @@ strategyWrite
         client: publicClient,
       });
 
-      let decimals = 18;
-      let symbol = 'UNKNOWN';
-      try {
-        [decimals, symbol] = await Promise.all([
-          tokenContract.read.decimals(),
-          tokenContract.read.symbol(),
-        ]);
-      } catch {
-        logInfo(
-          `Could not read token metadata (decimals/symbol) for ${token}. Defaulting to 18 decimals.`,
-        );
-      }
+      const [decimals, symbol] = await Promise.all([
+        tokenContract.read.decimals(),
+        tokenContract.read.symbol(),
+      ]);
 
       const amount = parseUnits(amountStr, decimals);
 
