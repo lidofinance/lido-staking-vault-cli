@@ -18,7 +18,7 @@ import {
   stringToAddress,
   addressPrompt,
 } from 'utils';
-import { strategy } from './main.js';
+import { strategyTimelock } from './main.js';
 import { Address, encodeFunctionData } from 'viem';
 import { getGenericStrategyContract } from 'contracts/defi-wrapper/generic-strategy.js';
 
@@ -43,7 +43,7 @@ const promptStrategy = async (strategyAddress?: Address) => {
 
 // Command definitions
 
-const strategyWrite = strategy
+const strategyWrite = strategyTimelock
   .command('write')
   .alias('w')
   .description('strategy timelock write commands');
