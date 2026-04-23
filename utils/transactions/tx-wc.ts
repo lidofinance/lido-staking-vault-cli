@@ -20,7 +20,7 @@ import {
 } from 'utils';
 
 import { PartialContract, PopulatedTx, BatchTxArgs } from './types.js';
-import { simulateCallsErrorHandler, isWcSendCallsFailure } from './utils.js';
+import { simulateCallsErrorHandler, isWcSendCallsFailure, getConfirmations } from './utils.js';
 
 export const PROVIDER_POLLING_INTERVAL = 12_000;
 export const AA_TX_POLLING_TIMEOUT = 180_000; // 3 minutes
@@ -207,9 +207,7 @@ const sendIndividualTransactions = async (
   );
 
   const publicClient = await getPublicClient();
-  const confirmations = process.env.CONFIRMATIONS
-    ? Number(process.env.CONFIRMATIONS)
-    : 3;
+  const confirmations = getConfirmations();
   const txHashes: Hex[] = [];
   const receipts: TransactionReceipt[] = [];
 
@@ -457,9 +455,7 @@ const callWalletConnectSendCalls = async (args: {
     const publicClient = await getPublicClient();
     const receipt = await waitForTransactionReceipt(publicClient, {
       hash: txHash,
-      confirmations: process.env.CONFIRMATIONS
-        ? Number(process.env.CONFIRMATIONS)
-        : 3,
+      confirmations: getConfirmations(),
     });
 
     hideReceiptSpinner();

@@ -6,6 +6,21 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 
 import { logInfo, logTable } from './logging/console.js';
+import { ALLOWED_HTTP_SCHEMES } from './data-validators.js';
+
+const assertSafeUrl = (url: string, label: string): void => {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    throw new Error(`${label}: invalid URL: ${url}`);
+  }
+  if (!ALLOWED_HTTP_SCHEMES.has(parsed.protocol)) {
+    throw new Error(
+      `${label}: unsupported URL scheme "${parsed.protocol}" (only http/https allowed)`,
+    );
+  }
+};
 
 export const IPFS_GATEWAY = 'https://ipfs.io/ipfs';
 
@@ -33,6 +48,7 @@ export const fetchIPFS = async <T>(
 // Fetching content by CID through IPFS gateway
 export const fetchIPFSDirect = async <T>(args: ReportFetchArgs): Promise<T> => {
   const { cid, gateway = IPFS_GATEWAY, bigNumberType = 'string' } = args;
+  assertSafeUrl(gateway, 'IPFS gateway');
   const ipfsUrl = `${gateway}/${cid}`;
 
   logInfo('Fetching content from', ipfsUrl);
@@ -57,6 +73,7 @@ export const fetchIPFSBuffer = async (
   args: ReportFetchArgs,
 ): Promise<Uint8Array> => {
   const { cid, gateway = IPFS_GATEWAY } = args;
+  assertSafeUrl(gateway, 'IPFS gateway');
   const ipfsUrl = `${gateway}/${cid}`;
   logInfo('Fetching content from', ipfsUrl);
 
@@ -98,7 +115,12 @@ export const fetchIPFSDirectAndVerify = async <T>(
   cid: string,
   gateway = IPFS_GATEWAY,
 ): Promise<{ json: T; fileContent: Uint8Array }> => {
-  const originalCID = CID.parse(cid);
+  let originalCID: CID;
+  try {
+    originalCID = CID.parse(cid);
+  } catch {
+    throw new Error(`Invalid IPFS CID: ${cid}`);
+  }
 
   const fileContent = await fetchIPFSBuffer({ cid, gateway });
   const calculatedCID = await calculateIPFSAddCID(
@@ -133,6 +155,13 @@ export const fetchIPFSWithCacheAndVerify = async <T>(
   cid: string,
   gateway = IPFS_GATEWAY,
 ): Promise<T> => {
+  assertSafeUrl(gateway, 'IPFS gateway');
+  try {
+    CID.parse(cid);
+  } catch {
+    throw new Error(`Invalid IPFS CID: ${cid}`);
+  }
+
   await fs.mkdir(IPFS_CACHE_DIR, { recursive: true });
   const cacheFile = path.join(IPFS_CACHE_DIR, `${cid}.json`);
 
@@ -162,6 +191,7 @@ export const pinToIPFS = async ({
   uploadAuthorization,
   uploadUrl,
 }: PinToIPFSArgs): Promise<any> => {
+  assertSafeUrl(uploadUrl, 'IPFS upload URL');
   const blob = new Blob([fileContent]);
   const file = new File([blob], fileName, {
     type: 'application/json',
