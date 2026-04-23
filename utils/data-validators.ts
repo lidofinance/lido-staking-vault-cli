@@ -14,19 +14,6 @@ export const validateConfig = (config: Config) => {
 
 export const ALLOWED_HTTP_SCHEMES = new Set(['http:', 'https:']);
 
-export const isValidUrl = (value: string | undefined): boolean => {
-  if (!value) {
-    return false;
-  }
-
-  try {
-    const url = new globalThis.URL(value);
-    return ALLOWED_HTTP_SCHEMES.has(url.protocol);
-  } catch {
-    return false;
-  }
-};
-
 export const transformAddressesToArray = (payload: RoleAssignment[]) => {
   return payload.reduce(
     (acc, role) => {

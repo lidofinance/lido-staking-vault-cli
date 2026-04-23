@@ -2,7 +2,6 @@ import { describe, expect, test } from 'vitest';
 import { RoleAssignment } from '../../types/index.js';
 import {
   validateConfig,
-  isValidUrl,
   transformAddressesToArray,
   validateAddressesMap,
   validateAddressMap,
@@ -17,11 +16,6 @@ describe('data-validators', () => {
   test('validateConfig passes with number', () => {
     const errors = validateConfig({ CHAIN_ID: 1, DEPLOYED: 'true' });
     expect(errors).toEqual({});
-  });
-
-  test('isValidUrl works', () => {
-    expect(isValidUrl('https://example.com')).toBe(true);
-    expect(isValidUrl('not a url')).toBe(false);
   });
 
   test('transformAddressesToArray', () => {

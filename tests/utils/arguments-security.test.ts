@@ -5,8 +5,6 @@ import type { Mock } from 'vitest';
 import {
   jsonToRoleAssignment,
   stringToBigInt,
-  parseTiers,
-  parseTier,
 } from '../../utils/arguments.js';
 
 vi.mock('commander', () => ({ program: { error: vi.fn() } }));
@@ -58,35 +56,6 @@ describe('stringToBigInt safe parsing (M5)', () => {
     expect(programError).toHaveBeenCalledWith(
       expect.stringContaining('Invalid BigInt value'),
       expect.objectContaining({ exitCode: 1 }),
-    );
-  });
-});
-
-describe('parseTiers validation', () => {
-  test('rejects non-array JSON', () => {
-    expect(() => parseTiers('{"shareLimit":"1"}')).toThrow('must be an array');
-  });
-
-  test('rejects element without operator field', () => {
-    const tier = { shareLimit: '1' };
-    expect(() => parseTiers(JSON.stringify([tier]))).toThrow(
-      'must contain operator field',
-    );
-  });
-
-  test('rejects null element', () => {
-    expect(() => parseTiers('[null]')).toThrow('must contain operator field');
-  });
-});
-
-describe('parseTier validation', () => {
-  test('rejects non-object JSON', () => {
-    expect(() => parseTier('"string"')).toThrow('must contain operator field');
-  });
-
-  test('rejects object without operator field', () => {
-    expect(() => parseTier('{"shareLimit":"1"}')).toThrow(
-      'must contain operator field',
     );
   });
 });

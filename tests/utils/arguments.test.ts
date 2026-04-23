@@ -9,22 +9,17 @@ import {
   stringToBigIntArray,
   stringToBigIntArrayWei,
   stringToHexArray,
-  jsonToPermit,
   jsonToRoleAssignment,
   stringToBigInt,
   etherToWei,
   stringToNumber,
-  parseTiers,
-  parseTier,
   parseDepositArray,
   stringToAddress,
   stringTo2dArray,
   stringToHex,
   jsonFileToPubkeys,
   stringToNumberArray,
-  etherToGwei,
   etherToWeiArray,
-  etherToGweiArray,
   stringToBoolean,
   parseDeposit,
   parseValidatorTopUpArray,
@@ -67,12 +62,6 @@ describe('arguments utils', () => {
     expect(
       stringToHexArray(MOCK_HEX_ARRAY.map((hex) => `0x${hex}`).join(',')),
     ).toEqual(MOCK_HEX_ARRAY.map((hex) => `0x${hex}`));
-  });
-
-  test('jsonToPermit', () => {
-    const permit = { value: '1', deadline: '2', v: 1, r: '0x1', s: '0x2' };
-    expect(jsonToPermit(JSON.stringify(permit))).toEqual(permit);
-    expect(() => jsonToPermit('{')).toThrow();
   });
 
   test('jsonToRoleAssignment', () => {
@@ -128,26 +117,11 @@ describe('arguments utils', () => {
     expect(stringToNumberArray('1,2,3')).toEqual([1, 2, 3]);
   });
 
-  test('etherToGwei helpers', () => {
-    expect(etherToGwei('1')).toBe(1000000000n);
+  test('etherToWeiArray', () => {
     expect(etherToWeiArray('1,0.5')).toEqual([
       1000000000000000000n,
       500000000000000000n,
     ]);
-    expect(etherToGweiArray('1,2')).toEqual([1000000000n, 2000000000n]);
-  });
-
-  test('parseTiers and parseTier', () => {
-    const tier = {
-      operator: '0x1',
-      shareLimit: '1',
-      reserveRatioBP: '2',
-      forcedRebalanceThresholdBP: '3',
-      treasuryFeeBP: '4',
-    };
-    expect(parseTiers(JSON.stringify([tier]))).toEqual([tier]);
-    expect(parseTier(JSON.stringify(tier))).toEqual(tier);
-    expect(() => parseTiers('[')).toThrow();
   });
 
   test('parseDepositArray', () => {
