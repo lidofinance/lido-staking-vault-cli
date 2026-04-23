@@ -1,18 +1,4 @@
-import { ALLOWED_HTTP_SCHEMES } from 'utils/data-validators.js';
-
-const assertSafeUrl = (url: string): void => {
-  let parsed: URL;
-  try {
-    parsed = new URL(url);
-  } catch {
-    throw new Error(`Invalid URL: ${url}`);
-  }
-  if (!ALLOWED_HTTP_SCHEMES.has(parsed.protocol)) {
-    throw new Error(
-      `Unsupported URL scheme "${parsed.protocol}" (only http/https allowed)`,
-    );
-  }
-};
+import { assertSafeUrl } from 'utils/data-validators.js';
 
 export const tryFetchPost = async <TResult = any>(
   url: string,
@@ -22,7 +8,7 @@ export const tryFetchPost = async <TResult = any>(
   let result = null;
   let error = null;
   try {
-    assertSafeUrl(url);
+    assertSafeUrl(url, 'callback URL');
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
