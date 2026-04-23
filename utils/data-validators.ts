@@ -14,6 +14,20 @@ export const validateConfig = (config: Config) => {
 
 export const ALLOWED_HTTP_SCHEMES = new Set(['http:', 'https:']);
 
+export const assertSafeUrl = (url: string, label: string): void => {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    throw new Error(`${label}: invalid URL: ${url}`);
+  }
+  if (!ALLOWED_HTTP_SCHEMES.has(parsed.protocol)) {
+    throw new Error(
+      `${label}: unsupported URL scheme "${parsed.protocol}" (only http/https allowed)`,
+    );
+  }
+};
+
 export const transformAddressesToArray = (payload: RoleAssignment[]) => {
   return payload.reduce(
     (acc, role) => {

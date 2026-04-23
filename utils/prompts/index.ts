@@ -4,3 +4,6 @@ export * from './vault.js';
 export * from './operations.js';
 export * from './confirmations.js';
 export * from './mint-burn/index.js';
+export * from './strategy.js';
+export * from './account.js';
+export * from './timelock-roles.js';
