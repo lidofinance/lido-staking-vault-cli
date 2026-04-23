@@ -1,4 +1,4 @@
-const ALLOWED_SCHEMES = new Set(['http:', 'https:']);
+import { ALLOWED_HTTP_SCHEMES } from 'utils/data-validators.js';
 
 const assertSafeUrl = (url: string): void => {
   let parsed: URL;
@@ -7,7 +7,7 @@ const assertSafeUrl = (url: string): void => {
   } catch {
     throw new Error(`Invalid URL: ${url}`);
   }
-  if (!ALLOWED_SCHEMES.has(parsed.protocol)) {
+  if (!ALLOWED_HTTP_SCHEMES.has(parsed.protocol)) {
     throw new Error(
       `Unsupported URL scheme "${parsed.protocol}" (only http/https allowed)`,
     );
