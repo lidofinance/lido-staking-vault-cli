@@ -66,7 +66,7 @@ export const jsonFileToPubkeys = (value: string) => {
 export const jsonToRoleAssignment = (value: string): RoleAssignment[] => {
   const parsed: unknown = JSON.parse(value);
   if (!Array.isArray(parsed)) {
-    throw new Error('Invalid RoleAssignment JSON: must be an array');
+    throw new TypeError('Invalid RoleAssignment JSON: must be an array');
   }
   for (const item of parsed) {
     if (
@@ -75,7 +75,7 @@ export const jsonToRoleAssignment = (value: string): RoleAssignment[] => {
       !('account' in item) ||
       !('role' in item)
     ) {
-      throw new Error(
+      throw new TypeError(
         'Invalid RoleAssignment entry: each must contain account and role fields',
       );
     }

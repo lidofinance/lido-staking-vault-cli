@@ -45,6 +45,7 @@ describe('IPFS SSRF guards (H2/H3)', () => {
 
   test('fetchIPFSDirect rejects ftp gateway', async () => {
     await expect(
+      // eslint-disable-next-line sonarjs/no-clear-text-protocols
       ipfs.fetchIPFSDirect({ cid: 'abc', gateway: 'ftp://evil.com' }),
     ).rejects.toThrow('unsupported URL scheme "ftp:"');
   });
@@ -118,9 +119,9 @@ describe('IPFS SSRF guards (H2/H3)', () => {
 
 describe('IPFS CID validation (M6)', () => {
   test('fetchIPFSDirectAndVerify rejects invalid CID', async () => {
-    await expect(
-      ipfs.fetchIPFSDirectAndVerify('INVALID_CID'),
-    ).rejects.toThrow('Invalid IPFS CID: INVALID_CID');
+    await expect(ipfs.fetchIPFSDirectAndVerify('INVALID_CID')).rejects.toThrow(
+      'Invalid IPFS CID: INVALID_CID',
+    );
   });
 
   test('fetchIPFSWithCacheAndVerify rejects path-traversal CID before fs access', async () => {
