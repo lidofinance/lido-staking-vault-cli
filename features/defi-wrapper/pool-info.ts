@@ -220,6 +220,8 @@ export const getStrategyPoolInfo = async (address: Address) => {
 
   const strategyList = await contract.read.getAllowListAddresses();
 
+  // Fetch all strategies in parallel instead of sequential for-loop
+  // to avoid N+1 RPC round-trips (one per strategy)
   const strategies = await Promise.all(
     strategyList.map(async (strategyAddress) => {
       const info: {
