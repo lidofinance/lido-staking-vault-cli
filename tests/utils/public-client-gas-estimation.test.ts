@@ -162,9 +162,9 @@ describe('balanceAwareTransport (transport-level gas estimation fix)', () => {
     expect(mockRpcRequest).toHaveBeenCalledTimes(2);
   });
 
-  it('falls back on "invalid argument"', async () => {
+  it('falls back on "invalid argument 2"', async () => {
     mockRpcRequest
-      .mockRejectedValueOnce(new Error('invalid argument'))
+      .mockRejectedValueOnce(new Error('invalid argument 2'))
       .mockResolvedValueOnce('0x5208');
 
     const { getPublicClient } = await import('../../providers/wallet.js');

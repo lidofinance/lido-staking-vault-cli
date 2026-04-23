@@ -1,6 +1,6 @@
 import { program } from 'commander';
 import { readFileSync } from 'node:fs';
-import { Permit, RoleAssignment, Tier, Deposit, ValidatorTopUp } from 'types';
+import { RoleAssignment, Deposit, ValidatorTopUp } from 'types';
 import { Address, Hex, isAddress, isHex, parseEther } from 'viem';
 
 import { PubkeyMap } from 'utils/consolidation/types.js';
@@ -33,10 +33,6 @@ export const stringToHex = (value: string) => {
   return toHex(value);
 };
 
-export const jsonToPermit = (value: string) => {
-  return JSON.parse(value) as Permit;
-};
-
 export const jsonFileToPubkeys = (value: string) => {
   const content = readFileSync(value, 'utf8');
   if (content.length === 0) {
@@ -67,11 +63,33 @@ export const jsonFileToPubkeys = (value: string) => {
   return parsed as PubkeyMap;
 };
 
-export const jsonToRoleAssignment = (value: string) => {
-  return JSON.parse(value) as RoleAssignment[];
+export const jsonToRoleAssignment = (value: string): RoleAssignment[] => {
+  const parsed: unknown = JSON.parse(value);
+  if (!Array.isArray(parsed)) {
+    throw new TypeError('Invalid RoleAssignment JSON: must be an array');
+  }
+  for (const item of parsed) {
+    if (
+      typeof item !== 'object' ||
+      item === null ||
+      !('account' in item) ||
+      !('role' in item)
+    ) {
+      throw new TypeError(
+        'Invalid RoleAssignment entry: each must contain account and role fields',
+      );
+    }
+  }
+  return parsed as RoleAssignment[];
 };
 
-export const stringToBigInt = BigInt;
+export const stringToBigInt = (value: string): bigint => {
+  try {
+    return BigInt(value);
+  } catch {
+    program.error(`Invalid BigInt value: ${value}`, { exitCode: 1 });
+  }
+};
 
 export const stringToNumberArray = (value: string) => {
   return value.split(',').map(Number);
@@ -116,16 +134,8 @@ export const etherToWei = (value: string) => {
   return parseEther(value, 'wei');
 };
 
-export const etherToGwei = (value: string) => {
-  return parseEther(value, 'gwei');
-};
-
 export const etherToWeiArray = (value: string) => {
   return value.split(',').map(etherToWei);
-};
-
-export const etherToGweiArray = (value: string) => {
-  return value.split(',').map(etherToGwei);
 };
 
 export const stringToNumber = (value: string) => {
@@ -140,14 +150,6 @@ export const stringToBoolean = (value: string) => {
   if (val === 'true') return true;
   if (val === 'false') return false;
   program.error('value must be true or false', { exitCode: 1 });
-};
-
-export const parseTiers = (value: string) => {
-  return JSON.parse(value) as Tier[];
-};
-
-export const parseTier = (value: string) => {
-  return JSON.parse(value) as Tier;
 };
 
 export const parseDeposit = (str: string): Deposit => {

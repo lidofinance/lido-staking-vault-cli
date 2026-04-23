@@ -313,8 +313,9 @@ export const fetchValidatorsInfo = async (
   const url = getCLApiUrl(clURL);
 
   try {
+    const encodedPubkeys = validatorPubkeys.map(encodeURIComponent).join(',');
     const validatorsInfoResp = await fetch(
-      `${url.endsWith('/') ? url : url + '/'}${endpoints.validatorsInfo('?id=' + validatorPubkeys.join(','))}`,
+      `${url.endsWith('/') ? url : url + '/'}${endpoints.validatorsInfo('?id=' + encodedPubkeys)}`,
     );
 
     validateResponse(validatorsInfoResp);

@@ -4,6 +4,21 @@ import { printError } from 'utils';
 
 import { PopulatedTx } from './types.js';
 
+const MIN_CONFIRMATIONS = 1;
+const DEFAULT_CONFIRMATIONS = 3;
+
+export const getConfirmations = (): number => {
+  const raw = process.env.CONFIRMATIONS;
+  if (!raw) return DEFAULT_CONFIRMATIONS;
+  const n = Number(raw);
+  if (!Number.isInteger(n) || n < MIN_CONFIRMATIONS) {
+    throw new Error(
+      `CONFIRMATIONS must be an integer >= ${MIN_CONFIRMATIONS}, got: ${raw}`,
+    );
+  }
+  return n;
+};
+
 export const simulateCallsErrorHandler = (
   simulate: SimulateCallsReturnType<PopulatedTx[]>,
   abi?: Abi,
