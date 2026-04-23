@@ -134,9 +134,12 @@ export const processSalt = (saltOption?: string): Hex => {
   return (saltOption as Hex) ?? DEFAULT_SALT;
 };
 
-// Known role constant names from the contract ABIs
+// Known role constant names across all contract ABIs.
+// Must be kept in sync with role constants in abi/ when new roles are added.
 const KNOWN_ROLE_NAMES = new Set([
+  // Common
   'DEFAULT_ADMIN_ROLE',
+  // Pool / Strategy
   'ALLOW_LIST_MANAGER_ROLE',
   'DEPOSITS_PAUSE_ROLE',
   'DEPOSITS_RESUME_ROLE',
@@ -144,15 +147,35 @@ const KNOWN_ROLE_NAMES = new Set([
   'MINTING_PAUSE_ROLE',
   'MINTING_RESUME_ROLE',
   'LOSS_SOCIALIZER_ROLE',
+  // Withdrawal Queue
   'FINALIZE_ROLE',
   'FINALIZE_PAUSE_ROLE',
   'FINALIZE_RESUME_ROLE',
   'WITHDRAWALS_PAUSE_ROLE',
   'WITHDRAWALS_RESUME_ROLE',
+  // Distributor
   'MANAGER_ROLE',
+  // TimeLock
   'PROPOSER_ROLE',
   'EXECUTOR_ROLE',
   'CANCELLER_ROLE',
+  // Dashboard
+  'BURN_ROLE',
+  'COLLECT_VAULT_ERC20_ROLE',
+  'FUND_ROLE',
+  'MINT_ROLE',
+  'NODE_OPERATOR_FEE_EXEMPT_ROLE',
+  'NODE_OPERATOR_MANAGER_ROLE',
+  'NODE_OPERATOR_PROVE_UNKNOWN_VALIDATOR_ROLE',
+  'NODE_OPERATOR_UNGUARANTEED_DEPOSIT_ROLE',
+  'PAUSE_BEACON_CHAIN_DEPOSITS_ROLE',
+  'REBALANCE_ROLE',
+  'REQUEST_VALIDATOR_EXIT_ROLE',
+  'RESUME_BEACON_CHAIN_DEPOSITS_ROLE',
+  'TRIGGER_VALIDATOR_WITHDRAWAL_ROLE',
+  'VAULT_CONFIGURATION_ROLE',
+  'VOLUNTARY_DISCONNECT_ROLE',
+  'WITHDRAW_ROLE',
 ]);
 
 // Helper function to resolve role
