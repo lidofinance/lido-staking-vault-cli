@@ -12,23 +12,7 @@ export const validateConfig = (config: Config) => {
   return errors;
 };
 
-export const isValidUrl = (value: string | undefined): boolean => {
-  if (!value) {
-    return false;
-  }
-
-  if ('canParse' in URL) {
-    return URL.canParse(value);
-  }
-
-  try {
-    // used global here to avid types issue
-    new globalThis.URL(value);
-    return true;
-  } catch {
-    return false;
-  }
-};
+export const ALLOWED_HTTP_SCHEMES = new Set(['http:', 'https:']);
 
 export const transformAddressesToArray = (payload: RoleAssignment[]) => {
   return payload.reduce(

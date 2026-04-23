@@ -10,9 +10,15 @@ import { envs } from './envs.js';
 import { SUPPORTED_CHAINS_LIST } from './constants.js';
 
 export const importDeployFile = () => {
-  const fullPath = path.resolve('configs', envs?.DEPLOYED ?? '');
-  if (!fullPath) {
+  const deployedFile = envs?.DEPLOYED;
+  if (!deployedFile) {
     throw new Error('Deployed contracts file is not set, check .env file');
+  }
+
+  const configsDir = path.resolve('configs');
+  const fullPath = path.resolve(configsDir, deployedFile);
+  if (!fullPath.startsWith(configsDir + path.sep) && fullPath !== configsDir) {
+    throw new Error(`Path traversal detected in DEPLOYED: ${deployedFile}`);
   }
 
   let json: Record<string, number | string | Chain | any> = {};

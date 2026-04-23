@@ -12,7 +12,14 @@ export const checkExistingVerification = async (
   etherscanApiKey: string,
 ) => {
   const chainId = (await getPublicClient()).chain.id;
-  const url = `https://api.etherscan.io/v2/api?apikey=${etherscanApiKey}&chainid=${chainId}&module=contract&action=getsourcecode&address=${address}`;
+  const params = new URLSearchParams({
+    chainid: chainId.toString(),
+    module: 'contract',
+    action: 'getsourcecode',
+    address,
+    apikey: etherscanApiKey,
+  });
+  const url = `https://api.etherscan.io/v2/api?${params}`;
 
   const response = await EtherscanApi.fetch(url);
   if (!response.ok) {
@@ -34,7 +41,14 @@ export const checkVerificationStatus = async (
   etherscanApiKey: string,
 ): Promise<any> => {
   const chainId = (await getPublicClient()).chain.id;
-  const url = `https://api.etherscan.io/v2/api?guid=${guid}&action=checkverifystatus&module=contract&apikey=${etherscanApiKey}&chainid=${chainId}`;
+  const params = new URLSearchParams({
+    guid,
+    action: 'checkverifystatus',
+    module: 'contract',
+    chainid: chainId.toString(),
+    apikey: etherscanApiKey,
+  });
+  const url = `https://api.etherscan.io/v2/api?${params}`;
 
   const response = await EtherscanApi.fetch(url);
   if (!response.ok) {
