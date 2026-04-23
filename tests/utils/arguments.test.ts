@@ -139,6 +139,7 @@ describe('arguments utils', () => {
 
   test('parseTiers and parseTier', () => {
     const tier = {
+      operator: '0x1',
       shareLimit: '1',
       reserveRatioBP: '2',
       forcedRebalanceThresholdBP: '3',
