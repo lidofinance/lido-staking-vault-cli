@@ -67,11 +67,33 @@ export const jsonFileToPubkeys = (value: string) => {
   return parsed as PubkeyMap;
 };
 
-export const jsonToRoleAssignment = (value: string) => {
-  return JSON.parse(value) as RoleAssignment[];
+export const jsonToRoleAssignment = (value: string): RoleAssignment[] => {
+  const parsed: unknown = JSON.parse(value);
+  if (!Array.isArray(parsed)) {
+    throw new Error('Invalid RoleAssignment JSON: must be an array');
+  }
+  for (const item of parsed) {
+    if (
+      typeof item !== 'object' ||
+      item === null ||
+      !('account' in item) ||
+      !('role' in item)
+    ) {
+      throw new Error(
+        'Invalid RoleAssignment entry: each must contain account and role fields',
+      );
+    }
+  }
+  return parsed as RoleAssignment[];
 };
 
-export const stringToBigInt = BigInt;
+export const stringToBigInt = (value: string): bigint => {
+  try {
+    return BigInt(value);
+  } catch {
+    program.error(`Invalid BigInt value: ${value}`, { exitCode: 1 });
+  }
+};
 
 export const stringToNumberArray = (value: string) => {
   return value.split(',').map(Number);
@@ -142,12 +164,20 @@ export const stringToBoolean = (value: string) => {
   program.error('value must be true or false', { exitCode: 1 });
 };
 
-export const parseTiers = (value: string) => {
-  return JSON.parse(value) as Tier[];
+export const parseTiers = (value: string): Tier[] => {
+  const parsed: unknown = JSON.parse(value);
+  if (!Array.isArray(parsed)) {
+    throw new Error('Invalid Tiers JSON: must be an array');
+  }
+  return parsed as Tier[];
 };
 
-export const parseTier = (value: string) => {
-  return JSON.parse(value) as Tier;
+export const parseTier = (value: string): Tier => {
+  const parsed: unknown = JSON.parse(value);
+  if (typeof parsed !== 'object' || parsed === null || !('operator' in parsed)) {
+    throw new Error('Invalid Tier JSON: must contain operator field');
+  }
+  return parsed as Tier;
 };
 
 export const parseDeposit = (str: string): Deposit => {

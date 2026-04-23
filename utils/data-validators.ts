@@ -12,19 +12,16 @@ export const validateConfig = (config: Config) => {
   return errors;
 };
 
+const ALLOWED_SCHEMES = new Set(['http:', 'https:']);
+
 export const isValidUrl = (value: string | undefined): boolean => {
   if (!value) {
     return false;
   }
 
-  if ('canParse' in URL) {
-    return URL.canParse(value);
-  }
-
   try {
-    // used global here to avid types issue
-    new globalThis.URL(value);
-    return true;
+    const url = new globalThis.URL(value);
+    return ALLOWED_SCHEMES.has(url.protocol);
   } catch {
     return false;
   }

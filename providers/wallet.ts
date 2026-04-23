@@ -29,7 +29,9 @@ const isStateOverrideError = (err: unknown): boolean => {
   return (
     msg.includes('stateOverride') ||
     msg.includes('too many arguments') ||
-    msg.includes('invalid argument')
+    msg.includes('invalid argument 2') ||
+    msg.includes('Invalid method parameters') ||
+    msg.includes('eth_estimateGas does not support')
   );
 };
 
