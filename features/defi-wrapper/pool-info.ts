@@ -220,41 +220,47 @@ export const getStrategyPoolInfo = async (address: Address) => {
 
   const strategyList = await contract.read.getAllowListAddresses();
 
-  const strategies: {
-    address: Address;
-    strategyId?: Hex;
-    isAllowListEnabled?: boolean;
-    allowListMangers?: Address[];
-    strategyName?: string;
-  }[] = [];
-  for (const strategyAddress of strategyList) {
-    const info: (typeof strategies)[number] = { address: strategyAddress };
-    const strategyContract = await getGenericStrategyContract(strategyAddress);
-    try {
-      const strategyId = await strategyContract.read.STRATEGY_ID();
-      const strategyName = KNOWN_STRATEGIES[strategyId] ?? 'Unknown';
-      info.strategyId = strategyId;
-      info.strategyName = strategyName;
-      const isAllowListEnabled =
-        await strategyContract.read.ALLOW_LIST_ENABLED();
-      info.isAllowListEnabled = isAllowListEnabled;
-      if (isAllowListEnabled) {
-        const allowListManagerRole =
-          await strategyContract.read.ALLOW_LIST_MANAGER_ROLE();
-        const managers = await strategyContract.read.getRoleMembers([
-          allowListManagerRole,
+  const strategies = await Promise.all(
+    strategyList.map(async (strategyAddress) => {
+      const info: {
+        address: Address;
+        strategyId?: Hex;
+        isAllowListEnabled?: boolean;
+        allowListManagers?: Address[];
+        strategyName?: string;
+      } = { address: strategyAddress };
+
+      const strategyContract =
+        await getGenericStrategyContract(strategyAddress);
+      try {
+        const [strategyId, isAllowListEnabled] = await Promise.all([
+          strategyContract.read.STRATEGY_ID(),
+          strategyContract.read.ALLOW_LIST_ENABLED(),
         ]);
-        info.allowListMangers = [...managers];
+
+        info.strategyId = strategyId;
+        info.strategyName = KNOWN_STRATEGIES[strategyId] ?? 'Unknown';
+        info.isAllowListEnabled = isAllowListEnabled;
+
+        if (isAllowListEnabled) {
+          const allowListManagerRole =
+            await strategyContract.read.ALLOW_LIST_MANAGER_ROLE();
+          const managers = await strategyContract.read.getRoleMembers([
+            allowListManagerRole,
+          ]);
+          info.allowListManagers = [...managers];
+        }
+      } catch (error: unknown) {
+        if (error instanceof ContractFunctionExecutionError) {
+          logError(
+            `Failed to fetch info for strategy at address ${strategyAddress}, is it a valid strategy?`,
+          );
+        } else throw error;
       }
-    } catch (error: any) {
-      if (error instanceof ContractFunctionExecutionError) {
-        logError(
-          `Failed to fetch info for strategy at address ${strategyAddress}, is it a valid strategy?`,
-        );
-      } else throw error;
-    }
-    strategies.push(info);
-  }
+      return info;
+    }),
+  );
+
   return {
     strategies,
   };

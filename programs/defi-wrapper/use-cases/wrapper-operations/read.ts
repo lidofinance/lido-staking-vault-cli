@@ -61,8 +61,8 @@ wrapperOperationsRead
             `Strategy ${index + 1} Allow List Enabled`,
             strategy.isAllowListEnabled ?? 'N/A',
           ],
-          ...(strategy.isAllowListEnabled && strategy.allowListMangers
-            ? strategy.allowListMangers.map((manager, managerIndex) => [
+          ...(strategy.isAllowListEnabled && strategy.allowListManagers
+            ? strategy.allowListManagers.map((manager, managerIndex) => [
                 `Strategy ${index + 1} Allow List Manager ${managerIndex + 1}`,
                 manager,
               ])

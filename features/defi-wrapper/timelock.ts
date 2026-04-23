@@ -7,7 +7,6 @@ import {
   addressPrompt,
   stringToHash,
   textPrompt,
-  stringToHex,
 } from 'utils';
 import {
   Address,
@@ -130,9 +129,31 @@ export const promptOperationId = async (
 };
 
 // Helper function to process salt option
+// Note: saltOption is already validated as Hex by Commander's stringToHash parser (SALT_OPTION)
 export const processSalt = (saltOption?: string): Hex => {
-  return saltOption ? stringToHex(saltOption) : DEFAULT_SALT;
+  return (saltOption as Hex) ?? DEFAULT_SALT;
 };
+
+// Known role constant names from the contract ABIs
+const KNOWN_ROLE_NAMES = new Set([
+  'DEFAULT_ADMIN_ROLE',
+  'ALLOW_LIST_MANAGER_ROLE',
+  'DEPOSITS_PAUSE_ROLE',
+  'DEPOSITS_RESUME_ROLE',
+  'DEPOSIT_ROLE',
+  'MINTING_PAUSE_ROLE',
+  'MINTING_RESUME_ROLE',
+  'LOSS_SOCIALIZER_ROLE',
+  'FINALIZE_ROLE',
+  'FINALIZE_PAUSE_ROLE',
+  'FINALIZE_RESUME_ROLE',
+  'WITHDRAWALS_PAUSE_ROLE',
+  'WITHDRAWALS_RESUME_ROLE',
+  'MANAGER_ROLE',
+  'PROPOSER_ROLE',
+  'EXECUTOR_ROLE',
+  'CANCELLER_ROLE',
+]);
 
 // Helper function to resolve role
 export const resolveRole = async (
@@ -140,6 +161,12 @@ export const resolveRole = async (
   contract: GetContractReturnType<Abi, PublicClient>,
 ): Promise<Hex> => {
   if (isHash(roleInput)) return roleInput;
+
+  if (!KNOWN_ROLE_NAMES.has(roleInput)) {
+    throw new Error(
+      `Unknown role name "${roleInput}". Valid role names: ${[...KNOWN_ROLE_NAMES].join(', ')}`,
+    );
+  }
 
   try {
     const role = (await callReadMethodSilent({
@@ -151,7 +178,7 @@ export const resolveRole = async (
     return role;
   } catch {
     throw new Error(
-      `Failed to resolve role "${roleInput}". Please provide a valid role name (e.g., DEFAULT_ADMIN_ROLE) or bytes32 hex.`,
+      `Failed to resolve role "${roleInput}". The contract may not support this role.`,
     );
   }
 };

@@ -41,6 +41,45 @@ const promptStrategy = async (strategyAddress?: Address) => {
   return getGenericStrategyContract(strategyAddress);
 };
 
+const createRoleAction = (
+  mode: 'propose' | 'execute',
+  roleFunction: 'grantRole' | 'revokeRole',
+  accountPromptMessage: string,
+) => {
+  const verb = roleFunction === 'grantRole' ? 'granting' : 'revoking';
+  const preposition = roleFunction === 'grantRole' ? 'to' : 'from';
+  const timelockFn = mode === 'propose' ? proposeOperation : executeOperation;
+
+  return async (
+    timelock?: Address,
+    strategyAddress?: Address,
+    roleInput?: string,
+    accountInput?: string,
+    options?: { salt?: string },
+  ) => {
+    const timelockContract = await getPromptTimelock(timelock);
+    const strategyContract = await promptStrategy(strategyAddress);
+    const role = await promptRole(roleInput, strategyContract);
+    const finalSalt = processSalt(options?.salt);
+    const account = await promptAccount(accountInput, accountPromptMessage);
+
+    const data = encodeFunctionData({
+      abi: strategyContract.abi,
+      functionName: roleFunction,
+      args: [role, account],
+    });
+
+    await timelockFn(
+      timelockContract.address,
+      strategyContract.address,
+      data,
+      finalSalt,
+      roleFunction,
+      `Are you sure you want to ${mode} ${verb} role ${role} ${preposition} ${account} on strategy ${strategyContract.address}?`,
+    );
+  };
+};
+
 // Command definitions
 
 const strategyWrite = strategyTimelock
@@ -63,43 +102,7 @@ strategyWrite
   .argument(...ACCOUNT_GRANT_ARGUMENT)
   .option(...SALT_OPTION)
   .action(
-    async (
-      timelock?: Address,
-      strategyAddress?: Address,
-      roleInput?: string,
-      accountInput?: string,
-      options?: { salt?: string },
-    ) => {
-      // Interactive prompts for missing parameters
-      const timelockContract = await getPromptTimelock(timelock);
-
-      const strategyContract = await promptStrategy(strategyAddress);
-
-      const role = await promptRole(roleInput, strategyContract);
-
-      const finalSalt = processSalt(options?.salt);
-
-      const account = await promptAccount(
-        accountInput,
-        'Enter account address to grant role to',
-      );
-
-      // Encode grantRole call
-      const data = encodeFunctionData({
-        abi: strategyContract.abi,
-        functionName: 'grantRole',
-        args: [role, account],
-      });
-
-      await proposeOperation(
-        timelockContract.address,
-        strategyContract.address,
-        data,
-        finalSalt,
-        'grantRole',
-        `Are you sure you want to propose granting role ${role} to ${account} on strategy ${strategyContract.address}?`,
-      );
-    },
+    createRoleAction('propose', 'grantRole', 'Enter account address to grant role to'),
   );
 
 strategyWrite
@@ -111,43 +114,7 @@ strategyWrite
   .argument(...ACCOUNT_GRANT_ARGUMENT)
   .option(...SALT_OPTION)
   .action(
-    async (
-      timelock?: Address,
-      strategyAddress?: Address,
-      roleInput?: string,
-      accountInput?: string,
-      options?: { salt?: string },
-    ) => {
-      // Interactive prompts for missing parameters
-      const timelockContract = await getPromptTimelock(timelock);
-
-      const strategyContract = await promptStrategy(strategyAddress);
-
-      const role = await promptRole(roleInput, strategyContract);
-
-      const finalSalt = processSalt(options?.salt);
-
-      const account = await promptAccount(
-        accountInput,
-        'Enter account address to grant role to',
-      );
-
-      // Encode grantRole call (same as in propose)
-      const data = encodeFunctionData({
-        abi: strategyContract.abi,
-        functionName: 'grantRole',
-        args: [role, account],
-      });
-
-      await executeOperation(
-        timelockContract.address,
-        strategyContract.address,
-        data,
-        finalSalt,
-        'grantRole',
-        `Are you sure you want to execute granting role ${role} to ${account} on strategy ${strategyContract.address}?`,
-      );
-    },
+    createRoleAction('execute', 'grantRole', 'Enter account address to grant role to'),
   );
 
 strategyWrite
@@ -159,43 +126,7 @@ strategyWrite
   .argument(...ACCOUNT_REVOKE_ARGUMENT)
   .option(...SALT_OPTION)
   .action(
-    async (
-      timelock?: Address,
-      strategyAddress?: Address,
-      roleInput?: string,
-      accountInput?: string,
-      options?: { salt?: string },
-    ) => {
-      // Interactive prompts for missing parameters
-      const timelockContract = await getPromptTimelock(timelock);
-
-      const strategyContract = await promptStrategy(strategyAddress);
-
-      const role = await promptRole(roleInput, strategyContract);
-
-      const finalSalt = processSalt(options?.salt);
-
-      const account = await promptAccount(
-        accountInput,
-        'Enter account address to revoke role from',
-      );
-
-      // Encode revokeRole call
-      const data = encodeFunctionData({
-        abi: strategyContract.abi,
-        functionName: 'revokeRole',
-        args: [role, account],
-      });
-
-      await proposeOperation(
-        timelockContract.address,
-        strategyContract.address,
-        data,
-        finalSalt,
-        'revokeRole',
-        `Are you sure you want to propose revoking role ${role} from ${account} on strategy ${strategyContract.address}?`,
-      );
-    },
+    createRoleAction('propose', 'revokeRole', 'Enter account address to revoke role from'),
   );
 
 strategyWrite
@@ -207,41 +138,5 @@ strategyWrite
   .argument(...ACCOUNT_REVOKE_ARGUMENT)
   .option(...SALT_OPTION)
   .action(
-    async (
-      timelock?: Address,
-      strategyAddress?: Address,
-      roleInput?: string,
-      accountInput?: string,
-      options?: { salt?: string },
-    ) => {
-      // Interactive prompts for missing parameters
-      const timelockContract = await getPromptTimelock(timelock);
-
-      const strategyContract = await promptStrategy(strategyAddress);
-
-      const role = await promptRole(roleInput, strategyContract);
-
-      const finalSalt = processSalt(options?.salt);
-
-      const account = await promptAccount(
-        accountInput,
-        'Enter account address to revoke role from',
-      );
-
-      // Encode revokeRole call
-      const data = encodeFunctionData({
-        abi: strategyContract.abi,
-        functionName: 'revokeRole',
-        args: [role, account],
-      });
-
-      await executeOperation(
-        timelockContract.address,
-        strategyContract.address,
-        data,
-        finalSalt,
-        'revokeRole',
-        `Are you sure you want to execute revoking role ${role} from ${account} on strategy ${strategyContract.address}?`,
-      );
-    },
+    createRoleAction('execute', 'revokeRole', 'Enter account address to revoke role from'),
   );

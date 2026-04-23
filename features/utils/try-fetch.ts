@@ -1,3 +1,19 @@
+const ALLOWED_SCHEMES = new Set(['http:', 'https:']);
+
+const assertSafeUrl = (url: string): void => {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    throw new Error(`Invalid URL: ${url}`);
+  }
+  if (!ALLOWED_SCHEMES.has(parsed.protocol)) {
+    throw new Error(
+      `Unsupported URL scheme "${parsed.protocol}" (only http/https allowed)`,
+    );
+  }
+};
+
 export const tryFetchPost = async <TResult = any>(
   url: string,
   body: TResult,
@@ -6,6 +22,7 @@ export const tryFetchPost = async <TResult = any>(
   let result = null;
   let error = null;
   try {
+    assertSafeUrl(url);
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
