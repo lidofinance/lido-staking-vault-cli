@@ -1,3 +1,5 @@
+import { assertSafeUrl } from 'utils';
+
 export const tryFetchPost = async <TResult = any>(
   url: string,
   body: TResult,
@@ -6,6 +8,7 @@ export const tryFetchPost = async <TResult = any>(
   let result = null;
   let error = null;
   try {
+    assertSafeUrl(url, 'callback URL');
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

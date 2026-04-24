@@ -7,25 +7,15 @@ import {
   addressPrompt,
   stringToHash,
   textPrompt,
-  stringToHex,
+  DEFAULT_SALT,
 } from 'utils';
-import {
-  Address,
-  Hex,
-  zeroHash,
-  isHash,
-  GetContractReturnType,
-  PublicClient,
-  Abi,
-  formatEther,
-} from 'viem';
+import { Address, Hex, zeroHash, isHash, formatEther } from 'viem';
 import {
   getTimeLockContract,
   TimeLockContract,
 } from 'contracts/defi-wrapper/index.js';
 
 // Common constants
-export const DEFAULT_SALT = zeroHash;
 export const DEFAULT_PREDECESSOR = zeroHash;
 
 // Common argument and option definitions
@@ -77,40 +67,6 @@ export const getPromptTimelock = async (
   return getTimeLockContract(timelockPrompt.timelock as Address);
 };
 
-export const promptRole = async (
-  roleInput: string | undefined,
-  // hard to match correct type here
-  contract: unknown,
-) => {
-  if (!roleInput) {
-    const rolePrompt = await textPrompt(
-      'Enter role (bytes32 hex or role name like DEFAULT_ADMIN_ROLE)',
-      'role',
-    );
-    roleInput = rolePrompt.role as string;
-  }
-
-  const role = await resolveRole(
-    roleInput,
-    contract as GetContractReturnType<Abi, PublicClient>,
-  );
-  return role;
-};
-
-export const promptAccount = async (
-  accountInput: string | undefined,
-  message: string,
-) => {
-  let account: Address;
-  if (!accountInput) {
-    const accountPrompt = await addressPrompt(message, 'account');
-    account = accountPrompt.account as Address;
-  } else {
-    account = stringToAddress(accountInput);
-  }
-  return account;
-};
-
 export const promptOperationId = async (
   operationIdInput: string | undefined,
 ) => {
@@ -127,33 +83,6 @@ export const promptOperationId = async (
     ? operationIdInput
     : stringToHash(operationIdInput);
   return operationId;
-};
-
-// Helper function to process salt option
-export const processSalt = (saltOption?: string): Hex => {
-  return saltOption ? stringToHex(saltOption) : DEFAULT_SALT;
-};
-
-// Helper function to resolve role
-export const resolveRole = async (
-  roleInput: string,
-  contract: GetContractReturnType<Abi, PublicClient>,
-): Promise<Hex> => {
-  if (isHash(roleInput)) return roleInput;
-
-  try {
-    const role = (await callReadMethodSilent({
-      contract,
-      methodName: roleInput as any,
-      payload: [],
-    })) as Hex;
-    logInfo(`Resolved role "${roleInput}" to ${role}`);
-    return role;
-  } catch {
-    throw new Error(
-      `Failed to resolve role "${roleInput}". Please provide a valid role name (e.g., DEFAULT_ADMIN_ROLE) or bytes32 hex.`,
-    );
-  }
 };
 
 export const waitTimeTo = (timestamp: bigint) => {

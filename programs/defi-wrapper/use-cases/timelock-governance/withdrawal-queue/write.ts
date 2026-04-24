@@ -1,27 +1,29 @@
 import { Option } from 'commander';
+import { Address, encodeFunctionData, Hex } from 'viem';
+
 import {
   proposeOperation,
   executeOperation,
-  processSalt,
   TIMELOCK_ARGUMENT,
   getPromptTimelock,
   SALT_OPTION,
   ROLE_ARGUMENT,
   ACCOUNT_GRANT_ARGUMENT,
   ACCOUNT_REVOKE_ARGUMENT,
-  promptRole,
-  promptAccount,
 } from 'features/defi-wrapper/index.js';
 import {
   logInfo,
   getCommandsJson,
   stringToAddress,
   addressPrompt,
+  promptRole,
+  promptAccount,
+  processSalt,
 } from 'utils';
-import { withdrawalQueueTimelockGovernance } from './main.js';
-import { Address, encodeFunctionData } from 'viem';
-import { getWithdrawalQueueContract } from 'contracts/defi-wrapper/index.js';
 import { WithdrawalQueueAbi } from 'abi/defi-wrapper/index.js';
+import { getWithdrawalQueueContract } from 'contracts/defi-wrapper/index.js';
+
+import { withdrawalQueueTimelockGovernance } from './main.js';
 
 // Common helpers
 
@@ -68,7 +70,7 @@ withdrawalQueueWrite
       withdrawalQueueAddress?: Address,
       roleInput?: string,
       accountInput?: string,
-      options?: { salt?: string },
+      options?: { salt?: Hex },
     ) => {
       const timelockContract = await getPromptTimelock(timelock);
       const withdrawalQueueContract = await promptWithdrawalQueue(
@@ -116,7 +118,7 @@ withdrawalQueueWrite
       withdrawalQueueAddress?: Address,
       roleInput?: string,
       accountInput?: string,
-      options?: { salt?: string },
+      options?: { salt?: Hex },
     ) => {
       const timelockContract = await getPromptTimelock(timelock);
       const withdrawalQueueContract = await promptWithdrawalQueue(
@@ -164,7 +166,7 @@ withdrawalQueueWrite
       withdrawalQueueAddress?: Address,
       roleInput?: string,
       accountInput?: string,
-      options?: { salt?: string },
+      options?: { salt?: Hex },
     ) => {
       const timelockContract = await getPromptTimelock(timelock);
       const withdrawalQueueContract = await promptWithdrawalQueue(
@@ -212,7 +214,7 @@ withdrawalQueueWrite
       withdrawalQueueAddress?: Address,
       roleInput?: string,
       accountInput?: string,
-      options?: { salt?: string },
+      options?: { salt?: Hex },
     ) => {
       const timelockContract = await getPromptTimelock(timelock);
       const withdrawalQueueContract = await promptWithdrawalQueue(
