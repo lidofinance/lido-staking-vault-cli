@@ -231,7 +231,6 @@ wrapperOperationsRead
       methodName: 'getAllowListSize',
       payload: [],
     });
-    logInfo(`Allow List contains ${allowListSize} addresses:`);
 
     if (addresses.length === 0) {
       const fullAllowList = await callReadMethodSilent({
@@ -239,8 +238,8 @@ wrapperOperationsRead
         methodName: 'getAllowListAddresses',
         payload: [],
       });
-
-      logTable({ data: fullAllowList.map((addr) => [addr]) });
+      logInfo(`Allow List contains ${allowListSize} addresses:`);
+      logTable({ data: fullAllowList.map((addr, i) => [i + 1, addr]) });
     } else {
       const result = await publicClient.multicall({
         contracts: addresses.map(
@@ -254,7 +253,9 @@ wrapperOperationsRead
         ),
         allowFailure: false,
       });
-
+      logInfo(
+        `Allow List contains ${result.filter(Boolean).length}/${addresses.length} addresses:`,
+      );
       logTable({
         data: result.map((isAllowed, index) => [
           addresses[index],

@@ -327,6 +327,7 @@ wrapperOperationsWrite
         }),
         value: 0n,
       })),
+      abi: pool.abi,
     });
   });
 
@@ -377,6 +378,7 @@ wrapperOperationsWrite
         }),
         value: 0n,
       })),
+      abi: pool.abi,
     });
   });
 
