@@ -6,21 +6,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 
 import { logInfo, logTable } from './logging/console.js';
-import { ALLOWED_HTTP_SCHEMES } from './data-validators.js';
-
-const assertSafeUrl = (url: string, label: string): void => {
-  let parsed: URL;
-  try {
-    parsed = new URL(url);
-  } catch {
-    throw new Error(`${label}: invalid URL: ${url}`);
-  }
-  if (!ALLOWED_HTTP_SCHEMES.has(parsed.protocol)) {
-    throw new Error(
-      `${label}: unsupported URL scheme "${parsed.protocol}" (only http/https allowed)`,
-    );
-  }
-};
+import { assertSafeUrl } from './data-validators.js';
 
 export const IPFS_GATEWAY = 'https://ipfs.io/ipfs';
 

@@ -9,15 +9,15 @@ import {
   addressPrompt,
   textPrompt,
   stringToBigInt,
+  processSalt,
 } from 'utils';
 import { common } from './main.js';
-import { Address, stringToHex, isHex, Hash } from 'viem';
+import { Address, stringToHex, isHex, Hash, Hex } from 'viem';
 import {
   DEFAULT_PREDECESSOR,
   executeOperation,
   getPromptTimelock,
   OPERATION_ID_ARGUMENT,
-  processSalt,
   promptOperationId,
   SALT_OPTION,
   TIMELOCK_ARGUMENT,
@@ -52,7 +52,7 @@ commonWrite
       target?: Address,
       value?: bigint,
       payloadInput?: string,
-      options?: { predecessor?: string; salt?: string },
+      options?: { predecessor?: string; salt?: Hex },
     ) => {
       // Interactive prompts for missing parameters
       const timelockContract = await getPromptTimelock(timelock);

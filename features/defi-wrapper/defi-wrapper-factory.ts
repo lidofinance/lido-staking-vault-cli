@@ -7,6 +7,8 @@ import {
   isAddressEqual,
   zeroAddress,
   encodeFunctionData,
+  keccak256,
+  toBytes,
 } from 'viem';
 
 import { FactoryContract } from 'contracts/defi-wrapper/index.js';
@@ -74,6 +76,10 @@ export type AllowListFactoryOptions = {
 };
 
 export const MELLOW_VAULTS_STRATEGY_ID = 'strategy.mellow.v1';
+
+export const KNOWN_STRATEGIES = {
+  [keccak256(toBytes(MELLOW_VAULTS_STRATEGY_ID))]: MELLOW_VAULTS_STRATEGY_ID,
+};
 
 // сommon filaliztion step between two pools
 export const finalizePoolCreation = async (

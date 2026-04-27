@@ -1,8 +1,9 @@
 import { Option } from 'commander';
+import { Address, Hex, encodeFunctionData } from 'viem';
+
 import {
   proposeOperation,
   executeOperation,
-  processSalt,
   TIMELOCK_ARGUMENT,
   getPromptTimelock,
   SALT_OPTION,
@@ -14,11 +15,12 @@ import {
   addressPrompt,
   textPrompt,
   stringToHex,
+  processSalt,
 } from 'utils';
-import { proxy } from './main.js';
-import { Address, Hex, encodeFunctionData } from 'viem';
 import { OssifiableProxyAbi } from 'abi/defi-wrapper/index.js';
 import { getOssifiableProxyContract } from 'contracts/defi-wrapper/index.js';
+
+import { proxy } from './main.js';
 
 // Common helpers
 
@@ -104,7 +106,7 @@ proxyWrite
       timelock?: Address,
       proxyAddress?: Address,
       newImplementationInput?: string,
-      options?: { salt?: string },
+      options?: { salt?: Hex },
     ) => {
       const timelockContract = await getPromptTimelock(timelock);
       const proxyContract = await promptProxy(proxyAddress);
@@ -144,7 +146,7 @@ proxyWrite
       timelock?: Address,
       proxyAddress?: Address,
       newImplementationInput?: string,
-      options?: { salt?: string },
+      options?: { salt?: Hex },
     ) => {
       const timelockContract = await getPromptTimelock(timelock);
       const proxyContract = await promptProxy(proxyAddress);
@@ -188,7 +190,7 @@ proxyWrite
       proxyAddress?: Address,
       newImplementationInput?: string,
       setupCalldataInput?: string,
-      options?: { salt?: string },
+      options?: { salt?: Hex },
     ) => {
       const timelockContract = await getPromptTimelock(timelock);
       const proxyContract = await promptProxy(proxyAddress);
@@ -233,7 +235,7 @@ proxyWrite
       proxyAddress?: Address,
       newImplementationInput?: string,
       setupCalldataInput?: string,
-      options?: { salt?: string },
+      options?: { salt?: Hex },
     ) => {
       const timelockContract = await getPromptTimelock(timelock);
       const proxyContract = await promptProxy(proxyAddress);

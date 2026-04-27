@@ -41,18 +41,35 @@ wrapperOperationsRead
   .action(async (address: Address) => {
     const poolInfo = await getPoolInfo(address);
 
-    logResult({});
     logInfo('Wrapper Info');
     logTable({
       data: [
+        // Base Info
+        ['Pool', address],
+        ['PoolType', poolInfo.poolTypeName],
         ['Vault', poolInfo.vault],
-        ['StETH', poolInfo.stETH],
-        poolInfo.WSTETH && ['WSTETH', poolInfo.WSTETH],
         ['Dashboard', poolInfo.Dashboard],
-        ['VaultHub', poolInfo.VaultHub],
         ['WithdrawalQueue', poolInfo.WithdrawalQueue],
         ['Distributor', poolInfo.Distributor],
-        ['PoolType', poolInfo.poolTypeName],
+
+        // Strategies
+        ...(poolInfo.strategies?.flatMap((strategy, index) => [
+          [`Strategy ${index + 1} Address`, strategy.address],
+          [`Strategy ${index + 1} Name`, strategy.strategyName ?? 'N/A'],
+          [`Strategy ${index + 1} ID`, strategy.strategyId ?? 'N/A'],
+          [
+            `Strategy ${index + 1} Allow List Enabled`,
+            strategy.isAllowListEnabled ?? 'N/A',
+          ],
+          ...(strategy.isAllowListEnabled && strategy.allowListManagers
+            ? strategy.allowListManagers.map((manager, managerIndex) => [
+                `Strategy ${index + 1} Allow List Manager ${managerIndex + 1}`,
+                manager,
+              ])
+            : []),
+        ]) ?? []),
+
+        // Economic Parameters
         typeof poolInfo.RESERVE_RATIO_GAP_BP === 'bigint'
           ? ['RESERVE_RATIO_GAP_BP', poolInfo.RESERVE_RATIO_GAP_BP]
           : undefined,
@@ -131,15 +148,19 @@ wrapperOperationsRead
           'Total Unassigned Liability Steth',
           formatEther(poolInfo.totalUnassignedLiabilitySteth),
         ],
+        // Configuration
         ['Decimals', poolInfo.decimals],
         ['Is Deposits Paused', poolInfo.isDepositsPaused],
         typeof poolInfo.isMintingPaused === 'boolean'
           ? ['Is Minting Paused', poolInfo.isMintingPaused]
           : undefined,
         ['Is Report Fresh', poolInfo.isReportFresh],
-        ['ALLOW_LIST_ENABLED', poolInfo.ALLOW_LIST_ENABLED],
-        ['Allow List Size', poolInfo.allowListSize],
-        ['DEPOSITS_FEATURE (ID)', poolInfo.DEPOSITS_FEATURE],
+        ...(!poolInfo.isStrategyPool
+          ? [
+              ['ALLOW_LIST_ENABLED', poolInfo.ALLOW_LIST_ENABLED],
+              ['Allow List Size', poolInfo.allowListSize],
+            ]
+          : []),
         poolInfo.isInSync !== undefined
           ? [
               'Requires Vault Params Sync',
@@ -148,6 +169,7 @@ wrapperOperationsRead
                 : '❌ Yes (🚨 run "sync-vault-params" command)',
             ]
           : undefined,
+        ['DEPOSITS_FEATURE (ID)', poolInfo.DEPOSITS_FEATURE],
         poolInfo.MINTING_FEATURE
           ? ['MINTING_FEATURE (ID)', poolInfo.MINTING_FEATURE]
           : undefined,
@@ -158,7 +180,11 @@ wrapperOperationsRead
 wrapperOperationsRead
   .command('allow-list')
   .description('get full or partial allow list data')
-  .argument('<address>', 'wrapper address', stringToAddress)
+  .argument(
+    '<poolAddress/strategyAddress>',
+    'pool or strategy(for stvStrategyPools) address',
+    stringToAddress,
+  )
   .argument(
     '[addresses...]',
     'list of addresses to check, leave empty to get full allow list',
