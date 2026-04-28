@@ -162,6 +162,8 @@ consolidationWrite
           withSpinner: true,
           silent: false,
           skipError: false,
+          // only parses errors from dashboard contract, consolidation contract has no abi
+          abi: dashboardContract.abi,
         });
       } else {
         await consolidateAndIncreaseFeeExemptionWithoutBatching({

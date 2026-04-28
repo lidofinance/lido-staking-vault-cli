@@ -1,4 +1,5 @@
 import {
+  Abi,
   Address,
   Hex,
   SimulateContractReturnType,
@@ -435,6 +436,7 @@ export const callWriteMethodWithReceiptBatchCalls = async (args: {
   withSpinner?: boolean;
   silent?: boolean;
   skipError?: boolean;
+  abi?: Abi;
 }): Promise<void> => {
   const { calls, withSpinner = true, silent = false, skipError = false } = args;
 
@@ -449,6 +451,7 @@ export const callWriteMethodWithReceiptBatchCalls = async (args: {
       withSpinner,
       silent,
       skipError,
+      abi: args.abi,
     });
 
     return;
@@ -465,7 +468,7 @@ export const callWriteMethodWithReceiptBatchCalls = async (args: {
     account: walletClient.account,
     calls,
   });
-  simulateCallsErrorHandler(simulateResult);
+  simulateCallsErrorHandler(simulateResult, args.abi);
 
   for (const call of calls) {
     const tx = await walletClient.sendTransaction({

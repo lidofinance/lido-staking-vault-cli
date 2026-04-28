@@ -488,5 +488,6 @@ distributorWrite
           ],
         }),
       })),
+      abi: distributor.abi,
     });
   });
