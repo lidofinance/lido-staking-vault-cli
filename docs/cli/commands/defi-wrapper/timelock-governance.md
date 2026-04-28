@@ -216,6 +216,50 @@ yarn start dw uc tg pool w execute-set-max-loss-socialization-bp <timelock-addr>
 
 ---
 
+## Strategy Commands
+
+These commands are for proposing and executing administrative changes to a `Strategy` contract connected to `StvStrategyPool` through the `TimeLock`.
+
+### Write Commands (`strategy w`)
+
+| Command               | Description                                               |
+| --------------------- | --------------------------------------------------------- |
+| `propose-grant-role`  | Proposes granting a role to an account on the strategy.   |
+| `execute-grant-role`  | Executes a proposal to grant a role on the strategy.      |
+| `propose-revoke-role` | Proposes revoking a role from an account on the strategy. |
+| `execute-revoke-role` | Executes a proposal to revoke a role on the strategy.     |
+
+### Command Details
+
+All `strategy` write commands follow a similar pattern.
+
+**Arguments:**
+
+- `[timelock]`: The address of the `TimeLock` contract.
+- `[strategy]`: The address of the `Strategy` contract being managed.
+- Additional arguments specific to the function being called (e.g., `role`, `account`).
+
+**Options:**
+
+- `--salt <salt>`: A custom salt for the operation ID.
+
+**Example (`propose-grant-role`):**
+
+```bash
+# Propose granting a role to an account on the strategy
+yarn start dw uc tg strategy w propose-grant-role <timelock-addr> <strategy-addr> <role> <account>
+
+```
+
+**Example (`execute-grant-role`):**
+
+```bash
+# Execute the proposal to grant a role on the strategy
+yarn start dw uc tg strategy w execute-grant-role <timelock-addr> <strategy-addr> <role> <account>
+```
+
+---
+
 ## Proxy Commands
 
 These commands are for proposing and executing upgrades to `OssifiableProxy` contracts through the `TimeLock`. This is a critical part of contract maintenance and evolution.

@@ -1,5 +1,26 @@
 All notable changes to this project will be documented in this file.
 
+## 1.8.0
+
+### Added
+
+- Addresses in table outputs are now clickable links to block explorers
+
+#### DeFi Wrapper
+
+- `defi-wrapper contracts strategy` module for interacting with Strategy contracts connected to StvStrategyPool
+- `defi-wrapper use-cases timelock-governance strategy` module for proposing and executing timelock operation of Strategy contracts connected to StvStrategyPool.
+- `defi-wrapper use-cases wrapper-operations` allowList commands now directly indicate support fot Strategy Contracts
+- `defi-wrapper use-cases wrapper-operations read info` now displays connected Strategies
+- `defi-wrapper contracts factory w` module now contains `verify-contract` and `verify-deployment` commands for Etherscan verification of Factory and created pools
+
+### Fixed
+
+- estimateGas now handles low-balance accounts correctly
+- `defi-wrapper contracts factory` commands now correctly parse and handle `mintingEnabled`
+- `defi-wrapper use-cases wrapper-operations write` command with `--help` display correctly
+- `defi-wrapper use-cases timelock-governance pool execute-set-max-loss-socialization-bp` now correctly executes operation
+
 ## 1.7.0
 
 ### Added

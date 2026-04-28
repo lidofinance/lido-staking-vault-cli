@@ -1,4 +1,5 @@
 import {
+  Abi,
   Address,
   Hex,
   SimulateContractReturnType,
@@ -35,7 +36,7 @@ import {
   WriteTxArgs,
   ReadTxArgs,
 } from './types.js';
-import { simulateCallsErrorHandler } from './utils.js';
+import { simulateCallsErrorHandler, getConfirmations } from './utils.js';
 
 const isTestEnvironment =
   process.env.NODE_ENV === 'test' || process.env.VITEST === 'true';
@@ -402,9 +403,7 @@ export const callWriteMethodWithReceipt = async <
   try {
     const receipt = await waitForTransactionReceipt(publicClient, {
       hash: tx,
-      confirmations: process.env.CONFIRMATIONS
-        ? Number(process.env.CONFIRMATIONS)
-        : 3,
+      confirmations: getConfirmations(),
     });
     hideSpinner();
 
@@ -437,6 +436,7 @@ export const callWriteMethodWithReceiptBatchCalls = async (args: {
   withSpinner?: boolean;
   silent?: boolean;
   skipError?: boolean;
+  abi?: Abi;
 }): Promise<void> => {
   const { calls, withSpinner = true, silent = false, skipError = false } = args;
 
@@ -451,6 +451,7 @@ export const callWriteMethodWithReceiptBatchCalls = async (args: {
       withSpinner,
       silent,
       skipError,
+      abi: args.abi,
     });
 
     return;
@@ -467,7 +468,7 @@ export const callWriteMethodWithReceiptBatchCalls = async (args: {
     account: walletClient.account,
     calls,
   });
-  simulateCallsErrorHandler(simulateResult);
+  simulateCallsErrorHandler(simulateResult, args.abi);
 
   for (const call of calls) {
     const tx = await walletClient.sendTransaction({
@@ -488,9 +489,7 @@ export const callWriteMethodWithReceiptBatchCalls = async (args: {
 
     const receipt = await waitForTransactionReceipt(publicClient, {
       hash: tx,
-      confirmations: process.env.CONFIRMATIONS
-        ? Number(process.env.CONFIRMATIONS)
-        : 3,
+      confirmations: getConfirmations(),
     });
     hideSpinner();
 

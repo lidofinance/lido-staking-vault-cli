@@ -11,7 +11,7 @@ import {
 } from 'utils';
 
 import { stvStethPool } from './main.js';
-import { Address, formatEther } from 'viem';
+import { Address, formatEther, zeroAddress } from 'viem';
 import { getStvStethPoolContract } from 'contracts/defi-wrapper/index.js';
 
 const stvStethPoolWrite = stvStethPool
@@ -31,28 +31,31 @@ stvStethPoolWrite
     'deposit native ETH and receive stv, minting a specific amount of stETH shares',
   )
   .argument('<address>', 'stv steth pool address', stringToAddress)
-  .argument(
-    '<referral>',
-    'the address of the referral (if any)',
-    stringToAddress,
-  )
+  .argument('<amount>', 'amount of ETH to deposit (in ETH)', etherToWei)
   .argument(
     '<stethSharesToMint>',
-    'amount of stETH shares to mint (up to maximum capacity for this deposit). Pass MAX_MINTABLE_AMOUNT to mint maximum available for this deposit',
-    stringToBigInt,
+    'amount of stETH shares to mint (in shares)',
+    etherToWei,
   )
+  .option('-r, --referral <referral>', 'referral address', stringToAddress)
   .action(
-    async (address: Address, referral: Address, stethSharesToMint: bigint) => {
+    async (
+      address: Address,
+      amount: bigint,
+      stethSharesToMint: bigint,
+      { referral }: { referral: Address },
+    ) => {
       const contract = await getStvStethPoolContract(address);
 
-      const confirmationMessage = `Are you sure you want to deposit ETH to the stv steth pool? (referral: ${referral}, stethSharesToMint: ${stethSharesToMint})`;
+      const confirmationMessage = `Are you sure you want to deposit ${formatEther(amount)} ETH to the stv steth pool? (referral: ${referral || zeroAddress}, stethSharesToMint: ${formatEther(stethSharesToMint)})`;
       const confirm = await confirmOperation(confirmationMessage);
       if (!confirm) return;
 
       await callWriteMethodWithReceipt({
         contract,
         methodName: 'depositETHAndMintStethShares',
-        payload: [referral, stethSharesToMint],
+        payload: [referral || zeroAddress, stethSharesToMint],
+        value: amount,
       });
     },
   );
@@ -60,31 +63,34 @@ stvStethPoolWrite
 stvStethPoolWrite
   .command('deposit-eth-wsteth')
   .description(
-    'deposit native ETH and receive stv, minting a specific amount of stETH shares',
+    'deposit native ETH and receive stv, minting a specific amount of wstETH',
   )
   .argument('<address>', 'stv steth pool address', stringToAddress)
+  .argument('<amount>', 'amount of ETH to deposit (in ETH)', etherToWei)
   .argument(
-    '<referral>',
-    'the address of the referral (if any)',
-    stringToAddress,
+    '<wstethToMint>',
+    'amount of wstETH to mint (in wstETH)',
+    etherToWei,
   )
-  .argument(
-    '<stethSharesToMint>',
-    'amount of stETH shares to mint (up to maximum capacity for this deposit). Pass MAX_MINTABLE_AMOUNT to mint maximum available for this deposit',
-    stringToBigInt,
-  )
+  .option('-r, --referral <referral>', 'referral address', stringToAddress)
   .action(
-    async (address: Address, referral: Address, stethSharesToMint: bigint) => {
+    async (
+      address: Address,
+      amount: bigint,
+      wstethToMint: bigint,
+      { referral }: { referral: Address },
+    ) => {
       const contract = await getStvStethPoolContract(address);
 
-      const confirmationMessage = `Are you sure you want to deposit ETH to the stv steth pool? (referral: ${referral}, stethSharesToMint: ${stethSharesToMint})`;
+      const confirmationMessage = `Are you sure you want to deposit ${formatEther(amount)} ETH to the stv steth pool? (referral: ${referral || zeroAddress}, wstethToMint: ${formatEther(wstethToMint)})`;
       const confirm = await confirmOperation(confirmationMessage);
       if (!confirm) return;
 
       await callWriteMethodWithReceipt({
         contract,
         methodName: 'depositETHAndMintWsteth',
-        payload: [referral, stethSharesToMint],
+        payload: [referral || zeroAddress, wstethToMint],
+        value: amount,
       });
     },
   );
@@ -94,7 +100,7 @@ stvStethPoolWrite
   .description(
     'rebalance unassigned liability by repaying it with assets held by the vault',
   )
-  .argument('<address>', 'distributor address', stringToAddress)
+  .argument('<address>', 'stv steth pool address', stringToAddress)
   .argument(
     '<stethShares>',
     'amount of stETH shares to rebalance (in shares)',
@@ -119,7 +125,7 @@ stvStethPoolWrite
   .description(
     'rebalance unassigned liability by repaying it with external ether',
   )
-  .argument('<address>', 'distributor address', stringToAddress)
+  .argument('<address>', 'stv steth pool address', stringToAddress)
   .argument('<ether>', 'amount of ether to rebalance (in ETH)', etherToWei)
   .action(async (address: Address, ether: bigint) => {
     const contract = await getStvStethPoolContract(address);
@@ -139,7 +145,7 @@ stvStethPoolWrite
 stvStethPoolWrite
   .command('add-to-allow-list')
   .description('add an address to the allowlist')
-  .argument('<address>', 'distributor address', stringToAddress)
+  .argument('<address>', 'stv steth pool address', stringToAddress)
   .argument('<user>', 'address to add to the allowlist', stringToAddress)
   .action(async (address: Address, user: Address) => {
     const contract = await getStvStethPoolContract(address);
@@ -158,7 +164,7 @@ stvStethPoolWrite
 stvStethPoolWrite
   .command('remove-from-allow-list')
   .description('remove an address from the allowlist')
-  .argument('<address>', 'distributor address', stringToAddress)
+  .argument('<address>', 'stv steth pool address', stringToAddress)
   .argument('<user>', 'address to remove from the allowlist', stringToAddress)
   .action(async (address: Address, user: Address) => {
     const contract = await getStvStethPoolContract(address);
@@ -177,10 +183,10 @@ stvStethPoolWrite
 stvStethPoolWrite
   .command('mint-steth-shares')
   .description("mint stETH shares up to the user's minting capacity")
-  .argument('<address>', 'distributor address', stringToAddress)
+  .argument('<address>', 'stv steth pool address', stringToAddress)
   .argument(
     '<stethShares>',
-    'the amount of stETH shares to mint',
+    'the amount of stETH shares to mint (in shares)',
     stringToBigInt,
   )
   .action(async (address: Address, stethShares: bigint) => {
@@ -200,10 +206,10 @@ stvStethPoolWrite
 stvStethPoolWrite
   .command('burn-steth-shares')
   .description("burn stETH shares to reduce the user's minted stETH obligation")
-  .argument('<address>', 'distributor address', stringToAddress)
+  .argument('<address>', 'stv steth pool address', stringToAddress)
   .argument(
     '<stethShares>',
-    'the amount of stETH shares to burn',
+    'the amount of stETH shares to burn (in shares)',
     stringToBigInt,
   )
   .action(async (address: Address, stethShares: bigint) => {
@@ -259,7 +265,7 @@ stvStethPoolWrite
 stvStethPoolWrite
   .command('transfer-with-liability')
   .description('transfer stETH shares with liability to another address')
-  .argument('<address>', 'distributor address', stringToAddress)
+  .argument('<address>', 'stv steth pool address', stringToAddress)
   .argument('<to>', 'the address to transfer to', stringToAddress)
   .argument('<stv>', 'the amount of stv to transfer', stringToBigInt)
   .argument(

@@ -10,9 +10,15 @@ import { envs } from './envs.js';
 import { SUPPORTED_CHAINS_LIST } from './constants.js';
 
 export const importDeployFile = () => {
-  const fullPath = path.resolve('configs', envs?.DEPLOYED ?? '');
-  if (!fullPath) {
+  const deployedFile = envs?.DEPLOYED;
+  if (!deployedFile) {
     throw new Error('Deployed contracts file is not set, check .env file');
+  }
+
+  const configsDir = path.resolve('configs');
+  const fullPath = path.resolve(configsDir, deployedFile);
+  if (!fullPath.startsWith(configsDir + path.sep) && fullPath !== configsDir) {
+    throw new Error(`Path traversal detected in DEPLOYED: ${deployedFile}`);
   }
 
   let json: Record<string, number | string | Chain | any> = {};
@@ -137,6 +143,23 @@ export const getChainId = async () => {
   return chainId;
 };
 
+export const getExplorerUrl = async (): Promise<string> => {
+  const chainId = await getChainId();
+  const chain = SUPPORTED_CHAINS_LIST.find((chain) => chain.id === chainId);
+
+  if (!chain) {
+    throw new Error(`Chain ${chainId} is not supported`);
+  }
+
+  const explorerUrl = chain.blockExplorers.default.url;
+
+  return explorerUrl;
+};
+
+export const CHAIN_CACHE = {
+  currentChain: undefined as (typeof SUPPORTED_CHAINS_LIST)[number] | undefined,
+};
+
 export const getChain = async (): Promise<Chain> => {
   const chainId = await getChainId();
   const chain = SUPPORTED_CHAINS_LIST.find((chain) => chain.id === chainId);
@@ -144,6 +167,8 @@ export const getChain = async (): Promise<Chain> => {
   if (!chain) {
     throw new Error(`Chain ${chainId} is not supported`);
   }
+
+  CHAIN_CACHE.currentChain = chain;
 
   return chain;
 };

@@ -1,16 +1,15 @@
 import { Option } from 'commander';
+import { Address, encodeFunctionData, Hex } from 'viem';
+
 import {
   proposeOperation,
   executeOperation,
-  processSalt,
   TIMELOCK_ARGUMENT,
   getPromptTimelock,
   ACCOUNT_GRANT_ARGUMENT,
   SALT_OPTION,
   ROLE_ARGUMENT,
   ACCOUNT_REVOKE_ARGUMENT,
-  promptRole,
-  promptAccount,
 } from 'features/defi-wrapper/index.js';
 import {
   logInfo,
@@ -18,11 +17,14 @@ import {
   stringToAddress,
   addressPrompt,
   textPrompt,
+  promptRole,
+  promptAccount,
+  processSalt,
 } from 'utils';
-import { dashboardTimelockGovernance } from './main.js';
-import { Address, encodeFunctionData } from 'viem';
 import { getDashboardContract } from 'contracts/index.js';
 import { DashboardAbi } from 'abi/index.js';
+
+import { dashboardTimelockGovernance } from './main.js';
 
 // local helpers
 const DASHBOARD_ARGUMENT = [
@@ -71,7 +73,7 @@ dashboardWrite
       dashboardAddress?: Address,
       roleInput?: string,
       accountInput?: string,
-      options?: { salt?: string },
+      options?: { salt?: Hex },
     ) => {
       const timelockContract = await getPromptTimelock(timelock);
       const dashboardContract = await promptDashboard(dashboardAddress);
@@ -115,7 +117,7 @@ dashboardWrite
       dashboardAddress?: Address,
       roleInput?: string,
       accountInput?: string,
-      options?: { salt?: string },
+      options?: { salt?: Hex },
     ) => {
       const timelockContract = await getPromptTimelock(timelock);
       const dashboardContract = await promptDashboard(dashboardAddress);
@@ -159,7 +161,7 @@ dashboardWrite
       dashboardAddress?: Address,
       roleInput?: string,
       accountInput?: string,
-      options?: { salt?: string },
+      options?: { salt?: Hex },
     ) => {
       const timelockContract = await getPromptTimelock(timelock);
       const dashboardContract = await promptDashboard(dashboardAddress);
@@ -204,7 +206,7 @@ dashboardWrite
       dashboardAddress?: Address,
       roleInput?: string,
       accountInput?: string,
-      options?: { salt?: string },
+      options?: { salt?: Hex },
     ) => {
       const timelockContract = await getPromptTimelock(timelock);
       const dashboardContract = await promptDashboard(dashboardAddress);
@@ -247,7 +249,7 @@ dashboardWrite
       dashboardAddress?: Address,
       tierIdInput?: string,
       shareLimitInput?: string,
-      options?: { salt?: string },
+      options?: { salt?: Hex },
     ) => {
       const timelockContract = await getPromptTimelock(timelock);
 
@@ -306,7 +308,7 @@ dashboardWrite
       dashboardAddress?: Address,
       tierIdInput?: string,
       shareLimitInput?: string,
-      options?: { salt?: string },
+      options?: { salt?: Hex },
     ) => {
       const timelockContract = await getPromptTimelock(timelock);
 
@@ -361,7 +363,7 @@ dashboardWrite
     async (
       timelock?: Address,
       dashboardAddress?: Address,
-      options?: { salt?: string },
+      options?: { salt?: Hex },
     ) => {
       const timelockContract = await getPromptTimelock(timelock);
 
@@ -397,7 +399,7 @@ dashboardWrite
     async (
       timelock?: Address,
       dashboardAddress?: Address,
-      options?: { salt?: string },
+      options?: { salt?: Hex },
     ) => {
       const timelockContract = await getPromptTimelock(timelock);
 
@@ -435,7 +437,7 @@ dashboardWrite
       timelock?: Address,
       dashboardAddress?: Address,
       shareLimitInput?: string,
-      options?: { salt?: string },
+      options?: { salt?: Hex },
     ) => {
       const timelockContract = await getPromptTimelock(timelock);
       const dashboardContract = await promptDashboard(dashboardAddress);
@@ -482,7 +484,7 @@ dashboardWrite
       timelock?: Address,
       dashboardAddress?: Address,
       shareLimitInput?: string,
-      options?: { salt?: string },
+      options?: { salt?: Hex },
     ) => {
       const timelockContract = await getPromptTimelock(timelock);
 
@@ -534,7 +536,7 @@ dashboardWrite
       timelock?: Address,
       dashboardAddress?: Address,
       policyInput?: string,
-      options?: { salt?: string },
+      options?: { salt?: Hex },
     ) => {
       const timelockContract = await getPromptTimelock(timelock);
 
@@ -589,7 +591,7 @@ dashboardWrite
       timelock?: Address,
       dashboardAddress?: Address,
       policyInput?: string,
-      options?: { salt?: string },
+      options?: { salt?: Hex },
     ) => {
       const timelockContract = await getPromptTimelock(timelock);
 
@@ -641,7 +643,7 @@ dashboardWrite
       timelock?: Address,
       dashboardAddress?: Address,
       newOwnerInput?: string,
-      options?: { salt?: string },
+      options?: { salt?: Hex },
     ) => {
       const timelockContract = await getPromptTimelock(timelock);
 
@@ -692,7 +694,7 @@ dashboardWrite
       timelock?: Address,
       dashboardAddress?: Address,
       newOwnerInput?: string,
-      options?: { salt?: string },
+      options?: { salt?: Hex },
     ) => {
       const timelockContract = await getPromptTimelock(timelock);
 

@@ -47,7 +47,8 @@ accountWrite
     }
 
     const privateKey = generatePrivateKey();
-    logInfo(`Private key: ${privateKey}`);
+    // Write to stderr so pipes/redirects cannot capture the key
+    process.stderr.write(`Private key: ${privateKey}\n`);
   });
 
 accountWrite

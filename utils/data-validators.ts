@@ -1,6 +1,6 @@
 import { isAddress } from 'viem';
 
-import { Config, RoleAssignment } from 'types';
+import type { Config, RoleAssignment } from 'types';
 
 export const validateConfig = (config: Config) => {
   const errors = {} as Record<keyof Config, string>;
@@ -12,21 +12,19 @@ export const validateConfig = (config: Config) => {
   return errors;
 };
 
-export const isValidUrl = (value: string | undefined): boolean => {
-  if (!value) {
-    return false;
-  }
+export const ALLOWED_HTTP_SCHEMES = new Set(['http:', 'https:']);
 
-  if ('canParse' in URL) {
-    return URL.canParse(value);
-  }
-
+export const assertSafeUrl = (url: string, label: string): void => {
+  let parsed: URL;
   try {
-    // used global here to avid types issue
-    new globalThis.URL(value);
-    return true;
+    parsed = new URL(url);
   } catch {
-    return false;
+    throw new Error(`${label}: invalid URL: ${url}`);
+  }
+  if (!ALLOWED_HTTP_SCHEMES.has(parsed.protocol)) {
+    throw new Error(
+      `${label}: unsupported URL scheme "${parsed.protocol}" (only http/https allowed)`,
+    );
   }
 };
 

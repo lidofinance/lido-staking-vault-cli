@@ -1,14 +1,50 @@
 import { describe, expect, test } from 'vitest';
 import { RoleAssignment } from '../../types/index.js';
 import {
+  assertSafeUrl,
   validateConfig,
-  isValidUrl,
   transformAddressesToArray,
   validateAddressesMap,
   validateAddressMap,
 } from '../../utils/data-validators.js';
 
 describe('data-validators', () => {
+  describe('assertSafeUrl', () => {
+    test('passes for http URL', () => {
+      expect(() => assertSafeUrl('http://example.com', 'url')).not.toThrow();
+    });
+
+    test('passes for https URL', () => {
+      expect(() =>
+        assertSafeUrl('https://example.com/path?q=1', 'url'),
+      ).not.toThrow();
+    });
+
+    test('throws for invalid URL', () => {
+      expect(() => assertSafeUrl('not-a-url', 'callback URL')).toThrow(
+        'callback URL: invalid URL: not-a-url',
+      );
+    });
+
+    test('throws for ftp scheme', () => {
+      expect(() => assertSafeUrl('ftp://example.com', 'url')).toThrow(
+        'unsupported URL scheme "ftp:" (only http/https allowed)',
+      );
+    });
+
+    test('throws for file scheme', () => {
+      expect(() => assertSafeUrl('file:///etc/passwd', 'url')).toThrow(
+        'unsupported URL scheme "file:" (only http/https allowed)',
+      );
+    });
+
+    test('includes label in error message', () => {
+      expect(() => assertSafeUrl('ftp://example.com', 'my label')).toThrow(
+        'my label:',
+      );
+    });
+  });
+
   test('validateConfig detects NaN', () => {
     const errors = validateConfig({ CHAIN_ID: Number.NaN, DEPLOYED: 'true' });
     expect(errors).toHaveProperty('CHAIN_ID');
@@ -17,11 +53,6 @@ describe('data-validators', () => {
   test('validateConfig passes with number', () => {
     const errors = validateConfig({ CHAIN_ID: 1, DEPLOYED: 'true' });
     expect(errors).toEqual({});
-  });
-
-  test('isValidUrl works', () => {
-    expect(isValidUrl('https://example.com')).toBe(true);
-    expect(isValidUrl('not a url')).toBe(false);
   });
 
   test('transformAddressesToArray', () => {

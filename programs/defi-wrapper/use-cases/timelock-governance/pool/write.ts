@@ -1,12 +1,11 @@
 import { Option } from 'commander';
+import { Address, encodeFunctionData, maxUint16, Hex } from 'viem';
+
 import {
   ACCOUNT_GRANT_ARGUMENT,
   ACCOUNT_REVOKE_ARGUMENT,
   executeOperation,
   getPromptTimelock,
-  processSalt,
-  promptAccount,
-  promptRole,
   proposeOperation,
   ROLE_ARGUMENT,
   SALT_OPTION,
@@ -18,11 +17,14 @@ import {
   stringToAddress,
   addressPrompt,
   textPrompt,
+  processSalt,
+  promptAccount,
+  promptRole,
 } from 'utils';
-import { pool } from './main.js';
-import { Address, encodeFunctionData, maxUint16 } from 'viem';
 import { getStvStethPoolContract } from 'contracts/defi-wrapper/index.js';
 import { StvPoolAbi, StvStETHPoolAbi } from 'abi/defi-wrapper/index.js';
+
+import { pool } from './main.js';
 
 // Common helpers
 
@@ -98,7 +100,7 @@ poolWrite
       poolAddress?: Address,
       roleInput?: string,
       accountInput?: string,
-      options?: { salt?: string },
+      options?: { salt?: Hex },
     ) => {
       // Interactive prompts for missing parameters
       const timelockContract = await getPromptTimelock(timelock);
@@ -146,7 +148,7 @@ poolWrite
       poolAddress?: Address,
       roleInput?: string,
       accountInput?: string,
-      options?: { salt?: string },
+      options?: { salt?: Hex },
     ) => {
       // Interactive prompts for missing parameters
       const timelockContract = await getPromptTimelock(timelock);
@@ -194,7 +196,7 @@ poolWrite
       poolAddress?: Address,
       roleInput?: string,
       accountInput?: string,
-      options?: { salt?: string },
+      options?: { salt?: Hex },
     ) => {
       // Interactive prompts for missing parameters
       const timelockContract = await getPromptTimelock(timelock);
@@ -242,7 +244,7 @@ poolWrite
       poolAddress?: Address,
       roleInput?: string,
       accountInput?: string,
-      options?: { salt?: string },
+      options?: { salt?: Hex },
     ) => {
       // Interactive prompts for missing parameters
       const timelockContract = await getPromptTimelock(timelock);
@@ -290,7 +292,7 @@ poolWrite
       timelock?: Address,
       poolAddress?: Address,
       maxSocializablePortionBPInput?: number,
-      options?: { salt?: string },
+      options?: { salt?: Hex },
     ) => {
       // Interactive prompts for missing parameters
       const timelockContract = await getPromptTimelock(timelock);
@@ -335,7 +337,7 @@ poolWrite
       timelock?: Address,
       poolAddress?: Address,
       maxSocializablePortionBPInput?: number,
-      options?: { salt?: string },
+      options?: { salt?: Hex },
     ) => {
       // Interactive prompts for missing parameters
       const timelockContract = await getPromptTimelock(timelock);
@@ -355,7 +357,7 @@ poolWrite
         args: [maxSocializablePortionBP],
       });
 
-      await proposeOperation(
+      await executeOperation(
         timelockContract.address,
         poolContract.address,
         data,

@@ -109,11 +109,13 @@ yarn start dw uc wo r info 0x...
 
 ### allow-list
 
-Retrieves the entire allow list for a given pool, or checks the status of specific addresses.
+> **ℹ️ Note:** When using StvStrategyPool, the pool's allow list is always on and is used internally to restrict access only to Strategy contracts. If you have allow list on your Strategy, you can pass the strategy contract address to those commands to manage the allow list on Strategy level.
+
+Retrieves the entire allow list for a given pool/strategy, or checks the status of specific addresses.
 
 **Arguments:**
 
-- `<address>`: Wrapper pool contract address
+- `<poolAddress/strategyAddress>`: Wrapper pool or strategy(for StvStrategyPool) contract address
 - `[addresses...]`: (Optional) Space-separated list of addresses to check.
 
 **Output:**
@@ -131,7 +133,7 @@ yarn start dw uc wo r allow-list 0x...
 yarn start dw uc wo r allow-list 0x... 0x... 0x...
 ```
 
-**Use Case:** Verify which users are authorized to interact with a protected pool.
+**Use Case:** Verify which users are authorized to interact with a protected pool/strategy.
 
 ### report-fresh
 
@@ -241,11 +243,13 @@ yarn start dw uc wo w sync-vault-params 0x...
 
 ### allow-list-add
 
-Adds one or more addresses to the allow list for a given pool. This is a privileged operation.
+> **ℹ️ Note:** When using StvStrategyPool, the pool's allow list is always on and is used internally to restrict access only to Strategy contracts. If you have allow list on your Strategy, you can pass the strategy contract address to those commands to manage the allow list on Strategy level.
+
+Adds one or more addresses to the allow list for a given pool/strategy. This is a privileged operation for the holder of `ALLOW_LIST_MANAGER_ROLE`.
 
 **Arguments:**
 
-- `<poolAddress>`: Wrapper pool contract address
+- `<poolAddress/strategyAddress>`: Wrapper pool or strategy(for StvStrategyPool) contract address
 - `<addressToAdd...>`: Space-separated list of addresses to add.
 
 **Example:**
@@ -259,11 +263,11 @@ yarn start dw uc wo w allow-list-add 0x... 0x... 0x...
 
 ### allow-list-remove
 
-Removes one or more addresses from the allow list for a given pool. This is a privileged operation.
+Removes one or more addresses from the allow list for a given pool/strategy. This is a privileged operation for the holder of `ALLOW_LIST_MANAGER_ROLE`.
 
 **Arguments:**
 
-- `<poolAddress>`: Wrapper pool contract address
+- `<poolAddress/strategyAddress>`: Wrapper pool or strategy(for StvStrategyPool) contract address
 - `<addressesToRemove...>`: Space-separated list of addresses to remove.
 
 **Example:**

@@ -106,9 +106,8 @@ wrapperOperationsWrite
   .argument('<poolAddress>', 'pool address', stringToAddress)
   .option(
     '-mxr, --max-requests <maxRequestCount>',
-    'maximum number of requests to finalize, default: 1000',
+    'maximum number of requests to finalize (optional, default: 1000)',
     stringToBigInt,
-    1000n,
   )
   .option(
     '-gcr, --gas-coverage-recipient <gasCoverageRecipient>',
@@ -120,9 +119,9 @@ wrapperOperationsWrite
     async (
       address: Address,
       {
-        maxRequestCount = 1000n,
-        gasCoverageRecipient = zeroAddress,
-      }: { maxRequestCount: bigint; gasCoverageRecipient: Address },
+        maxRequests = 1000n,
+        gasCoverageRecipient,
+      }: { maxRequests?: bigint; gasCoverageRecipient: Address },
     ) => {
       const pool = await getStvPoolContract(address);
       const withdrawalQueueAddress = await callReadMethod({
@@ -153,9 +152,9 @@ wrapperOperationsWrite
         `Found ${requestsToFinalize} pending withdrawals to finalize. Proceeding with finalization...`,
       );
 
-      if (requestsToFinalize > maxRequestCount) {
+      if (requestsToFinalize > maxRequests) {
         logInfo(
-          `Only ${maxRequestCount}/${requestsToFinalize} requests will be finalized in this operation.`,
+          `Only ${maxRequests}/${requestsToFinalize} requests will be finalized in this operation.`,
         );
       }
       const dashboardAddress = await callReadMethod({
@@ -219,10 +218,7 @@ wrapperOperationsWrite
           return;
       }
 
-      const requestToBeFinalized = bigIntMin(
-        requestsToFinalize,
-        maxRequestCount,
-      );
+      const requestToBeFinalized = bigIntMin(requestsToFinalize, maxRequests);
 
       const confirm = await confirmOperation(
         `Are you sure you want to finalize up to ${requestToBeFinalized}/${requestsToFinalize} withdrawal requests for the WithdrawalQueue at address: ${address}?`,
@@ -233,7 +229,7 @@ wrapperOperationsWrite
       await callWriteMethodWithReceipt({
         contract: withdrawalQueue,
         methodName: 'finalize',
-        payload: [maxRequestCount, gasCoverageRecipient],
+        payload: [maxRequests, gasCoverageRecipient],
       });
     },
   );
@@ -287,7 +283,11 @@ wrapperOperationsWrite
 wrapperOperationsWrite
   .command('allow-list-add')
   .description('add addresses(divided by spaces) to allow list ')
-  .argument('<poolAddress>', 'pool address', stringToAddress)
+  .argument(
+    '<poolAddress/strategyAddress>',
+    'address of the pool or strategy(for stvStrategyPools)',
+    stringToAddress,
+  )
   .argument(
     '<addressToAdd...>',
     '1 or more addresses to add to allow list divided by spaces',
@@ -303,7 +303,7 @@ wrapperOperationsWrite
     });
 
     if (!isAllowListEnabled) {
-      logError('Pool is not configured for using allow list.');
+      logError('Pool/Strategy is not configured for using allow list.');
       return;
     }
 
@@ -327,13 +327,18 @@ wrapperOperationsWrite
         }),
         value: 0n,
       })),
+      abi: pool.abi,
     });
   });
 
 wrapperOperationsWrite
   .command('allow-list-remove')
   .description('remove addresses(divided by spaces) from allow list ')
-  .argument('<poolAddress>', 'pool address', stringToAddress)
+  .argument(
+    '<poolAddress/strategyAddress>',
+    'address of the pool or strategy(for stvStrategyPools)',
+    stringToAddress,
+  )
   .argument(
     '<addressesToRemove...>',
     '1 or more addresses to remove divided by spaces',
@@ -349,7 +354,7 @@ wrapperOperationsWrite
     });
 
     if (!isAllowListEnabled) {
-      logError('Pool is not configured for using allow list.');
+      logError('Pool/Strategy is not configured for using allow list.');
       return;
     }
 
@@ -373,6 +378,7 @@ wrapperOperationsWrite
         }),
         value: 0n,
       })),
+      abi: pool.abi,
     });
   });
 
@@ -398,9 +404,8 @@ wrapperOperationsWrite
   )
   .option(
     '--max-requests <maxRequestCount>',
-    'maximum number of requests to finalize',
+    'maximum number of requests to finalize (optional, default: 10)',
     stringToBigInt,
-    1000n,
   )
   .option(
     '--polling-interval <pollingInterval>',
@@ -414,7 +419,7 @@ wrapperOperationsWrite
       {
         skipReport,
         skipFinalize,
-        maxRequests,
+        maxRequests = 10n,
         gasCoverageRecipient,
         pollingInterval,
         callbackUrl,

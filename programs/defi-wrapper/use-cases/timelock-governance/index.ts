@@ -4,3 +4,4 @@ export * from './pool/index.js';
 export * from './dashboard/index.js';
 export * from './withdrawal-queue/index.js';
 export * from './proxy/index.js';
+export * from './strategy/index.js';
