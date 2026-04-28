@@ -1,6 +1,6 @@
 import { isAddress } from 'viem';
 
-import { Config, RoleAssignment } from 'types';
+import type { Config, RoleAssignment } from 'types';
 
 export const validateConfig = (config: Config) => {
   const errors = {} as Record<keyof Config, string>;
