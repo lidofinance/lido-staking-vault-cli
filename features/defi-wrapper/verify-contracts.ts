@@ -151,7 +151,7 @@ const POOL_TYPE_CONTRACT = {
 } as { [key in Hash]: keyof typeof DefiWrapperSources };
 
 const STRATEGY_TYPE_CONTRACT = {
-  '0x3b0e47226370dd0daa4b28feb910df52f3fa507a32622521ef348962830e24cd ':
+  '0x3b0e47226370dd0daa4b28feb910df52f3fa507a32622521ef348962830e24cd':
     'mellowStrategyImpl',
 } as {
   [key in Hash]: keyof typeof DefiWrapperSources;
