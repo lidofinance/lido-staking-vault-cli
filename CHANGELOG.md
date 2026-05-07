@@ -1,5 +1,13 @@
 All notable changes to this project will be documented in this file.
 
+# 1.9.0
+
+### Added
+
+#### DeFi Wrapper
+
+- added missing `defi-wrapper use-cases timelock-governance common write propose` command for proposing generic timelock operations
+
 ## 1.8.0
 
 ### Added
