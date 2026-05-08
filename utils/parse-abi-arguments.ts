@@ -6,6 +6,9 @@ import { isAddress, isHex, size as hexSize } from 'viem';
  * Uses viem's `isAddress` and `isHex` for validation.
  * Throws a descriptive error if parsing fails.
  */
+const toArgString = (v: unknown): string =>
+  typeof v === 'string' ? v : (JSON.stringify(v) as string);
+
 const parseAbiArgument = (param: AbiParameter, value: string): unknown => {
   const { type } = param;
 
@@ -28,7 +31,7 @@ const parseAbiArgument = (param: AbiParameter, value: string): unknown => {
     }
 
     // --- uint / int ---
-    if (type.startsWith('uint') || type.startsWith('int')) {
+    if (/^(uint|int)\d*$/.test(type)) {
       const n = BigInt(value);
       if (type.startsWith('uint') && n < 0n) {
         throw new Error(`Unsigned integer cannot be negative: "${value}"`);
@@ -84,7 +87,7 @@ const parseAbiArgument = (param: AbiParameter, value: string): unknown => {
       return parsed.map((item, i) =>
         parseAbiArgument(
           { ...param, type: innerType, name: `${param.name}[${i}]` },
-          String(item),
+          toArgString(item),
         ),
       );
     }
@@ -102,7 +105,7 @@ const parseAbiArgument = (param: AbiParameter, value: string): unknown => {
       return parsed.map((item, i) =>
         parseAbiArgument(
           { ...param, type: innerType, name: `${param.name}[${i}]` },
-          String(item),
+          toArgString(item),
         ),
       );
     }
@@ -134,7 +137,10 @@ const parseAbiArgument = (param: AbiParameter, value: string): unknown => {
         }
         return tupleParam.components.reduce<Record<string, unknown>>(
           (acc, comp, i) => {
-            acc[comp.name ?? i] = parseAbiArgument(comp, String(parsed[i]));
+            acc[comp.name ?? i] = parseAbiArgument(
+              comp,
+              toArgString(parsed[i]),
+            );
             return acc;
           },
           {},
@@ -156,7 +162,7 @@ const parseAbiArgument = (param: AbiParameter, value: string): unknown => {
             }
             acc[key] = parseAbiArgument(
               comp,
-              String((parsed as Record<string, unknown>)[key]),
+              toArgString((parsed as Record<string, unknown>)[key]),
             );
             return acc;
           },
