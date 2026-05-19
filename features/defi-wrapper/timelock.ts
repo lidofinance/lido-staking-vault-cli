@@ -99,7 +99,7 @@ export const SKIP_SIMULATION_OPTION = [
 
 export const TARGET_CONTRACT_TYPE_ARGUMENT = [
   '[targetContractType]',
-  'target contract type for predefined operations (proxy, dashboard, withdrawalQueue, distributor, timelock, stvPool, stvStethPool, mellowStrategy)',
+  'target contract type for predefined operations (proxy, dashboard, withdrawalQueue, distributor, timelock, stvPool, stvStethPool, genericStrategy, mellowStrategy)',
   (input: string) => {
     if (targetContractTypeToAbi.hasOwnProperty(input)) {
       return input as keyof typeof targetContractTypeToAbi;

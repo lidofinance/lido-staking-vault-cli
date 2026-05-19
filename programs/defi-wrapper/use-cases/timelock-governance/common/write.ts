@@ -112,9 +112,13 @@ commonWrite
   .argument('<method>', 'method to call on target contract')
   .argument(
     '[args...]',
-    'arguments(if needed) to call with the method(in their string form,comma separated, will be parsed to correct types based on ABI)',
+    'arguments(if needed) to call with the method(in their string form, space separated, will be parsed to correct types based on ABI)',
   )
-  .argument('[value]', 'ETH value to send (in wei, default: 0)', stringToBigInt)
+  .option(
+    '--value, -v [value]',
+    'ETH value to send(during execution) (in wei, default: 0)',
+    stringToBigInt,
+  )
   .option(...PREDECESSOR_OPTION)
   .option(...SALT_OPTION)
   .option(...SKIP_SIMULATION_OPTION)
@@ -125,11 +129,18 @@ commonWrite
       targetAddress: Address,
       methodName: string,
       argsInput: string[] = [],
-      value: bigint = 0n,
-      options?: { predecessor?: Hex; salt?: Hex; skipSimulation?: boolean },
+
+      options?: {
+        predecessor?: Hex;
+        value?: bigint;
+        salt?: Hex;
+        skipSimulation?: boolean;
+      },
     ) => {
       const timelockContract = await getPromptTimelock(timelock);
       const abi = targetContractTypeToAbi[targetContractType];
+
+      const value = options?.value ?? 0n;
 
       const methodAbi = abi?.find(
         (item) =>
@@ -200,6 +211,7 @@ commonWrite
   .option(...SALT_OPTION)
   .action(
     async (timelock: Address, operationId: Hash, options?: { salt?: Hex }) => {
+      let salt = processSalt(options?.salt);
       const timelockContract = await getPromptTimelock(timelock);
       const state = await timelockContract.read.getOperationState([
         operationId,
@@ -218,6 +230,20 @@ commonWrite
           strict: true,
         },
       );
+
+      if (!options?.salt) {
+        const saltEvents = await timelockContract.getEvents.CallSalt(
+          {
+            id: operationId,
+          },
+          {
+            strict: true,
+          },
+        );
+        if (saltEvents.length > 0 && saltEvents[0]?.args.salt) {
+          salt = saltEvents[0].args.salt;
+        }
+      }
 
       const allAbi = Object.values(targetContractTypeToAbi).flat();
 
@@ -260,7 +286,7 @@ commonWrite
           timelockContract.address,
           target,
           data,
-          processSalt(options?.salt),
+          salt,
           functionName,
           `Are you sure you want to execute this operation on target ${target}?`,
           { predecessor, value },
@@ -344,7 +370,7 @@ commonWrite
             operationDetails.map((event) => event.args.value as bigint),
             operationDetails.map((event) => event.args.data as Hex),
             predecessor,
-            processSalt(options?.salt),
+            salt,
           ],
           value: operationDetails.reduce(
             (acc, event) => acc + (event.args.value as bigint),
