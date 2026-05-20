@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 #### DeFi Wrapper
 
-- added missing `defi-wrapper use-cases timelock-governance common write propose` command for proposing generic timelock operations
+- for module `defi-wrapper use-cases timelock-governance common write` added `propose-operation`, `execute-operation` and `propose` commands for interacting with timelock
 
 ## 1.8.0
 
