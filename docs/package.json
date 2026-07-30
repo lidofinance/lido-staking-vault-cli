@@ -45,5 +45,9 @@
   },
   "engines": {
     "node": ">=18.0"
+  },
+  "resolutions": {
+    "qs": "^6.15.2",
+    "serialize-javascript": "^7.0.5"
   }
 }
