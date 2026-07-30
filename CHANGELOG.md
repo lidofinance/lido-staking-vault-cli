@@ -8,6 +8,12 @@ All notable changes to this project will be documented in this file.
 
 - for module `defi-wrapper use-cases timelock-governance common write` added `propose-operation`, `execute-operation` and `propose` commands for interacting with timelock
 
+### Changed
+
+- Node.js v22 or later is now required (Node 20 reached end-of-life)
+- migrated to Yarn 4.17 — `yarn install` works as before via the committed release; installs now refuse npm packages younger than 8 hours and git-URL dependencies (supply-chain guards)
+- updated dependencies to resolve all open security advisories (viem 2.55, ws 8.21, and 30+ transitive packages)
+
 ## 1.8.0
 
 ### Added
