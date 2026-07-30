@@ -29,6 +29,7 @@ vi.mock('../../utils/logging/console.js', () => ({
 import { CID } from 'multiformats/cid';
 import * as ipfs from '../../utils/ipfs.js';
 import type { Mock } from 'vitest';
+import { streamOf } from './stream-helpers.js';
 
 const fakeCid = CID.parse(
   'bafkreigh2akiscaildcjk2d6gtrevhb7f7esg6k4t4u5p4sqkgfa6vlriu',
@@ -54,13 +55,12 @@ describe('ipfs helpers', () => {
   test('fetchIPFS parses JSON response', async () => {
     const jsonData = '{"foo":1}';
     const encoder = new TextEncoder();
-    const buffer = encoder.encode(jsonData).buffer;
+    const bytes = encoder.encode(jsonData);
     const testCid = fakeCid.toString();
 
     (globalThis.fetch as Mock).mockResolvedValueOnce({
       ok: true,
-      text: async () => jsonData,
-      arrayBuffer: async () => buffer,
+      body: streamOf(bytes),
     });
 
     // Mock importer for calculateIPFSAddCID
@@ -87,14 +87,14 @@ describe('ipfs helpers', () => {
   });
 
   test('fetchIPFSBuffer returns buffer', async () => {
-    const buf = new ArrayBuffer(4);
+    const bytes = new Uint8Array(4);
     (globalThis.fetch as Mock).mockResolvedValueOnce({
       ok: true,
-      arrayBuffer: async () => buf,
+      body: streamOf(bytes),
     });
     const res = await ipfs.fetchIPFSBuffer({ cid: 'abc' });
     expect(globalThis.fetch).toHaveBeenCalledWith('https://ipfs.io/ipfs/abc');
-    expect(res).toEqual(new Uint8Array(buf));
+    expect(res).toEqual(bytes);
   });
 
   test('calculateIPFSAddCID returns last CID', async () => {
@@ -120,7 +120,7 @@ describe('ipfs helpers', () => {
     // Mock fetch to prevent actual network calls
     (globalThis.fetch as Mock).mockResolvedValueOnce({
       ok: true,
-      arrayBuffer: async () => fileContent.buffer,
+      body: streamOf(fileContent),
     });
 
     importer.mockImplementationOnce(async function* () {
@@ -145,7 +145,7 @@ describe('ipfs helpers', () => {
     // Mock fetch to return the file content
     (globalThis.fetch as Mock).mockResolvedValueOnce({
       ok: true,
-      arrayBuffer: async () => fileContent.buffer,
+      body: streamOf(fileContent),
     });
 
     // Mock importer to return different CID

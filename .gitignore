@@ -40,3 +40,6 @@ cache/*
 # lsv-web-terminal
 lsv-web-terminal
 .anvil.pid
+
+AGENTS.md
+CLAUDE.md

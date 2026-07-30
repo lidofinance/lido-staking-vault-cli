@@ -7,27 +7,124 @@ import path from 'node:path';
 
 import { logInfo, logTable } from './logging/console.js';
 import { assertSafeUrl } from './data-validators.js';
+import { parseEnvInt } from './env.js';
 
 export const IPFS_GATEWAY = 'https://ipfs.io/ipfs';
+
+// Max IPFS content size — guards against OOM from an oversized CID.
+// Override: maxBytes arg > IPFS_MAX_CONTENT_BYTES env > this default.
+export const DEFAULT_IPFS_MAX_CONTENT_BYTES = 20 * 1024 * 1024;
 
 export type BigNumberType = 'bigint' | 'string';
 export type ReportFetchArgs = {
   cid: string;
   gateway?: string;
   bigNumberType?: BigNumberType;
+  maxBytes?: number;
 };
 
 const IPFS_CACHE_DIR = path.resolve('ipfs-cache');
+
+// arg > env > default
+const resolveMaxBytes = (override?: number): number => {
+  if (
+    typeof override === 'number' &&
+    Number.isFinite(override) &&
+    override > 0
+  ) {
+    return override;
+  }
+
+  return Math.max(
+    1,
+    parseEnvInt(
+      process.env.IPFS_MAX_CONTENT_BYTES,
+      DEFAULT_IPFS_MAX_CONTENT_BYTES,
+    ),
+  );
+};
+
+// Cheap pre-check. Header may be absent or lie — streaming is the real limit.
+const assertContentLengthWithinLimit = (
+  response: Response,
+  maxBytes: number,
+): void => {
+  const declared = Number(response.headers?.get('content-length'));
+
+  if (Number.isFinite(declared) && declared > maxBytes) {
+    throw new Error(
+      `IPFS content too large: ${declared} bytes exceeds limit of ${maxBytes} bytes`,
+    );
+  }
+};
+
+// Join collected byte chunks into a single buffer.
+const concatChunks = (chunks: Uint8Array[], total: number): Uint8Array => {
+  const out = new Uint8Array(total);
+  let offset = 0;
+
+  for (const chunk of chunks) {
+    out.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+
+  return out;
+};
+
+// Read in chunks, abort once total exceeds maxBytes (before full buffering).
+const streamBodyWithLimit = async (
+  body: ReadableStream<Uint8Array>,
+  maxBytes: number,
+): Promise<Uint8Array> => {
+  const reader = body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (!value) continue;
+
+      total += value.byteLength;
+      if (total > maxBytes) {
+        await reader.cancel();
+        throw new Error(`IPFS content exceeds size limit of ${maxBytes} bytes`);
+      }
+
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock?.();
+  }
+
+  return concatChunks(chunks, total);
+};
+
+// Streaming is the real limit; Content-Length is just an early reject.
+// Fail closed if there's no body — a real fetch always has one for content.
+const readBodyWithLimit = async (
+  response: Response,
+  maxBytes: number,
+): Promise<Uint8Array> => {
+  assertContentLengthWithinLimit(response, maxBytes);
+
+  if (!response.body) {
+    throw new Error('IPFS response has no readable body');
+  }
+
+  return streamBodyWithLimit(response.body, maxBytes);
+};
 
 export const fetchIPFS = async <T>(
   args: ReportFetchArgs,
   cache = true,
 ): Promise<T> => {
-  const { cid, gateway = IPFS_GATEWAY } = args;
+  const { cid, gateway = IPFS_GATEWAY, maxBytes } = args;
 
-  if (cache) return fetchIPFSWithCacheAndVerify<T>(cid, gateway);
+  if (cache) return fetchIPFSWithCacheAndVerify<T>(cid, gateway, maxBytes);
 
-  const { json } = await fetchIPFSDirectAndVerify<T>(cid, gateway);
+  const { json } = await fetchIPFSDirectAndVerify<T>(cid, gateway, maxBytes);
   return json;
 };
 
@@ -35,6 +132,7 @@ export const fetchIPFS = async <T>(
 export const fetchIPFSDirect = async <T>(args: ReportFetchArgs): Promise<T> => {
   const { cid, gateway = IPFS_GATEWAY, bigNumberType = 'string' } = args;
   assertSafeUrl(gateway, 'IPFS gateway');
+  const maxBytes = resolveMaxBytes(args.maxBytes);
   const ipfsUrl = `${gateway}/${cid}`;
 
   logInfo('Fetching content from', ipfsUrl);
@@ -44,7 +142,9 @@ export const fetchIPFSDirect = async <T>(args: ReportFetchArgs): Promise<T> => {
     throw new Error(`Failed to fetch IPFS content: ${response.statusText}`);
   }
 
-  const raw = await response.text();
+  const raw = new TextDecoder().decode(
+    await readBodyWithLimit(response, maxBytes),
+  );
   const params =
     bigNumberType === 'bigint'
       ? { useNativeBigInt: true }
@@ -60,6 +160,7 @@ export const fetchIPFSBuffer = async (
 ): Promise<Uint8Array> => {
   const { cid, gateway = IPFS_GATEWAY } = args;
   assertSafeUrl(gateway, 'IPFS gateway');
+  const maxBytes = resolveMaxBytes(args.maxBytes);
   const ipfsUrl = `${gateway}/${cid}`;
   logInfo('Fetching content from', ipfsUrl);
 
@@ -67,8 +168,7 @@ export const fetchIPFSBuffer = async (
   if (!response.ok) {
     throw new Error(`Failed to fetch IPFS content: ${response.statusText}`);
   }
-  const buffer = await response.arrayBuffer();
-  return new Uint8Array(buffer);
+  return readBodyWithLimit(response, maxBytes);
 };
 
 // Recalculate CID using full UnixFS logic (like `ipfs add`)
@@ -100,6 +200,7 @@ export const calculateIPFSAddCID = async (
 export const fetchIPFSDirectAndVerify = async <T>(
   cid: string,
   gateway = IPFS_GATEWAY,
+  maxBytes?: number,
 ): Promise<{ json: T; fileContent: Uint8Array }> => {
   let originalCID: CID;
   try {
@@ -108,7 +209,7 @@ export const fetchIPFSDirectAndVerify = async <T>(
     throw new Error(`Invalid IPFS CID: ${cid}`);
   }
 
-  const fileContent = await fetchIPFSBuffer({ cid, gateway });
+  const fileContent = await fetchIPFSBuffer({ cid, gateway, maxBytes });
   const calculatedCID = await calculateIPFSAddCID(
     fileContent,
     originalCID.version,
@@ -140,6 +241,7 @@ export const fetchIPFSDirectAndVerify = async <T>(
 export const fetchIPFSWithCacheAndVerify = async <T>(
   cid: string,
   gateway = IPFS_GATEWAY,
+  maxBytes?: number,
 ): Promise<T> => {
   assertSafeUrl(gateway, 'IPFS gateway');
   try {
@@ -157,7 +259,7 @@ export const fetchIPFSWithCacheAndVerify = async <T>(
     return JSON.parse(data) as T;
   } catch {
     // Not in cache, fetch from IPFS
-    const { json } = await fetchIPFSDirectAndVerify<T>(cid, gateway);
+    const { json } = await fetchIPFSDirectAndVerify<T>(cid, gateway, maxBytes);
     await fs.writeFile(cacheFile, JSON.stringify(json), 'utf8');
     return json;
   }
