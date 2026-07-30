@@ -78,6 +78,14 @@ PRIVATE_KEY=0x
 # Note: WALLET_CONNECT_PROJECT_ID is NOT a secret. It is a public identifier
 # of the application using WalletConnect.
 WALLET_CONNECT_PROJECT_ID=ee928c025792b10a6daa97d85328c433
+
+# IPFS (optional)
+# Maximum size, in bytes, of content fetched from an IPFS gateway. Oversized
+# objects are rejected before they are buffered into memory, guarding against
+# out-of-memory DoS from a hostile or mistaken CID. Defaults to 20 MiB
+# (20971520). Applications embedding the CLI as a package can also override
+# this per call via the `maxBytes` argument of the fetch helpers.
+# IPFS_MAX_CONTENT_BYTES=20971520
 ```
 
 If you plan to manage contracts, **PRIVATE_KEY** (or an encrypted account file) is required for write operations.
