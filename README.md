@@ -26,7 +26,7 @@ For changes between versions see [Changelog](./CHANGELOG.md)
 
 ## Prerequisites
 
-- **Node.js**: Ensure you have Node.js (v20 or later) installed.
+- **Node.js**: Ensure you have Node.js (v22 or later) installed.
 - **Yarn**: Yarn package manager is required to install dependencies.
 
 ## Installation
