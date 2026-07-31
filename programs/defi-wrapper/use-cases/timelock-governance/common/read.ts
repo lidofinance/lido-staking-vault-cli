@@ -10,7 +10,7 @@ import {
   stringToBigInt,
 } from 'utils';
 import { common } from './main.js';
-import { Address, decodeFunctionData, Hash } from 'viem';
+import { Abi, Address, decodeFunctionData, Hash } from 'viem';
 import { getStvPoolContract } from 'contracts/defi-wrapper/index.js';
 import {
   getPromptTimelock,
@@ -30,6 +30,8 @@ import {
   TimeLockAbi,
   OssifiableProxyAbi,
   DistributorAbi,
+  MellowStrategyAbi,
+  GenericStrategyAbi,
 } from 'abi/defi-wrapper/index.js';
 
 // all abis of expected timelock governed contracts
@@ -41,7 +43,9 @@ const mixAbi = [
   ...OssifiableProxyAbi,
   ...TimeLockAbi,
   ...DistributorAbi,
-];
+  ...MellowStrategyAbi,
+  ...GenericStrategyAbi,
+] as Abi;
 
 const commonRead = common
   .command('read')
@@ -136,7 +140,7 @@ commonRead
           event.args as Required<typeof event.args>;
 
         let waitTime = 0n;
-        const timestamp = 0n;
+        let timestamp = 0n;
 
         const state = await callReadMethodSilent({
           contract: timelock,
@@ -145,13 +149,30 @@ commonRead
         });
 
         if (state === 1) {
-          const timestamp = await callReadMethodSilent({
+          timestamp = await callReadMethodSilent({
             contract: timelock,
             methodName: 'getTimestamp',
             payload: [[id]],
           });
 
           waitTime = waitTimeTo(timestamp);
+        }
+
+        const saltEvents = await timelock.getEvents.CallSalt({ id }, {
+          toBlock,
+          fromBlock,
+          strict: true as const,
+        } as const);
+
+        let salt = 'N/A';
+
+        if (saltEvents.length > 1) {
+          logError(
+            `Multiple CallSalt events found for operation ${id}, this should not happen.`,
+          );
+        }
+        if (saltEvents.length === 1) {
+          salt = saltEvents[0]?.args?.salt || 'N/A';
         }
 
         const stateNames = ['Unset', 'Waiting', 'Ready', 'Done'];
@@ -178,6 +199,7 @@ commonRead
             ['State', stateName],
             ['Target', target],
             ['Value (ETH)', value.toString()],
+            ['Salt', salt],
             ['Data', data],
             ['Function', functionName],
             [
@@ -190,7 +212,10 @@ commonRead
             ['Delay (seconds)', delay.toString()],
             ['Predecessor', predecessor],
             ['Wait Time (seconds)', waitTime.toString()],
-            ['Ready Timestamp', timestamp.toString()],
+            [
+              'Ready Timestamp',
+              new Date(Number(timestamp) * 1000).toLocaleString(),
+            ],
           ],
         });
       }

@@ -9,11 +9,42 @@ import {
   textPrompt,
   DEFAULT_SALT,
 } from 'utils';
-import { Address, Hex, zeroHash, isHash, formatEther } from 'viem';
+import {
+  Address,
+  Hex,
+  zeroHash,
+  isHash,
+  formatEther,
+  parseEventLogs,
+} from 'viem';
 import {
   getTimeLockContract,
   TimeLockContract,
 } from 'contracts/defi-wrapper/index.js';
+import { DashboardAbi } from 'abi/Dashboard.js';
+import {
+  TimeLockAbi,
+  DistributorAbi,
+  WithdrawalQueueAbi,
+  StvStETHPoolAbi,
+  StvPoolAbi,
+  OssifiableProxyAbi,
+  GenericStrategyAbi,
+  MellowStrategyAbi,
+} from 'abi/defi-wrapper/index.js';
+import { getPublicClient } from 'providers/wallet.js';
+
+export const targetContractTypeToAbi = {
+  proxy: OssifiableProxyAbi,
+  dashboard: DashboardAbi,
+  withdrawalQueue: WithdrawalQueueAbi,
+  distributor: DistributorAbi,
+  timelock: TimeLockAbi,
+  stvPool: StvPoolAbi,
+  stvStethPool: StvStETHPoolAbi,
+  genericStrategy: GenericStrategyAbi,
+  mellowStrategy: MellowStrategyAbi,
+} as const;
 
 // Common constants
 export const DEFAULT_PREDECESSOR = zeroHash;
@@ -54,6 +85,33 @@ export const SALT_OPTION = [
   DEFAULT_SALT,
 ] as const;
 
+export const PREDECESSOR_OPTION = [
+  '-p, --predecessor <predecessor>',
+  'predecessor operation ID (bytes32 hex, default: 0x0)',
+  stringToHash,
+  DEFAULT_PREDECESSOR,
+] as const;
+
+export const SKIP_SIMULATION_OPTION = [
+  '--skip-simulation',
+  'skip simulation of operations before proposing/executing (not recommended)',
+] as const;
+
+export const TARGET_CONTRACT_TYPE_ARGUMENT = [
+  '[targetContractType]',
+  'target contract type for predefined operations (proxy, dashboard, withdrawalQueue, distributor, timelock, stvPool, stvStethPool, genericStrategy, mellowStrategy)',
+  (input: string) => {
+    if (targetContractTypeToAbi.hasOwnProperty(input)) {
+      return input as keyof typeof targetContractTypeToAbi;
+    }
+    throw new Error(
+      `Invalid target contract type: ${input}. Valid types are: ${Object.keys(
+        targetContractTypeToAbi,
+      ).join(', ')}`,
+    );
+  },
+] as const;
+
 // Helper function to get timelock from argument or prompt user
 export const getPromptTimelock = async (
   argAddress: Address | undefined,
@@ -90,6 +148,13 @@ export const waitTimeTo = (timestamp: bigint) => {
   return timestamp > now ? timestamp - now : 0n;
 };
 
+// transient type to migrate args to object
+type TimelockOperationOptions = {
+  predecessor?: Hex;
+  value?: bigint;
+  skipSimulation?: boolean;
+};
+
 // Helper function for propose operations
 export const proposeOperation = async (
   timelock: Address,
@@ -98,7 +163,13 @@ export const proposeOperation = async (
   salt: Hex,
   functionName: string,
   confirmationMessage: string,
+  options: TimelockOperationOptions = {},
 ): Promise<Hex> => {
+  const {
+    predecessor = DEFAULT_PREDECESSOR,
+    value = 0n,
+    skipSimulation = false,
+  } = options;
   const timelockContract = await getTimeLockContract(timelock);
   const minDelay = await callReadMethodSilent({
     contract: timelockContract,
@@ -106,34 +177,81 @@ export const proposeOperation = async (
     payload: [],
   });
 
-  const predecessor = DEFAULT_PREDECESSOR;
-
   const operationId = await callReadMethodSilent({
     contract: timelockContract,
     methodName: 'hashOperation',
-    payload: [[target, 0n, data, predecessor, salt]],
+    payload: [[target, value, data, predecessor, salt]],
   });
 
   logInfo('Proposing operation:');
   logInfo(`  Operation ID: ${operationId}`);
   logInfo(`  Target: ${target}`);
-  logInfo(`  Value: 0`);
+  logInfo(`  Value: ${formatEther(value)} ETH`);
   logInfo(`  Payload: ${data}`);
   logInfo(`  Predecessor: ${predecessor}`);
   logInfo(`  Salt: ${salt}`);
   logInfo(`  Function: ${functionName}`);
   logInfo(`  Min delay: ${minDelay} seconds`);
 
+  if (!skipSimulation) {
+    // Simulate the operation to check for errors before proposing
+    const client = await getPublicClient();
+    const { results } = await client.simulateCalls({
+      account: timelock,
+      calls: [
+        {
+          to: target,
+          data,
+          value,
+        },
+      ],
+    });
+    if (results[0].error) {
+      logInfo(
+        `❌ Simulation failed for the proposed operation. Error: ${results[0].error.message}`,
+      );
+      throw new Error('Operation simulation failed. See logs for details.');
+    } else {
+      logInfo(
+        '  ✅ Successfully simulated the proposed operation. No errors detected.',
+      );
+    }
+  }
+
   const confirm = await confirmOperation(confirmationMessage);
   if (!confirm) {
     throw new Error('Operation cancelled by user');
   }
 
-  await callWriteMethodWithReceipt({
+  const { receipt } = await callWriteMethodWithReceipt({
     contract: timelockContract,
     methodName: 'schedule',
-    payload: [target, 0n, data, predecessor, salt, minDelay],
+    payload: [target, value, data, predecessor, salt, minDelay],
   });
+
+  if (receipt?.logs) {
+    const events = parseEventLogs({
+      abi: timelockContract.abi,
+      logs: receipt.logs,
+      strict: true,
+      eventName: 'CallScheduled',
+    });
+    if (events.length > 1) {
+      logInfo(
+        `⚠️ Multiple CallScheduled events found in receipt logs. Check the transaction details for more info.`,
+      );
+    }
+    const event = events[0];
+    if (!event) {
+      logInfo(
+        `⚠️ No CallScheduled event found in receipt logs. Check the transaction details for more info.`,
+      );
+    } else if (event?.args.id !== operationId) {
+      logInfo(
+        `⚠️ Operation ID from event (${event.args.id}) does not match calculated operation ID (${operationId}). Check the transaction details for more info.`,
+      );
+    }
+  }
 
   logInfo(`✅ Operation proposed successfully!`);
   logInfo(`   Operation ID: ${operationId}`);
@@ -150,9 +268,9 @@ export const executeOperation = async (
   salt: Hex,
   functionName: string,
   confirmationMessage: string,
-  value = 0n,
-  predecessor: Hex = DEFAULT_PREDECESSOR,
+  options: TimelockOperationOptions = {},
 ): Promise<void> => {
+  const { predecessor = DEFAULT_PREDECESSOR, value = 0n } = options;
   const timelockContract = await getTimeLockContract(timelock);
 
   const operationId = await callReadMethodSilent({

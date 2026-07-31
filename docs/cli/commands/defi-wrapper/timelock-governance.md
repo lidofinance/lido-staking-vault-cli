@@ -39,10 +39,13 @@ These commands interact directly with the `TimeLock` contract and are not specif
 
 ### Write Commands (`common w`)
 
-| Command   | Description                              |
-| --------- | ---------------------------------------- |
-| `execute` | Executes a generic, scheduled operation. |
-| `cancel`  | Cancels a scheduled timelock operation.  |
+| Command             | Description                                                                    |
+| ------------------- | ------------------------------------------------------------------------------ |
+| `propose-operation` | Proposes a new timelock operation with contract, method and arguments by ABI   |
+| `execute-operation` | Executes a scheduled timelock operation by operation ID                        |
+| `propose`           | Proposes a new timelock operation from raw parameters                          |
+| `execute`           | Executes a scheduled timelock operation by reconstructing from raw parameters. |
+| `cancel`            | Cancels a scheduled timelock operation.                                        |
 
 ---
 
@@ -83,6 +86,62 @@ Provides a full report on a specific operation, including its state, ready times
 
 - `[timelock]`: The address of the `TimeLock` contract.
 - `[operation-id]`: The ID of the operation.
+
+### `propose-operation`
+
+Schedules a new operation by specifying the target contract, the function to call, and its arguments in a human-readable format. The command will handle encoding the calldata and generating the operation ID.
+
+**Arguments:**
+
+- `[timelock]`: The address of the `TimeLock` contract.
+- `[targetContractType]`: Target contract type to use ABI of. Possible values: proxy, dashboard, withdrawalQueue, distributor, timelock, stvPool, stvStethPool, genericStrategy, mellowStrategy.
+- `[target]`: The contract address the operation will call.
+- `[method]`: The name of the method to call on the target contract.
+- `[...args]`: The arguments to pass to the method on the target contract. Space separated if multiple. Will be parsed according to the ABI of the target contract.
+  **Options:**
+- `--value, -v [value]`: The amount of ETH (in wei) to send with the operation. Default: `0`.
+- `-p, --predecessor <id>`: The ID of a preceding operation that must be completed first.
+- `--salt <salt>`: A custom salt for the operation ID.
+- `--skip-simulation`: Skip simulation of the execution of proposed operation by timelock.
+
+**Example:**
+
+```bash
+#  Schedule an operation to grant a role by providing the encoded calldata
+yarn start dw uc tg common w propose-operation <timelock-addr> dashboard <dashboard-addr> grantRole <hexRole> <account>`
+```
+
+### `execute-operation`
+
+Executes a scheduled operation by it's ID. Supports batch operations. If operations require ether, it will be sent with the transaction.
+
+**Arguments:**
+
+- `[timelock]`: The address of the `TimeLock` contract.
+- `[operationId]`: The ID (hash) of the operation to execute.
+  **Options:**
+- `--salt <salt>`: A custom salt to use for operation reconstruction.
+
+### `propose`
+
+Schedules a new operation by reconstructing its parameters. This is a powerful, generic command that can propose any operation if you provide the correct `target`, `value`, `payload`, and `salt`.
+
+**Arguments:**
+
+- `[timelock]`: The address of the `TimeLock` contract.
+- `[target]`: The contract address the operation will call.
+- `[value]`: The amount of ETH (in wei) to send with the operation. Default: `0`.
+- `[payload]`: The hex-encoded calldata representing the function and arguments to be called on the `target`.
+  **Options:**
+- `-p, --predecessor <id>`: The ID of a preceding operation that must be completed first.
+- `--salt <salt>`: A custom salt for the operation ID.
+
+**Example:**
+
+```bash
+#  Schedule an operation to grant a role by providing the encoded calldata
+yarn start dw uc tg common w propose <timelock-addr> <dashboard-addr> 0 <encoded-grantRole-calldata>
+```
 
 ### `execute`
 

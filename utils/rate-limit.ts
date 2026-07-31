@@ -1,4 +1,5 @@
 import { sleep } from './sleep.js';
+import { parseEnvInt } from './env.js';
 
 const RATE_LIMIT_BATCH_SIZE = 120; // Max parallel requests per batch
 const RATE_LIMIT_DELAY_MS = 500; // Delay between batches
@@ -12,12 +13,6 @@ const RATE_LIMIT_DELAY_MS = 500; // Delay between batches
  * @param executor - Function to execute for each item
  * @returns Array of results
  */
-const parseEnvInt = (raw: string | undefined, fallback: number): number => {
-  if (!raw) return fallback;
-  const n = Number(raw);
-  return Number.isFinite(n) ? n : fallback;
-};
-
 export const executeBatchedWithRateLimit = async <T, R>(
   items: T[],
   executor: (item: T) => Promise<R>,

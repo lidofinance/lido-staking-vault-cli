@@ -18,7 +18,7 @@
     "test:integration": "vitest run --config vitest.integration.config.ts",
     "test:integration:watch": "vitest --config vitest.integration.config.ts",
     "test:unit": "vitest run tests/utils",
-    "prepare": "git config core.hooksPath .git-hooks || echo 'Not in a git repo'",
+    "postinstall": "git config core.hooksPath .git-hooks || echo 'Not in a git repo'",
     "prepublishOnly": "node scripts/updateVersion.cjs"
   },
   "homepage": "https://github.com/lidofinance/lido-staking-vault-cli/",
@@ -57,7 +57,7 @@
     "ox": "^0.8.6",
     "prompts": "^2.4.2",
     "qrcode-terminal": "^0.12.0",
-    "viem": "^2.33.2"
+    "viem": "^2.55.10"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.5.0",
@@ -73,7 +73,7 @@
     "@types/prompts": "^2.4.9",
     "@types/qrcode-terminal": "^0.12.2",
     "@viem/anvil": "^0.0.10",
-    "@vitest/coverage-v8": "^4.0.15",
+    "@vitest/coverage-v8": "^4.1.10",
     "@vitest/eslint-plugin": "^1.6.9",
     "eslint": "^10.0.2",
     "eslint-config-prettier": "^10.1.8",
@@ -84,14 +84,14 @@
     "eslint-plugin-unicorn": "^63.0.0",
     "lint-staged": "^15.4.3",
     "prettier": "^3.0.1",
-    "semantic-release": "^24.2.0",
+    "semantic-release": "^25.0.8",
     "ts-node": "^10.9.2",
     "tsc-alias": "^1.8.16",
     "tsconfig-paths": "^4.2.0",
-    "tsx": "^4.19.3",
+    "tsx": "^4.23.1",
     "typescript": "^5.7.2",
     "typescript-eslint": "^8.56.1",
-    "vitest": "^4.0.15"
+    "vitest": "^4.1.10"
   },
   "resolutions": {
     "xml2js": "^0.5.0",
@@ -119,5 +119,5 @@
       }
     ]
   },
-  "packageManager": "yarn@1.22.21+sha1.1959a18351b811cdeedbd484a8f86c3cc3bbaf72"
+  "packageManager": "yarn@4.17.1+sha512.ccbfabf7d7b6b32075088be9386fb9a2e00bb6887ef07fa56effabc890a56d53da1ccc4128d62db245fcbd3961b236d75335bdf7d5320ed6eafb7588b7ad4697"
 }
