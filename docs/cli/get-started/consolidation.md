@@ -108,6 +108,10 @@ The CLI displays a table with all source and target validators before executing.
 - Check the fee exemption amount to be set
 - Confirm no unintended validators are included
 
+The fee exemption is a **per-batch delta** on the contract side (`addFeeExemption` increases `settledGrowth` by the given amount), so it is added for every consolidation batch. The node-operator fee is based on vault growth above `settledGrowth`, so without the exemption the consolidated balance stays in the fee base once the consolidation is processed and reported.
+
+The only reason to skip is a retry: if the exemption for this exact batch was already submitted in a previous run. The CLI detects this automatically — when a recent on-chain fee exemption with the same amount exists, it shows the transaction hash and asks whether that transaction covered this same batch. Otherwise the exemption is added without extra prompts.
+
 ### 5. Monitor on Beacon Chain
 
 After submission, consolidation is processed at the consensus layer. Track progress via a Beacon Chain explorer or:

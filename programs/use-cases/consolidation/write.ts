@@ -23,7 +23,7 @@ import { consolidation } from './main.js';
 import {
   consolidateAndIncreaseFeeExemptionWithoutBatching,
   consolidationRequestsAndIncreaseFeeExemption,
-  confirmNewFeeExemption,
+  confirmFeeExemptionIncrease,
 } from 'features/consolidation.js';
 import { checkVaultRole, checkIsReportFresh } from 'features';
 import { getAccount } from 'providers';
@@ -127,7 +127,7 @@ consolidationWrite
       const feeExemption = await calculateAndConfirmFeeExemption(
         targetAndSourceValidators,
       );
-      const { isNeedToIncreaseFeeExemption } = await confirmNewFeeExemption(
+      const { shouldAddFeeExemption } = await confirmFeeExemptionIncrease(
         dashboardContract,
         feeExemption,
       );
@@ -144,7 +144,7 @@ consolidationWrite
         const populatedTxs = await consolidationRequestsAndIncreaseFeeExemption(
           {
             targetAndSourceValidators,
-            feeExemption: isNeedToIncreaseFeeExemption ? feeExemption : 0n,
+            feeExemption: shouldAddFeeExemption ? feeExemption : 0n,
             dashboard,
           },
         );
@@ -168,7 +168,7 @@ consolidationWrite
       } else {
         await consolidateAndIncreaseFeeExemptionWithoutBatching({
           targetAndSourceValidators,
-          feeExemption: isNeedToIncreaseFeeExemption ? feeExemption : 0n,
+          feeExemption: shouldAddFeeExemption ? feeExemption : 0n,
           dashboard,
         });
       }

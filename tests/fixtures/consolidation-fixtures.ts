@@ -28,6 +28,7 @@ export const createValidatorInfo = (
   balance: 32000000000n,
   index: '1',
   effectiveBalance: 32000000000n,
+  slashed: false,
   ...overrides,
 });
 
