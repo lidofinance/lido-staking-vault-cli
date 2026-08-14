@@ -952,6 +952,19 @@ export const PredepositGuaranteeAbi = [
   },
   {
     inputs: [],
+    name: 'GI_FIRST_VALIDATOR_PRE_GLOAS',
+    outputs: [
+      {
+        internalType: 'GIndex',
+        name: '',
+        type: 'bytes32',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
     name: 'GI_PUBKEY_WC_PARENT',
     outputs: [
       {
@@ -966,6 +979,19 @@ export const PredepositGuaranteeAbi = [
   {
     inputs: [],
     name: 'GI_STATE_ROOT',
+    outputs: [
+      {
+        internalType: 'GIndex',
+        name: '',
+        type: 'bytes32',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'GI_VALIDATORS',
     outputs: [
       {
         internalType: 'GIndex',
