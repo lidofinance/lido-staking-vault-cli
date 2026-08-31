@@ -1,4 +1,4 @@
-import { Hex } from 'viem';
+import { ContractFunctionExecutionError, Hex } from 'viem';
 import {
   printError,
   showSpinner,
@@ -6,7 +6,10 @@ import {
   callReadMethodSilent,
   toHex,
 } from 'utils';
-import { getPredepositGuaranteeContract } from 'contracts';
+import {
+  getPredepositGuaranteeContract,
+  PredepositGuaranteeContract,
+} from 'contracts';
 
 import { checkPdgIsPaused } from './deposits/pdg.js';
 
@@ -16,6 +19,45 @@ export const VALIDATOR_STAGES = {
   2: 'PROVEN',
   3: 'ACTIVATED',
   5: 'COMPENSATED',
+};
+
+/**
+ * PDG renames its gindex getters when redeployed for Gloas (lidofinance/core#1940):
+ * GI_FIRST_VALIDATOR_PREV/CURR become GI_FIRST_VALIDATOR_PRE_GLOAS/GI_VALIDATORS.
+ * Networks are upgraded at different times and one ABI serves them all, so read
+ * whichever pair the deployment actually exposes.
+ */
+export const readPdgGIndexes = async (
+  contract: PredepositGuaranteeContract,
+) => {
+  try {
+    const [GI_FIRST_VALIDATOR_PRE_GLOAS, GI_VALIDATORS] = await Promise.all([
+      contract.read.GI_FIRST_VALIDATOR_PRE_GLOAS(),
+      contract.read.GI_VALIDATORS(),
+    ]);
+    return { GI_FIRST_VALIDATOR_PRE_GLOAS, GI_VALIDATORS };
+  } catch (err) {
+    // Missing getters revert; anything else (RPC, network) is a real failure
+    if (!(err instanceof ContractFunctionExecutionError)) throw err;
+  }
+
+  try {
+    const [GI_FIRST_VALIDATOR_CURR, GI_FIRST_VALIDATOR_PREV] =
+      await Promise.all([
+        contract.read.GI_FIRST_VALIDATOR_CURR(),
+        contract.read.GI_FIRST_VALIDATOR_PREV(),
+      ]);
+    return { GI_FIRST_VALIDATOR_CURR, GI_FIRST_VALIDATOR_PREV };
+  } catch (err) {
+    if (!(err instanceof ContractFunctionExecutionError)) throw err;
+    // Neither layout answered: the vendored ABI no longer matches the deployment
+    throw new Error(
+      `PredepositGuarantee at ${contract.address} exposes neither the Gloas gindex getters ` +
+        '(GI_FIRST_VALIDATOR_PRE_GLOAS/GI_VALIDATORS) nor the pre-Gloas ones ' +
+        '(GI_FIRST_VALIDATOR_CURR/PREV). Check abi/PredepositGuarantee.ts against the deployed contract.',
+      { cause: err },
+    );
+  }
 };
 
 // Get base info
@@ -28,8 +70,7 @@ export const getPdgBaseInfo = async () => {
       RESUME_ROLE,
       PAUSE_ROLE,
       BEACON_ROOTS,
-      GI_FIRST_VALIDATOR_CURR,
-      GI_FIRST_VALIDATOR_PREV,
+      gIndexes,
       GI_PUBKEY_WC_PARENT,
       GI_STATE_ROOT,
       MAX_SUPPORTED_WC_VERSION,
@@ -43,8 +84,7 @@ export const getPdgBaseInfo = async () => {
       contract.read.RESUME_ROLE(),
       contract.read.PAUSE_ROLE(),
       contract.read.BEACON_ROOTS(),
-      contract.read.GI_FIRST_VALIDATOR_CURR(),
-      contract.read.GI_FIRST_VALIDATOR_PREV(),
+      readPdgGIndexes(contract),
       contract.read.GI_PUBKEY_WC_PARENT(),
       contract.read.GI_STATE_ROOT(),
       contract.read.MAX_SUPPORTED_WC_VERSION(),
@@ -65,8 +105,7 @@ export const getPdgBaseInfo = async () => {
       RESUME_ROLE,
       PAUSE_ROLE,
       BEACON_ROOTS,
-      GI_FIRST_VALIDATOR_CURR,
-      GI_FIRST_VALIDATOR_PREV,
+      ...gIndexes,
       GI_PUBKEY_WC_PARENT,
       GI_STATE_ROOT,
       MAX_SUPPORTED_WC_VERSION,
