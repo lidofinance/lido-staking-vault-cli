@@ -16,8 +16,12 @@ jobs:
           node-version: 24
           cache: 'yarn'
 
-      - name: Install dependencies
+      - name: Install root dependencies
         run: yarn --immutable
+
+      - name: Install test dependencies
+        working-directory: tests/base
+        run: yarn install --immutable
 
       - name: Check Lint
         run: yarn lint
