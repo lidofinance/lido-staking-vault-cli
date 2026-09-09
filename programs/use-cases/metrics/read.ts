@@ -53,7 +53,7 @@ metricsRead
   .command('statistic')
   .description('get statistic data for last report')
   .option('-v, --vault <string>', 'vault address')
-  .option('-g, --gateway', 'ipfs gateway url')
+  .option('-g, --gateway <string>', 'ipfs gateway url')
   .action(async ({ vault, gateway }) => {
     const { address: dashboardAddress, vault: vaultAddress } =
       await chooseVaultAndGetDashboard({ vault });
@@ -129,7 +129,7 @@ metricsRead
   .description('get statistic data for N last reports')
   .argument('<count>', 'count of reports', stringToNumber)
   .option('-v, --vault <string>', 'vault address')
-  .option('-g, --gateway', 'ipfs gateway url')
+  .option('-g, --gateway <string>', 'ipfs gateway url')
   .option('--no-utc', 'do not use UTC time zone')
   .action(async (count: number, { vault, gateway, utc }) => {
     const { contract: dashboardContract, vault: vaultAddress } =
@@ -218,7 +218,7 @@ metricsRead
   .description('get statistic data for N last reports with full data')
   .argument('<count>', 'count of reports', stringToNumber)
   .option('-v, --vault <string>', 'vault address')
-  .option('-g, --gateway', 'ipfs gateway url')
+  .option('-g, --gateway <string>', 'ipfs gateway url')
   .option('--no-utc', 'do not use UTC time zone')
   .action(async (count: number, { vault, gateway, utc }) => {
     const { contract: dashboardContract, vault: vaultAddress } =
@@ -383,7 +383,7 @@ metricsRead
   .description('get report data for Vault from N last reports')
   .argument('<count>', 'count of reports', stringToNumber)
   .option('-v, --vault <string>', 'vault address')
-  .option('-g, --gateway', 'ipfs gateway url')
+  .option('-g, --gateway <string>', 'ipfs gateway url')
   .option('--no-utc', 'do not use UTC time zone')
   .action(async (count: number, { vault, gateway, utc }) => {
     const { vault: vaultAddress } = await chooseVaultAndGetDashboard({ vault });
