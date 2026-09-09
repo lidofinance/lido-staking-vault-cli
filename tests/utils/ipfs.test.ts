@@ -70,20 +70,65 @@ describe('ipfs helpers', () => {
 
     const res = await ipfs.fetchIPFS<{ foo: number }>({ cid: testCid }, false);
     expect(globalThis.fetch).toHaveBeenCalledWith(
-      `https://ipfs.io/ipfs/${testCid}`,
+      `${ipfs.IPFS_GATEWAYS.ipfsIo}/${testCid}`,
     );
     expect(res).toEqual({ foo: 1 });
     expect(logInfo).toHaveBeenCalled();
   });
 
   test('fetchIPFS throws on bad response', async () => {
-    (globalThis.fetch as Mock).mockResolvedValueOnce({
+    (globalThis.fetch as Mock).mockResolvedValue({
       ok: false,
+      status: 503,
       statusText: 'bad',
     });
     await expect(ipfs.fetchIPFS({ cid: 'fail' }, false)).rejects.toThrow(
-      'Failed to fetch IPFS content: bad',
+      'Failed to fetch IPFS content from all gateways',
     );
+  });
+
+  test('fetchIPFS falls back through gateways', async () => {
+    const jsonData = '{"foo":1}';
+    const bytes = new TextEncoder().encode(jsonData);
+
+    (globalThis.fetch as Mock)
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 429,
+        statusText: 'Too Many Requests',
+      })
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 503,
+        statusText: 'Service Unavailable',
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        body: streamOf(bytes),
+      });
+
+    importer.mockImplementationOnce(async function* () {
+      yield { cid: fakeCid };
+    });
+
+    const result = await ipfs.fetchIPFS<{ foo: number }>(
+      { cid: fakeCid.toString() },
+      false,
+    );
+
+    expect(globalThis.fetch).toHaveBeenNthCalledWith(
+      1,
+      `${ipfs.IPFS_GATEWAYS.ipfsIo}/${fakeCid}`,
+    );
+    expect(globalThis.fetch).toHaveBeenNthCalledWith(
+      2,
+      `${ipfs.IPFS_GATEWAYS.filebase}/${fakeCid}`,
+    );
+    expect(globalThis.fetch).toHaveBeenNthCalledWith(
+      3,
+      `${ipfs.IPFS_GATEWAYS.pinata}/${fakeCid}`,
+    );
+    expect(result).toEqual({ foo: 1 });
   });
 
   test('fetchIPFSBuffer returns buffer', async () => {
@@ -93,7 +138,9 @@ describe('ipfs helpers', () => {
       body: streamOf(bytes),
     });
     const res = await ipfs.fetchIPFSBuffer({ cid: 'abc' });
-    expect(globalThis.fetch).toHaveBeenCalledWith('https://ipfs.io/ipfs/abc');
+    expect(globalThis.fetch).toHaveBeenCalledWith(
+      `${ipfs.IPFS_GATEWAYS.ipfsIo}/abc`,
+    );
     expect(res).toEqual(bytes);
   });
 
