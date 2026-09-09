@@ -9,11 +9,12 @@ import { logInfo, logTable } from './logging/console.js';
 import { assertSafeUrl } from './data-validators.js';
 import { parseEnvInt } from './env.js';
 
-export const IPFS_GATEWAYS = [
-  'https://ipfs.io/ipfs',
-  'https://ipfs.filebase.io/ipfs',
-] as const;
-export const IPFS_GATEWAY: string = IPFS_GATEWAYS[0];
+export const IPFS_GATEWAYS = {
+  ipfsIo: 'https://ipfs.io/ipfs',
+  filebase: 'https://ipfs.filebase.io/ipfs',
+  pinata: 'https://gateway.pinata.cloud/ipfs',
+} as const;
+export const IPFS_GATEWAY: string = IPFS_GATEWAYS.ipfsIo;
 
 // Max IPFS content size — guards against OOM from an oversized CID.
 // Override: maxBytes arg > IPFS_MAX_CONTENT_BYTES env > this default.
@@ -125,7 +126,7 @@ const fetchFromIPFSGateways = async (
   gateway?: string,
 ): Promise<Response> => {
   const gateways = [
-    ...new Set([gateway, ...IPFS_GATEWAYS].filter(Boolean)),
+    ...new Set([gateway, ...Object.values(IPFS_GATEWAYS)].filter(Boolean)),
   ] as string[];
 
   for (const currentGateway of gateways) {
