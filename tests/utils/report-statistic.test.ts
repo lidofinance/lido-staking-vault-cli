@@ -5,6 +5,7 @@ import {
   calcAccruedFeeOffChain,
   calcNoEarnings,
   getNodeOperatorFeeForPeriod,
+  getNodeOperatorFeeBreakdown,
   getGrossStakingRewards,
   getDailyLidoFees,
   getNetStakingRewards,
@@ -176,6 +177,15 @@ describe('calcNoEarnings', () => {
 
 // ─── getNodeOperatorFeeForPeriod ─────────────────────────────────────────────
 
+/** Report pair producing exactly `gross` ETH of gross staking rewards. */
+const makeReportPair = (gross: bigint, opts: { base?: bigint } = {}) => {
+  const base = opts.base ?? ETH(1000);
+  return {
+    prev: makeReport({ totalValueWei: base, inOutDelta: base }),
+    curr: makeReport({ totalValueWei: base + gross, inOutDelta: base }),
+  };
+};
+
 describe('getNodeOperatorFeeForPeriod', () => {
   it('returns positive delta when noEarnings increased', () => {
     // prev noEarnings = 100*10% + 0 = 10 ETH
@@ -190,7 +200,11 @@ describe('getNodeOperatorFeeForPeriod', () => {
       feeRate: 1000n,
       accruedFee: ETH(2),
     });
-    expect(getNodeOperatorFeeForPeriod(curr, prev)).toBe(ETH(3));
+    // gross = 50 ETH → cap = 5 ETH, above the 3 ETH delta
+    const reports = makeReportPair(ETH(50));
+    expect(
+      getNodeOperatorFeeForPeriod(reports.curr, reports.prev, curr, prev),
+    ).toBe(ETH(3));
   });
 
   it('returns 0 when delta is negative (e.g. feeRate decreased)', () => {
@@ -198,7 +212,10 @@ describe('getNodeOperatorFeeForPeriod', () => {
     // curr noEarnings = 100 * 5% + 0 = 5 ETH  → delta = -5 → clamped to 0
     const prev = makeSnapshot({ settledGrowth: ETH(100), feeRate: 1000n });
     const curr = makeSnapshot({ settledGrowth: ETH(100), feeRate: 500n });
-    expect(getNodeOperatorFeeForPeriod(curr, prev)).toBe(0n);
+    const reports = makeReportPair(ETH(10));
+    expect(
+      getNodeOperatorFeeForPeriod(reports.curr, reports.prev, curr, prev),
+    ).toBe(0n);
   });
 
   it('returns 0 when noEarnings is unchanged', () => {
@@ -207,7 +224,10 @@ describe('getNodeOperatorFeeForPeriod', () => {
       feeRate: 1000n,
       accruedFee: ETH(5),
     });
-    expect(getNodeOperatorFeeForPeriod(snap, snap)).toBe(0n);
+    const reports = makeReportPair(ETH(10));
+    expect(
+      getNodeOperatorFeeForPeriod(reports.curr, reports.prev, snap, snap),
+    ).toBe(0n);
   });
 
   it('is claim-timing invariant: same result whether NO claimed once or multiple times', () => {
@@ -244,8 +264,143 @@ describe('getNodeOperatorFeeForPeriod', () => {
     });
     // noEarnings = 300*10% + 0 = 30 ETH → delta = 20 ETH
 
-    expect(getNodeOperatorFeeForPeriod(currA, prevA)).toBe(expectedFee);
-    expect(getNodeOperatorFeeForPeriod(currB, prevB)).toBe(expectedFee);
+    // The cap is derived from the reports alone (gross = 200 ETH → cap = 20 ETH),
+    // so it is identical for both scenarios and claim-timing invariance holds.
+    const { prev, curr } = makeReportPair(growth);
+
+    expect(getNodeOperatorFeeForPeriod(curr, prev, currA, prevA)).toBe(
+      expectedFee,
+    );
+    expect(getNodeOperatorFeeForPeriod(curr, prev, currB, prevB)).toBe(
+      expectedFee,
+    );
+  });
+});
+
+// ─── getNodeOperatorFeeBreakdown (gross-rewards cap) ─────────────────────────
+
+describe('getNodeOperatorFeeBreakdown', () => {
+  it('regression: an empty vault charges no fee when a fee exemption lifts settledGrowth (mainnet 0x2773…cfcb3, 2026-08-29)', () => {
+    // Vault empty for 48+ days: totalValue = inOutDelta = 1 ETH (CONNECT_DEPOSIT),
+    // no validators, no minted stETH → growth = 0, gross = 0.
+    // settledGrowth was raised by 320 ETH with nothing earned against it
+    // (addFeeExemption / correctSettledGrowth / unguaranteedDepositToBeaconChain),
+    // which used to surface as a 32 ETH node-operator fee.
+    const prev = makeReport({
+      totalValueWei: ETH(1),
+      inOutDelta: ETH(1),
+      fee: 0n,
+      timestamp: 0,
+    });
+    const curr = makeReport({
+      totalValueWei: ETH(1),
+      inOutDelta: ETH(1),
+      fee: 675_167_522_177n,
+      timestamp: 86_400,
+    });
+    const noFeePrev = makeSnapshot({ settledGrowth: 0n, feeRate: 1000n });
+    const noFeeCurr = makeSnapshot({ settledGrowth: ETH(320), feeRate: 1000n });
+
+    const breakdown = getNodeOperatorFeeBreakdown(
+      curr,
+      prev,
+      noFeeCurr,
+      noFeePrev,
+    );
+
+    expect(getGrossStakingRewards(curr, prev)).toBe(0n);
+    expect(breakdown.rawDelta).toBe(ETH(32));
+    expect(breakdown.cap).toBe(0n);
+    expect(breakdown.fee).toBe(0n);
+    expect(breakdown.capped).toBe(true);
+  });
+
+  it('is a no-op on a healthy period: raw delta already equals gross × feeRate', () => {
+    const { prev, curr } = makeReportPair(ETH(50));
+    const feeRate = 1000n;
+    const noFeePrev = makeSnapshot({ settledGrowth: ETH(100), feeRate });
+    const noFeeCurr = makeSnapshot({
+      settledGrowth: ETH(100),
+      feeRate,
+      accruedFee: ETH(5),
+    });
+
+    const gross = getGrossStakingRewards(curr, prev);
+    const breakdown = getNodeOperatorFeeBreakdown(
+      curr,
+      prev,
+      noFeeCurr,
+      noFeePrev,
+    );
+
+    expect(breakdown.rawDelta).toBe((gross * feeRate) / 10000n);
+    expect(breakdown.cap).toBe(breakdown.rawDelta);
+    expect(breakdown.fee).toBe(ETH(5));
+    expect(breakdown.capped).toBe(false);
+  });
+
+  it('charges nothing while a vault recovers under its settledGrowth watermark', () => {
+    // Growth rises 50 → 90 ETH but stays below settledGrowth = 100 ETH, so
+    // accruedFee is clamped at 0 on both sides and the raw delta is 0. The NO
+    // was already paid for that growth; re-charging it would double-charge.
+    const prev = makeReport({
+      totalValueWei: ETH(1050),
+      inOutDelta: ETH(1000),
+    });
+    const curr = makeReport({
+      totalValueWei: ETH(1090),
+      inOutDelta: ETH(1000),
+    });
+    const snap = makeSnapshot({ settledGrowth: ETH(100), feeRate: 1000n });
+
+    const breakdown = getNodeOperatorFeeBreakdown(curr, prev, snap, snap);
+
+    expect(getGrossStakingRewards(curr, prev)).toBe(ETH(40));
+    expect(breakdown.rawDelta).toBe(0n);
+    expect(breakdown.cap).toBe(ETH(4));
+    expect(breakdown.fee).toBe(0n);
+    expect(breakdown.capped).toBe(false);
+  });
+
+  it('clips a mid-period feeRate increase to the higher rate on the period gross', () => {
+    // Known limitation: a mid-period rate change mis-states the fee. The cap
+    // turns that from an unbounded over-statement into an under-statement
+    // bounded by gross × max(feeRate) — here 10 ETH gross at 20% = 2 ETH,
+    // against a raw delta of 10 ETH driven by re-rating the whole watermark.
+    const { prev, curr } = makeReportPair(ETH(10));
+    const noFeePrev = makeSnapshot({ settledGrowth: ETH(100), feeRate: 1000n });
+    const noFeeCurr = makeSnapshot({ settledGrowth: ETH(100), feeRate: 2000n });
+
+    const breakdown = getNodeOperatorFeeBreakdown(
+      curr,
+      prev,
+      noFeeCurr,
+      noFeePrev,
+    );
+
+    expect(breakdown.rawDelta).toBe(ETH(10));
+    expect(breakdown.cap).toBe(ETH(2)); // max(10%, 20%) of 10 ETH gross
+    expect(breakdown.fee).toBe(ETH(2));
+    expect(breakdown.capped).toBe(true);
+  });
+
+  it('charges nothing on a real drawdown (negative gross)', () => {
+    const { prev, curr } = makeReportPair(-ETH(3));
+    const noFeePrev = makeSnapshot({ settledGrowth: ETH(100), feeRate: 1000n });
+    const noFeeCurr = makeSnapshot({ settledGrowth: ETH(110), feeRate: 1000n });
+
+    const breakdown = getNodeOperatorFeeBreakdown(
+      curr,
+      prev,
+      noFeeCurr,
+      noFeePrev,
+    );
+
+    expect(getGrossStakingRewards(curr, prev)).toBe(-ETH(3));
+    expect(breakdown.rawDelta).toBe(ETH(1));
+    expect(breakdown.cap).toBe(0n);
+    expect(breakdown.fee).toBe(0n);
+    expect(breakdown.capped).toBe(true);
   });
 });
 
@@ -339,7 +494,7 @@ describe('getNetStakingRewards', () => {
     // net = 50 - 5 - 2 = 43 ETH
 
     const gross = getGrossStakingRewards(curr, prev);
-    const noFee = getNodeOperatorFeeForPeriod(noFeeCurr, noFeePrev);
+    const noFee = getNodeOperatorFeeForPeriod(curr, prev, noFeeCurr, noFeePrev);
     const lido = getDailyLidoFees(curr, prev);
     const net = getNetStakingRewards(curr, prev, noFeeCurr, noFeePrev);
 
@@ -596,5 +751,43 @@ describe('reportMetrics', () => {
     expect(metrics.bottomLine).toBe(
       metrics.netStakingRewards - stEthLiabilityRebaseAdjustment,
     );
+
+    expect(metrics.nodeOperatorRewardsCapped).toBe(false);
+  });
+
+  it('regression: empty vault with a lifted settledGrowth reports no NO fee and a fees-only net APR', () => {
+    // mainnet 0x2773e8a49fc342eb686db3b8b3f6ae3d696cfcb3, report pair 2026-08-29
+    // (timestamp 1787918411, block 25853600, CID Qmar3ZEnhNo39yhjxHA6GF9Q2oJjKY85uzZLGe1Rg34eML).
+    // Before the cap this row read nodeOperatorRewards = 32 ETH,
+    // netStakingRewards = -32.000000675 ETH, netStakingAPR = -1168000.02%.
+    const prev = makeReport({
+      totalValueWei: ETH(1),
+      inOutDelta: ETH(1),
+      fee: 0n,
+      timestamp: 0,
+    });
+    const curr = makeReport({
+      totalValueWei: ETH(1),
+      inOutDelta: ETH(1),
+      fee: 675_167_522_177n,
+      timestamp: 86_400,
+    });
+
+    const metrics = reportMetrics({
+      reports: { current: curr, previous: prev },
+      noFeeCurr: makeSnapshot({ settledGrowth: ETH(320), feeRate: 1000n }),
+      noFeePrev: makeSnapshot({ settledGrowth: 0n, feeRate: 1000n }),
+      stEthLiabilityRebaseRewards: 0n,
+    });
+
+    expect(metrics.grossStakingRewards).toBe(0n);
+    expect(metrics.nodeOperatorRewards).toBe(0n);
+    expect(metrics.nodeOperatorRewardsCapped).toBe(true);
+    expect(metrics.dailyLidoFees).toBe(675_167_522_177n);
+    expect(metrics.netStakingRewards).toBe(-675_167_522_177n);
+    expect(metrics.bottomLine).toBe(-675_167_522_177n);
+    // In line with the vault's 47 other rows in the window: net APR is the
+    // daily Lido fee drag alone, not a -1168000% outlier.
+    expect(metrics.netStakingAPR.apr_percent).toBeCloseTo(-0.0246436, 6);
   });
 });
