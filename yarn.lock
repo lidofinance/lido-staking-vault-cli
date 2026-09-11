@@ -1174,7 +1174,7 @@ __metadata:
     qrcode-terminal: "npm:^0.12.0"
     semantic-release: "npm:^25.0.9"
     ts-node: "npm:^10.9.2"
-    tsc-alias: "npm:~1.8.16"
+    tsc-alias: "npm:~1.9.4"
     tsconfig-paths: "npm:^4.2.0"
     tsx: "npm:^4.23.13"
     typescript: "npm:^5.7.2"
@@ -9598,9 +9598,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tsc-alias@npm:~1.8.16":
-  version: 1.8.17
-  resolution: "tsc-alias@npm:1.8.17"
+"tsc-alias@npm:~1.9.4":
+  version: 1.9.4
+  resolution: "tsc-alias@npm:1.9.4"
   dependencies:
     chokidar: "npm:^3.5.3"
     commander: "npm:^9.0.0"
@@ -9611,7 +9611,7 @@ __metadata:
     plimit-lit: "npm:^1.2.6"
   bin:
     tsc-alias: dist/bin/index.js
-  checksum: 10c0/024301d25e48917da2b11bd92683fdf62c9c9603eb711937f0aa8e24df0d988290a4f5e94ac91b77601ea36335bf4ab5637944c47755df82a2a0cf95720d5c0f
+  checksum: 10c0/80f0e8e69a5a9ace870c60a26461563b63397d17e594bb6ad5b2e0ea5f49f6b77810f21f1fe528a7891efd12f25f79aa999eea7b3e0f93a1ad16c6ab08b2b0a8
   languageName: node
   linkType: hard
 
