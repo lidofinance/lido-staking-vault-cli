@@ -756,8 +756,6 @@ describe('reportMetrics', () => {
   });
 
   it('regression: empty vault with a lifted settledGrowth reports no NO fee and a fees-only net APR', () => {
-    // mainnet 0x2773e8a49fc342eb686db3b8b3f6ae3d696cfcb3, report pair 2026-08-29
-    // (timestamp 1787918411, block 25853600, CID Qmar3ZEnhNo39yhjxHA6GF9Q2oJjKY85uzZLGe1Rg34eML).
     // Before the cap this row read nodeOperatorRewards = 32 ETH,
     // netStakingRewards = -32.000000675 ETH, netStakingAPR = -1168000.02%.
     const prev = makeReport({
