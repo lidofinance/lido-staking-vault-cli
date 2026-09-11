@@ -84,8 +84,8 @@ describe('getSourceAndTargetPubkeysFromEncodedCall', () => {
     const encodedCall = `0x${source}${target}` as Hex;
 
     const result = getSourceAndTargetPubkeysFromEncodedCall(encodedCall);
-    expect(result.sourcePubkey.length).toBe(2 + 96); // 0x + 96 hex chars
-    expect(result.targetPubkey.length).toBe(2 + 96);
+    expect(result.sourcePubkey).toHaveLength(2 + 96); // 0x + 96 hex chars
+    expect(result.targetPubkey).toHaveLength(2 + 96);
   });
 });
 
