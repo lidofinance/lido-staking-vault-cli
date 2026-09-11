@@ -72,6 +72,36 @@ nodeOperatorFee = noEarnings(curr) − noEarnings(prev)
 
 The `noEarnings` function is claim-timing invariant: whether the NO claims fees zero times or ten times during a period, `Δ(noEarnings)` equals the true fee accrued on gross staking rewards.
 
+### Cap on the period gross rewards
+
+`Δ(noEarnings)` alone is not a safe answer, so the period fee is bounded by the fee on the period's own gross rewards:
+
+```
+feeRate  = max(feeRateCurr, feeRatePrev)
+cap      = max(0, grossStakingRewards) × feeRate / 10000
+nodeOperatorFee = clamp(Δ(noEarnings), 0, cap)
+```
+
+Why the upper bound is needed: `noEarnings` collapses to `max(growth, settledGrowth) × feeRate / 10000` — the `settledGrowth` term and `accruedFee` cancel — but only while `accruedFee` is unclamped. Once `settledGrowth` rises above `growth` (`= totalValueWei − inOutDelta`), `accruedFee` is pinned at 0 and the `settledGrowth` term moves with nothing to offset it.
+
+That state is reachable because `settledGrowth` is not a pure settled-earnings watermark. It is also raised by paths where the node operator earned nothing:
+
+| Path                                               | Contract          |
+| -------------------------------------------------- | ----------------- |
+| `addFeeExemption(amount)`                          | `NodeOperatorFee` |
+| `correctSettledGrowth(newValue, expectedValue)`    | `NodeOperatorFee` |
+| `unguaranteedDepositToBeaconChain` → fee exemption | `Dashboard`       |
+
+The last one deliberately produces `settledGrowth > growth` while the deposit sits in the validator entrance queue, so empty and under-water vaults hit this routinely. Without the cap such a vault reports a node operator fee on zero gross rewards.
+
+The cap is derived from the report leaves — independent of the two on-chain snapshots — so an exempted or corrected `settledGrowth` cannot dominate the result on its own. `Δ(noEarnings)` remains the primary signal; the cap only bounds it.
+
+:::note
+A mid-period `feeRate` change is clipped by this cap to `gross × max(feeRateCurr, feeRatePrev) / 10000`. The resulting error is a bounded under-statement rather than an unbounded over-statement.
+:::
+
+The `metrics read statistic`, `statistic-by-reports` and `statistic-by-reports-full` commands print a warning naming the affected periods whenever the cap binds.
+
 ### Off-chain accruedFee
 
 `accruedFee` is computed off-chain from IPFS data to avoid stale on-chain state (the on-chain value is only updated when the vault owner calls `updateVaultData`):
@@ -183,15 +213,15 @@ lidoCoreAPR = (postShareRate − preShareRate) / preShareRate × (31536000 / per
 
 ## Summary Table
 
-| Metric                            | Formula                                                                          |
-| --------------------------------- | -------------------------------------------------------------------------------- |
-| Gross Staking Rewards             | `ΔtotalValue − ΔinOutDelta`                                                      |
-| Daily Lido Fees                   | `Δfee`                                                                           |
-| Node Operator Fee                 | `Δ(settledGrowth × feeRate/10000 + accruedFee)`                                  |
-| Net Staking Rewards               | `grossStakingRewards − nodeOperatorFee − dailyLidoFees`                          |
-| stETH Liability Rebase Adjustment | `liabilitySharesPrev × ΔshareRate / 1e27`                                        |
-| Bottom Line                       | `netStakingRewards − stEthLiabilityRebaseCost`                                   |
-| Gross Staking APR (%)             | `grossStakingRewards × 100 × 31536000 / (previousTVL × periodSeconds)`           |
-| Net Staking APR (%)               | `netStakingRewards × 100 × 31536000 / (previousTVL × periodSeconds)`             |
-| Carry Spread (%)                  | `bottomLine × 100 × 31536000 / (previousTVL × periodSeconds)`                    |
-| Lido Core APR (%)                 | `(postShareRate − preShareRate) / preShareRate × 31536000 / periodSeconds × 100` |
+| Metric                            | Formula                                                                                                       |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Gross Staking Rewards             | `ΔtotalValue − ΔinOutDelta`                                                                                   |
+| Daily Lido Fees                   | `Δfee`                                                                                                        |
+| Node Operator Fee                 | `clamp(Δ(settledGrowth × feeRate/10000 + accruedFee), 0, max(0, grossStakingRewards) × max(feeRate) / 10000)` |
+| Net Staking Rewards               | `grossStakingRewards − nodeOperatorFee − dailyLidoFees`                                                       |
+| stETH Liability Rebase Adjustment | `liabilitySharesPrev × ΔshareRate / 1e27`                                                                     |
+| Bottom Line                       | `netStakingRewards − stEthLiabilityRebaseCost`                                                                |
+| Gross Staking APR (%)             | `grossStakingRewards × 100 × 31536000 / (previousTVL × periodSeconds)`                                        |
+| Net Staking APR (%)               | `netStakingRewards × 100 × 31536000 / (previousTVL × periodSeconds)`                                          |
+| Carry Spread (%)                  | `bottomLine × 100 × 31536000 / (previousTVL × periodSeconds)`                                                 |
+| Lido Core APR (%)                 | `(postShareRate − preShareRate) / preShareRate × 31536000 / periodSeconds × 100`                              |
