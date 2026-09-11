@@ -1,6 +1,6 @@
 import * as dotenv from 'dotenv';
 
-const { parsed } = dotenv.config();
+const { parsed } = dotenv.config({ quiet: true });
 
 export const envs = structuredClone(parsed);
 if (envs) {

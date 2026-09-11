@@ -38,9 +38,11 @@ describe('Metrics Integration Tests', () => {
     currentBlockNumber = Number(block);
   });
 
-  test('should get node operator fee rates by block numbers', async () => {
+  test('should get node operator fee rates by block numbers', async ({
+    skip,
+  }) => {
     // Skip test if no dashboard is found
-    if (!dashboardAddress || !dashboardContract) return;
+    if (!dashboardAddress || !dashboardContract) return skip();
 
     // Use current block and a few blocks before
     const blockNumbers = [
@@ -56,7 +58,7 @@ describe('Metrics Integration Tests', () => {
     );
 
     expect(Array.isArray(feeRates)).toBe(true);
-    expect(feeRates.length).toBe(blockNumbers.length);
+    expect(feeRates).toHaveLength(blockNumbers.length);
 
     for (const feeRate of feeRates) {
       expect(typeof feeRate).toBe('bigint');
@@ -64,9 +66,9 @@ describe('Metrics Integration Tests', () => {
     }
   });
 
-  test('should get settled growths by block numbers', async () => {
+  test('should get settled growths by block numbers', async ({ skip }) => {
     // Skip test if no dashboard is found
-    if (!dashboardAddress || !dashboardContract) return;
+    if (!dashboardAddress || !dashboardContract) return skip();
 
     // Use current block and a few blocks before
     const blockNumbers = [
@@ -82,7 +84,7 @@ describe('Metrics Integration Tests', () => {
     );
 
     expect(Array.isArray(settledGrowths)).toBe(true);
-    expect(settledGrowths.length).toBe(blockNumbers.length);
+    expect(settledGrowths).toHaveLength(blockNumbers.length);
 
     for (const settledGrowth of settledGrowths) {
       expect(typeof settledGrowth).toBe('bigint');
@@ -90,9 +92,11 @@ describe('Metrics Integration Tests', () => {
     }
   });
 
-  test('should get node operator accrued fees by block numbers', async () => {
+  test('should get node operator accrued fees by block numbers', async ({
+    skip,
+  }) => {
     // Skip test if no dashboard is found
-    if (!dashboardAddress || !dashboardContract) return;
+    if (!dashboardAddress || !dashboardContract) return skip();
 
     // Use current block and a few blocks before
     const blockNumbers = [
@@ -108,7 +112,7 @@ describe('Metrics Integration Tests', () => {
     );
 
     expect(Array.isArray(accruedFees)).toBe(true);
-    expect(accruedFees.length).toBe(blockNumbers.length);
+    expect(accruedFees).toHaveLength(blockNumbers.length);
 
     for (const accruedFee of accruedFees) {
       expect(typeof accruedFee).toBe('bigint');
@@ -116,9 +120,9 @@ describe('Metrics Integration Tests', () => {
     }
   });
 
-  test('should handle empty block numbers array', async () => {
+  test('should handle empty block numbers array', async ({ skip }) => {
     // Skip test if no dashboard is found
-    if (!dashboardAddress || !dashboardContract) return;
+    if (!dashboardAddress || !dashboardContract) return skip();
 
     const feeRates = await getNodeOperatorFeeRatesByBlockNumbers(
       vaultAddress,
@@ -127,6 +131,6 @@ describe('Metrics Integration Tests', () => {
     );
 
     expect(Array.isArray(feeRates)).toBe(true);
-    expect(feeRates.length).toBe(0);
+    expect(feeRates).toHaveLength(0);
   });
 });

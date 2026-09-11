@@ -112,7 +112,7 @@ describe('showSpinner — normal mode (without --json)', () => {
 
     // no new calls should happen after hiding
     vi.advanceTimersByTime(500);
-    expect(mocks.logUpdateStderr.mock.calls.length).toBe(callsBefore);
+    expect(mocks.logUpdateStderr.mock.calls).toHaveLength(callsBefore);
     expect(mocks.clear).toHaveBeenCalledOnce();
   });
 
@@ -143,6 +143,6 @@ describe('showSpinner — normal mode (without --json)', () => {
     hide2();
     const callsAfterAll = mocks.logUpdateStderr.mock.calls.length;
     vi.advanceTimersByTime(500);
-    expect(mocks.logUpdateStderr.mock.calls.length).toBe(callsAfterAll);
+    expect(mocks.logUpdateStderr.mock.calls).toHaveLength(callsAfterAll);
   });
 });
