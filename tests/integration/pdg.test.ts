@@ -7,6 +7,11 @@ import {
   validateExpectedData,
 } from './helpers/test-assertions.js';
 
+const FIRST_VALIDATOR_GINDEX =
+  '0x0000000000000000000000000000000000000000000000000096000000000028';
+const VALIDATORS_GINDEX =
+  '0x0000000000000000000000000000000000000000000000000000000000016600';
+
 const EXPECTED_DATA_HOODI = {
   CONTRACT_ADDRESS: '0xa5F55f3402beA2B14AE15Dae1b6811457D43581d',
   DEFAULT_ADMIN_ROLE:
@@ -16,10 +21,6 @@ const EXPECTED_DATA_HOODI = {
   PAUSE_ROLE:
     '0x8d0e4ae4847b49935b55c99f9c3ce025c87e7c4604c35b7ae56929bd32fa5a78',
   BEACON_ROOTS: '0x000F3df6D732807Ef1319fB7B8bB8522d0Beac02',
-  GI_FIRST_VALIDATOR_CURR:
-    '0x0000000000000000000000000000000000000000000000000096000000000028',
-  GI_FIRST_VALIDATOR_PREV:
-    '0x0000000000000000000000000000000000000000000000000096000000000028',
   GI_PUBKEY_WC_PARENT:
     '0x0000000000000000000000000000000000000000000000000000000000000402',
   GI_STATE_ROOT:
@@ -27,9 +28,21 @@ const EXPECTED_DATA_HOODI = {
   MAX_SUPPORTED_WC_VERSION: 2,
   MIN_SUPPORTED_WC_VERSION: 1,
   PREDEPOSIT_AMOUNT: 1000000000000000000n,
-  PIVOT_SLOT: 0n,
   isPaused: false,
   resumeSinceTimestamp: 1765803516n,
+};
+
+// PDG renames these getters when redeployed for Gloas, so the expected shape
+// depends on which deployment hoodi is running.
+const EXPECTED_PRE_GLOAS = {
+  GI_FIRST_VALIDATOR_CURR: FIRST_VALIDATOR_GINDEX,
+  GI_FIRST_VALIDATOR_PREV: FIRST_VALIDATOR_GINDEX,
+  PIVOT_SLOT: 0n,
+};
+
+const EXPECTED_GLOAS = {
+  GI_FIRST_VALIDATOR_PRE_GLOAS: FIRST_VALIDATOR_GINDEX,
+  GI_VALIDATORS: VALIDATORS_GINDEX,
 };
 
 describe('Predeposit Guarantee Integration Tests', () => {
@@ -42,7 +55,24 @@ describe('Predeposit Guarantee Integration Tests', () => {
     expect(data).not.toBeNull();
     if (!data) return;
 
-    validateExpectedData(data, EXPECTED_DATA_HOODI, expect);
+    const isGloasDeployment = 'GI_VALIDATORS' in data;
+
+    validateExpectedData(
+      data,
+      isGloasDeployment
+        ? {
+            ...EXPECTED_DATA_HOODI,
+            ...EXPECTED_GLOAS,
+            PIVOT_SLOT: data.PIVOT_SLOT,
+          }
+        : { ...EXPECTED_DATA_HOODI, ...EXPECTED_PRE_GLOAS },
+      expect,
+    );
+
+    // TODO: pin PIVOT_SLOT once the Gloas fork slot is set on hoodi
+    expect(
+      isGloasDeployment ? data.PIVOT_SLOT > 0n : data.PIVOT_SLOT === 0n,
+    ).toBe(true);
 
     expect(isValidBytes32(data.PAUSE_ROLE)).toBe(true);
     expect(isValidBytes32(data.RESUME_ROLE)).toBe(true);

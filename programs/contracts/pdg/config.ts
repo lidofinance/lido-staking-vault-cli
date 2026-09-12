@@ -15,11 +15,22 @@ export const readCommandConfig: ReadProgramCommandConfig<
   GI_FIRST_VALIDATOR_CURR: {
     name: 'GI_FIRST_VALIDATOR_CURR',
     description:
-      'get GIndex of first validator in CL state tree after PIVOT_SLOT',
+      'get GIndex of first validator in CL state tree after PIVOT_SLOT (pre-Gloas deployments)',
   },
   GI_FIRST_VALIDATOR_PREV: {
     name: 'GI_FIRST_VALIDATOR_PREV',
-    description: 'get GIndex of first validator in CL state tree',
+    description:
+      'get GIndex of first validator in CL state tree (pre-Gloas deployments)',
+  },
+  GI_FIRST_VALIDATOR_PRE_GLOAS: {
+    name: 'GI_FIRST_VALIDATOR_PRE_GLOAS',
+    description:
+      'get GIndex of first validator in a pre-Gloas CL state tree (Gloas deployments)',
+  },
+  GI_VALIDATORS: {
+    name: 'GI_VALIDATORS',
+    description:
+      'get GIndex of the validators field, used from PIVOT_SLOT onwards (Gloas deployments)',
   },
   PIVOT_SLOT: {
     name: 'PIVOT_SLOT',
