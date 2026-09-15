@@ -34,6 +34,12 @@ const bigIntStringify = <T>(value: T): string => {
 // Flag so that next log can add comma if previous log is JSON to create valid JSON array output
 let IS_PREV_JSON_LOG = false;
 
+// program.opts() is empty until commander parses, but logging happens before
+// that (config loading, chain resolution). Fall back to argv so early output
+// does not land on stdout ahead of the JSON.
+const isJsonMode = (): boolean =>
+  Boolean(program.opts().json) || process.argv.includes('--json');
+
 export const openJsonLogging = () => {
   console.info('[');
 };
@@ -56,13 +62,13 @@ export const createConsole = (
       console.info(',');
     }
     // set flag so that next log can check if previous log is JSON and print comma
-    if (program.opts().json) {
+    if (isJsonMode()) {
       IS_PREV_JSON_LOG = true;
     }
 
     switch (type) {
       case 'table': {
-        if (program.opts().json) {
+        if (isJsonMode()) {
           return console.info(bigIntStringify(args));
         }
         console.info(`\n${getColoredLog(headMessage, headMessage + ':')}`);
@@ -70,7 +76,7 @@ export const createConsole = (
       }
 
       case 'bold': {
-        if (program.opts().json) {
+        if (isJsonMode()) {
           return console.info(bigIntStringify({ result: args }));
         }
         return console.info(getColoredLog(headMessage, args));
@@ -83,7 +89,7 @@ export const createConsole = (
       }
       case 'error':
       case 'info': {
-        if (program.opts().json) {
+        if (isJsonMode()) {
           return console.info(bigIntStringify({ result: args }));
         }
         // eslint-disable-next-line no-console
@@ -111,12 +117,12 @@ const createTable = (headMessage?: HeadMessage) => (args: CreateTableArgs) => {
     csvPath,
     explorerBaseUrl = CHAIN_CACHE.currentChain?.blockExplorers.default.url,
   } = args;
-  if (headMessage && !program.opts().json)
+  if (headMessage && !isJsonMode())
     console.info(`\n${getColoredLog(headMessage, headMessage + ':')}`);
 
   if (!data) return;
 
-  if (program.opts().json) {
+  if (isJsonMode()) {
     // print comma if previous log is JSON to separate logs
     if (IS_PREV_JSON_LOG) {
       console.info(',');

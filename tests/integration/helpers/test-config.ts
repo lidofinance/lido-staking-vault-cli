@@ -3,8 +3,8 @@ import { Address } from 'viem';
 import path from 'node:path';
 
 // Load environment variables from .env.test or .env
-dotenv.config({ path: path.resolve(process.cwd(), '.env.test') });
-dotenv.config(); // Fallback to .env if .env.test doesn't exist
+dotenv.config({ path: path.resolve(process.cwd(), '.env.test'), quiet: true });
+dotenv.config({ quiet: true }); // Fallback to .env if .env.test doesn't exist
 
 export interface IntegrationTestConfig {
   DEPLOYED: string;

@@ -63,10 +63,11 @@ program.addHelpText('afterAll', () => {
 const runCLI = withInterruptHandling(async () => {
   // programm.opts is not init yet
   const isJson = process.argv.includes('--json');
+  // Open before anything that can throw: the error path closes the array, so a
+  // failure in getChain() would otherwise emit a lone `]`.
+  if (isJson) openJsonLogging();
   const chain = await getChain();
-  if (isJson) {
-    openJsonLogging();
-  } else {
+  if (!isJson) {
     logInfo(`${'-'.repeat(100)}`);
     logInfo(`Using chain: Name: ${chain.name}, Chain ID: ${chain.id}`);
     logInfo(`${'-'.repeat(100)}`);

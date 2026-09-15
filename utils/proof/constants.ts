@@ -3,4 +3,5 @@ export const SupportedFork = {
   deneb: 'deneb',
   electra: 'electra',
   fulu: 'fulu',
+  gloas: 'gloas',
 };

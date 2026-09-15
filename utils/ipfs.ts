@@ -9,7 +9,12 @@ import { logInfo, logTable } from './logging/console.js';
 import { assertSafeUrl } from './data-validators.js';
 import { parseEnvInt } from './env.js';
 
-export const IPFS_GATEWAY = 'https://ipfs.io/ipfs';
+export const IPFS_GATEWAYS = {
+  ipfsIo: 'https://ipfs.io/ipfs',
+  filebase: 'https://ipfs.filebase.io/ipfs',
+  pinata: 'https://gateway.pinata.cloud/ipfs',
+} as const;
+export const IPFS_GATEWAY: string = IPFS_GATEWAYS.ipfsIo;
 
 // Max IPFS content size — guards against OOM from an oversized CID.
 // Override: maxBytes arg > IPFS_MAX_CONTENT_BYTES env > this default.
@@ -116,6 +121,40 @@ const readBodyWithLimit = async (
   return streamBodyWithLimit(response.body, maxBytes);
 };
 
+const fetchFromIPFSGateways = async (
+  cid: string,
+  gateway?: string,
+): Promise<Response> => {
+  const gateways = [
+    ...new Set([gateway, ...Object.values(IPFS_GATEWAYS)].filter(Boolean)),
+  ] as string[];
+
+  for (const currentGateway of gateways) {
+    assertSafeUrl(currentGateway, 'IPFS gateway');
+  }
+
+  const errors: string[] = [];
+
+  for (const currentGateway of gateways) {
+    const ipfsUrl = `${currentGateway}/${cid}`;
+    logInfo('Fetching content from', ipfsUrl);
+
+    try {
+      const response = await fetch(ipfsUrl);
+      if (response.ok) return response;
+
+      errors.push(`${ipfsUrl}: ${response.status} ${response.statusText}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      errors.push(`${ipfsUrl}: ${message}`);
+    }
+  }
+
+  throw new Error(
+    `Failed to fetch IPFS content from all gateways: ${errors.join('; ')}`,
+  );
+};
+
 export const fetchIPFS = async <T>(
   args: ReportFetchArgs,
   cache = true,
@@ -130,17 +169,9 @@ export const fetchIPFS = async <T>(
 
 // Fetching content by CID through IPFS gateway
 export const fetchIPFSDirect = async <T>(args: ReportFetchArgs): Promise<T> => {
-  const { cid, gateway = IPFS_GATEWAY, bigNumberType = 'string' } = args;
-  assertSafeUrl(gateway, 'IPFS gateway');
+  const { cid, gateway, bigNumberType = 'string' } = args;
   const maxBytes = resolveMaxBytes(args.maxBytes);
-  const ipfsUrl = `${gateway}/${cid}`;
-
-  logInfo('Fetching content from', ipfsUrl);
-
-  const response = await fetch(ipfsUrl);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch IPFS content: ${response.statusText}`);
-  }
+  const response = await fetchFromIPFSGateways(cid, gateway);
 
   const raw = new TextDecoder().decode(
     await readBodyWithLimit(response, maxBytes),
@@ -158,16 +189,9 @@ export const fetchIPFSDirect = async <T>(args: ReportFetchArgs): Promise<T> => {
 export const fetchIPFSBuffer = async (
   args: ReportFetchArgs,
 ): Promise<Uint8Array> => {
-  const { cid, gateway = IPFS_GATEWAY } = args;
-  assertSafeUrl(gateway, 'IPFS gateway');
+  const { cid, gateway } = args;
   const maxBytes = resolveMaxBytes(args.maxBytes);
-  const ipfsUrl = `${gateway}/${cid}`;
-  logInfo('Fetching content from', ipfsUrl);
-
-  const response = await fetch(ipfsUrl);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch IPFS content: ${response.statusText}`);
-  }
+  const response = await fetchFromIPFSGateways(cid, gateway);
   return readBodyWithLimit(response, maxBytes);
 };
 

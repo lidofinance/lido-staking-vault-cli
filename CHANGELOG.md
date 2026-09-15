@@ -1,5 +1,24 @@
 All notable changes to this project will be documented in this file.
 
+## 1.10.0
+
+### Added
+
+- support for Gloas validator proofs
+
+### Fixed
+
+- report data is now fetched through fallback IPFS gateways: a rate-limited `ipfs.io` no longer aborts the command, and a custom gateway is tried first
+- `-g, --gateway` and `-u, --url` now take a value — they were parsed as boolean flags in the `metrics` and `report read` commands and failed with `invalid URL: true`
+- consolidation now always submits the fee exemption and aligns the amount with the consensus-layer spec
+- `--json` output is valid JSON in every case: messages emitted before the command starts (env loading, chain resolution) went to stdout as plain text and broke piping into `jq`
+- a failure during chain resolution left the `--json` output with a closing bracket and no opening one
+- the built CLI failed to start at all — `tsc-alias` 1.9.x rewrote a relative import in the compiled output, so `tsc-alias` is pinned to 1.8.x
+
+### Changed
+
+- updated dependencies across the CLI and the docs site, closing 20 security advisories
+
 # 1.9.0
 
 ### Added

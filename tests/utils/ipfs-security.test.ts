@@ -81,7 +81,7 @@ describe('IPFS SSRF guards (H2/H3)', () => {
     });
     const result = await ipfs.fetchIPFSDirect({
       cid: 'abc',
-      gateway: 'https://ipfs.io/ipfs',
+      gateway: ipfs.IPFS_GATEWAYS.ipfsIo,
     });
     expect(result).toEqual({ x: 1 });
   });

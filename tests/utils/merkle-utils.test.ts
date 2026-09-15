@@ -83,7 +83,7 @@ describe('merkle-utils', () => {
       const right = new Uint8Array(32).fill(1);
       const result = sha256Pair(left, right);
 
-      expect(result.length).toBe(32);
+      expect(result).toHaveLength(32);
       expect(result).toBeInstanceOf(Uint8Array);
     });
 
@@ -132,7 +132,7 @@ describe('merkle-utils', () => {
       const chunk = new Uint8Array([1, 2, 3, 4]);
       const result = sha256Concat(chunk);
 
-      expect(result.length).toBe(32);
+      expect(result).toHaveLength(32);
       expect(result).toBeInstanceOf(Uint8Array);
     });
 
@@ -142,7 +142,7 @@ describe('merkle-utils', () => {
       const chunk3 = new Uint8Array([9, 10, 11, 12]);
       const result = sha256Concat(chunk1, chunk2, chunk3);
 
-      expect(result.length).toBe(32);
+      expect(result).toHaveLength(32);
     });
 
     it('should produce same result as single concatenated chunk', () => {
@@ -158,7 +158,7 @@ describe('merkle-utils', () => {
 
     it('should handle empty chunks array', () => {
       const result = sha256Concat();
-      expect(result.length).toBe(32);
+      expect(result).toHaveLength(32);
     });
   });
 
@@ -167,7 +167,7 @@ describe('merkle-utils', () => {
       const pubkey = new Uint8Array(48).fill(0xaa);
       const result = pubkeyRoot(pubkey);
 
-      expect(result.length).toBe(32);
+      expect(result).toHaveLength(32);
       expect(result).toBeInstanceOf(Uint8Array);
     });
 
@@ -197,7 +197,7 @@ describe('merkle-utils', () => {
       const value = 1000n;
       const result = uint64To32LE(value);
 
-      expect(result.length).toBe(32);
+      expect(result).toHaveLength(32);
       expect(result).toBeInstanceOf(Uint8Array);
     });
 
@@ -205,7 +205,7 @@ describe('merkle-utils', () => {
       const value = 0n;
       const result = uint64To32LE(value);
 
-      expect(result.length).toBe(32);
+      expect(result).toHaveLength(32);
       expect(result.every((byte) => byte === 0)).toBe(true);
     });
 
@@ -237,7 +237,7 @@ describe('merkle-utils', () => {
       const value = 18446744073709551615n; // Max uint64
       const result = uint64To32LE(value);
 
-      expect(result.length).toBe(32);
+      expect(result).toHaveLength(32);
       // First 8 bytes should be all 0xff
       for (let i = 0; i < 8; i++) {
         expect(result[i]).toBe(0xff);
@@ -254,7 +254,7 @@ describe('merkle-utils', () => {
       const amount = 32000000000n; // 32 ETH in gwei
       const result = encodeGweiAsLittleEndian8(amount);
 
-      expect(result.length).toBe(8);
+      expect(result).toHaveLength(8);
       expect(result).toBeInstanceOf(Uint8Array);
     });
 
@@ -262,7 +262,7 @@ describe('merkle-utils', () => {
       const amount = 0n;
       const result = encodeGweiAsLittleEndian8(amount);
 
-      expect(result.length).toBe(8);
+      expect(result).toHaveLength(8);
       expect(result.every((byte) => byte === 0)).toBe(true);
     });
 
@@ -280,7 +280,7 @@ describe('merkle-utils', () => {
       const amount = 32000000000n;
       const result = encodeGweiAsLittleEndian8(amount);
 
-      expect(result.length).toBe(8);
+      expect(result).toHaveLength(8);
       // 32000000000 = 0x0000000773594000
       // Little-endian: 00 40 59 73 07 00 00 00
       expect(result[0]).toBe(0x00);

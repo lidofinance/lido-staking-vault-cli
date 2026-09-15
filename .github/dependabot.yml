@@ -1,7 +1,118 @@
+# Before this file the only entry was github-actions/daily: npm version updates
+# were not running at all, and the actions feed was noisy enough to be ignored.
+# npm *security* updates were arriving anyway (they are on by default and need
+# no config) — that is where the current fast-uri / nanoid / js-yaml PRs come
+# from. Everything below is about version updates and about grouping.
+#
+# Two npm projects, not a workspace: the root CLI and docs/ each have their own
+# package.json and yarn.lock, so each needs its own entry.
+#
+# Not managed here: `resolutions` in either manifest. Those are hand-placed
+# security pins — Dependabot will not raise them, and dropping one re-exposes
+# the advisory it was added for. Same for .yarn/releases/yarn-4.17.1.cjs.
 version: 2
+
 updates:
-  # Maintain dependencies for GitHub Actions
-  - package-ecosystem: "github-actions"
-    directory: "/"
+  # ── Root CLI ────────────────────────────────────────────────────────────────
+  - package-ecosystem: npm
+    directory: /
     schedule:
-      interval: "daily"
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+
+    # An application, not a library: consumers pin a git ref, so nothing builds
+    # against our declared ranges. `increase` raises the range in package.json
+    # and not just the lock — without it a fresh install can resolve straight
+    # back to the version the update was moving away from.
+    versioning-strategy: increase
+
+    # .yarnrc.yml sets npmMinimalAgeGate: 480, i.e. yarn refuses to resolve a
+    # version published less than 8h ago. Cooldown keeps Dependabot from
+    # proposing versions that gate would reject, and buys soak time for a
+    # yanked or compromised release. Cooldown applies to version updates only —
+    # security updates still land the same day, which is the point.
+    cooldown:
+      default-days: 3
+
+    # semantic-release runs on main and on develop (alpha channel) with the
+    # default preset: `chore`/`ci` cut no release, `fix` and `feat` do. A dep
+    # bump must not publish a version, so never `fix(deps)`.
+    commit-message:
+      prefix: chore(deps)
+      prefix-development: chore(deps-dev)
+
+    groups:
+      # One PR a week for everything non-breaking, prod and toolchain together.
+      # `applies-to: version-updates` is the load-bearing half: security updates
+      # stay one PR each on purpose. A CVE fix is often itself a breaking change,
+      # and arriving bundled with typescript, vitest and eslint it shows up as a
+      # red PR with a dozen candidate causes. Majors stay out for the same
+      # reason one step down — a major wants its changelog read.
+      minor-and-patch:
+        applies-to: version-updates
+        patterns:
+          - '*'
+        update-types:
+          - minor
+          - patch
+
+  # ── docs/ (Docusaurus site, private, deployed to Pages) ─────────────────────
+  - package-ecosystem: npm
+    directory: /docs
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3
+    versioning-strategy: increase
+    cooldown:
+      default-days: 3
+    commit-message:
+      prefix: chore(deps)
+    labels:
+      - dependencies
+      - documentation
+
+    # Order matters — first matching group wins.
+    groups:
+      # The @docusaurus/* packages carry peer constraints on each other, so a
+      # partial bump does not install. Hence majors are in, and `applies-to` is
+      # omitted so security updates group here too — the one place where the
+      # one-PR-per-advisory rule above would produce a PR that cannot merge.
+      # react/react-dom stay out — a React major arriving before the Docusaurus
+      # major that supports it should break attributably, on its own PR.
+      docusaurus:
+        patterns:
+          - '@docusaurus/*'
+          - '@easyops-cn/docusaurus-*'
+          - '@mdx-js/*'
+        update-types:
+          - major
+          - minor
+          - patch
+
+      docs-minor-and-patch:
+        applies-to: version-updates
+        patterns:
+          - '*'
+        update-types:
+          - minor
+          - patch
+
+  # ── GitHub Actions ──────────────────────────────────────────────────────────
+  # Was daily, which is how four stale branches for the same package piled up.
+  # Monthly matches how often these actually move; an advisory against an action
+  # still arrives immediately via security updates. Note foundry-toolchain is
+  # pinned by commit sha in checks.yml — correct, and also why it never moves on
+  # its own unless something proposes a new one.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: ci
+    groups:
+      actions:
+        applies-to: version-updates
+        patterns:
+          - '*'

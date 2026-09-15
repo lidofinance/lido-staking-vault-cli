@@ -52,7 +52,7 @@ Analyzes the latest vault report and calculates comprehensive performance metric
 **Options:**
 
 - `-v, --vault <string>`: Vault address
-- `-g, --gateway`: IPFS gateway URL for report data retrieval
+- `-g, --gateway <url>`: IPFS gateway URL for report data retrieval
 
 **Process:**
 
@@ -85,7 +85,7 @@ Analyzes multiple historical vault reports and calculates comprehensive performa
 **Options:**
 
 - `-v, --vault <string>`: Vault address
-- `-g, --gateway`: IPFS gateway URL for report data retrieval
+- `-g, --gateway <url>`: IPFS gateway URL for report data retrieval
 - `--no-utc`: format timestamps in local time instead of UTC
 
 **Process:**
@@ -120,7 +120,7 @@ Analyzes multiple historical vault reports and calculates comprehensive performa
 **Options:**
 
 - `-v, --vault <string>`: Vault address
-- `-g, --gateway`: IPFS gateway URL for report data retrieval
+- `-g, --gateway <url>`: IPFS gateway URL for report data retrieval
 - `--no-utc`: format timestamps in local time instead of UTC
 
 ### report-data
@@ -134,7 +134,7 @@ Retrieves raw report data for the vault from N last reports.
 **Options:**
 
 - `-v, --vault <string>`: Vault address
-- `-g, --gateway`: IPFS gateway URL for report data retrieval
+- `-g, --gateway <url>`: IPFS gateway URL for report data retrieval
 - `--no-utc`: format timestamps in local time instead of UTC
 
 **Output (tabular):**

@@ -113,18 +113,20 @@ describe('Vault Operations Integration Tests', () => {
     }
   });
 
-  test('should get dashboard by vault if available', async () => {
+  test('should get dashboard by vault if available', async ({ skip }) => {
     // Skip test if no dashboard is found
-    if (!dashboardAddress) return;
+    if (!dashboardAddress) return skip();
 
     expect(dashboardAddress).toBeDefined();
     expect(typeof dashboardAddress).toBe('string');
     expect(isValidAddress(dashboardAddress)).toBe(true);
   });
 
-  test('should get vault info by dashboard and return valid data', async () => {
+  test('should get vault info by dashboard and return valid data', async ({
+    skip,
+  }) => {
     // Skip test if no dashboard is found
-    if (!dashboardAddress) return;
+    if (!dashboardAddress) return skip();
 
     const dashboardContract = await getDashboardContract(dashboardAddress);
     const tableData = await captureLogTable<Record<string, any>>(() =>
@@ -141,9 +143,11 @@ describe('Vault Operations Integration Tests', () => {
     validateExpectedData(tableData, EXPECTED_INFO_DATA_HOODI, expect);
   });
 
-  test('should get vault health by dashboard and return valid data', async () => {
+  test('should get vault health by dashboard and return valid data', async ({
+    skip,
+  }) => {
     // Skip test if no dashboard is found
-    if (!dashboardAddress) return;
+    if (!dashboardAddress) return skip();
 
     const dashboardContract = await getDashboardContract(dashboardAddress);
     const tableData = await captureLogTable<Record<string, any>>(() =>
@@ -160,9 +164,11 @@ describe('Vault Operations Integration Tests', () => {
     validateExpectedData(tableData, EXPECTED_HEALTH_DATA_HOODI, expect);
   });
 
-  test('should get vault overview by dashboard and return valid data', async () => {
+  test('should get vault overview by dashboard and return valid data', async ({
+    skip,
+  }) => {
     // Skip test if no dashboard is found
-    if (!dashboardAddress) return;
+    if (!dashboardAddress) return skip();
 
     const dashboardContract = await getDashboardContract(dashboardAddress);
     const tableData = await captureLogTable<Record<string, any>>(() =>
