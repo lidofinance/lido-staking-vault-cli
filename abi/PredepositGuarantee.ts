@@ -1004,6 +1004,19 @@ export const PredepositGuaranteeAbi = [
   },
   {
     inputs: [],
+    name: 'GLOAS_SLOT',
+    outputs: [
+      {
+        internalType: 'uint64',
+        name: '',
+        type: 'uint64',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
     name: 'MAX_SUPPORTED_WC_VERSION',
     outputs: [
       {

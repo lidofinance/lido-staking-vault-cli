@@ -30,11 +30,17 @@ export const readCommandConfig: ReadProgramCommandConfig<
   GI_VALIDATORS: {
     name: 'GI_VALIDATORS',
     description:
-      'get GIndex of the validators field, used from PIVOT_SLOT onwards (Gloas deployments)',
+      'get GIndex of the validators field, used from GLOAS_SLOT onwards (Gloas deployments)',
   },
   PIVOT_SLOT: {
     name: 'PIVOT_SLOT',
-    description: 'get slot when GIndex change will occur due to the hardfork',
+    description:
+      'get slot when GIndex change will occur due to the hardfork (pre-Gloas deployments)',
+  },
+  GLOAS_SLOT: {
+    name: 'GLOAS_SLOT',
+    description:
+      'get first slot of the Gloas fork; uint64 max means the slot is not known yet (Gloas deployments)',
   },
   GI_PUBKEY_WC_PARENT: {
     name: 'GI_PUBKEY_WC_PARENT',
