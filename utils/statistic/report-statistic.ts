@@ -1,8 +1,13 @@
 import type { VaultReport } from 'utils/report/types.js';
 
 import { BASIS_POINTS_DENOMINATOR } from '../consts.js';
+import { bigIntMax } from '../big-int.js';
 
 const SCALE = 1_000_000_000n; // 1e9 for 9 decimal places precision
+
+// rawDelta truncates 4 divisions, cap 1 — so cap can be overshot by 4 wei
+// with nothing wrong. See getNodeOperatorFeeBreakdown.
+const CAP_ROUNDING_SLACK_WEI = 4n;
 
 // Snapshot of all NO fee data at a single oracle report block.
 // accruedFee is computed off-chain from IPFS data (Variant 6) rather than
@@ -51,14 +56,6 @@ export const calcNoEarnings = (snapshot: NOFeeSnapshot): bigint => {
   );
 };
 
-export const getNodeOperatorFeeForPeriod = (
-  curr: NOFeeSnapshot,
-  prev: NOFeeSnapshot,
-): bigint => {
-  const delta = calcNoEarnings(curr) - calcNoEarnings(prev);
-  return delta > 0n ? delta : 0n;
-};
-
 export const getGrossStakingRewards = (
   current: VaultReport,
   previous: VaultReport,
@@ -73,6 +70,65 @@ export const getGrossStakingRewards = (
       BigInt(previous.extraData.inOutDelta))
   );
 };
+
+// Period NO fee = Δ(noEarnings), bounded by the fee on the period's own gross
+// rewards. Both bounds matter; do not "simplify" the upper one away.
+//
+// calcNoEarnings collapses to max(growth, settledGrowth) * feeRate / 10000 —
+// but only while accruedFee is unclamped. Once settledGrowth rises above
+// growth (= totalValueWei - inOutDelta), calcAccruedFeeOffChain pins accruedFee
+// at 0, and then the settledGrowth term of calcNoEarnings moves with nothing to
+// offset it: a settledGrowth bump alone reads as a fee.
+//
+// That matters because settledGrowth is NOT a pure settled-earnings watermark.
+// It is also an exemption / correction register, raised by paths where the NO
+// earned nothing:
+//   - NodeOperatorFee.addFeeExemption(amount)
+//   - NodeOperatorFee.correctSettledGrowth(newValue, expectedValue)
+//   - Dashboard.unguaranteedDepositToBeaconChain -> _addFeeExemption(totalAmount)
+//   - Dashboard.voluntaryDisconnect / transferVaultOwnership -> _stopFeeAccrual,
+//     which parks settledGrowth at int104.max
+// The deposit one deliberately produces settledGrowth > growth while the ETH
+// sits in the entrance queue, so an empty or under-water vault hitting this is
+// routine, not exotic. Observed on mainnet vault 0x2773...cfcb3 (2026-08-29):
+// an empty vault reported a 32 ETH node-operator fee on 0 gross rewards.
+//
+// A normal disbursement cannot breach the cap: _disburseFee settles at the
+// growth of a *reported* value, which is the same grid these reports sample.
+// The cap's gross comes from the report leaves, so an exempted or corrected
+// settledGrowth can no longer dominate the result on its own.
+export const getNodeOperatorFeeBreakdown = (
+  current: VaultReport,
+  previous: VaultReport,
+  noFeeCurr: NOFeeSnapshot,
+  noFeePrev: NOFeeSnapshot,
+): { fee: bigint; rawDelta: bigint; cap: bigint; capped: boolean } => {
+  const rawDelta = calcNoEarnings(noFeeCurr) - calcNoEarnings(noFeePrev);
+
+  const gross = getGrossStakingRewards(current, previous);
+  // max of the two rates: a mid-period rate change must not clip a legitimate
+  // value below the higher rate that was in force for part of the period.
+  const feeRate = bigIntMax(noFeeCurr.feeRate, noFeePrev.feeRate);
+  // A drawdown produces no fee, so a negative gross contributes a zero cap.
+  const cap = (bigIntMax(gross, 0n) * feeRate) / BASIS_POINTS_DENOMINATOR;
+
+  // Plain `rawDelta > cap` fires on rounding alone — 5 of 19 healthy periods
+  // on mainnet 0xd402...f711 — which would bury the real hits in the warning.
+  const capped = rawDelta - cap > CAP_ROUNDING_SLACK_WEI;
+
+  // Within the slack keep rawDelta, so normal periods stay bit-exact.
+  const fee = bigIntMax(capped ? cap : rawDelta, 0n);
+
+  return { fee, rawDelta, cap, capped };
+};
+
+export const getNodeOperatorFeeForPeriod = (
+  current: VaultReport,
+  previous: VaultReport,
+  noFeeCurr: NOFeeSnapshot,
+  noFeePrev: NOFeeSnapshot,
+): bigint =>
+  getNodeOperatorFeeBreakdown(current, previous, noFeeCurr, noFeePrev).fee;
 
 /** @deprecated */
 export const getNodeOperatorRewards = (
@@ -100,14 +156,19 @@ export const getNetStakingRewards = (
 ) => {
   const grossStakingRewards = getGrossStakingRewards(current, previous);
   const dailyLidoFees = getDailyLidoFees(current, previous);
-  const noFee = getNodeOperatorFeeForPeriod(noFeeCurr, noFeePrev);
+  const noFee = getNodeOperatorFeeForPeriod(
+    current,
+    previous,
+    noFeeCurr,
+    noFeePrev,
+  );
 
   return grossStakingRewards - noFee - dailyLidoFees;
 };
 
 // The APR metrics (Gross Staking APR, Net Staking APR, Carry Spread) are calculated using the following general formula:
 //
-// APR = (Numerator * 100 * SecondsInYear) / (AverageTotalValue * PeriodSeconds)
+// APR = (Numerator * 100 * SecondsInYear) / (PreviousTotalValue * PeriodSeconds)
 //
 // where:
 //   Numerator — the specific rewards or value for the metric:
@@ -259,7 +320,8 @@ export const reportMetrics = (args: ReportMetricsArgs) => {
   const { current, previous } = reports;
 
   const grossStakingRewards = getGrossStakingRewards(current, previous);
-  const nodeOperatorRewards = getNodeOperatorFeeForPeriod(noFeeCurr, noFeePrev);
+  const { fee: nodeOperatorRewards, capped: nodeOperatorRewardsCapped } =
+    getNodeOperatorFeeBreakdown(current, previous, noFeeCurr, noFeePrev);
   const dailyLidoFees = getDailyLidoFees(current, previous);
   const netStakingRewards = getNetStakingRewards(
     current,
@@ -292,6 +354,7 @@ export const reportMetrics = (args: ReportMetricsArgs) => {
   return {
     grossStakingRewards,
     nodeOperatorRewards,
+    nodeOperatorRewardsCapped,
     dailyLidoFees,
     netStakingRewards,
     grossStakingAPR,

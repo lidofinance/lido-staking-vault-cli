@@ -10,7 +10,7 @@ import {
   getGrossStakingRewards,
   getNetStakingRewards,
   getDailyLidoFees,
-  getNodeOperatorFeeForPeriod,
+  getNodeOperatorFeeBreakdown,
   NOFeeSnapshot,
   EMPTY_NO_FEE_SNAPSHOT,
   getRebaseRewardFromCache,
@@ -181,21 +181,28 @@ export const prepareNodeOperatorRewards = (
 ) => {
   const nodeOperatorRewards = [];
   const timestamp = [];
+  // Per-period flag, aligned with `values` / `timestamp`: true when the raw
+  // Δ(noEarnings) exceeded the fee on the period's gross rewards and was capped
+  // — see getNodeOperatorFeeBreakdown.
+  const capped = [];
 
   for (let i = 1; i < history.length; i++) {
     const current = history[i];
     const previous = history[i - 1];
     if (!current || !previous) continue;
 
-    const value = getNodeOperatorFeeForPeriod(
+    const breakdown = getNodeOperatorFeeBreakdown(
+      current,
+      previous,
       snapshotAt(noFeeSnapshots, i),
       snapshotAt(noFeeSnapshots, i - 1),
     );
 
-    nodeOperatorRewards.push(String(formatEther(value)));
+    nodeOperatorRewards.push(String(formatEther(breakdown.fee)));
     timestamp.push(current.timestamp);
+    capped.push(breakdown.capped);
   }
-  return { values: nodeOperatorRewards, timestamp };
+  return { values: nodeOperatorRewards, timestamp, capped };
 };
 
 export const prepareNetStakingRewards = (
