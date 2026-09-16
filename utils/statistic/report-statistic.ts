@@ -1,9 +1,13 @@
 import type { VaultReport } from 'utils/report/types.js';
 
 import { BASIS_POINTS_DENOMINATOR } from '../consts.js';
-import { bigIntMax, bigIntMin } from '../big-int.js';
+import { bigIntMax } from '../big-int.js';
 
 const SCALE = 1_000_000_000n; // 1e9 for 9 decimal places precision
+
+// rawDelta truncates 4 divisions, cap 1 — so cap can be overshot by 4 wei
+// with nothing wrong. See getNodeOperatorFeeBreakdown.
+const CAP_ROUNDING_SLACK_WEI = 4n;
 
 // Snapshot of all NO fee data at a single oracle report block.
 // accruedFee is computed off-chain from IPFS data (Variant 6) rather than
@@ -82,15 +86,17 @@ export const getGrossStakingRewards = (
 //   - NodeOperatorFee.addFeeExemption(amount)
 //   - NodeOperatorFee.correctSettledGrowth(newValue, expectedValue)
 //   - Dashboard.unguaranteedDepositToBeaconChain -> _addFeeExemption(totalAmount)
-// The last one deliberately produces settledGrowth > growth while the deposit
+//   - Dashboard.voluntaryDisconnect / transferVaultOwnership -> _stopFeeAccrual,
+//     which parks settledGrowth at int104.max
+// The deposit one deliberately produces settledGrowth > growth while the ETH
 // sits in the entrance queue, so an empty or under-water vault hitting this is
 // routine, not exotic. Observed on mainnet vault 0x2773...cfcb3 (2026-08-29):
 // an empty vault reported a 32 ETH node-operator fee on 0 gross rewards.
 //
-// The cap is derived from the report leaves — a source independent of the two
-// Dashboard snapshots — so an administratively moved or mis-read settledGrowth
-// can no longer dominate the result on its own. A fee can never exceed a share
-// of what the period actually produced.
+// A normal disbursement cannot breach the cap: _disburseFee settles at the
+// growth of a *reported* value, which is the same grid these reports sample.
+// The cap's gross comes from the report leaves, so an exempted or corrected
+// settledGrowth can no longer dominate the result on its own.
 export const getNodeOperatorFeeBreakdown = (
   current: VaultReport,
   previous: VaultReport,
@@ -106,11 +112,14 @@ export const getNodeOperatorFeeBreakdown = (
   // A drawdown produces no fee, so a negative gross contributes a zero cap.
   const cap = (bigIntMax(gross, 0n) * feeRate) / BASIS_POINTS_DENOMINATOR;
 
-  // Branch-free, so every case falls out of the same two bounds: the cap above
-  // and the long-standing zero floor below.
-  const fee = bigIntMax(bigIntMin(rawDelta, cap), 0n);
+  // Plain `rawDelta > cap` fires on rounding alone — 5 of 19 healthy periods
+  // on mainnet 0xd402...f711 — which would bury the real hits in the warning.
+  const capped = rawDelta - cap > CAP_ROUNDING_SLACK_WEI;
 
-  return { fee, rawDelta, cap, capped: rawDelta > cap };
+  // Within the slack keep rawDelta, so normal periods stay bit-exact.
+  const fee = bigIntMax(capped ? cap : rawDelta, 0n);
+
+  return { fee, rawDelta, cap, capped };
 };
 
 export const getNodeOperatorFeeForPeriod = (

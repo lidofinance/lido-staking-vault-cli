@@ -79,8 +79,11 @@ The `noEarnings` function is claim-timing invariant: whether the NO claims fees 
 ```
 feeRate  = max(feeRateCurr, feeRatePrev)
 cap      = max(0, grossStakingRewards) × feeRate / 10000
-nodeOperatorFee = clamp(Δ(noEarnings), 0, cap)
+capped   = Δ(noEarnings) − cap > 4 wei
+nodeOperatorFee = max(0, capped ? cap : Δ(noEarnings))
 ```
+
+The 4 wei of headroom are rounding, not tolerance: `Δ(noEarnings)` truncates four integer divisions against the cap's one, so a period that respects the bound exactly can still read a few wei above it. Comparing against a bare `cap` would flag roughly a quarter of all healthy periods.
 
 Why the upper bound is needed: `noEarnings` collapses to `max(growth, settledGrowth) × feeRate / 10000` — the `settledGrowth` term and `accruedFee` cancel — but only while `accruedFee` is unclamped. Once `settledGrowth` rises above `growth` (`= totalValueWei − inOutDelta`), `accruedFee` is pinned at 0 and the `settledGrowth` term moves with nothing to offset it.
 
@@ -91,13 +94,14 @@ That state is reachable because `settledGrowth` is not a pure settled-earnings w
 | `addFeeExemption(amount)`                          | `NodeOperatorFee` |
 | `correctSettledGrowth(newValue, expectedValue)`    | `NodeOperatorFee` |
 | `unguaranteedDepositToBeaconChain` → fee exemption | `Dashboard`       |
+| `voluntaryDisconnect` / `transferVaultOwnership`   | `Dashboard`       |
 
-The last one deliberately produces `settledGrowth > growth` while the deposit sits in the validator entrance queue, so empty and under-water vaults hit this routinely. Without the cap such a vault reports a node operator fee on zero gross rewards.
+The deposit path deliberately produces `settledGrowth > growth` while the ETH sits in the validator entrance queue, so empty and under-water vaults hit this routinely. Without the cap such a vault reports a node operator fee on zero gross rewards. The last path parks `settledGrowth` at `int104.max` to stop fee accrual, which without the cap reads as a node operator fee of roughly `1e12` ETH.
 
-The cap is derived from the report leaves — independent of the two on-chain snapshots — so an exempted or corrected `settledGrowth` cannot dominate the result on its own. `Δ(noEarnings)` remains the primary signal; the cap only bounds it.
+A normal fee disbursement cannot breach the cap: `_disburseFee` settles at the growth of a _reported_ value, and those reports are the same grid these metrics sample. The cap's `gross` comes from the report leaves, so an exempted or corrected `settledGrowth` cannot dominate the result on its own. `Δ(noEarnings)` remains the primary signal; the cap only bounds it.
 
 :::note
-A mid-period `feeRate` change is clipped by this cap to `gross × max(feeRateCurr, feeRatePrev) / 10000`. The resulting error is a bounded under-statement rather than an unbounded over-statement.
+A mid-period `feeRate` change re-rates the whole watermark. `setFeeRate` disburses outstanding fees before applying the new rate, so the period's growth accrues entirely at the new rate: above the watermark `gross × newRate` is the exact answer, and below it the cap bounds the error to `gross × max(feeRateCurr, feeRatePrev) / 10000` instead of leaving it unbounded.
 :::
 
 The `metrics read statistic`, `statistic-by-reports` and `statistic-by-reports-full` commands print a warning naming the affected periods whenever the cap binds.

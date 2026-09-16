@@ -363,10 +363,10 @@ describe('getNodeOperatorFeeBreakdown', () => {
   });
 
   it('clips a mid-period feeRate increase to the higher rate on the period gross', () => {
-    // Known limitation: a mid-period rate change mis-states the fee. The cap
-    // turns that from an unbounded over-statement into an under-statement
-    // bounded by gross × max(feeRate) — here 10 ETH gross at 20% = 2 ETH,
-    // against a raw delta of 10 ETH driven by re-rating the whole watermark.
+    // Known limitation: a mid-period rate change re-rates the whole watermark,
+    // here a 10 ETH raw delta against ~0 earned. setFeeRate disburses first, so
+    // above the watermark gross × newRate is the exact answer; below it (this
+    // vault) the true fee is 0 and the cap bounds the error to gross × 20%.
     const { prev, curr } = makeReportPair(ETH(10));
     const noFeePrev = makeSnapshot({ settledGrowth: ETH(100), feeRate: 1000n });
     const noFeeCurr = makeSnapshot({ settledGrowth: ETH(100), feeRate: 2000n });
@@ -401,6 +401,48 @@ describe('getNodeOperatorFeeBreakdown', () => {
     expect(breakdown.cap).toBe(0n);
     expect(breakdown.fee).toBe(0n);
     expect(breakdown.capped).toBe(true);
+  });
+
+  it('does not flag a healthy period whose raw delta only rounds past the cap', () => {
+    // Truncation drops a fraction in rawDelta's 4 divisions and the cap's 1, so
+    // rawDelta can land 1 wei above cap with nothing unusual happening.
+    const base = ETH(1000);
+    const growthPrev = ETH(1) + 5n;
+    const gross = ETH(1) / 10n + 5n;
+    const feeRate = 1000n;
+    const snapAt = (growth: bigint) =>
+      makeSnapshot({
+        settledGrowth: 0n,
+        feeRate,
+        accruedFee: calcAccruedFeeOffChain({
+          totalValueWei: base + growth,
+          inOutDelta: base,
+          settledGrowth: 0n,
+          feeRate,
+        }),
+      });
+
+    const prev = makeReport({
+      totalValueWei: base + growthPrev,
+      inOutDelta: base,
+    });
+    const curr = makeReport({
+      totalValueWei: base + growthPrev + gross,
+      inOutDelta: base,
+    });
+
+    const breakdown = getNodeOperatorFeeBreakdown(
+      curr,
+      prev,
+      snapAt(growthPrev + gross),
+      snapAt(growthPrev),
+    );
+
+    expect(getGrossStakingRewards(curr, prev)).toBe(gross);
+    expect(breakdown.rawDelta).toBe(breakdown.cap + 1n);
+    expect(breakdown.capped).toBe(false);
+    // rawDelta, not cap — the pre-cap result is unchanged to the wei
+    expect(breakdown.fee).toBe(breakdown.rawDelta);
   });
 });
 
