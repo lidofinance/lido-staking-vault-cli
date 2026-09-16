@@ -15,15 +15,32 @@ export const readCommandConfig: ReadProgramCommandConfig<
   GI_FIRST_VALIDATOR_CURR: {
     name: 'GI_FIRST_VALIDATOR_CURR',
     description:
-      'get GIndex of first validator in CL state tree after PIVOT_SLOT',
+      'get GIndex of first validator in CL state tree after PIVOT_SLOT (pre-Gloas deployments)',
   },
   GI_FIRST_VALIDATOR_PREV: {
     name: 'GI_FIRST_VALIDATOR_PREV',
-    description: 'get GIndex of first validator in CL state tree',
+    description:
+      'get GIndex of first validator in CL state tree (pre-Gloas deployments)',
+  },
+  GI_FIRST_VALIDATOR_PRE_GLOAS: {
+    name: 'GI_FIRST_VALIDATOR_PRE_GLOAS',
+    description:
+      'get GIndex of first validator in a pre-Gloas CL state tree (Gloas deployments)',
+  },
+  GI_VALIDATORS: {
+    name: 'GI_VALIDATORS',
+    description:
+      'get GIndex of the validators field, used from GLOAS_SLOT onwards (Gloas deployments)',
   },
   PIVOT_SLOT: {
     name: 'PIVOT_SLOT',
-    description: 'get slot when GIndex change will occur due to the hardfork',
+    description:
+      'get slot when GIndex change will occur due to the hardfork (pre-Gloas deployments)',
+  },
+  GLOAS_SLOT: {
+    name: 'GLOAS_SLOT',
+    description:
+      'get first slot of the Gloas fork; uint64 max means the slot is not known yet (Gloas deployments)',
   },
   GI_PUBKEY_WC_PARENT: {
     name: 'GI_PUBKEY_WC_PARENT',

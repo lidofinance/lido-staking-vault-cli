@@ -8,9 +8,9 @@ import { logResult } from 'utils';
 
 import { SupportedFork } from './constants.js';
 
-// Verifier constructor arg each gindex feeds, see CLProofVerifier.sol
-const PRE_GLOAS_PARAM = 'gIFirstValidatorPreGloas';
-const GLOAS_PARAM = 'gIValidators';
+// Verifier constant each gindex must match, see CLGIndices.sol
+const PRE_GLOAS_CONSTANT = 'FIRST_VALIDATOR_PRE_GLOAS';
+const GLOAS_CONSTANT = 'VALIDATORS';
 
 export const getFirstValidatorGIndex = (forks: string[]) => {
   const rows = forks.map((fork) => {
@@ -22,7 +22,11 @@ export const getFirstValidatorGIndex = (forks: string[]) => {
     // Gloas: the list is progressive, so it has no fixed depth to pack. The
     // verifier takes the validators field itself and derives each node.
     if (validators.type instanceof ProgressiveListCompositeType) {
-      return [fork, toBytes32String(pack(validators.gindex, 0n)), GLOAS_PARAM];
+      return [
+        fork,
+        toBytes32String(pack(validators.gindex, 0n)),
+        GLOAS_CONSTANT,
+      ];
     }
 
     if (!(validators.type instanceof ListCompositeType)) {
@@ -33,14 +37,14 @@ export const getFirstValidatorGIndex = (forks: string[]) => {
     return [
       fork,
       toBytes32String(pack(gI, widthOf(validators.type.limit))),
-      PRE_GLOAS_PARAM,
+      PRE_GLOAS_CONSTANT,
     ];
   });
 
   logResult({
     data: rows,
     params: {
-      head: ['Fork', 'GIndex', 'Deploy param'],
+      head: ['Fork', 'GIndex', 'CLGIndices constant'],
     },
   });
 };

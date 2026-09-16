@@ -35,16 +35,19 @@ yarn start contracts pdg -h
 | BEACON_ROOTS                                                             | get beacon roots address                                                                           |
 | DEFAULT_ADMIN_ROLE                                                       | get default admin role                                                                             |
 | DEPOSIT_DOMAIN                                                           | get computed DEPOSIT_DOMAIN for current chain                                                      |
-| GI_FIRST_VALIDATOR_CURR                                                  | get GIndex of first validator in CL state tree after PIVOT_SLOT                                    |
-| GI_FIRST_VALIDATOR_PREV                                                  | get GIndex of first validator in CL state tree                                                     |
+| GI_FIRST_VALIDATOR_CURR                                                  | get GIndex of first validator in CL state tree after PIVOT_SLOT (pre-Gloas deployments)            |
+| GI_FIRST_VALIDATOR_PREV                                                  | get GIndex of first validator in CL state tree (pre-Gloas deployments)                             |
+| GI_FIRST_VALIDATOR_PRE_GLOAS                                             | get GIndex of first validator in a pre-Gloas CL state tree (Gloas deployments)                     |
 | GI_PUBKEY_WC_PARENT                                                      | get pubkey wc parent gIndex                                                                        |
 | GI_STATE_ROOT                                                            | get state root gIndex                                                                              |
+| GI_VALIDATORS                                                            | get GIndex of the validators field, used from GLOAS_SLOT onwards (Gloas deployments)               |
+| GLOAS_SLOT                                                               | get first slot of the Gloas fork; uint64 max means the slot is not known yet (Gloas deployments)   |
 | MAX_SUPPORTED_WC_VERSION                                                 | get max supported wc version                                                                       |
 | MAX_TOPUP_AMOUNT                                                         | Calls the read-only function "MAX_TOPUP_AMOUNT" on the contract.                                   |
 | MIN_SUPPORTED_WC_VERSION                                                 | get min supported wc version                                                                       |
 | PAUSE_INFINITELY                                                         | get special value for the infinite pause                                                           |
 | PAUSE_ROLE                                                               | get pause role                                                                                     |
-| PIVOT_SLOT                                                               | get slot when GIndex change will occur due to the hardfork                                         |
+| PIVOT_SLOT                                                               | get slot when GIndex change will occur due to the hardfork (pre-Gloas deployments)                 |
 | PREDEPOSIT_AMOUNT                                                        | get amount of ether that is predeposited with each validator                                       |
 | RESUME_ROLE                                                              | get resume role                                                                                    |
 | claimable-r \<guarantor>                                                 | get claimable refund                                                                               |
