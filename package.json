@@ -82,7 +82,7 @@
     "eslint-plugin-promise": "^7.3.0",
     "eslint-plugin-sonarjs": "^4.2.0",
     "eslint-plugin-unicorn": "^63.0.0",
-    "lint-staged": "^15.4.3",
+    "lint-staged": "^17.5.1",
     "prettier": "^3.9.6",
     "semantic-release": "^25.0.9",
     "ts-node": "^10.9.2",
