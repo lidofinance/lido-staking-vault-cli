@@ -683,7 +683,8 @@ dashboardWrite
 
       if (blsCheck) await checkBLSDeposits(vaultContract, deposits);
 
-      await callWriteMethodWithReceipt({
+      await callWriteMethodsWithReportFresh({
+        vault,
         contract,
         methodName: 'unguaranteedDepositToBeaconChain',
         payload: [deposits],
