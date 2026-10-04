@@ -1,0 +1,7 @@
+
+# playwright
+test-results/
+playwright-report/
+logs/
+.yalc
+.yarn/*
