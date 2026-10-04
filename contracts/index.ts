@@ -3,6 +3,7 @@ export * from './vault-factory.js';
 export * from './vault.js';
 export * from './dashboard.js';
 export * from './dashboard-impl.js';
+export * from './dashboard-factory.js';
 export * from './steth.js';
 export * from './locator.js';
 export * from './vault-viewer.js';
