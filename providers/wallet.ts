@@ -15,7 +15,7 @@ import { privateKeyToAccount } from 'viem/accounts';
 import { Keystore } from 'ox';
 
 import { envs, getConfig, getChainId, getElUrl, getChain } from 'configs';
-import { createWalletConnectClient } from 'utils';
+import { createWalletConnectClient, resolveSecret } from 'utils';
 
 const MAX_UINT256_HEX =
   '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
@@ -105,7 +105,13 @@ export const balanceAwareTransport = (url: string): Transport => {
 };
 
 const getPrivateKey = async () => {
-  const { PRIVATE_KEY, ACCOUNT_FILE, ACCOUNT_FILE_PASSWORD } = getConfig();
+  const config = getConfig();
+  const { ACCOUNT_FILE } = config;
+  const PRIVATE_KEY = resolveSecret(
+    'PRIVATE_KEY',
+    config.PRIVATE_KEY,
+    config.PRIVATE_KEY_FILE,
+  );
   const id = await getChainId();
 
   if (PRIVATE_KEY && ACCOUNT_FILE) {
@@ -123,6 +129,11 @@ const getPrivateKey = async () => {
   }
 
   if (ACCOUNT_FILE) {
+    const ACCOUNT_FILE_PASSWORD = resolveSecret(
+      'ACCOUNT_FILE_PASSWORD',
+      config.ACCOUNT_FILE_PASSWORD,
+      config.ACCOUNT_FILE_PASSWORD_FILE,
+    );
     if (!ACCOUNT_FILE_PASSWORD) {
       throw new Error('Account file password is not provided');
     }
