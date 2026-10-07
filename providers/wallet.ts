@@ -141,13 +141,9 @@ const getPrivateKey = async () => {
     const file = readFileSync(ACCOUNT_FILE, 'utf8');
     const fileContent: Keystore.Keystore = JSON.parse(file);
 
-    const kdfType = fileContent.crypto.kdf;
-
-    const [key] = Keystore[kdfType]({
+    // toKey maps kdfparams per kdf (pbkdf2 `c` -> iterations)
+    const key = Keystore.toKey(fileContent, {
       password: ACCOUNT_FILE_PASSWORD,
-      ...fileContent.crypto.kdfparams,
-      salt: `0x${fileContent.crypto.kdfparams.salt}`,
-      iv: `0x${fileContent.crypto.cipherparams.iv}`,
     });
     const privateKey = Keystore.decrypt(fileContent, key);
 
