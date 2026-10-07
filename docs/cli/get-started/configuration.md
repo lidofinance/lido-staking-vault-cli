@@ -140,7 +140,7 @@ ACCOUNT_FILE_PASSWORD_FILE=/run/secrets/account-password
 - A warning is printed if the file is readable by group/others (use `chmod 600`)
 - Works with systemd credentials and Docker secrets, see [auto-report](../commands/defi-wrapper/wrapper-operations.md#running-under-systemd)
 
-Network, `DEPLOYED` and wallet variables can also be set in the process environment, which takes precedence over `.env`.
+`DEPLOYED`, `CHAIN_ID`, `EL_URL`, `CL_URL`, `ETHERSCAN_API_KEY`, `PRIVATE_KEY(_FILE)`, `ACCOUNT_FILE` and `ACCOUNT_FILE_PASSWORD(_FILE)` can also be set in the process environment, which takes precedence over `.env`.
 
 #### Method 3: WalletConnect (Recommended for signing in external wallet)
 
