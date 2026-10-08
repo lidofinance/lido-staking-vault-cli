@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - support for Gloas validator proofs
+- `pdg info` reads the CL state layout the deployment actually exposes, so it works against both
+  the current PredepositGuarantee and the Gloas one, which renames the gindex getters and replaces
+  `PIVOT_SLOT` with `GLOAS_SLOT`
 
 ### Fixed
 

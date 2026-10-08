@@ -64,8 +64,10 @@ Retrieves comprehensive technical information about the PredepositGuarantee (PDG
 
 - **CONTRACT_ADDRESS**: Deployed PDG contract address
 - **Role Identifiers**: DEFAULT_ADMIN_ROLE, RESUME_ROLE, PAUSE_ROLE
-- **System Constants**: BEACON_ROOTS, PREDEPOSIT_AMOUNT, PIVOT_SLOT
-- **Gindex Values**: GI_FIRST_VALIDATOR_CURR, GI_FIRST_VALIDATOR_PREV, GI_PUBKEY_WC_PARENT, GI_STATE_ROOT
+- **System Constants**: BEACON_ROOTS, PREDEPOSIT_AMOUNT
+- **Gindex Values**: GI_PUBKEY_WC_PARENT, GI_STATE_ROOT, plus the CL state layout the deployment
+  exposes — GI_FIRST_VALIDATOR_PRE_GLOAS, GI_VALIDATORS and GLOAS_SLOT on Gloas deployments,
+  GI_FIRST_VALIDATOR_CURR, GI_FIRST_VALIDATOR_PREV and PIVOT_SLOT before that
 - **Version Support**: MAX_SUPPORTED_WC_VERSION, MIN_SUPPORTED_WC_VERSION
 - **State Information**: isPaused status and resumeSinceTimestamp
 

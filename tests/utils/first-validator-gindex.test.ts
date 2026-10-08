@@ -18,7 +18,7 @@ const rowsFor = async (forks: string[]) => {
   return mockLogResult.mock.calls[0]?.[0]?.data as string[][];
 };
 
-// Values the verifiers are deployed with, see deploy params in lidofinance/core
+// Values the verifiers hardcode, see CLGIndices.sol in lidofinance/core
 const CAPELLA_GINDEX =
   '0x0000000000000000000000000000000000000000000000000056000000000028';
 const ELECTRA_GINDEX =
@@ -41,17 +41,17 @@ describe('getFirstValidatorGIndex', () => {
       ELECTRA_GINDEX,
     ]);
     expect(rows.map((row) => row[2])).toEqual([
-      'gIFirstValidatorPreGloas',
-      'gIFirstValidatorPreGloas',
-      'gIFirstValidatorPreGloas',
-      'gIFirstValidatorPreGloas',
+      'FIRST_VALIDATOR_PRE_GLOAS',
+      'FIRST_VALIDATOR_PRE_GLOAS',
+      'FIRST_VALIDATOR_PRE_GLOAS',
+      'FIRST_VALIDATOR_PRE_GLOAS',
     ]);
   });
 
   test('returns the validators field gindex with zero width for gloas', async () => {
     const rows = await rowsFor(['gloas']);
 
-    expect(rows[0]).toEqual(['gloas', GLOAS_GINDEX, 'gIValidators']);
+    expect(rows[0]).toEqual(['gloas', GLOAS_GINDEX, 'VALIDATORS']);
   });
 
   test('rejects an unknown fork instead of emitting a gindex', async () => {
