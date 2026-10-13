@@ -5,9 +5,13 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - support for Gloas validator proofs
+- `PRIVATE_KEY` and `ACCOUNT_FILE_PASSWORD` can be read from a file via `PRIVATE_KEY_FILE` / `ACCOUNT_FILE_PASSWORD_FILE` (systemd credentials, Docker secrets); setting both the value and its `_FILE` variant is an error
+- `unguaranteed-deposit` in the `dashboard` and `deposits` commands now submits a fresh oracle report first when the vault report is stale
 
 ### Fixed
 
+- keystores encrypted with pbkdf2 and a non-default iteration count failed to decrypt
+- `metrics read` no longer reports a node operator fee on zero gross rewards after a fee exemption, a `settledGrowth` correction or an unguaranteed deposit: the fee is capped at the fee on the period's gross rewards, and the affected periods are printed as a warning
 - report data is now fetched through fallback IPFS gateways: a rate-limited `ipfs.io` no longer aborts the command, and a custom gateway is tried first
 - `-g, --gateway` and `-u, --url` now take a value — they were parsed as boolean flags in the `metrics` and `report read` commands and failed with `invalid URL: true`
 - consolidation now always submits the fee exemption and aligns the amount with the consensus-layer spec
