@@ -1,3 +1,4 @@
+export * from './dashboard-address-check.js';
 export * from './vault-health.js';
 export * from './vaults-by-role.js';
 export * from './dashboard-by-vault.js';

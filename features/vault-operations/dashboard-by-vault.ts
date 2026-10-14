@@ -1,4 +1,4 @@
-import { Address } from 'viem';
+import { Address, isAddressEqual, zeroAddress } from 'viem';
 
 import {
   DashboardContract,
@@ -6,8 +6,8 @@ import {
   getStakingVaultContract,
   StakingVaultContract,
   getVaultHubContract,
+  isDashboard,
 } from 'contracts';
-import { getPublicClient } from 'providers';
 import {
   callReadMethodSilent,
   confirmOperation,
@@ -16,10 +16,10 @@ import {
 import { checkIsDisconnected } from 'features';
 
 import { chooseVault } from './vaults-by-role.js';
+import { verifyDashboardAddress } from './dashboard-address-check.js';
 
 export const getDashboardByVault = async (vault: Address) => {
   const isDisconnected = await checkIsDisconnected(vault);
-  let vaultOwner: Address;
 
   if (isDisconnected) {
     const confirm = await confirmOperation(
@@ -28,34 +28,62 @@ export const getDashboardByVault = async (vault: Address) => {
     if (!confirm) {
       throw new Error('Vault is not connected to VaultHub');
     }
+  }
 
-    const vaultContract = await getStakingVaultContract(vault);
-    vaultOwner = await callReadMethodSilent({
-      contract: vaultContract,
-      methodName: 'owner',
-      payload: [],
-    });
-  } else {
-    const vaultHub = await getVaultHubContract();
-    const vaultConnection = await callReadMethodSilent({
+  const vaultHub = await getVaultHubContract();
+  const vaultContract = await getStakingVaultContract(vault);
+
+  const [vaultConnection, vaultOwner] = await Promise.all([
+    callReadMethodSilent({
       contract: vaultHub,
       methodName: 'vaultConnection',
       payload: [[vault]],
-    });
+    }),
+    callReadMethodSilent({
+      contract: vaultContract,
+      methodName: 'owner',
+      payload: [],
+    }),
+  ]);
 
-    vaultOwner = vaultConnection.owner;
+  // When connected, the Dashboard is the owner recorded by VaultHub; otherwise
+  // it is the StakingVault's own owner.
+  const supposedDashboardAddress = !isAddressEqual(
+    vaultConnection.owner,
+    zeroAddress,
+  )
+    ? vaultConnection.owner
+    : vaultOwner;
+
+  let dashboardAddress = supposedDashboardAddress;
+
+  if (!(await isDashboard(supposedDashboardAddress))) {
+    // After a voluntary disconnect the VaultHub holds the vault and hands it
+    // back to the Dashboard via a 2-step transfer, so until `acceptOwnership`
+    // the Dashboard is only the pending owner. Gated on the vault still being
+    // owned by VaultHub, so it does not fire after `abandonDashboard` — there
+    // the vault's owner is already the Dashboard itself.
+    if (isDisconnected && isAddressEqual(vaultOwner, vaultHub.address)) {
+      const pendingOwner = await callReadMethodSilent({
+        contract: vaultContract,
+        methodName: 'pendingOwner',
+        payload: [],
+      });
+
+      if (
+        !isAddressEqual(pendingOwner, zeroAddress) &&
+        (await isDashboard(pendingOwner))
+      ) {
+        dashboardAddress = pendingOwner;
+      }
+    } else if (!isDisconnected) {
+      throw new Error('Owner of vault is not dashboard contract');
+    }
   }
 
-  const dashboard = await getDashboardContract(vaultOwner);
+  await verifyDashboardAddress(dashboardAddress, vault);
 
-  const publicClient = await getPublicClient();
-  const bytecode = await publicClient.getCode({ address: vaultOwner });
-
-  if (!bytecode || bytecode === '0x') {
-    throw new Error(`Owner ${vaultOwner} is not a contract (probably EOA)`);
-  }
-
-  return dashboard.address;
+  return dashboardAddress;
 };
 
 export const chooseVaultAndGetDashboard = async (args: {
