@@ -146,16 +146,17 @@ describe('getDashboardByVault', () => {
     expect(mockVerifyDashboardAddress).toHaveBeenCalledWith(DASHBOARD, VAULT);
   });
 
-  it('throws when the vault is connected but its owner is not a Dashboard', async () => {
+  it('resolves and verifies the supposed address when connected but the owner is not a Dashboard', async () => {
     const getDashboardByVault = await importSubject();
 
     state.vaultConnection = { owner: NOT_DASHBOARD, vaultIndex: 1n };
     state.isDashboardResults = { [NOT_DASHBOARD.toLowerCase()]: false };
 
-    await expect(getDashboardByVault(VAULT)).rejects.toThrow(
-      'Owner of vault is not dashboard contract',
+    await expect(getDashboardByVault(VAULT)).resolves.toBe(NOT_DASHBOARD);
+    expect(mockVerifyDashboardAddress).toHaveBeenCalledWith(
+      NOT_DASHBOARD,
+      VAULT,
     );
-    expect(mockVerifyDashboardAddress).not.toHaveBeenCalled();
   });
 
   it('throws when the vault is disconnected and the operator declines to continue', async () => {

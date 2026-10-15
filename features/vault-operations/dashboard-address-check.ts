@@ -7,12 +7,14 @@ import {
   isDashboardBelongsToVault,
   type DashboardContract,
 } from 'contracts';
-import { confirmPrompt } from 'utils';
+import { confirmPrompt, confirmOperation, logInfo } from 'utils';
 
 const DASHBOARD_BELONGS_TO_VAULT_MESSAGE =
   'Do you want to check Dashboard address that is belonging to stVault?';
 const IS_DASHBOARD_MESSAGE =
   'Do you want to check that this address is a Dashboard contract?';
+const RISK_MESSAGE =
+  'By proceeding, you accept the risk that the stVault is managed by a contract other than the Dashboard.';
 
 const confirmDashboardAddressCheck = async (
   message: string,
@@ -28,10 +30,20 @@ const confirmDashboardAddressCheck = async (
   return confirm;
 };
 
+const warnAndConfirmProceed = async (warning: string): Promise<boolean> => {
+  logInfo(`⚠️  ${warning}`);
+  logInfo(`⚠️  ${RISK_MESSAGE}`);
+
+  return confirmOperation('Do you want to proceed?');
+};
+
 /**
  * Verifies that `address` is a Dashboard and, when `vault` is supplied, that
  * it is the Dashboard of that vault. The check is opt-out: it runs by default
  * and is skipped only when the user answers "no" to the confirmation prompt.
+ *
+ * A failed check does not abort immediately: it warns about which stage failed
+ * and the risk of proceeding, then lets the user exit or continue.
  */
 export const verifyDashboardAddress = async (
   address: Address,
@@ -46,13 +58,26 @@ export const verifyDashboardAddress = async (
 
   const isDashboardContract = await isDashboard(address);
   if (!isDashboardContract) {
-    throw new Error(`Address ${address} is not a Dashboard contract`);
+    const proceed = await warnAndConfirmProceed(
+      `Address ${address} is not a Dashboard contract.`,
+    );
+    if (!proceed) {
+      throw new Error(`Address ${address} is not a Dashboard contract`);
+    }
+    return;
   }
 
   if (vault) {
     const belongsToVault = await isDashboardBelongsToVault(vault, address);
     if (!belongsToVault) {
-      throw new Error(`Dashboard ${address} does not belong to vault ${vault}`);
+      const proceed = await warnAndConfirmProceed(
+        `Dashboard ${address} does not belong to vault ${vault}.`,
+      );
+      if (!proceed) {
+        throw new Error(
+          `Dashboard ${address} does not belong to vault ${vault}`,
+        );
+      }
     }
   }
 };

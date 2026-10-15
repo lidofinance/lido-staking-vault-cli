@@ -57,27 +57,27 @@ export const getDashboardByVault = async (vault: Address) => {
 
   let dashboardAddress = supposedDashboardAddress;
 
-  if (!(await isDashboard(supposedDashboardAddress))) {
-    // After a voluntary disconnect the VaultHub holds the vault and hands it
-    // back to the Dashboard via a 2-step transfer, so until `acceptOwnership`
-    // the Dashboard is only the pending owner. Gated on the vault still being
-    // owned by VaultHub, so it does not fire after `abandonDashboard` — there
-    // the vault's owner is already the Dashboard itself.
-    if (isDisconnected && isAddressEqual(vaultOwner, vaultHub.address)) {
-      const pendingOwner = await callReadMethodSilent({
-        contract: vaultContract,
-        methodName: 'pendingOwner',
-        payload: [],
-      });
+  // After a voluntary disconnect the VaultHub holds the vault and hands it back
+  // to the Dashboard via a 2-step transfer, so until `acceptOwnership` the
+  // Dashboard is only the pending owner. Gated on the vault still being owned
+  // by VaultHub, so it does not fire after `abandonDashboard` — there the
+  // vault's owner is already the Dashboard itself.
+  if (
+    !(await isDashboard(supposedDashboardAddress)) &&
+    isDisconnected &&
+    isAddressEqual(vaultOwner, vaultHub.address)
+  ) {
+    const pendingOwner = await callReadMethodSilent({
+      contract: vaultContract,
+      methodName: 'pendingOwner',
+      payload: [],
+    });
 
-      if (
-        !isAddressEqual(pendingOwner, zeroAddress) &&
-        (await isDashboard(pendingOwner))
-      ) {
-        dashboardAddress = pendingOwner;
-      }
-    } else if (!isDisconnected) {
-      throw new Error('Owner of vault is not dashboard contract');
+    if (
+      !isAddressEqual(pendingOwner, zeroAddress) &&
+      (await isDashboard(pendingOwner))
+    ) {
+      dashboardAddress = pendingOwner;
     }
   }
 

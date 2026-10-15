@@ -5,6 +5,8 @@ const mockIsDashboard = vi.fn();
 const mockIsDashboardBelongsToVault = vi.fn();
 const mockGetDashboardContract = vi.fn();
 const mockConfirmPrompt = vi.fn();
+const mockConfirmOperation = vi.fn();
+const mockLogInfo = vi.fn();
 const mockOpts = vi.fn();
 
 vi.mock('contracts', () => ({
@@ -15,6 +17,8 @@ vi.mock('contracts', () => ({
 
 vi.mock('utils', () => ({
   confirmPrompt: mockConfirmPrompt,
+  confirmOperation: mockConfirmOperation,
+  logInfo: mockLogInfo,
 }));
 
 vi.mock('command', () => ({
@@ -39,6 +43,7 @@ describe('verifyDashboardAddress', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockOpts.mockReturnValue({ yes: false });
+    mockConfirmOperation.mockResolvedValue(true);
   });
 
   afterEach(() => {
@@ -53,11 +58,31 @@ describe('verifyDashboardAddress', () => {
 
     expect(mockIsDashboard).toHaveBeenCalledWith(ADDRESS);
     expect(mockIsDashboardBelongsToVault).not.toHaveBeenCalled();
+    expect(mockConfirmOperation).not.toHaveBeenCalled();
   });
 
-  it('throws when the address is not a Dashboard', async () => {
+  it('warns and continues when the address is not a Dashboard and the user proceeds', async () => {
     const { verifyDashboardAddress } = await importSubject();
     mockIsDashboard.mockResolvedValue(false);
+
+    await expect(verifyDashboardAddress(ADDRESS)).resolves.toBeUndefined();
+
+    expect(mockLogInfo).toHaveBeenCalledWith(
+      expect.stringContaining('is not a Dashboard contract'),
+    );
+    expect(mockLogInfo).toHaveBeenCalledWith(
+      expect.stringContaining('managed by a contract other than the Dashboard'),
+    );
+    expect(mockConfirmOperation).toHaveBeenCalledWith(
+      'Do you want to proceed?',
+    );
+    expect(mockIsDashboardBelongsToVault).not.toHaveBeenCalled();
+  });
+
+  it('throws when the address is not a Dashboard and the user exits', async () => {
+    const { verifyDashboardAddress } = await importSubject();
+    mockIsDashboard.mockResolvedValue(false);
+    mockConfirmOperation.mockResolvedValue(false);
 
     await expect(verifyDashboardAddress(ADDRESS)).rejects.toThrow(
       'is not a Dashboard contract',
@@ -65,15 +90,32 @@ describe('verifyDashboardAddress', () => {
     expect(mockIsDashboardBelongsToVault).not.toHaveBeenCalled();
   });
 
-  it('throws when the Dashboard does not belong to the vault', async () => {
+  it('warns and continues when the Dashboard does not belong to the vault and the user proceeds', async () => {
     const { verifyDashboardAddress } = await importSubject();
     mockIsDashboard.mockResolvedValue(true);
     mockIsDashboardBelongsToVault.mockResolvedValue(false);
 
+    await expect(
+      verifyDashboardAddress(ADDRESS, VAULT),
+    ).resolves.toBeUndefined();
+
+    expect(mockLogInfo).toHaveBeenCalledWith(
+      expect.stringContaining('does not belong to vault'),
+    );
+    expect(mockConfirmOperation).toHaveBeenCalledWith(
+      'Do you want to proceed?',
+    );
+  });
+
+  it('throws when the Dashboard does not belong to the vault and the user exits', async () => {
+    const { verifyDashboardAddress } = await importSubject();
+    mockIsDashboard.mockResolvedValue(true);
+    mockIsDashboardBelongsToVault.mockResolvedValue(false);
+    mockConfirmOperation.mockResolvedValue(false);
+
     await expect(verifyDashboardAddress(ADDRESS, VAULT)).rejects.toThrow(
       'does not belong to vault',
     );
-    expect(mockIsDashboardBelongsToVault).toHaveBeenCalledWith(VAULT, ADDRESS);
   });
 
   it('passes when the Dashboard belongs to the vault', async () => {
@@ -151,6 +193,7 @@ describe('getDashboardContractChecked', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockOpts.mockReturnValue({ yes: false });
+    mockConfirmOperation.mockResolvedValue(true);
   });
 
   afterEach(() => {

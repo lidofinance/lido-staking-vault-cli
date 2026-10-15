@@ -10,6 +10,14 @@ sidebar_position: 1
 yarn start contracts dashboard [arguments] [-options]
 ```
 
+## Address verification
+
+Before running, every Dashboard command verifies the supplied `<address>`: the
+CLI checks that it is a Dashboard contract and, for vault-scoped commands, that
+it belongs to the vault. You are prompted first (`-y`/Enter run the check, `n`
+skips it). If the check fails, the CLI warns (⚠️) which stage failed and asks
+whether to exit or proceed at your own risk.
+
 ## Dashboard commands list
 
 ```bash
