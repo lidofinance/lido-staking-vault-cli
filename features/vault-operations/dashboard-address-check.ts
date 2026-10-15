@@ -34,6 +34,15 @@ const warnAndConfirmProceed = async (warning: string): Promise<boolean> => {
   logInfo(`⚠️  ${warning}`);
   logInfo(`⚠️  ${RISK_MESSAGE}`);
 
+  const opts = program.opts();
+  if (opts.skipDashboardCheck) return true;
+  // --yes must not auto-accept a failed check
+  if (opts.yes) {
+    throw new Error(
+      `${warning} Use --skip-dashboard-check to proceed non-interactively.`,
+    );
+  }
+
   return confirmOperation('Do you want to proceed?');
 };
 

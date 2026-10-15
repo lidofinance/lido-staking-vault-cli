@@ -9,6 +9,7 @@ const mockIsDashboard = vi.fn();
 const mockGetVaultHubContract = vi.fn();
 const mockGetStakingVaultContract = vi.fn();
 const mockVerifyDashboardAddress = vi.fn();
+const mockGetCode = vi.fn();
 
 vi.mock('features', () => ({
   checkIsDisconnected: mockCheckIsDisconnected,
@@ -18,6 +19,10 @@ vi.mock('contracts', () => ({
   getVaultHubContract: mockGetVaultHubContract,
   getStakingVaultContract: mockGetStakingVaultContract,
   isDashboard: mockIsDashboard,
+}));
+
+vi.mock('providers', () => ({
+  getPublicClient: async () => ({ getCode: mockGetCode }),
 }));
 
 vi.mock('utils', () => ({
@@ -53,6 +58,7 @@ interface State {
   owner: Address;
   pendingOwner: Address;
   isDashboardResults: Record<string, boolean>;
+  eoas: Address[];
 }
 
 let state: State;
@@ -73,6 +79,7 @@ describe('getDashboardByVault', () => {
       owner: VAULT_HUB,
       pendingOwner: zeroAddress,
       isDashboardResults: { [DASHBOARD.toLowerCase()]: true },
+      eoas: [],
     };
 
     mockCheckIsDisconnected.mockImplementation(
@@ -98,6 +105,9 @@ describe('getDashboardByVault', () => {
     mockIsDashboard.mockImplementation(
       async (address: Address) =>
         state.isDashboardResults[address.toLowerCase()] ?? false,
+    );
+    mockGetCode.mockImplementation(async ({ address }: { address: Address }) =>
+      state.eoas.includes(address) ? undefined : '0x6080',
     );
     mockGetVaultHubContract.mockResolvedValue({ address: VAULT_HUB });
     mockGetStakingVaultContract.mockResolvedValue({});
@@ -157,6 +167,34 @@ describe('getDashboardByVault', () => {
       NOT_DASHBOARD,
       VAULT,
     );
+  });
+
+  it('throws when the vault is held by VaultHub without a pending Dashboard', async () => {
+    const getDashboardByVault = await importSubject();
+
+    state.isDisconnected = true;
+    state.vaultConnection = { owner: zeroAddress, vaultIndex: 0n };
+    state.owner = VAULT_HUB;
+    state.pendingOwner = zeroAddress;
+
+    await expect(getDashboardByVault(VAULT)).rejects.toThrow(
+      'is held by VaultHub',
+    );
+    expect(mockVerifyDashboardAddress).not.toHaveBeenCalled();
+  });
+
+  it('throws when the resolved owner is an EOA', async () => {
+    const getDashboardByVault = await importSubject();
+
+    state.isDisconnected = true;
+    state.vaultConnection = { owner: zeroAddress, vaultIndex: 0n };
+    state.owner = NEW_OWNER;
+    state.eoas = [NEW_OWNER];
+
+    await expect(getDashboardByVault(VAULT)).rejects.toThrow(
+      'is not a contract (probably EOA)',
+    );
+    expect(mockVerifyDashboardAddress).not.toHaveBeenCalled();
   });
 
   it('throws when the vault is disconnected and the operator declines to continue', async () => {

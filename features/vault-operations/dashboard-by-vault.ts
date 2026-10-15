@@ -8,6 +8,7 @@ import {
   getVaultHubContract,
   isDashboard,
 } from 'contracts';
+import { getPublicClient } from 'providers';
 import {
   callReadMethodSilent,
   confirmOperation,
@@ -78,7 +79,19 @@ export const getDashboardByVault = async (vault: Address) => {
       (await isDashboard(pendingOwner))
     ) {
       dashboardAddress = pendingOwner;
+    } else {
+      throw new Error(
+        `Vault ${vault} is held by VaultHub and its pending owner ${pendingOwner} is not a Dashboard`,
+      );
     }
+  }
+
+  const publicClient = await getPublicClient();
+  const bytecode = await publicClient.getCode({ address: dashboardAddress });
+  if (!bytecode || bytecode === '0x') {
+    throw new Error(
+      `Owner ${dashboardAddress} is not a contract (probably EOA)`,
+    );
   }
 
   await verifyDashboardAddress(dashboardAddress, vault);

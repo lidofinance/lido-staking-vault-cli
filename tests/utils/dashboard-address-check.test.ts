@@ -50,6 +50,32 @@ describe('verifyDashboardAddress', () => {
     vi.unstubAllEnvs();
   });
 
+  it('throws on a failed check with --yes instead of auto-proceeding', async () => {
+    const { verifyDashboardAddress } = await importSubject();
+    mockOpts.mockReturnValue({ yes: true });
+    mockIsDashboard.mockResolvedValue(false);
+
+    await expect(verifyDashboardAddress(ADDRESS)).rejects.toThrow(
+      '--skip-dashboard-check',
+    );
+    expect(mockConfirmOperation).not.toHaveBeenCalled();
+  });
+
+  it('proceeds on a failed check with --skip-dashboard-check', async () => {
+    const { verifyDashboardAddress } = await importSubject();
+    mockOpts.mockReturnValue({ yes: true, skipDashboardCheck: true });
+    mockIsDashboard.mockResolvedValue(true);
+    mockIsDashboardBelongsToVault.mockResolvedValue(false);
+
+    await expect(
+      verifyDashboardAddress(ADDRESS, VAULT),
+    ).resolves.toBeUndefined();
+    expect(mockLogInfo).toHaveBeenCalledWith(
+      expect.stringContaining('does not belong to vault'),
+    );
+    expect(mockConfirmOperation).not.toHaveBeenCalled();
+  });
+
   it('passes when the address is a Dashboard and no vault is supplied', async () => {
     const { verifyDashboardAddress } = await importSubject();
     mockIsDashboard.mockResolvedValue(true);
