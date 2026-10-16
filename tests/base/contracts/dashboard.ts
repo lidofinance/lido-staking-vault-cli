@@ -1,0 +1,45 @@
+import {
+  getContract,
+  Address,
+  GetContractReturnType,
+  PublicClient,
+} from 'viem';
+import { DashboardAbi } from '../../../abi';
+import { getClient, callReadMethodSilent } from '../providers';
+
+export const getDashboardContract = async (
+  address: Address,
+): Promise<GetContractReturnType<typeof DashboardAbi, PublicClient>> => {
+  return getContract({
+    address: address,
+    abi: DashboardAbi,
+    client: getClient(),
+  });
+};
+
+export type DashboardContract = Awaited<
+  ReturnType<typeof getDashboardContract>
+>;
+
+export const getLiabilityShares = async (dashboardAddress: Address) => {
+  const contract = await getDashboardContract(dashboardAddress);
+  return await callReadMethodSilent(contract, 'liabilityShares');
+};
+
+export const getTotalValue = async (dashboardAddress: Address) => {
+  const contract = await getDashboardContract(dashboardAddress);
+  return await callReadMethodSilent(contract, 'totalValue');
+};
+
+export const getTotalMintingCapacityShares = async (
+  dashboardAddress: Address,
+) => {
+  const contract = await getDashboardContract(dashboardAddress);
+
+  return await callReadMethodSilent(contract, 'totalMintingCapacityShares');
+};
+
+export const getWithdrawValue = async (dashboardAddress: Address) => {
+  const contract = await getDashboardContract(dashboardAddress);
+  return await callReadMethodSilent(contract, 'withdrawableValue');
+};

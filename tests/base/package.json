@@ -1,0 +1,19 @@
+{
+  "name": "lsv_cli_tests",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "lsvCLI": "tsx ../../index.ts",
+    "test": "yarn playwright test --project=lsv_cli_tests"
+  },
+  "dependencies": {
+    "@lidofinance/wallets-testing-nodes": "^1.6.0",
+    "@lidofinance/wallets-testing-wallets": "1.41.1",
+    "@playwright/test": "^1.56.1",
+    "viem": "^2.39.3"
+  },
+  "devDependencies": {
+    "dotenv": "^16.4.5",
+    "tsx": "^4.19.3"
+  }
+}

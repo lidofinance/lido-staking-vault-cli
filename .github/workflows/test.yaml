@@ -1,0 +1,61 @@
+name: Test CLI
+run-name: Test CLI
+
+on:
+  workflow_dispatch:
+    inputs:
+      CHAIN_ID:
+        description: 'Chain id for run tests'
+        required: true
+        type: choice
+        default: '560048'
+        options:
+          - '560048'
+          - '1'
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      # Required envs
+      CHAIN_ID: ${{ github.event.inputs.CHAIN_ID || '1'}}
+      # Node.js configuration
+      NODE_OPTIONS: --max-old-space-size=4096
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: Install dependencies (root)
+        run: yarn install --immutable
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Install dependencies in tests/base
+        working-directory: tests/base
+        run: yarn install --immutable
+
+      - name: Run tests
+        working-directory: tests/base
+        run: |
+          echo -e "\033[34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
+          echo -e "🚀 Running on CHAIN_ID: \033[1;34m$CHAIN_ID\033[0m"
+          echo -e "🌱 Branch: \033[1;34m${GITHUB_HEAD_REF:-$GITHUB_REF_NAME}\033[0m"
+          echo -e "\033[34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
+          xvfb-run --auto-servernum -- yarn test
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: tests/base/playwright-report/
+          retention-days: 30
+
