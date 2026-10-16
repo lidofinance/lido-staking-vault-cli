@@ -15,12 +15,13 @@ export const textPrompt = <T extends string>(
 export const confirmPrompt = <T extends string>(
   message: string,
   name: T,
+  initial = false,
 ): Promise<Answers<T>> => {
   return prompts({
     type: 'confirm',
     name,
     message,
-    initial: false,
+    initial,
   });
 };
 

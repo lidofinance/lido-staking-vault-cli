@@ -7,6 +7,8 @@ All notable changes to this project will be documented in this file.
 - support for Gloas validator proofs
 - `PRIVATE_KEY` and `ACCOUNT_FILE_PASSWORD` can be read from a file via `PRIVATE_KEY_FILE` / `ACCOUNT_FILE_PASSWORD_FILE` (systemd credentials, Docker secrets); setting both the value and its `_FILE` variant is an error
 - `unguaranteed-deposit` in the `dashboard` and `deposits` commands now submits a fresh oracle report first when the vault report is stale
+- the CLI now verifies the Dashboard address before every Dashboard command: it checks the address is a Dashboard and, for vault-scoped commands, that it belongs to the vault. The check is prompt-gated (`-y`/Enter run it, `n` skips it); a failed check warns (⚠️) which stage failed and offers to exit or proceed at your own risk; with `--yes` it exits unless `--skip-dashboard-check` is set
+- the vault Dashboard is now resolved from the VaultHub connection (or the StakingVault owner when disconnected), including the pending-owner state after a voluntary disconnect
 
 ### Fixed
 
@@ -22,6 +24,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - updated dependencies across the CLI and the docs site, closing 20 security advisories
+- the VaultFactory address is now read from `LidoLocator.vaultFactory()` instead of the deployed config
 
 # 1.9.0
 

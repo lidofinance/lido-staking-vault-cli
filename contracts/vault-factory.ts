@@ -1,6 +1,6 @@
 import { getContract, GetContractReturnType } from 'viem';
 import { VaultFactoryAbi } from 'abi/index.js';
-import { getDeployedAddress } from 'configs';
+import { getLocatorContract } from 'contracts/locator.js';
 import { getPublicClient, RegisteredPublicClient } from 'providers/index.js';
 
 export type VaultFactoryContract = GetContractReturnType<
@@ -11,9 +11,11 @@ export type VaultFactoryContract = GetContractReturnType<
 export const getVaultFactoryContract =
   async (): Promise<VaultFactoryContract> => {
     const publicClient = await getPublicClient();
+    const locator = await getLocatorContract();
+    const address = await locator.read.vaultFactory();
 
     return getContract({
-      address: getDeployedAddress('stakingVaultFactory'),
+      address,
       abi: VaultFactoryAbi,
       client: publicClient,
     });
