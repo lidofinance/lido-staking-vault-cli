@@ -1,5 +1,6 @@
 export * from './main.js';
 export * from './dashboard/index.js';
+export * from './dashboard-factory/index.js';
 export * from './hub/index.js';
 export * from './operator-grid/index.js';
 export * from './pdg/index.js';

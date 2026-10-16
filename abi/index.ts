@@ -2,6 +2,7 @@ export * from './StakingVault.js';
 export * from './VaultHub.js';
 export * from './VaultFactory.js';
 export * from './Dashboard.js';
+export * from './DashboardFactory.js';
 export * from './StEth.js';
 export * from './LidoLocator.js';
 export * from './VaultViewer.js';
