@@ -43,6 +43,16 @@ yarn start deposits w top-up-no 1 -v 0x... --yes
 Use with caution — all confirmations are bypassed, including destructive operations.
 :::
 
+A failed Dashboard address check is the exception: with `--yes` the command exits instead of proceeding. Add `--skip-dashboard-check` to proceed anyway.
+
+## `--skip-dashboard-check`
+
+Proceed when the Dashboard address check fails, without asking. The warning is still printed. Only needed together with `--yes` for vaults whose owner is not a known Dashboard clone.
+
+```bash
+yarn start vo w fund 1 -v 0x... --yes --skip-dashboard-check
+```
+
 ## `--wallet-connect`
 
 Use WalletConnect to sign and send transactions from an external wallet (mobile app or Safe) instead of a local private key.
