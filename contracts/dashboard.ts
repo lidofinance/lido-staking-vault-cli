@@ -1,4 +1,10 @@
-import { getContract, Address, GetContractReturnType, Hex } from 'viem';
+import {
+  getContract,
+  isAddressEqual,
+  Address,
+  GetContractReturnType,
+  Hex,
+} from 'viem';
 import { DashboardAbi } from 'abi';
 import { getPublicClient, RegisteredPublicClient } from 'providers';
 import { getDashboardImplAddresses } from 'configs';
@@ -81,5 +87,5 @@ export const isDashboardBelongsToVault = async (
   const dashboardContract = await getDashboardContract(dashboard);
   const stakingVault = await dashboardContract.read.stakingVault();
 
-  return stakingVault.toLowerCase() === vault.toLowerCase();
+  return isAddressEqual(stakingVault, vault);
 };
