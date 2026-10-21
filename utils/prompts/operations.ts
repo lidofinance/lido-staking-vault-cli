@@ -62,11 +62,13 @@ export const confirmFund = async (
   return { address: contractAddress, amount: amount };
 };
 
+// Integration tests run commands in-process and rely on prompts auto-confirming
+export const isAutoConfirmEnvironment = () =>
+  process.env.NODE_ENV === 'test' || process.env.VITEST === 'true';
+
 export const confirmOperation = async (message: string) => {
   const opts = program.opts();
-  const isTestEnvironment =
-    process.env.NODE_ENV === 'test' || process.env.VITEST === 'true';
-  if (opts.yes || isTestEnvironment) return true;
+  if (opts.yes || isAutoConfirmEnvironment()) return true;
 
   const { confirm } = await confirmPrompt(message, 'confirm');
 

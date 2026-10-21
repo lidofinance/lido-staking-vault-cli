@@ -31,7 +31,7 @@ Common options:
   --populate-tx          output raw transaction data instead of sending
   -y, --yes              automatically confirm prompts and proceed without asking
   --skip-dashboard-check proceed when the Dashboard address check fails, even with --yes
-  --no-cache-use        do not use cache for fetching data from IPFS
+  --no-cache-use         do not use cache for fetching data from IPFS
   --wallet-connect       use wallet connect to send transactions
   --csv <file>           write table output to CSV file
   --json                 output result in JSON format

@@ -8,7 +8,6 @@ import {
   getVaultHubContract,
   isDashboard,
 } from 'contracts';
-import { getPublicClient } from 'providers';
 import {
   callReadMethodSilent,
   confirmOperation,
@@ -18,6 +17,17 @@ import { checkIsDisconnected } from 'features';
 
 import { chooseVault } from './vaults-by-role.js';
 import { verifyDashboardAddress } from './dashboard-address-check.js';
+
+// Resolution probe only: a rejected read must not fail the resolution, so
+// errors are swallowed on purpose. The authoritative check runs in
+// `verifyDashboardAddress` below and surfaces failures to the user.
+const safeIsDashboard = async (address: Address): Promise<boolean> => {
+  try {
+    return await isDashboard(address);
+  } catch {
+    return false;
+  }
+};
 
 export const getDashboardByVault = async (vault: Address) => {
   const isDisconnected = await checkIsDisconnected(vault);
@@ -63,35 +73,22 @@ export const getDashboardByVault = async (vault: Address) => {
   // Dashboard is only the pending owner. Gated on the vault still being owned
   // by VaultHub, so it does not fire after `abandonDashboard` — there the
   // vault's owner is already the Dashboard itself.
-  if (
-    !(await isDashboard(supposedDashboardAddress)) &&
-    isDisconnected &&
-    isAddressEqual(vaultOwner, vaultHub.address)
-  ) {
-    const pendingOwner = await callReadMethodSilent({
-      contract: vaultContract,
-      methodName: 'pendingOwner',
-      payload: [],
-    });
+  if (isDisconnected && isAddressEqual(vaultOwner, vaultHub.address)) {
+    const supposedIsDashboard = await safeIsDashboard(supposedDashboardAddress);
+    if (!supposedIsDashboard) {
+      const pendingOwner = await callReadMethodSilent({
+        contract: vaultContract,
+        methodName: 'pendingOwner',
+        payload: [],
+      });
 
-    if (
-      !isAddressEqual(pendingOwner, zeroAddress) &&
-      (await isDashboard(pendingOwner))
-    ) {
-      dashboardAddress = pendingOwner;
-    } else {
-      throw new Error(
-        `Vault ${vault} is held by VaultHub and its pending owner ${pendingOwner} is not a Dashboard`,
-      );
+      if (
+        !isAddressEqual(pendingOwner, zeroAddress) &&
+        (await safeIsDashboard(pendingOwner))
+      ) {
+        dashboardAddress = pendingOwner;
+      }
     }
-  }
-
-  const publicClient = await getPublicClient();
-  const bytecode = await publicClient.getCode({ address: dashboardAddress });
-  if (!bytecode || bytecode === '0x') {
-    throw new Error(
-      `Owner ${dashboardAddress} is not a contract (probably EOA)`,
-    );
   }
 
   await verifyDashboardAddress(dashboardAddress, vault);

@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 - `unguaranteed-deposit` in the `dashboard` and `deposits` commands now submits a fresh oracle report first when the vault report is stale
 - the CLI now verifies the Dashboard address before every Dashboard command: it checks the address is a Dashboard and, for vault-scoped commands, that it belongs to the vault. The check is prompt-gated (`-y`/Enter run it, `n` skips it); a failed check warns (⚠️) which stage failed and offers to exit or proceed at your own risk; with `--yes` it exits unless `--skip-dashboard-check` is set
 - the vault Dashboard is now resolved from the VaultHub connection (or the StakingVault owner when disconnected), including the pending-owner state after a voluntary disconnect
+- `dashboard read address` now resolves the Dashboard through the same full logic (VaultHub connection / owner / pending owner) and verifies it, instead of printing the raw VaultHub connection owner
 
 ### Fixed
 
@@ -20,6 +21,7 @@ All notable changes to this project will be documented in this file.
 - `--json` output is valid JSON in every case: messages emitted before the command starts (env loading, chain resolution) went to stdout as plain text and broke piping into `jq`
 - a failure during chain resolution left the `--json` output with a closing bracket and no opening one
 - the built CLI failed to start at all — `tsc-alias` 1.9.x rewrote a relative import in the compiled output, so `tsc-alias` is pinned to 1.8.x
+- generated read commands no longer exit mid-output on error, so `--json` output stays valid
 
 ### Changed
 

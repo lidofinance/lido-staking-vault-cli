@@ -8,9 +8,9 @@ import {
   getDashboardHealth,
   getDashboardOverview,
   getDashboardContractChecked,
+  getDashboardByVault,
   type RoleName,
 } from 'features';
-import { getVaultHubContract } from 'contracts';
 import {
   generateReadCommands,
   logResult,
@@ -79,14 +79,10 @@ dashboardRead
   .description('get dashboard address by vault')
   .argument('<vault>', 'vault address', stringToAddress)
   .action(async (vault: Address) => {
-    const vaultHub = await getVaultHubContract();
-    const vaultConnection = await callReadMethodSilent({
-      contract: vaultHub,
-      methodName: 'vaultConnection',
-      payload: [[vault]],
-    });
+    const dashboardAddress = await getDashboardByVault(vault);
+
     logResult({
-      data: [['Dashboard Address', vaultConnection.owner]],
+      data: [['Dashboard Address', dashboardAddress]],
     });
   });
 

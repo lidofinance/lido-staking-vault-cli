@@ -9,7 +9,6 @@ const mockIsDashboard = vi.fn();
 const mockGetVaultHubContract = vi.fn();
 const mockGetStakingVaultContract = vi.fn();
 const mockVerifyDashboardAddress = vi.fn();
-const mockGetCode = vi.fn();
 
 vi.mock('features', () => ({
   checkIsDisconnected: mockCheckIsDisconnected,
@@ -19,10 +18,6 @@ vi.mock('contracts', () => ({
   getVaultHubContract: mockGetVaultHubContract,
   getStakingVaultContract: mockGetStakingVaultContract,
   isDashboard: mockIsDashboard,
-}));
-
-vi.mock('providers', () => ({
-  getPublicClient: async () => ({ getCode: mockGetCode }),
 }));
 
 vi.mock('utils', () => ({
@@ -58,7 +53,6 @@ interface State {
   owner: Address;
   pendingOwner: Address;
   isDashboardResults: Record<string, boolean>;
-  eoas: Address[];
 }
 
 let state: State;
@@ -79,7 +73,6 @@ describe('getDashboardByVault', () => {
       owner: VAULT_HUB,
       pendingOwner: zeroAddress,
       isDashboardResults: { [DASHBOARD.toLowerCase()]: true },
-      eoas: [],
     };
 
     mockCheckIsDisconnected.mockImplementation(
@@ -105,9 +98,6 @@ describe('getDashboardByVault', () => {
     mockIsDashboard.mockImplementation(
       async (address: Address) =>
         state.isDashboardResults[address.toLowerCase()] ?? false,
-    );
-    mockGetCode.mockImplementation(async ({ address }: { address: Address }) =>
-      state.eoas.includes(address) ? undefined : '0x6080',
     );
     mockGetVaultHubContract.mockResolvedValue({ address: VAULT_HUB });
     mockGetStakingVaultContract.mockResolvedValue({});
@@ -169,7 +159,7 @@ describe('getDashboardByVault', () => {
     );
   });
 
-  it('throws when the vault is held by VaultHub without a pending Dashboard', async () => {
+  it('resolves and verifies the supposed address when the vault is held by VaultHub without a pending Dashboard', async () => {
     const getDashboardByVault = await importSubject();
 
     state.isDisconnected = true;
@@ -177,24 +167,19 @@ describe('getDashboardByVault', () => {
     state.owner = VAULT_HUB;
     state.pendingOwner = zeroAddress;
 
-    await expect(getDashboardByVault(VAULT)).rejects.toThrow(
-      'is held by VaultHub',
-    );
-    expect(mockVerifyDashboardAddress).not.toHaveBeenCalled();
+    await expect(getDashboardByVault(VAULT)).resolves.toBe(VAULT_HUB);
+    expect(mockVerifyDashboardAddress).toHaveBeenCalledWith(VAULT_HUB, VAULT);
   });
 
-  it('throws when the resolved owner is an EOA', async () => {
+  it('resolves and verifies the owner even when it is an EOA', async () => {
     const getDashboardByVault = await importSubject();
 
     state.isDisconnected = true;
     state.vaultConnection = { owner: zeroAddress, vaultIndex: 0n };
     state.owner = NEW_OWNER;
-    state.eoas = [NEW_OWNER];
 
-    await expect(getDashboardByVault(VAULT)).rejects.toThrow(
-      'is not a contract (probably EOA)',
-    );
-    expect(mockVerifyDashboardAddress).not.toHaveBeenCalled();
+    await expect(getDashboardByVault(VAULT)).resolves.toBe(NEW_OWNER);
+    expect(mockVerifyDashboardAddress).toHaveBeenCalledWith(NEW_OWNER, VAULT);
   });
 
   it('throws when the vault is disconnected and the operator declines to continue', async () => {
@@ -207,5 +192,32 @@ describe('getDashboardByVault', () => {
       'Vault is not connected to VaultHub',
     );
     expect(mockCallReadMethodSilent).not.toHaveBeenCalled();
+  });
+
+  it('does not run the preliminary Dashboard probe for a connected vault', async () => {
+    const getDashboardByVault = await importSubject();
+
+    // if the preliminary probe ran for a connected vault, this rejection would escape
+    mockIsDashboard.mockRejectedValue(new Error('RPC down'));
+
+    await expect(getDashboardByVault(VAULT)).resolves.toBe(DASHBOARD);
+
+    expect(mockIsDashboard).not.toHaveBeenCalled();
+    expect(mockVerifyDashboardAddress).toHaveBeenCalledWith(DASHBOARD, VAULT);
+  });
+
+  it('does not throw when the preliminary Dashboard probe rejects on a disconnected vault', async () => {
+    const getDashboardByVault = await importSubject();
+
+    state.isDisconnected = true;
+    state.vaultConnection = { owner: zeroAddress, vaultIndex: 0n };
+    state.owner = VAULT_HUB;
+    state.pendingOwner = DASHBOARD;
+    mockIsDashboard.mockRejectedValue(new Error('RPC down'));
+
+    await expect(getDashboardByVault(VAULT)).resolves.toBe(VAULT_HUB);
+
+    expect(readMethodNames()).toContain('pendingOwner');
+    expect(mockVerifyDashboardAddress).toHaveBeenCalledWith(VAULT_HUB, VAULT);
   });
 });

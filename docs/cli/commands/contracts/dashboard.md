@@ -17,7 +17,9 @@ CLI checks that it is a Dashboard contract and, for vault-scoped commands, that
 it belongs to the vault. You are prompted first (`-y`/Enter run the check, `n`
 skips it). If the check fails, the CLI warns (⚠️) which stage failed and asks
 whether to exit or proceed at your own risk. With `--yes`, a failed check exits
-unless `--skip-dashboard-check` is also set.
+unless `--skip-dashboard-check` is also set. With `--json`, the check
+runs automatically (no interactive prompt) and a failed check exits unless
+`--skip-dashboard-check` is also set.
 
 ## Dashboard commands list
 

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Address } from 'viem';
 
 const mockIsDashboard = vi.fn();
@@ -7,6 +7,8 @@ const mockGetDashboardContract = vi.fn();
 const mockConfirmPrompt = vi.fn();
 const mockConfirmOperation = vi.fn();
 const mockLogInfo = vi.fn();
+const mockIsJsonMode = vi.fn();
+const mockIsAutoConfirmEnvironment = vi.fn();
 const mockOpts = vi.fn();
 
 vi.mock('contracts', () => ({
@@ -18,6 +20,8 @@ vi.mock('contracts', () => ({
 vi.mock('utils', () => ({
   confirmPrompt: mockConfirmPrompt,
   confirmOperation: mockConfirmOperation,
+  isAutoConfirmEnvironment: mockIsAutoConfirmEnvironment,
+  isJsonMode: mockIsJsonMode,
   logInfo: mockLogInfo,
 }));
 
@@ -35,19 +39,17 @@ const ADDRESS: Address = `0x${'aa'.repeat(20)}`;
 const VAULT: Address = `0x${'bb'.repeat(20)}`;
 
 const BELONGS_TO_VAULT_MESSAGE =
-  'Do you want to check Dashboard address that is belonging to stVault?';
+  'Do you want to verify that the Dashboard belongs to the stVault?';
 const IS_DASHBOARD_MESSAGE =
-  'Do you want to check that this address is a Dashboard contract?';
+  'Do you want to verify that this address is a Dashboard contract?';
 
 describe('verifyDashboardAddress', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockOpts.mockReturnValue({ yes: false });
+    mockIsJsonMode.mockReturnValue(false);
+    mockIsAutoConfirmEnvironment.mockReturnValue(true);
     mockConfirmOperation.mockResolvedValue(true);
-  });
-
-  afterEach(() => {
-    vi.unstubAllEnvs();
   });
 
   it('throws on a failed check with --yes instead of auto-proceeding', async () => {
@@ -156,8 +158,7 @@ describe('verifyDashboardAddress', () => {
 
   describe('when the check is prompted (not auto-confirmed)', () => {
     beforeEach(() => {
-      vi.stubEnv('NODE_ENV', 'production');
-      vi.stubEnv('VITEST', 'false');
+      mockIsAutoConfirmEnvironment.mockReturnValue(false);
       mockOpts.mockReturnValue({ yes: false });
     });
 
@@ -200,6 +201,19 @@ describe('verifyDashboardAddress', () => {
       await expect(verifyDashboardAddress(ADDRESS)).resolves.toBeUndefined();
 
       expect(mockIsDashboard).not.toHaveBeenCalled();
+      expect(mockLogInfo).toHaveBeenCalledWith(
+        '⚠️  Dashboard address check skipped.',
+      );
+    });
+
+    it('cancels the command when the prompt is aborted', async () => {
+      const { verifyDashboardAddress } = await importSubject();
+      mockConfirmPrompt.mockResolvedValue({});
+
+      await expect(verifyDashboardAddress(ADDRESS)).rejects.toThrow(
+        'Command cancelled',
+      );
+      expect(mockIsDashboard).not.toHaveBeenCalled();
     });
 
     it('runs the check without prompting when --yes is set', async () => {
@@ -213,17 +227,118 @@ describe('verifyDashboardAddress', () => {
       expect(mockIsDashboard).toHaveBeenCalledWith(ADDRESS);
     });
   });
+
+  describe('in --json mode', () => {
+    beforeEach(() => {
+      mockIsAutoConfirmEnvironment.mockReturnValue(false);
+      mockOpts.mockReturnValue({ yes: false, skipDashboardCheck: false });
+      mockIsJsonMode.mockReturnValue(true);
+    });
+
+    it('runs the check without prompting', async () => {
+      const { verifyDashboardAddress } = await importSubject();
+      mockIsDashboard.mockResolvedValue(true);
+
+      await expect(verifyDashboardAddress(ADDRESS)).resolves.toBeUndefined();
+
+      expect(mockConfirmPrompt).not.toHaveBeenCalled();
+      expect(mockIsDashboard).toHaveBeenCalledWith(ADDRESS);
+    });
+
+    it('fails closed on a failed check without --skip-dashboard-check', async () => {
+      const { verifyDashboardAddress } = await importSubject();
+      mockIsDashboard.mockResolvedValue(false);
+
+      await expect(verifyDashboardAddress(ADDRESS)).rejects.toThrow(
+        '--skip-dashboard-check',
+      );
+      expect(mockConfirmOperation).not.toHaveBeenCalled();
+    });
+
+    it('proceeds on a failed check with --skip-dashboard-check', async () => {
+      const { verifyDashboardAddress } = await importSubject();
+      mockOpts.mockReturnValue({ yes: false, skipDashboardCheck: true });
+      mockIsDashboard.mockResolvedValue(false);
+
+      await expect(verifyDashboardAddress(ADDRESS)).resolves.toBeUndefined();
+      expect(mockConfirmOperation).not.toHaveBeenCalled();
+    });
+
+    it('fails closed on a rejected read without --skip-dashboard-check', async () => {
+      const { verifyDashboardAddress } = await importSubject();
+      mockIsDashboard.mockRejectedValue(new Error('RPC down'));
+
+      await expect(verifyDashboardAddress(ADDRESS)).rejects.toThrow(
+        '--skip-dashboard-check',
+      );
+      expect(mockConfirmOperation).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('when verification reads reject', () => {
+    it('proceeds on a rejected isDashboard read with --skip-dashboard-check', async () => {
+      const { verifyDashboardAddress } = await importSubject();
+      mockOpts.mockReturnValue({ yes: false, skipDashboardCheck: true });
+      mockIsDashboard.mockRejectedValue(new Error('RPC down'));
+
+      await expect(verifyDashboardAddress(ADDRESS)).resolves.toBeUndefined();
+      expect(mockLogInfo).toHaveBeenCalledWith(
+        expect.stringContaining('Failed to verify whether'),
+      );
+      expect(mockConfirmOperation).not.toHaveBeenCalled();
+    });
+
+    it('fails closed on a rejected isDashboard read with --yes', async () => {
+      const { verifyDashboardAddress } = await importSubject();
+      mockOpts.mockReturnValue({ yes: true, skipDashboardCheck: false });
+      mockIsDashboard.mockRejectedValue(new Error('RPC down'));
+
+      await expect(verifyDashboardAddress(ADDRESS)).rejects.toThrow(
+        '--skip-dashboard-check',
+      );
+    });
+
+    it('proceeds interactively on a rejected isDashboard read', async () => {
+      const { verifyDashboardAddress } = await importSubject();
+      mockIsDashboard.mockRejectedValue(new Error('RPC down'));
+
+      await expect(verifyDashboardAddress(ADDRESS)).resolves.toBeUndefined();
+      expect(mockConfirmOperation).toHaveBeenCalledWith(
+        'Do you want to proceed?',
+      );
+    });
+
+    it('exits on a rejected isDashboard read when the user declines', async () => {
+      const { verifyDashboardAddress } = await importSubject();
+      mockIsDashboard.mockRejectedValue(new Error('RPC down'));
+      mockConfirmOperation.mockResolvedValue(false);
+
+      await expect(verifyDashboardAddress(ADDRESS)).rejects.toThrow('RPC down');
+    });
+
+    it('routes a rejected isDashboardBelongsToVault read through the override', async () => {
+      const { verifyDashboardAddress } = await importSubject();
+      mockIsDashboard.mockResolvedValue(true);
+      mockIsDashboardBelongsToVault.mockRejectedValue(new Error('RPC down'));
+      mockOpts.mockReturnValue({ yes: false, skipDashboardCheck: true });
+
+      await expect(
+        verifyDashboardAddress(ADDRESS, VAULT),
+      ).resolves.toBeUndefined();
+      expect(mockLogInfo).toHaveBeenCalledWith(
+        expect.stringContaining('Failed to verify whether Dashboard'),
+      );
+    });
+  });
 });
 
 describe('getDashboardContractChecked', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockOpts.mockReturnValue({ yes: false });
+    mockIsJsonMode.mockReturnValue(false);
+    mockIsAutoConfirmEnvironment.mockReturnValue(true);
     mockConfirmOperation.mockResolvedValue(true);
-  });
-
-  afterEach(() => {
-    vi.unstubAllEnvs();
   });
 
   it('verifies the address and returns the contract', async () => {

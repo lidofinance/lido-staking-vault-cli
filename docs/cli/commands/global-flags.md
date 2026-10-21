@@ -19,6 +19,8 @@ yarn start report r latest-report-data --json
 
 Useful for scripting, piping into `jq`, or integrating with other tools.
 
+When `--json` is used, the Dashboard address check runs automatically and cannot show an interactive prompt. If the check fails, the command exits unless `--skip-dashboard-check` is also set.
+
 ## `--populate-tx`
 
 Generate a raw unsigned transaction object instead of sending it. The output can be inspected, signed externally, or broadcast via another tool.

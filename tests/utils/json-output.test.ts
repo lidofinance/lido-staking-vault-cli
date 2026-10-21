@@ -26,8 +26,12 @@ const makeSandbox = (): string => {
 
 // EL_URL is cleared so the run stays offline and deterministic: the command
 // fails with a known error instead of reaching out to an RPC endpoint.
-const runCli = (cwd: string, args: string[]): string => {
-  const env = { ...process.env, EL_URL: '' };
+const runCli = (
+  cwd: string,
+  args: string[],
+  envOverrides: Record<string, string> = {},
+): string => {
+  const env = { ...process.env, EL_URL: '', ...envOverrides };
   try {
     return execFileSync(process.execPath, [CLI, ...args], {
       cwd,
@@ -77,6 +81,26 @@ describe('--json stdout is machine-readable', () => {
 
       expect(Array.isArray(parsed)).toBe(true);
       expect(parsed.at(-1)?.error).toEqual(expect.any(String));
+    });
+  });
+
+  it('keeps Dashboard read output machine-readable when prompts are not auto-confirmed', () => {
+    withSandbox((cwd) => {
+      const stdout = runCli(
+        cwd,
+        [
+          '--json',
+          'contracts',
+          'dashboard',
+          'r',
+          'info',
+          '0x0000000000000000000000000000000000000001',
+        ],
+        { NODE_ENV: 'production', VITEST: 'false' },
+      );
+
+      expect(stdout.trimStart().startsWith('[')).toBe(true);
+      expect(() => JSON.parse(stdout)).not.toThrow();
     });
   });
 });
