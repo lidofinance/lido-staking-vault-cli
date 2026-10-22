@@ -26,27 +26,31 @@ const makeSandbox = (): string => {
 
 // EL_URL is cleared so the run stays offline and deterministic: the command
 // fails with a known error instead of reaching out to an RPC endpoint.
-const runCli = (
+const runCliWithStatus = (
   cwd: string,
   args: string[],
   envOverrides: Record<string, string> = {},
-): string => {
+): { stdout: string; status: number } => {
   const env = { ...process.env, EL_URL: '', ...envOverrides };
   try {
-    return execFileSync(process.execPath, [CLI, ...args], {
+    const stdout = execFileSync(process.execPath, [CLI, ...args], {
       cwd,
       env,
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'ignore'],
       timeout: 60_000,
     });
+    return { stdout, status: 0 };
   } catch (error) {
     // The CLI exits 1 on error but still writes a complete JSON document.
-    const stdout = (error as { stdout?: string }).stdout;
-    if (typeof stdout === 'string') return stdout;
+    const { stdout, status } = error as { stdout?: string; status?: number };
+    if (typeof stdout === 'string') return { stdout, status: status ?? 1 };
     throw error;
   }
 };
+
+const runCli = (...args: Parameters<typeof runCliWithStatus>): string =>
+  runCliWithStatus(...args).stdout;
 
 const withSandbox = (fn: (cwd: string) => void): void => {
   const sandbox = makeSandbox();
@@ -101,6 +105,31 @@ describe('--json stdout is machine-readable', () => {
 
       expect(stdout.trimStart().startsWith('[')).toBe(true);
       expect(() => JSON.parse(stdout)).not.toThrow();
+    });
+  });
+
+  it('closes the array when a generated read command fails', () => {
+    withSandbox((cwd) => {
+      const { stdout, status } = runCliWithStatus(
+        cwd,
+        [
+          '--json',
+          'contracts',
+          'dashboard',
+          'r',
+          'vault',
+          '0x0000000000000000000000000000000000000001',
+        ],
+        { NODE_ENV: 'production', VITEST: 'false' },
+      );
+      const parsed = JSON.parse(stdout) as { error?: string }[];
+
+      expect(status).not.toBe(0);
+      expect(Array.isArray(parsed)).toBe(true);
+      // The prefix comes from the generated-read error handler
+      expect(parsed.at(-1)?.error).toMatch(
+        /^Error calling function stakingVault: /,
+      );
     });
   });
 });

@@ -9,6 +9,8 @@ const mockIsDashboard = vi.fn();
 const mockGetVaultHubContract = vi.fn();
 const mockGetStakingVaultContract = vi.fn();
 const mockVerifyDashboardAddress = vi.fn();
+const mockIsJsonMode = vi.fn();
+const mockOpts = vi.fn();
 
 vi.mock('features', () => ({
   checkIsDisconnected: mockCheckIsDisconnected,
@@ -24,6 +26,11 @@ vi.mock('utils', () => ({
   callReadMethodSilent: mockCallReadMethodSilent,
   confirmOperation: mockConfirmOperation,
   enterContractAddress: vi.fn(),
+  isJsonMode: mockIsJsonMode,
+}));
+
+vi.mock('command', () => ({
+  program: { opts: mockOpts },
 }));
 
 vi.mock('../../features/vault-operations/dashboard-address-check.js', () => ({
@@ -101,6 +108,8 @@ describe('getDashboardByVault', () => {
     );
     mockGetVaultHubContract.mockResolvedValue({ address: VAULT_HUB });
     mockGetStakingVaultContract.mockResolvedValue({});
+    mockIsJsonMode.mockReturnValue(false);
+    mockOpts.mockReturnValue({ yes: false });
   });
 
   it('resolves the Dashboard from VaultHub when the vault is connected', async () => {
@@ -192,6 +201,32 @@ describe('getDashboardByVault', () => {
       'Vault is not connected to VaultHub',
     );
     expect(mockCallReadMethodSilent).not.toHaveBeenCalled();
+  });
+
+  it('fails closed without prompting for a disconnected vault in --json mode', async () => {
+    const getDashboardByVault = await importSubject();
+
+    state.isDisconnected = true;
+    mockIsJsonMode.mockReturnValue(true);
+
+    await expect(getDashboardByVault(VAULT)).rejects.toThrow(
+      'Use --yes to proceed in --json mode',
+    );
+    expect(mockConfirmOperation).not.toHaveBeenCalled();
+    expect(mockCallReadMethodSilent).not.toHaveBeenCalled();
+  });
+
+  it('proceeds for a disconnected vault in --json mode with --yes', async () => {
+    const getDashboardByVault = await importSubject();
+
+    state.isDisconnected = true;
+    state.vaultConnection = { owner: zeroAddress, vaultIndex: 0n };
+    state.owner = DASHBOARD;
+    mockIsJsonMode.mockReturnValue(true);
+    mockOpts.mockReturnValue({ yes: true });
+
+    await expect(getDashboardByVault(VAULT)).resolves.toBe(DASHBOARD);
+    expect(mockVerifyDashboardAddress).toHaveBeenCalledWith(DASHBOARD, VAULT);
   });
 
   it('does not run the preliminary Dashboard probe for a connected vault', async () => {

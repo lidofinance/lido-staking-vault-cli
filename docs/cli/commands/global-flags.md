@@ -21,6 +21,12 @@ Useful for scripting, piping into `jq`, or integrating with other tools.
 
 When `--json` is used, the Dashboard address check runs automatically and cannot show an interactive prompt. If the check fails, the command exits unless `--skip-dashboard-check` is also set.
 
+The same applies to vaults that are not connected to VaultHub: instead of asking whether to continue, the command exits. Add `--yes` to proceed with a disconnected vault in `--json` mode.
+
+```bash
+yarn start vo r info -v 0x... --json --yes
+```
+
 ## `--populate-tx`
 
 Generate a raw unsigned transaction object instead of sending it. The output can be inspected, signed externally, or broadcast via another tool.

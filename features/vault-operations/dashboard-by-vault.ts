@@ -1,4 +1,5 @@
 import { Address, isAddressEqual, zeroAddress } from 'viem';
+import { program } from 'command';
 
 import {
   DashboardContract,
@@ -12,6 +13,7 @@ import {
   callReadMethodSilent,
   confirmOperation,
   enterContractAddress,
+  isJsonMode,
 } from 'utils';
 import { checkIsDisconnected } from 'features';
 
@@ -33,6 +35,13 @@ export const getDashboardByVault = async (vault: Address) => {
   const isDisconnected = await checkIsDisconnected(vault);
 
   if (isDisconnected) {
+    // --json cannot prompt interactively, so fail closed instead
+    if (isJsonMode() && !program.opts().yes) {
+      throw new Error(
+        'Vault is not connected to VaultHub. Use --yes to proceed in --json mode.',
+      );
+    }
+
     const confirm = await confirmOperation(
       'Vault is not connected to VaultHub. Do you want to continue executing the command?',
     );

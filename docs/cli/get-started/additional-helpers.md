@@ -46,6 +46,8 @@ yarn start contracts dashboard r dashboard-address-by-vault 0x123456789012345678
 
 **Output**: Returns the Dashboard contract address associated with the vault.
 
+The address is resolved from the VaultHub connection, or from the vault owner (or pending owner) when the vault is disconnected, and then goes through the Dashboard address check. For a disconnected vault the command asks whether to continue; with `--json` it exits instead unless `--yes` is set.
+
 ## stVault Information
 
 ### Get stVault Constants
