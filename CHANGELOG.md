@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file.
 - the CLI now verifies the Dashboard address before every Dashboard command: it checks the address is a Dashboard and, for vault-scoped commands, that it belongs to the vault. The check is prompt-gated (`-y`/Enter run it, `n` skips it); a failed check warns (⚠️) which stage failed and offers to exit or proceed at your own risk; with `--yes` it exits unless `--skip-dashboard-check` is set
 - the vault Dashboard is now resolved from the VaultHub connection (or the StakingVault owner when disconnected), including the pending-owner state after a voluntary disconnect
 - with `--json`, a command on a vault that is not connected to VaultHub exits instead of prompting to continue; add `--yes` to proceed
-- `dashboard read address` now resolves the Dashboard through the same full logic (VaultHub connection / owner / pending owner) and verifies it, instead of printing the raw VaultHub connection owner
+- `contracts dashboard read dashboard-address-by-vault` now resolves the Dashboard through the same full logic (VaultHub connection / owner / pending owner) and verifies it, instead of printing the raw VaultHub connection owner
 
 ### Fixed
 
