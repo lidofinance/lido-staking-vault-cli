@@ -37,7 +37,7 @@ let IS_PREV_JSON_LOG = false;
 // program.opts() is empty until commander parses, but logging happens before
 // that (config loading, chain resolution). Fall back to argv so early output
 // does not land on stdout ahead of the JSON.
-const isJsonMode = (): boolean =>
+export const isJsonMode = (): boolean =>
   Boolean(program.opts().json) || process.argv.includes('--json');
 
 export const openJsonLogging = () => {

@@ -25,10 +25,13 @@ import {
   consolidationRequestsAndIncreaseFeeExemption,
   confirmFeeExemptionIncrease,
 } from 'features/consolidation.js';
-import { checkVaultRole, checkIsReportFresh } from 'features';
+import {
+  checkVaultRole,
+  checkIsReportFresh,
+  getDashboardContractChecked,
+} from 'features';
 import { getAccount } from 'providers';
 import { PubkeyMap } from 'utils/consolidation/types.js';
-import { getDashboardContract } from 'contracts';
 
 export const consolidationWrite = consolidation
   .command('write')
@@ -95,7 +98,7 @@ consolidationWrite
 
       const [account, dashboardContract] = await Promise.all([
         getAccount(),
-        getDashboardContract(dashboard),
+        getDashboardContractChecked(dashboard),
       ]);
       const vault = await callReadMethodSilent({
         contract: dashboardContract,
