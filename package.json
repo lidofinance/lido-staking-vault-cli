@@ -53,7 +53,7 @@
     "ipfs-unixfs-importer": "^15.3.2",
     "json-bigint": "^1.0.0",
     "log-update": "^8.0.0",
-    "multiformats": "^13.3.2",
+    "multiformats": "^14.0.5",
     "ox": "^1.7.4",
     "prompts": "^2.4.2",
     "qrcode-terminal": "^0.12.0",
