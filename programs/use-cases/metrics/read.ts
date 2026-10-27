@@ -38,6 +38,26 @@ import {
 
 import { metrics } from './main.js';
 
+// Node Operator Rewards are bounded by the fee on the period's own gross
+// rewards (see getNodeOperatorFeeBreakdown). The bound bites when settledGrowth
+// moves for a reason other than the NO earning something — a fee exemption, a
+// settledGrowth correction, or an unguaranteed deposit sitting in the entrance
+// queue. Surface that instead of letting the capped value read as a plain zero.
+const warnCappedNodeOperatorFee = (periods: string[]) => {
+  if (periods.length === 0) return;
+
+  logInfo(
+    '⚠️ Warning: Node Operator Rewards were capped at the fee on the period gross staking rewards',
+  );
+  logInfo(
+    `Raw settled-growth delta exceeded that bound in ${periods.length} period(s): ${periods.join(', ')}`,
+  );
+  logInfo(
+    'Likely cause: a fee exemption, a settledGrowth correction, or an unguaranteed deposit raised settledGrowth above the vault growth.',
+  );
+  console.info('\n');
+};
+
 const metricsRead = metrics
   .command('read')
   .alias('r')
@@ -53,7 +73,7 @@ metricsRead
   .command('statistic')
   .description('get statistic data for last report')
   .option('-v, --vault <string>', 'vault address')
-  .option('-g, --gateway', 'ipfs gateway url')
+  .option('-g, --gateway <string>', 'ipfs gateway url')
   .action(async ({ vault, gateway }) => {
     const { address: dashboardAddress, vault: vaultAddress } =
       await chooseVaultAndGetDashboard({ vault });
@@ -122,6 +142,12 @@ metricsRead
       ],
       csvPath: csv,
     });
+
+    if (statisticData.nodeOperatorRewardsCapped) {
+      warnCappedNodeOperatorFee([
+        formatTimestamp(reportCurrent.timestamp, 'dd.mm hh:mm', 'UTC'),
+      ]);
+    }
   });
 
 metricsRead
@@ -129,7 +155,7 @@ metricsRead
   .description('get statistic data for N last reports')
   .argument('<count>', 'count of reports', stringToNumber)
   .option('-v, --vault <string>', 'vault address')
-  .option('-g, --gateway', 'ipfs gateway url')
+  .option('-g, --gateway <string>', 'ipfs gateway url')
   .option('--no-utc', 'do not use UTC time zone')
   .action(async (count: number, { vault, gateway, utc }) => {
     const { contract: dashboardContract, vault: vaultAddress } =
@@ -211,6 +237,12 @@ metricsRead
       },
       csvPath: csv,
     });
+
+    warnCappedNodeOperatorFee(
+      nodeOperatorRewards.timestamp
+        .filter((_, i) => nodeOperatorRewards.capped[i])
+        .map((ts) => formatTimestamp(ts, 'dd.mm hh:mm', utc ? 'UTC' : 'local')),
+    );
   });
 
 metricsRead
@@ -218,7 +250,7 @@ metricsRead
   .description('get statistic data for N last reports with full data')
   .argument('<count>', 'count of reports', stringToNumber)
   .option('-v, --vault <string>', 'vault address')
-  .option('-g, --gateway', 'ipfs gateway url')
+  .option('-g, --gateway <string>', 'ipfs gateway url')
   .option('--no-utc', 'do not use UTC time zone')
   .action(async (count: number, { vault, gateway, utc }) => {
     const { contract: dashboardContract, vault: vaultAddress } =
@@ -376,6 +408,12 @@ metricsRead
       },
       csvPath: csv,
     });
+
+    warnCappedNodeOperatorFee(
+      nodeOperatorRewards.timestamp
+        .filter((_, i) => nodeOperatorRewards.capped[i])
+        .map((ts) => formatTimestamp(ts, 'dd.mm hh:mm', utc ? 'UTC' : 'local')),
+    );
   });
 
 metricsRead
@@ -383,7 +421,7 @@ metricsRead
   .description('get report data for Vault from N last reports')
   .argument('<count>', 'count of reports', stringToNumber)
   .option('-v, --vault <string>', 'vault address')
-  .option('-g, --gateway', 'ipfs gateway url')
+  .option('-g, --gateway <string>', 'ipfs gateway url')
   .option('--no-utc', 'do not use UTC time zone')
   .action(async (count: number, { vault, gateway, utc }) => {
     const { vault: vaultAddress } = await chooseVaultAndGetDashboard({ vault });

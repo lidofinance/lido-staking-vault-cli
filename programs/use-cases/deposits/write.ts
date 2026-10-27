@@ -32,6 +32,7 @@ import {
   checkValidatorStageAndStagedBalanceForActivation,
   checkBLSDeposits,
   checkPdgIsPaused,
+  callWriteMethodsWithReportFresh,
 } from 'features';
 import { Deposit, ValidatorTopUp } from 'types';
 import {
@@ -498,7 +499,8 @@ depositsWrite
 
       if (blsCheck) await checkBLSDeposits(vaultContract, deposits);
 
-      await callWriteMethodWithReceipt({
+      await callWriteMethodsWithReportFresh({
+        vault: vaultAddress,
         contract,
         methodName: 'unguaranteedDepositToBeaconChain',
         payload: [deposits],

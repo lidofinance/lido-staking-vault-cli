@@ -136,7 +136,7 @@ The JSON file should contain a mapping of target pubkeys to arrays of source pub
 2. **Role Verification**: Checks that caller has `NODE_OPERATOR_FEE_EXEMPT_ROLE`
 3. **Report Freshness Check**: Validates that a fresh report has been submitted
 4. **Validator Info Retrieval**: Fetches current state of all source and target validators
-5. **Fee Calculation**: Calculates required rewards adjustment (fee exemption) based on consolidation
+5. **Fee Calculation**: Calculates required rewards adjustment (fee exemption) as the sum of `min(balance, effective_balance)` over the source validators — that is what the consensus layer moves to the target. Slashed sources are excluded (the consensus layer skips them, so their balance never reaches the vault); for a source that is not active the CLI asks whether its consolidation was already requested, since only then does its balance still arrive. The exemption is a per-batch delta and is always added; if a recent on-chain exemption with the same amount is found, the CLI shows its transaction hash and asks whether it already covered this batch (retry protection)
 6. **Inactive Validator Filtering**: Automatically removes any inactive validators from the consolidation list
 7. **Confirmation Display**: Shows detailed tables of source and target validators
 8. **Transaction Execution**:

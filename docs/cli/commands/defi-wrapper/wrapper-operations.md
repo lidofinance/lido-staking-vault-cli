@@ -285,6 +285,40 @@ Starts a long-running process that watches for new oracle reports, automatically
 
 For production environments, it is highly recommended to run this command using a process manager (like `pm2` or `systemd`) to ensure it runs continuously and is restarted if it fails.
 
+#### Running under systemd
+
+Do not pass `PRIVATE_KEY` or `ACCOUNT_FILE_PASSWORD` via `Environment=`: unit environment is visible to unprivileged users over D-Bus (`systemctl show`). Use [systemd credentials](https://systemd.io/CREDENTIALS/) with the `_FILE` variables instead:
+
+```ini
+[Service]
+User=lsv
+WorkingDirectory=/opt/lido-staking-vault-cli
+LoadCredential=account-password:/etc/lsv-cli/account-password
+Environment=ACCOUNT_FILE=/opt/lido-staking-vault-cli/wallets/account.json
+Environment=ACCOUNT_FILE_PASSWORD_FILE=%d/account-password
+ExecStart=/usr/bin/yarn start dw uc wo w auto-report <poolAddress>
+Restart=on-failure
+```
+
+- `%d` expands to `$CREDENTIALS_DIRECTORY`; only the path is exposed, not the password
+- `/etc/lsv-cli/account-password` should be owned by root with mode `0600`
+- If a `.env` is also present in `WorkingDirectory`, it must not set `PRIVATE_KEY`, `PRIVATE_KEY_FILE` or `ACCOUNT_FILE_PASSWORD`, otherwise the CLI exits with a conflict error
+
+To keep the password encrypted at rest (TPM or host key):
+
+```bash
+systemd-ask-password -n | systemd-creds encrypt --name=account-password - /etc/credstore.encrypted/account-password
+```
+
+`systemd-ask-password` prompts without echo, so the password does not end up in shell history.
+
+```ini
+LoadCredentialEncrypted=account-password
+Environment=ACCOUNT_FILE_PASSWORD_FILE=%d/account-password
+```
+
+The same works for a raw key via `PRIVATE_KEY_FILE`.
+
 **Arguments:**
 
 - `<poolAddress>`: The contract address of the wrapper pool to monitor.

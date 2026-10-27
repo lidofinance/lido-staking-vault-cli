@@ -1,12 +1,12 @@
 // @ts-check
-import { defineConfig } from 'eslint/config'
-import tseslint from 'typescript-eslint'
-import sonarjs from 'eslint-plugin-sonarjs'
-import unicorn from 'eslint-plugin-unicorn'
-import importX from 'eslint-plugin-import-x'
-import promise from 'eslint-plugin-promise'
-import vitest from '@vitest/eslint-plugin'
-import prettierConfig from 'eslint-config-prettier'
+import { defineConfig } from 'eslint/config';
+import tseslint from 'typescript-eslint';
+import sonarjs from 'eslint-plugin-sonarjs';
+import unicorn from 'eslint-plugin-unicorn';
+import importX from 'eslint-plugin-import-x';
+import promise from 'eslint-plugin-promise';
+import vitest from '@vitest/eslint-plugin';
+import prettierConfig from 'eslint-config-prettier';
 
 export default defineConfig(
   // ── Global ignores ──────────────────────────────────────────────────────────
@@ -165,6 +165,8 @@ export default defineConfig(
       'sonarjs/void-use': 'off',
       // Always-same return is intentional in some callbacks
       'sonarjs/no-invariant-returns': 'off',
+      // Style choice; named cases read better in failure output than test.each rows
+      'sonarjs/parameterized-tests': 'off',
       // Named import style for node built-ins is project convention
       'unicorn/import-style': 'off',
 
@@ -203,7 +205,9 @@ export default defineConfig(
         },
       ],
       'vitest/no-commented-out-tests': 'warn',
-      'vitest/no-done-callback': 'error',
+      // Ported from jest, where any callback param meant `done`. In vitest the
+      // first arg is the TestContext, so this misfires on `async ({ skip })`.
+      'vitest/no-done-callback': 'off',
       'vitest/no-duplicate-hooks': 'error',
       'vitest/no-test-prefixes': 'error',
       'vitest/prefer-called-with': 'off',
@@ -220,4 +224,4 @@ export default defineConfig(
 
   // ── Prettier: must be last (disables conflicting formatting rules) ───────────
   prettierConfig,
-)
+);

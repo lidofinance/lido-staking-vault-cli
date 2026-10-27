@@ -125,6 +125,23 @@ ACCOUNT_FILE_PASSWORD=your_secure_password
 - More secure than plain private keys
 - Compatible with standard Ethereum wallet formats
 
+#### Reading secrets from a file
+
+`PRIVATE_KEY` and `ACCOUNT_FILE_PASSWORD` can be read from a file instead of a variable:
+
+```env
+ACCOUNT_FILE=wallets/account.json
+ACCOUNT_FILE_PASSWORD_FILE=/run/secrets/account-password
+```
+
+- `PRIVATE_KEY_FILE` / `ACCOUNT_FILE_PASSWORD_FILE` point to a file with the secret
+- A single trailing newline is stripped
+- Set either the variable or its `_FILE` counterpart, not both
+- A warning is printed if the file is readable by group/others (use `chmod 600`)
+- Works with systemd credentials and Docker secrets, see [auto-report](../commands/defi-wrapper/wrapper-operations.md#running-under-systemd)
+
+`DEPLOYED`, `CHAIN_ID`, `EL_URL`, `CL_URL`, `ETHERSCAN_API_KEY`, `PRIVATE_KEY(_FILE)`, `ACCOUNT_FILE` and `ACCOUNT_FILE_PASSWORD(_FILE)` can also be set in the process environment, which takes precedence over `.env`.
+
 #### Method 3: WalletConnect (Recommended for signing in external wallet)
 
 ```env

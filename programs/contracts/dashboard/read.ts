@@ -7,9 +7,10 @@ import {
   getDashboardRoles,
   getDashboardHealth,
   getDashboardOverview,
+  getDashboardContractChecked,
+  getDashboardByVault,
   type RoleName,
 } from 'features';
-import { getDashboardContract, getVaultHubContract } from 'contracts';
 import {
   generateReadCommands,
   logResult,
@@ -40,7 +41,7 @@ dashboardRead
   .description('get dashboard base info')
   .argument('<address>', 'dashboard address', stringToAddress)
   .action(async (address: Address) => {
-    const contract = await getDashboardContract(address);
+    const contract = await getDashboardContractChecked(address);
 
     await getDashboardBaseInfo(contract);
   });
@@ -50,7 +51,7 @@ dashboardRead
   .description('get dashboard overview')
   .argument('<address>', 'dashboard address', stringToAddress)
   .action(async (address: Address) => {
-    const contract = await getDashboardContract(address);
+    const contract = await getDashboardContractChecked(address);
     await getDashboardOverview(contract);
   });
 
@@ -59,7 +60,7 @@ dashboardRead
   .description('get dashboard roles')
   .argument('<address>', 'dashboard address', stringToAddress)
   .action(async (address: Address) => {
-    const contract = await getDashboardContract(address);
+    const contract = await getDashboardContractChecked(address);
     await getDashboardRoles(contract);
   });
 
@@ -68,7 +69,7 @@ dashboardRead
   .description('get vault health info')
   .argument('<address>', 'dashboard address', stringToAddress)
   .action(async (address: Address) => {
-    const contract = await getDashboardContract(address);
+    const contract = await getDashboardContractChecked(address);
     await getDashboardHealth(contract);
   });
 
@@ -78,14 +79,10 @@ dashboardRead
   .description('get dashboard address by vault')
   .argument('<vault>', 'vault address', stringToAddress)
   .action(async (vault: Address) => {
-    const vaultHub = await getVaultHubContract();
-    const vaultConnection = await callReadMethodSilent({
-      contract: vaultHub,
-      methodName: 'vaultConnection',
-      payload: [[vault]],
-    });
+    const dashboardAddress = await getDashboardByVault(vault);
+
     logResult({
-      data: [['Dashboard Address', vaultConnection.owner]],
+      data: [['Dashboard Address', dashboardAddress]],
     });
   });
 
@@ -94,7 +91,7 @@ dashboardRead
   .description('get vault address by dashboard')
   .argument('<dashboard>', 'dashboard address', stringToAddress)
   .action(async (dashboard: Address) => {
-    const dashboardContract = await getDashboardContract(dashboard);
+    const dashboardContract = await getDashboardContractChecked(dashboard);
     const vault = await callReadMethodSilent({
       contract: dashboardContract,
       methodName: 'stakingVault',
@@ -111,7 +108,7 @@ dashboardRead
   .description('get pending confirmations')
   .argument('<address>', 'dashboard address', stringToAddress)
   .action(async (address: Address) => {
-    const contract = await getDashboardContract(address);
+    const contract = await getDashboardContractChecked(address);
     const confirmations = await getConfirmationsInfo(
       contract as any,
       contract.abi,
@@ -154,7 +151,7 @@ dashboardRead
   )
   .argument('<address>', 'dashboard address', stringToAddress)
   .action(async (address: Address) => {
-    const contract = await getDashboardContract(address);
+    const contract = await getDashboardContractChecked(address);
     const confirmingRoles = await callReadMethodSilent({
       contract,
       methodName: 'confirmingRoles',
@@ -192,7 +189,7 @@ dashboardRead
 
 generateReadCommands(
   DashboardAbi,
-  getDashboardContract,
+  getDashboardContractChecked,
   dashboardRead,
   readCommandConfig,
 );

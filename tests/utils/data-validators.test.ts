@@ -87,7 +87,7 @@ describe('data-validators', () => {
     const errors = validateAddressesMap({
       test: ['0x0000000000000000000000000000000000000001', '0x123'],
     });
-    expect(errors.length).toBe(1);
+    expect(errors).toHaveLength(1);
     expect(errors[0]).toMatch(/not a valid address/);
   });
 

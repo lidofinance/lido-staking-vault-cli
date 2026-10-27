@@ -51,8 +51,7 @@ export function generateReadCommands<U extends Abi>(
 export function generateReadCommands<T, U extends Abi>(
   abi: U,
   createContractAsync:
-    | ((address: T) => Promise<ReadContract>)
-    | (() => Promise<ReadContract>),
+    ((address: T) => Promise<ReadContract>) | (() => Promise<ReadContract>),
   command: Command,
   commandConfig: ReadProgramCommandConfig<U>,
 ): Command {
@@ -69,8 +68,7 @@ export function generateReadCommands<T, U extends Abi>(
   const isNeedsAddress =
     (
       createContractAsync as
-        | ((address: T) => Promise<ReadContract>)
-        | (() => Promise<ReadContract>)
+        ((address: T) => Promise<ReadContract>) | (() => Promise<ReadContract>)
     ).length === 1;
 
   const methods: string[] = [];
@@ -160,8 +158,14 @@ export function generateReadCommands<T, U extends Abi>(
             })
           : callReadMethod({ contract, methodName: fnName, payload: [] }));
       } catch (error) {
-        console.error(`Error calling function ${fnName}:`, error);
-        process.exit(1);
+        // Rethrow so the top-level handler can close the --json output array;
+        // process.exit here would leave the JSON unterminated.
+        throw new Error(
+          `Error calling function ${fnName}: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+          { cause: error },
+        );
       }
     });
   }

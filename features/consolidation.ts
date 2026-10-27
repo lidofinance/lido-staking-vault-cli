@@ -25,6 +25,12 @@ import {
   getSourceAndTargetPubkeysFromEncodedCall,
   addDummyTargetAndSourceValidator,
   logCancel,
+  findRecentFeeExemptions,
+  formatFeeExemptionMatch,
+  consolidatedBalance,
+  FEE_EXEMPTION_DUPLICATE_LOOKBACK_SEC,
+  FeeExemptionMatch,
+  logError,
 } from 'utils';
 import { DashboardAbi } from 'abi';
 import { TargetAndSourceValidators } from 'utils/consolidation/types.js';
@@ -253,10 +259,13 @@ export const consolidateAndIncreaseFeeExemptionWithoutBatching = async ({
           feePerRequest: feePerRequest,
         });
 
-        currentFeeExemption +=
-          targetAndSourceValidators
-            .get(targetPubkey)
-            ?.sourceValidators.get(sourcePubkey)?.balance ?? 0n;
+        const consolidatedSource = targetAndSourceValidators
+          .get(targetPubkey)
+          ?.sourceValidators.get(sourcePubkey);
+        // same basis as calculateAndConfirmFeeExemption, or the remainder below goes negative
+        currentFeeExemption += consolidatedSource
+          ? consolidatedBalance(consolidatedSource)
+          : 0n;
 
         consolidatedSourcePubkeys.push(sourcePubkey);
       }
@@ -298,46 +307,77 @@ export const consolidateAndIncreaseFeeExemptionWithoutBatching = async ({
   }
 };
 
-export const confirmNewFeeExemption = async (
+// addFeeExemption is a delta (settledGrowth += amount), so every batch needs one;
+// skip is offered only on on-chain evidence that this batch's exemption already landed
+export const confirmFeeExemptionIncrease = async (
   dashboardContract: DashboardContract,
   newFeeExemption: bigint,
-) => {
-  const settledGrowth = await callReadMethodSilent({
+): Promise<{ shouldAddFeeExemption: boolean }> => {
+  if (newFeeExemption === 0n) {
+    return { shouldAddFeeExemption: false };
+  }
+
+  const latestCorrectionTimestamp = await callReadMethodSilent({
     contract: dashboardContract,
-    methodName: 'settledGrowth',
+    methodName: 'latestCorrectionTimestamp',
     payload: [],
   });
 
-  if (settledGrowth < newFeeExemption) {
-    return {
-      isNeedToIncreaseFeeExemption: true,
-      settledGrowth: settledGrowth,
-    };
+  const lookbackStart =
+    BigInt(Math.floor(Date.now() / 1000)) -
+    FEE_EXEMPTION_DUPLICATE_LOOKBACK_SEC;
+
+  // no recent correction — nothing to duplicate
+  if (latestCorrectionTimestamp < lookbackStart) {
+    return { shouldAddFeeExemption: true };
   }
 
-  const confirmNewFeeExemption = await confirmOperation(
-    `Do you want to increase the fee exemption to ${formatEther(newFeeExemption)} ETH?
-    Current settled growth: ${formatEther(settledGrowth)} ETH`,
+  const hideSpinner = showSpinner();
+  let matches: FeeExemptionMatch[] | null = null;
+  try {
+    matches = await findRecentFeeExemptions(
+      dashboardContract.address,
+      newFeeExemption,
+    );
+  } catch (error) {
+    // logError, not printError — printError rethrows and would abort the flow
+    logError('Could not scan recent fee exemptions.');
+    if (error instanceof Error && error.message) logError(error.message);
+  } finally {
+    hideSpinner();
+  }
+
+  if (matches?.length === 0) {
+    return { shouldAddFeeExemption: true };
+  }
+
+  // advisory only: the same RPC could have fabricated it (threat-model A3)
+  const evidence = matches
+    ? `A fee exemption matching this batch amount was already added recently (verify against a block explorer):
+    ${matches.map(formatFeeExemptionMatch).join('\n    ')}`
+    : `Could not scan recent on-chain fee exemptions (RPC error), but a manual settled growth correction happened recently on this vault.`;
+
+  // must stay the first prompt — auto-confirm (--yes / test env) then means "add", not "skip"
+  const addAnyway = await confirmOperation(
+    `${evidence}
+    Node-operator fee is based on vault growth above settled growth, and this call raises settled growth by the exempted amount.
+    If the exemption for THIS SAME consolidation batch was already added, adding it again would raise settled growth twice.
+    If it was not, the consolidated balance stays in the fee base once the consolidation is processed and reported.
+    Add fee exemption of ${formatEther(newFeeExemption)} ETH now?`,
   );
 
-  if (!confirmNewFeeExemption) {
-    const confirmUseSettledGrowth = await confirmOperation(
-      `Do you want to skip increasing fee exemption and use current settled growth?
-      Current settled growth: ${formatEther(settledGrowth)} ETH`,
-    );
-    if (!confirmUseSettledGrowth) {
-      logCancel('The user has canceled the use of settled growth');
-      throw new Error('User cancelled consolidation');
-    }
-
-    return {
-      isNeedToIncreaseFeeExemption: false,
-      settledGrowth: settledGrowth,
-    };
+  if (addAnyway) {
+    return { shouldAddFeeExemption: true };
   }
 
-  return {
-    isNeedToIncreaseFeeExemption: true,
-    settledGrowth: settledGrowth,
-  };
+  const confirmSkip = await confirmOperation(
+    `Skip adding the fee exemption?
+    Unless the exemption for this exact batch was already added, ${formatEther(newFeeExemption)} ETH stays in the node-operator fee base once the consolidation is processed and reported.`,
+  );
+  if (!confirmSkip) {
+    logCancel('The user has canceled the fee exemption decision');
+    throw new Error('User cancelled consolidation');
+  }
+
+  return { shouldAddFeeExemption: false };
 };

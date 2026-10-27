@@ -1,5 +1,6 @@
 import { Address } from 'viem';
 import { getConfig, getDeployed } from 'configs/deployed.js';
+import { PREVIOUS_DASHBOARD_IMPLS } from 'configs/constants.js';
 
 export const getLocatorAddress = (): Address => {
   const deployed = getDeployed();
@@ -42,4 +43,12 @@ export const getDashboardImplAddress = (): Address => {
   const deployed = getDeployed();
 
   return deployed.dashboardImpl.address as Address;
+};
+
+// Current deployed impl plus earlier ones still backing live Dashboards
+export const getDashboardImplAddresses = (): Address[] => {
+  const deployed = getDeployed();
+  const previous = PREVIOUS_DASHBOARD_IMPLS[Number(deployed.networkId)] ?? [];
+
+  return [deployed.dashboardImpl.address as Address, ...previous];
 };

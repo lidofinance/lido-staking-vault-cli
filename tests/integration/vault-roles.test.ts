@@ -23,9 +23,11 @@ describe('Vault Roles Integration Tests', () => {
     }
   });
 
-  test('should get vault roles by dashboard and return valid data', async () => {
+  test('should get vault roles by dashboard and return valid data', async ({
+    skip,
+  }) => {
     // Skip test if no dashboard is found
-    if (!dashboardAddress) return;
+    if (!dashboardAddress) return skip();
 
     const dashboardContract = await getDashboardContract(dashboardAddress);
     const data = await captureLogResult<Record<string, any>>(() =>

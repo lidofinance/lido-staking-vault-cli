@@ -3,6 +3,7 @@ export * from './salt.js';
 export * from './get-value.js';
 export * from './data-validators.js';
 export * from './resolve-path.js';
+export * from './secret-file.js';
 export * from './sleep.js';
 export * from './error-handler.js';
 export * from './get-commands.js';

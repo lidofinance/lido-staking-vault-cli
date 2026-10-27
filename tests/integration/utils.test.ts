@@ -63,9 +63,9 @@ describe('Utils Integration Tests', () => {
     expect(typeof result.quarantine.isActive).toBe('boolean');
   });
 
-  test('should check minting capacity', async () => {
+  test('should check minting capacity', async ({ skip }) => {
     // Skip test if no dashboard is found
-    if (!dashboardAddress) return;
+    if (!dashboardAddress) return skip();
 
     const dashboardContract = await getDashboardContract(dashboardAddress);
     const testAmount = 1000000000000000000n; // 1 ETH in wei
@@ -76,9 +76,9 @@ describe('Utils Integration Tests', () => {
     // Result should be true if capacity is sufficient, false otherwise
   });
 
-  test('should check liability shares', async () => {
+  test('should check liability shares', async ({ skip }) => {
     // Skip test if no dashboard is found
-    if (!dashboardAddress) return;
+    if (!dashboardAddress) return skip();
 
     const dashboardContract = await getDashboardContract(dashboardAddress);
     const testAmount = 1000000000000000000n; // 1 ETH in wei

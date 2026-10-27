@@ -29,9 +29,9 @@ describe('Mint-Burn Integration Tests', () => {
     }
   });
 
-  test('should check allowance for stETH token', async () => {
+  test('should check allowance for stETH token', async ({ skip }) => {
     // Skip test if no dashboard is found
-    if (!dashboardAddress || !dashboardContract) return;
+    if (!dashboardAddress || !dashboardContract) return skip();
 
     const testAmount = 1000000000000000000n; // 1 ETH
 
@@ -69,9 +69,9 @@ describe('Mint-Burn Integration Tests', () => {
     expect(isUndefined || (hasReceipt && hasTx)).toBe(true);
   });
 
-  test('should check allowance for wstETH token', async () => {
+  test('should check allowance for wstETH token', async ({ skip }) => {
     // Skip test if no dashboard is found
-    if (!dashboardAddress || !dashboardContract) return;
+    if (!dashboardAddress || !dashboardContract) return skip();
 
     const testAmount = 1000000000000000000n; // 1 ETH
 
@@ -146,9 +146,9 @@ describe('Mint-Burn Integration Tests', () => {
     expect(isUndefined || (hasReceipt && hasTx)).toBe(true);
   });
 
-  test('should check allowance with populateTx flag', async () => {
+  test('should check allowance with populateTx flag', async ({ skip }) => {
     // Skip test if no dashboard is found
-    if (!dashboardAddress || !dashboardContract) return;
+    if (!dashboardAddress || !dashboardContract) return skip();
 
     const testAmount = 1000000000000000000n; // 1 ETH
 

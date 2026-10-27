@@ -53,7 +53,7 @@ reportRead
   .command('by-vault')
   .description('get report by vault')
   .option('-v, --vault <string>', 'vault address')
-  .option('-g, --gateway', 'ipfs gateway url')
+  .option('-g, --gateway <string>', 'ipfs gateway url')
   .action(async ({ vault, gateway }) => {
     const { vault: vaultAddress } = await chooseVaultAndGetDashboard({ vault });
 
@@ -94,7 +94,7 @@ reportRead
   .command('proof-by-vault')
   .description('get proof by vault')
   .option('-v, --vault <string>', 'vault address')
-  .option('-g, --gateway', 'ipfs gateway url')
+  .option('-g, --gateway <string>', 'ipfs gateway url')
   .action(async ({ vault, gateway }) => {
     const { vault: vaultAddress } = await chooseVaultAndGetDashboard({ vault });
 
@@ -133,7 +133,7 @@ reportRead
 reportRead
   .command('all')
   .description('get all reports')
-  .option('-g, --gateway', 'ipfs gateway url')
+  .option('-g, --gateway <string>', 'ipfs gateway url')
   .action(async ({ gateway }) => {
     const lazyOracleContract = await getLazyOracleContract();
     const [
@@ -167,7 +167,7 @@ reportRead
 reportRead
   .command('check-cid')
   .description('check ipfs CID')
-  .option('-u, --url', 'ipfs gateway url')
+  .option('-u, --url <string>', 'ipfs gateway url')
   .action(async ({ url }) => {
     const lazyOracleContract = await getLazyOracleContract();
     const [

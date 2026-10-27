@@ -1,8 +1,14 @@
 import { Hex, parseGwei } from 'viem';
 
 import { ValidatorsInfo } from '../fetch-cl.js';
+import { bigIntMin } from '../big-int.js';
 
-import { TargetAndSourceValidators } from './types.js';
+import { TargetAndSourceValidators, ValidatorInfo } from './types.js';
+
+// what process_pending_consolidations moves to the target:
+// min(balance, effective_balance), and nothing at all for a slashed source
+export const consolidatedBalance = (info: ValidatorInfo): bigint =>
+  info.slashed ? 0n : bigIntMin(info.balance, info.effectiveBalance);
 
 export const getTargetAndSourceValidatorsInfo = (
   targetPubkeys: Hex[],
@@ -26,6 +32,7 @@ export const getTargetAndSourceValidatorsInfo = (
         effectiveBalance: parseGwei(
           targetValidatorInfo.validator.effective_balance,
         ),
+        slashed: targetValidatorInfo.validator.slashed,
       },
       sourceValidators: new Map(),
     });
@@ -48,6 +55,7 @@ export const getTargetAndSourceValidatorsInfo = (
           effectiveBalance: parseGwei(
             sourceValidatorInfo.validator.effective_balance,
           ),
+          slashed: sourceValidatorInfo.validator.slashed,
         });
     }
   }

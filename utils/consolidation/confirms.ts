@@ -1,7 +1,8 @@
 import { Address, formatEther } from 'viem';
-import { logCancel, confirmOperation } from 'utils';
+import { logCancel, logError, confirmOperation } from 'utils';
 
 import { TargetAndSourceValidators } from './types.js';
+import { consolidatedBalance } from './validator-info.js';
 
 export const confirmToConsolidate = async (
   targetAndSourceValidators: TargetAndSourceValidators,
@@ -30,17 +31,32 @@ export const calculateAndConfirmFeeExemption = async (
 ): Promise<bigint> => {
   let feeExemption = 0n;
 
-  for (const [, { sourceValidators }] of targetAndSourceValidators) {
+  for (const [target, { sourceValidators }] of targetAndSourceValidators) {
     for (const [source, sourceValidatorInfo] of sourceValidators) {
       if (sourceValidatorInfo.status === 'active_ongoing') {
-        feeExemption += sourceValidatorInfo.effectiveBalance;
-      } else {
-        const confirm = await confirmOperation(
-          `Validator with this pubkey ${source} is not in active state. Should we consider its balance for fee exemption?`,
+        feeExemption += consolidatedBalance(sourceValidatorInfo);
+        continue;
+      }
+
+      // a slashed source is skipped by the consensus layer, so nothing reaches the vault
+      if (sourceValidatorInfo.slashed) {
+        logError(
+          `Validator ${source} is slashed: its balance will not reach the vault, so it is not exempted.`,
         );
-        if (confirm) {
-          feeExemption += sourceValidatorInfo.effectiveBalance;
-        }
+        continue;
+      }
+
+      // an exit epoch is set both by an accepted consolidation request and by a
+      // voluntary/triggered exit, and the two need opposite answers here — only the
+      // operator knows which one applies, so ask instead of guessing
+      const confirm = await confirmOperation(
+        `Validator ${source} is not active (status: ${sourceValidatorInfo.status}), balance ${formatEther(sourceValidatorInfo.balance)} ETH.
+    Answer yes only if its consolidation into ${target} was already requested — then that balance still reaches the vault and needs the exemption.
+    Answer no if it is exiting for any other reason — then the balance goes to its own withdrawal credentials and must not be exempted.
+    Count this validator towards the fee exemption?`,
+      );
+      if (confirm) {
+        feeExemption += consolidatedBalance(sourceValidatorInfo);
       }
     }
   }

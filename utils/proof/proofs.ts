@@ -20,7 +20,9 @@ export type SupportedStateView = {
   >;
 }[keyof typeof SupportedFork];
 
-type Validator = ReturnType<SupportedStateView['validators']['getReadonly']>;
+// get(), not getReadonly() — gloas validators is a progressive list, whose view
+// has no getReadonly()
+type Validator = ReturnType<SupportedStateView['validators']['get']>;
 
 export type BeaconHeaderResponse = {
   slot: number;
@@ -60,7 +62,7 @@ export const createStateProof = async (
   if (validatorIndex >= stateView.validators.length)
     throw new Error(`ValidatorIndex ${validatorIndex} out of range`);
 
-  const validator = stateView.validators.getReadonly(Number(validatorIndex));
+  const validator = stateView.validators.get(Number(validatorIndex));
   const gIValidator = stateView.type.getPathInfo([
     'validators',
     Number(validatorIndex),
