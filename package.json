@@ -54,10 +54,10 @@
     "json-bigint": "^1.0.0",
     "log-update": "^8.0.0",
     "multiformats": "^14.0.5",
-    "ox": "^1.8.6",
+    "ox": "^1.8.12",
     "prompts": "^2.4.2",
     "qrcode-terminal": "^0.12.0",
-    "viem": "^2.57.4"
+    "viem": "^2.57.13"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.3",
@@ -74,8 +74,8 @@
     "@types/qrcode-terminal": "^0.12.2",
     "@viem/anvil": "^0.0.10",
     "@vitest/coverage-v8": "^5.0.3",
-    "@vitest/eslint-plugin": "^1.6.27",
-    "eslint": "^10.12.0",
+    "@vitest/eslint-plugin": "^1.6.28",
+    "eslint": "^10.14.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-import-resolver-typescript": "^4.4.5",
     "eslint-plugin-import-x": "^4.17.1",
@@ -86,11 +86,11 @@
     "prettier": "^3.9.10",
     "semantic-release": "^25.0.9",
     "ts-node": "^10.9.2",
-    "tsc-alias": "~1.8.16",
+    "tsc-alias": "~1.9.9",
     "tsconfig-paths": "^4.2.0",
     "tsx": "^4.23.15",
     "typescript": "^5.7.2",
-    "typescript-eslint": "^8.71.1",
+    "typescript-eslint": "^8.72.1",
     "vite": "^8.3.4",
     "vitest": "^5.0.3"
   },
