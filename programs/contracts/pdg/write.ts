@@ -202,6 +202,8 @@ pdgWrite
           ['Pubkey', pubkey],
           ['Child Block Timestamp', childBlockTimestamp],
           ['Withdrawal Credentials', withdrawalCredentials],
+          ['Slot', slot],
+          ['Proposer Index', proposerIndex],
         ],
       });
       logInfo('-----------------------end-----------------------');
@@ -405,6 +407,8 @@ pdgWrite
           ['Child Block Timestamp', childBlockTimestamp],
           ['Withdrawal Credentials', withdrawalCredentials],
           ['Invalid Withdrawal Credentials', invalidWithdrawalCredentials],
+          ['Slot', slot],
+          ['Proposer Index', proposerIndex],
         ],
       });
       logInfo('-----------------------end-----------------------');
