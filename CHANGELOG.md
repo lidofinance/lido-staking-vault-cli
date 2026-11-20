@@ -1,5 +1,11 @@
 All notable changes to this project will be documented in this file.
 
+## 1.10.1
+
+### Fixed
+
+- `pdg-helpers proof`, `pdg-helpers proof-and-check`, `contracts pdg write prove-and-activate` and `contracts pdg write prove-invalid-validator-wc` now print the witness `Slot` and `Proposer Index` along with the proof, so the printout has every `ValidatorWitness` field needed to submit the proof elsewhere (e.g. from a multisig) without fetching the beacon header separately
+
 ## 1.10.0
 
 ### Added

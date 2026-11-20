@@ -109,6 +109,8 @@ predepositGuaranteeHelpers
           ['Pubkey', pubkey],
           ['Child Block Timestamp', childBlockTimestamp],
           ['Withdrawal Credentials', withdrawalCredentials],
+          ['Slot', slot],
+          ['Proposer Index', proposerIndex],
         ],
       });
       logInfo('-----------------------end-----------------------');
@@ -145,8 +147,14 @@ predepositGuaranteeHelpers
     const hideSpinner = showSpinner();
     try {
       const packageProof = await createPDGProof(Number(validatorIndex));
-      const { proof, pubkey, childBlockTimestamp, withdrawalCredentials } =
-        packageProof;
+      const {
+        proof,
+        pubkey,
+        childBlockTimestamp,
+        withdrawalCredentials,
+        slot,
+        proposerIndex,
+      } = packageProof;
 
       logResult({});
       logInfo('----------------------proof----------------------');
@@ -156,6 +164,8 @@ predepositGuaranteeHelpers
           ['Pubkey', pubkey],
           ['Child Block Timestamp', childBlockTimestamp],
           ['Withdrawal Credentials', withdrawalCredentials],
+          ['Slot', slot],
+          ['Proposer Index', proposerIndex],
         ],
       });
       logInfo('-----------------------end-----------------------');

@@ -56,6 +56,8 @@ Creates a Merkle proof for a validator and validates it against the PredepositGu
 - Validator public key
 - Child block timestamp
 - Withdrawal credentials
+- Slot
+- Proposer index
 
 **Use Case:** Test and validate proofs before submitting them in production transactions.
 
